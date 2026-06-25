@@ -7,5 +7,6 @@ members = [
     "colour_math_cairo",
     "colour_math_derive",
     "colour_math_gtk",
+    "epaint",
     "test_gui_gtk",
 ]
