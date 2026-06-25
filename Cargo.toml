@@ -1,0 +1,11 @@
+[workspace]
+
+resolver = "2"
+
+members = [
+    "colour_math",
+    "colour_math_cairo",
+    "colour_math_derive",
+    "colour_math_gtk",
+    "test_gui_gtk",
+]
