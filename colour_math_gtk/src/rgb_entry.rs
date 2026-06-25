@@ -10,7 +10,7 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{HCV, HueConstants, RGB, UnsignedLightLevel};
+use colour_math::{HueConstants, UnsignedLightLevel, HCV, RGB};
 
 use crate::colour::GdkColour;
 use crate::coloured::Colourable;

@@ -2,5 +2,11 @@
 name = "epaint"
 version = "0.1.0"
 edition = "2024"
+authors = ["Peter Williams <pwil3058@bigpond.net.au> <pwil3058@bigpond.net.au"]
 
 [dependencies]
+serde = { version = "1.0.228", features = ["derive"] }
+
+epaint_derive = { path = "../epaint_derive" }
+colour_math = { path = "../colour_math"}
+

@@ -8,7 +8,7 @@ pub mod rgb_entry;
 pub mod colour {
     use pw_gtk_ext::gdk;
 
-    use colour_math::{HCV, LightLevel, ManipulatedColour, RGB};
+    use colour_math::{LightLevel, ManipulatedColour, HCV, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
@@ -94,7 +94,7 @@ pub mod attributes {
         wrapper::*,
     };
 
-    use colour_math::{attr_display, RGB, ScalarAttribute};
+    use colour_math::{attr_display, ScalarAttribute, RGB};
     use colour_math_cairo::{Drawer, Size};
 
     use crate::colour::GdkColour;

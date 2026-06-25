@@ -7,7 +7,7 @@ use std::{
 };
 
 use pw_gtk_ext::{
-    gtk::{self, MessageDialogBuilder, prelude::*},
+    gtk::{self, prelude::*, MessageDialogBuilder},
     gtkx::window::RememberGeometry,
     recollections, sample,
     wrapper::PackableWidgetObject,
@@ -16,14 +16,14 @@ use pw_pathux::expand_home_dir_or_mine;
 
 use colour_math::{
     beigui::hue_wheel::{ColouredShape, Shape},
-    HCV, HueConstants, RGB, ScalarAttribute, Value,
+    HueConstants, ScalarAttribute, Value, HCV, RGB,
 };
 use colour_math_gtk::{
     attributes::ColourAttributeDisplayStackBuilder, colour_edit::ColourEditorBuilder,
     hue_wheel::GtkHueWheelBuilder,
 };
 
-const DEFAULT_CONFIG_DIR_PATH: &str = "~/.config/test_gui_gtk";
+const DEFAULT_CONFIG_DIR_PATH: &str = "~/.config/colour_math_gui_gtk";
 
 const DCDP_OVERRIDE_ENVAR: &str = "COLOUR_MATH_NG_TEST_GUI_GTK_CONFIG_DIR";
 

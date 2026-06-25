@@ -1,14 +1,13 @@
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
+// Copyright (c) Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+use colour_math::{ColourAttributes, ColourBasics};
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+pub mod properties;
+
+pub trait PaintIfce: ColourBasics + ColourAttributes {
+    fn name(&self) -> &str;
+
+    fn notes(&self) -> Option<&str> {
+        None
     }
 }

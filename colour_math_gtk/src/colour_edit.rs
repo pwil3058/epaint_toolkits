@@ -6,7 +6,7 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{hcv::HCV, LightLevel, RGB, ScalarAttribute, Value};
+use colour_math::{hcv::HCV, LightLevel, ScalarAttribute, Value, RGB};
 
 use crate::{
     attributes::{ColourAttributeDisplayStack, ColourAttributeDisplayStackBuilder},
