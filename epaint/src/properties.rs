@@ -36,6 +36,7 @@ pub trait PropertyTypeIfce {
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
     fn str_values(&self) -> Vec<&'static str>;
+    // fn abbrev_value(&self, value: f64) -> &'static str;
 }
 
 #[cfg(test)]
@@ -60,11 +61,11 @@ mod tests {
         Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property,
     )]
     pub enum LightFastness {
-        Excellent,
+        Fugitive,
+        Fair,
         #[default]
         VeryGood,
-        Fair,
-        Fugitive,
+        Excellent,
     }
 
     #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy, PropertyType)]
@@ -75,8 +76,28 @@ mod tests {
 
     #[test]
     fn test_property_type() {
-        let p_type = TestPropertyType::from_str("Transparency");
-        assert_eq!(Ok(TestPropertyType::Transparency), p_type);
+        let p_type = TestPropertyType::from_str("Transparency").unwrap();
+        assert_eq!(TestPropertyType::Transparency, p_type);
+    }
+
+    // Test objects that implement Property
+    #[test]
+    fn test_property_from_f64() {
+        let transparency: Transparency = 1.0.into();
+        assert_eq!(Transparency::Opaque, transparency);
+        assert_eq!(Transparency::SemiOpaque, Into::<Transparency>::into(2.0));
+        assert_eq!(
+            Transparency::SemiTransparent,
+            Into::<Transparency>::into(3.0)
+        );
+        assert_eq!(Transparency::Transparent, Into::<Transparency>::into(4.0));
+        assert_eq!(Transparency::Clear, Into::<Transparency>::into(5.0));
+    }
+
+    #[test]
+    fn test_property_default() {
+        assert_eq!(Transparency::default(), Transparency::Transparent);
+        assert_eq!(LightFastness::default(), LightFastness::VeryGood);
     }
 
     #[test]
@@ -96,15 +117,4 @@ mod tests {
     fn defaults() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
     }
-
-    // #[test]
-    // fn mixture() {
-    //     let mut mixer = PropertyMixer::<Finish>::new();
-    //     assert_eq!(mixer.property(), None);
-    //     mixer.add(Finish::Gloss, 1);
-    //     mixer.add(Finish::Flat, 10);
-    //     assert_eq!(mixer.property(), Some(Finish::Flat));
-    //     mixer.add(Finish::Gloss, 6);
-    //     assert_eq!(mixer.property(), Some(Finish::SemiFlat));
-    // }
 }
