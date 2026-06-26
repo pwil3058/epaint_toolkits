@@ -2,12 +2,7 @@
 
 //! Types to describe paint properties that cannot be derived from their colour.
 
-// use serde::{Deserialize, Serialize};
-use std::fmt::Debug;
 use std::{fmt, str::FromStr};
-
-use epaint_derive::Property;
-use std::marker::PhantomData;
 
 pub trait PropertyConsts:
     FromStr<Err = String> + PartialEq + PartialOrd + Default + fmt::Debug
@@ -29,14 +24,41 @@ pub trait PropertyFns:
     fn value(&self) -> &'static str;
 }
 
-pub trait PropertyIfce: PropertyConsts + PropertyFns {}
+pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy {}
 
-pub trait PropertyTypeIfce {
+pub trait PropertyTypeIfce: Clone + Copy {
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
     fn str_values(&self) -> Vec<&'static str>;
-    // fn abbrev_value(&self, value: f64) -> &'static str;
+}
+
+//#[derive(GenegicProperty, Clone, Copy)]
+pub struct Property<T: PropertyTypeIfce> {
+    pub property_type: T,
+    pub value: f64,
+}
+
+impl<T: PropertyTypeIfce + Copy> Property<T> {
+    pub fn property_type(&self) -> T {
+        self.property_type
+    }
+
+    pub fn name(&self) -> &'static str {
+        self.property_type.name()
+    }
+
+    pub fn prompt(&self) -> &'static str {
+        self.property_type.prompt()
+    }
+
+    pub fn list_header(&self) -> &'static str {
+        self.property_type.list_header()
+    }
+
+    pub fn str_values(&self) -> Vec<&'static str> {
+        self.property_type.str_values()
+    }
 }
 
 #[cfg(test)]
@@ -78,6 +100,8 @@ mod tests {
     fn test_property_type() {
         let p_type = TestPropertyType::from_str("Transparency").unwrap();
         assert_eq!(TestPropertyType::Transparency, p_type);
+        let alt_p_type = TestPropertyType::Transparency;
+        assert_eq!(p_type, alt_p_type)
     }
 
     // Test objects that implement Property
