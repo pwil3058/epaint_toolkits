@@ -43,6 +43,15 @@ pub enum LightFastness {
     Fugitive,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Staining {
+    HighStaining,
+    #[default]
+    ModerateStaining,
+    LowStaining,
+    NonStaining,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PropertyType {
     Transparency,
@@ -166,20 +175,29 @@ impl FromStr for Property {
         let property_type = PropertyType::from_str(type_name).unwrap();
         // TODO: write a declarative macro for this
         let result = match property_type {
-            PropertyType::Transparency => Ok(Self {
-                property_type,
-                value: <Transparency as Into<f64>>::into(Transparency::from_str(
-                    split.next().unwrap(),
-                )?)
-                .into(),
-            }),
-            PropertyType::LightFastness => Ok(Self {
-                property_type,
-                value: <LightFastness as Into<f64>>::into(LightFastness::from_str(
-                    split.next().unwrap(),
-                )?)
-                .into(),
-            }),
+            PropertyType::Transparency => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Transparency::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Transparency as Into<f64>>::into(Transparency::from_str(value)?).into(),
+                })
+            }
+            PropertyType::LightFastness => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    LightFastness::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <LightFastness as Into<f64>>::into(LightFastness::from_str(value)?)
+                        .into(),
+                })
+            }
         };
         debug_assert_eq!(split.next(), None);
         result
@@ -229,6 +247,13 @@ mod tests {
             Ok(Property {
                 property_type: PropertyType::LightFastness,
                 value: 1.0
+            })
+        );
+        assert_eq!(
+            Property::from_str("LightFastness"),
+            Ok(Property {
+                property_type: PropertyType::LightFastness,
+                value: 2.0
             })
         )
     }
