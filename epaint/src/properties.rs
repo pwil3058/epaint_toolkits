@@ -12,6 +12,8 @@ pub trait PropertyConsts:
     const NAME: &'static str;
     const PROMPT: &'static str;
     const LIST_HEADER: &'static str;
+    const VARIANT_STRS: &'static [&'static str];
+    const ABBREV_VARIANT_STRS: &'static [&'static str];
 }
 
 pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
