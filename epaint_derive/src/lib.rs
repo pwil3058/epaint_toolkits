@@ -38,6 +38,8 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let list_header = abbreviate(&enum_name.to_string(), 2);
     let mut abbrev_tokens = vec![];
     let mut full_tokens = vec![];
+    let mut full_variant_tokens = String::new();
+    let mut abbrev_variant_tokens = String::new();
     let mut from_tokens = vec![];
     let mut from_f64_tokens = vec![];
     let mut to_f64_tokens = vec![];
@@ -69,11 +71,13 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     #enum_name::#v_name => #v_abbrev,
                 };
                 abbrev_tokens.push(abbrev_token);
+                abbrev_variant_tokens.push_str(format!("{}, ", v_full).as_str());
 
                 let full_token = quote! {
                     #enum_name::#v_name => #v_full,
                 };
                 full_tokens.push(full_token);
+                full_variant_tokens.push_str(format!("{}, ", v_full).as_str());
 
                 let from_token = quote! {
                     #v_abbrev | #v_full => Ok(#enum_name::#v_name),
@@ -104,6 +108,8 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
             const NAME: &'static str = #name;
             const PROMPT: &'static str = #prompt;
             const LIST_HEADER: &'static str = #list_header;
+            const VARIANT_STRS: &'static [&'static str] = &[#full_variant_tokens];
+            const ABBREV_VARIANT_STRS: &'static [&'static str] = &[#abbrev_variant_tokens];
         }
 
         impl PropertyFns for #enum_name {
