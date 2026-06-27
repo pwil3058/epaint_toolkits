@@ -2,6 +2,8 @@
 
 //! Types to describe paint properties that cannot be derived from their colour.
 
+use epaint_derive::Property;
+use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
 pub trait PropertyConsts:
@@ -12,38 +14,90 @@ pub trait PropertyConsts:
     const LIST_HEADER: &'static str;
 }
 
-pub trait PropertyFns:
-    FromStr<Err = String> + PartialEq + PartialOrd + Default + fmt::Debug
-{
+pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
-    /// Possible property values as strings
-    fn str_values() -> Vec<&'static str>;
     fn abbrev_value(&self) -> &'static str;
     fn value(&self) -> &'static str;
 }
 
-pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy {}
+pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy + FromStr {}
 
-pub trait PropertyTypeIfce: Clone + Copy {
-    fn name(&self) -> &'static str;
-    fn prompt(&self) -> &'static str;
-    fn list_header(&self) -> &'static str;
-    fn str_values(&self) -> Vec<&'static str>;
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Transparency {
+    Clear,
+    #[default]
+    Transparent,
+    SemiTransparent,
+    SemiOpaque,
+    Opaque,
 }
 
-//#[derive(GenegicProperty, Clone, Copy)]
-pub struct Property<T: PropertyTypeIfce> {
-    pub property_type: T,
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum LightFastness {
+    Excellent,
+    #[default]
+    VeryGood,
+    Fair,
+    Fugitive,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+pub enum PropertyType {
+    Transparency,
+    LightFastness,
+}
+
+impl PropertyType {
+    fn name(&self) -> &'static str {
+        match self {
+            Self::Transparency => Transparency::NAME,
+            Self::LightFastness => LightFastness::NAME,
+        }
+    }
+
+    fn prompt(&self) -> &'static str {
+        match self {
+            Self::Transparency => Transparency::PROMPT,
+            Self::LightFastness => LightFastness::PROMPT,
+        }
+    }
+
+    fn list_header(&self) -> &'static str {
+        match self {
+            Self::Transparency => Transparency::PROMPT,
+            Self::LightFastness => LightFastness::PROMPT,
+        }
+    }
+    pub fn value(&self, arg: f64) -> &'static str {
+        match self {
+            Self::Transparency => Transparency::from(arg).value(),
+            Self::LightFastness => LightFastness::from(arg).value(),
+        }
+    }
+}
+
+impl std::str::FromStr for PropertyType {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<PropertyType, String> {
+        match string {
+            "Transparency" => Ok(Self::Transparency),
+            "LightFastness" => Ok(Self::LightFastness),
+            &_ => Err(format!("Unknown property type: {}", string)),
+            // _ => Err(format!("[{}]: Malformed value string HERE", string)),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Property {
+    pub property_type: PropertyType,
     pub value: f64,
 }
 
-impl<T: PropertyTypeIfce + Copy> Property<T> {
-    pub fn property_type(&self) -> T {
-        self.property_type
-    }
-
+impl Property {
     pub fn name(&self) -> &'static str {
         self.property_type.name()
     }
@@ -56,66 +110,144 @@ impl<T: PropertyTypeIfce + Copy> Property<T> {
         self.property_type.list_header()
     }
 
-    pub fn str_values(&self) -> Vec<&'static str> {
-        self.property_type.str_values()
+    pub fn abbrev_value(&self) -> &'static str {
+        match self.property_type {
+            PropertyType::Transparency => Transparency::from(self.value).abbrev_value(),
+            PropertyType::LightFastness => LightFastness::from(self.value).abbrev_value(),
+        }
+    }
+
+    pub fn value(&self) -> &'static str {
+        match self.property_type {
+            PropertyType::Transparency => Transparency::from(self.value).value(),
+            PropertyType::LightFastness => LightFastness::from(self.value).value(),
+        }
+    }
+
+    pub fn property_type(&self) -> PropertyType {
+        self.property_type
+    }
+}
+
+impl PartialEq for Property {
+    fn eq(&self, other: &Self) -> bool {
+        if self.property_type == other.property_type {
+            self.value == other.value
+        } else {
+            false
+        }
+    }
+}
+
+impl Eq for Property {}
+
+impl PartialOrd for Property {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        debug_assert_eq!(
+            self.property_type, other.property_type,
+            "attempt to compare properties of different types"
+        );
+        self.value.partial_cmp(&other.value)
+    }
+}
+
+impl Ord for Property {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl FromStr for Property {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let mut split = string.split("::");
+        let type_name = split.next().unwrap();
+        let property_type = PropertyType::from_str(type_name).unwrap();
+        // TODO: write a declarative macro for this
+        let result = match property_type {
+            PropertyType::Transparency => Ok(Self {
+                property_type,
+                value: <Transparency as Into<f64>>::into(Transparency::from_str(
+                    split.next().unwrap(),
+                )?)
+                .into(),
+            }),
+            PropertyType::LightFastness => Ok(Self {
+                property_type,
+                value: <LightFastness as Into<f64>>::into(LightFastness::from_str(
+                    split.next().unwrap(),
+                )?)
+                .into(),
+            }),
+        };
+        debug_assert_eq!(split.next(), None);
+        result
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use epaint_derive::{Property, PropertyType};
-    use serde::{Deserialize, Serialize};
-
-    #[derive(
-        Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property,
-    )]
-    pub enum Transparency {
-        Opaque,
-        SemiOpaque,
-        SemiTransparent,
-        #[default]
-        Transparent,
-        Clear,
-    }
-
-    #[derive(
-        Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property,
-    )]
-    pub enum LightFastness {
-        Fugitive,
-        Fair,
-        #[default]
-        VeryGood,
-        Excellent,
-    }
-
-    #[derive(Serialize, Deserialize, Debug, PartialEq, Clone, Copy, PropertyType)]
-    pub enum TestPropertyType {
-        Transparency,
-        LightFastness,
-    }
 
     #[test]
     fn test_property_type() {
-        let p_type = TestPropertyType::from_str("Transparency").unwrap();
-        assert_eq!(TestPropertyType::Transparency, p_type);
-        let alt_p_type = TestPropertyType::Transparency;
-        assert_eq!(p_type, alt_p_type)
+        assert_eq!(
+            PropertyType::Transparency,
+            PropertyType::from_str("Transparency").unwrap()
+        );
+        assert_eq!(
+            PropertyType::LightFastness,
+            PropertyType::from_str("LightFastness").unwrap()
+        )
+    }
+
+    #[test]
+    fn test_property_type_real() {
+        assert_eq!(
+            PropertyType::Transparency.value(1.0),
+            Transparency::Clear.value()
+        );
+        assert_eq!(
+            PropertyType::LightFastness.value(1.0),
+            LightFastness::Excellent.value()
+        );
+    }
+
+    #[test]
+    fn test_split() {
+        assert_eq!(
+            "Transparency::Transparent".split("::").next().unwrap(),
+            "Transparency"
+        );
+    }
+
+    #[test]
+    fn test_property_from_string() {
+        assert_eq!(
+            Property::from_str("LightFastness::Excellent"),
+            Ok(Property {
+                property_type: PropertyType::LightFastness,
+                value: 1.0
+            })
+        )
     }
 
     // Test objects that implement Property
     #[test]
     fn test_property_from_f64() {
         let transparency: Transparency = 1.0.into();
-        assert_eq!(Transparency::Opaque, transparency);
-        assert_eq!(Transparency::SemiOpaque, Into::<Transparency>::into(2.0));
+        assert_eq!(Transparency::Clear, transparency);
         assert_eq!(
             Transparency::SemiTransparent,
             Into::<Transparency>::into(3.0)
         );
-        assert_eq!(Transparency::Transparent, Into::<Transparency>::into(4.0));
-        assert_eq!(Transparency::Clear, Into::<Transparency>::into(5.0));
+        assert_eq!(
+            Transparency::SemiTransparent,
+            Into::<Transparency>::into(3.0)
+        );
+        assert_eq!(Transparency::SemiOpaque, Into::<Transparency>::into(4.0));
+        assert_eq!(Transparency::Opaque, Into::<Transparency>::into(5.0));
     }
 
     #[test]
@@ -132,7 +264,7 @@ mod tests {
         for a in ["O", "SO", "ST", "C"].iter() {
             assert_eq!(Transparency::from_str(a).unwrap().abbrev_value(), *a);
         }
-        for a in ["opaque", "semi-opaque", "semi-transparent", "clear"].iter() {
+        for a in ["Opaque", "SemiOpaque", "SemiTransparent", "Clear"].iter() {
             assert_eq!(Transparency::from_str(a).unwrap().value(), *a);
         }
     }

@@ -6,12 +6,12 @@ pub mod properties;
 
 use properties::*;
 
-pub trait PaintIfce<PT: PropertyTypeIfce>: ColourBasics + ColourAttributes {
+pub trait PaintIfce: ColourBasics + ColourAttributes {
     fn name(&self) -> &str;
 
     fn notes(&self) -> Option<&str> {
         None
     }
 
-    fn property_types(&self) -> &[PT];
+    fn properties(&self) -> &[Property];
 }

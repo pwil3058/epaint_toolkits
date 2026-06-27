@@ -2,7 +2,6 @@
 
 extern crate proc_macro;
 
-use heck::KebabCase;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Ident, parse_macro_input};
@@ -60,7 +59,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     }
                 }
                 let v_abbrev = acronym(&v.ident.to_string());
-                let v_full = v.ident.to_string().to_kebab_case();
+                let v_full = v.ident.to_string(); //.to_kebab_case();
                 let token = quote! {
                     #v_full,
                 };
@@ -114,10 +113,6 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
 
             fn list_header(&self) -> &'static str { Self::LIST_HEADER }
 
-            fn str_values() -> Vec<&'static str> {
-                vec![#(#value_tokens)*]
-            }
-
             fn abbrev_value(&self) -> &'static str {
                 match *self {
                     #(#abbrev_tokens)*
@@ -164,120 +159,6 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
         impl std::default::Default for #enum_name {
             fn default() -> Self { #enum_name::#default_value }
         }
-    };
-
-    proc_macro::TokenStream::from(tokens)
-}
-
-#[proc_macro_derive(PropertyType)]
-pub fn property_type_derive(input: TokenStream) -> TokenStream {
-    let parsed_input: DeriveInput = parse_macro_input!(input);
-    let enum_name = parsed_input.ident;
-    let mut name_tokens = vec![];
-    let mut prompt_tokens = vec![];
-    let mut list_header_tokens = vec![];
-    let mut str_values_tokens = vec![];
-    let mut full_tokens = vec![];
-    let mut from_tokens = vec![];
-    let mut from_f64_tokens = vec![];
-    let mut to_f64_tokens = vec![];
-    let mut value_tokens = vec![];
-    let fmt_str = format!("\"{{}}\": Malformed value string");
-    match parsed_input.data {
-        Data::Enum(e) => {
-            let mut count: u64 = 1;
-            for v in e.variants {
-                let v_name = v.ident.clone();
-
-                let v_full = v.ident.to_string().to_kebab_case();
-                let token = quote! {
-                    #v_full,
-                };
-                value_tokens.push(token);
-
-                let name_token = quote! {
-                    #enum_name::#v_name => #v_name::NAME,
-                };
-                name_tokens.push(name_token);
-
-                let prompt_token = quote! {
-                    #enum_name::#v_name => #v_name::PROMPT,
-                };
-                prompt_tokens.push(prompt_token);
-
-                let list_header_token = quote! {
-                    #enum_name::#v_name => #v_name::LIST_HEADER,
-                };
-                list_header_tokens.push(list_header_token);
-
-                let str_value_token = quote! {
-                    #enum_name::#v_name => #v_name::str_values(),
-                };
-                str_values_tokens.push(str_value_token);
-
-                let full_token = quote! {
-                    #enum_name::#v_name => #v_full,
-                };
-                full_tokens.push(full_token);
-
-                let from_token = quote! {
-                    #v_name => Ok(#enum_name::#v_name),
-                };
-                from_tokens.push(from_token);
-
-                let from_f64_token = quote! {
-                    #count => #enum_name::#v_name,
-                };
-                from_f64_tokens.push(from_f64_token);
-
-                let to_f64_token = quote! {
-                    #enum_name::#v_name => #count as f64,
-                };
-                to_f64_tokens.push(to_f64_token);
-
-                count += 1;
-            }
-        }
-        _ => panic!("'Property' can only be derived for enums."),
-    }
-
-    let tokens = quote! {
-        impl PropertyTypeIfce for #enum_name {
-            fn name(&self) -> &'static str {
-                match self {
-                    #(#name_tokens)*
-                }
-            }
-
-            fn prompt(&self) -> &'static str {
-                match self {
-                    #(#prompt_tokens)*
-                }
-            }
-
-            fn list_header(&self) -> &'static str {
-                match self {
-                    #(#list_header_tokens)*
-                }
-            }
-
-            fn str_values(&self) -> Vec<&'static str> {
-               match self {
-                    #(#str_values_tokens)*
-               }
-            }
-       }
-
-       impl std::str::FromStr for #enum_name {
-           type Err = String;
-
-           fn from_str(string: &str) -> Result<#enum_name, String> {
-              match string {
-                   #(#from_tokens)*
-                   _ => Err(format!(#fmt_str, string)),
-               }
-           }
-       }
     };
 
     proc_macro::TokenStream::from(tokens)
