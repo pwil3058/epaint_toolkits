@@ -2,3 +2,4 @@
 
 pub mod paint;
 pub mod properties;
+pub mod watercolour;
