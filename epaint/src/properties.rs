@@ -24,7 +24,7 @@ pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Deb
     fn value(&self) -> &'static str;
 }
 
-pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy + FromStr {}
+pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy + FromStr + Default {}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Transparency {
@@ -61,30 +61,38 @@ pub enum PropertyType {
 }
 
 impl PropertyType {
-    fn name(&self) -> &'static str {
+    pub fn name(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::NAME,
             Self::LightFastness => LightFastness::NAME,
         }
     }
 
-    fn prompt(&self) -> &'static str {
+    pub fn prompt(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::PROMPT,
             Self::LightFastness => LightFastness::PROMPT,
         }
     }
 
-    fn list_header(&self) -> &'static str {
+    pub fn list_header(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::PROMPT,
             Self::LightFastness => LightFastness::PROMPT,
         }
     }
+
     pub fn value(&self, arg: f64) -> &'static str {
         match self {
             Self::Transparency => Transparency::from(arg).value(),
             Self::LightFastness => LightFastness::from(arg).value(),
+        }
+    }
+
+    pub fn default_f64(&self) -> f64 {
+        match self {
+            Self::Transparency => Transparency::default().into(),
+            Self::LightFastness => LightFastness::default().into(),
         }
     }
 }
@@ -97,7 +105,6 @@ impl std::str::FromStr for PropertyType {
             "Transparency" => Ok(Self::Transparency),
             "LightFastness" => Ok(Self::LightFastness),
             &_ => Err(format!("Unknown property type: {}", string)),
-            // _ => Err(format!("[{}]: Malformed value string HERE", string)),
         }
     }
 }
@@ -137,6 +144,10 @@ impl Property {
 
     pub fn property_type(&self) -> PropertyType {
         self.property_type
+    }
+
+    pub fn default_f64(&self) -> f64 {
+        self.property_type.default_f64()
     }
 }
 
@@ -203,6 +214,28 @@ impl FromStr for Property {
         };
         debug_assert_eq!(split.next(), None);
         result
+    }
+}
+
+impl From<(PropertyType, f64)> for Property {
+    fn from((property_type, value): (PropertyType, f64)) -> Self {
+        Self {
+            property_type,
+            value,
+        }
+    }
+}
+
+impl From<(PropertyType, &str)> for Property {
+    fn from((property_type, value): (PropertyType, &str)) -> Self {
+        let variant = match property_type {
+            PropertyType::Transparency => Transparency::from_str(value).unwrap().into(),
+            PropertyType::LightFastness => LightFastness::from_str(value).unwrap().into(),
+        };
+        Self {
+            property_type,
+            value: variant,
+        }
     }
 }
 
