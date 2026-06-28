@@ -6,7 +6,7 @@ use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
 use crate::paint::{HasProperties, PaintIfce, PaintSpec, SeriesId};
-use crate::properties::{Property, PropertyType};
+use crate::properties::PropertyType;
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
 pub struct WaterColour {
@@ -32,17 +32,6 @@ impl From<(PaintSpec, SeriesId)> for WaterColour {
 
 impl HasProperties for WaterColour {
     const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
-
-    fn property_variants(&self) -> Vec<Property> {
-        let mut variants = vec![];
-        for (property_type, value) in
-            Self::property_types().zip(self.property_variants_f64().iter())
-        {
-            let property = Property::from((property_type, *value));
-            variants.push(property);
-        }
-        variants
-    }
 
     fn property_variants_f64(&self) -> Vec<f64> {
         self.variants_64.clone()

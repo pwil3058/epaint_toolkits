@@ -24,6 +24,7 @@ impl SeriesId {
 
 pub trait HasProperties {
     const PROPERTY_TYPES: &'static [PropertyType];
+
     fn property_types() -> impl Iterator<Item = PropertyType> {
         Self::PROPERTY_TYPES.iter().copied()
     }
@@ -46,7 +47,7 @@ pub trait HasProperties {
         properties
     }
 
-    fn property_variants(&self) -> Vec<Property>;
+    // fn property_variants(&self) -> Vec<Property>;
     fn property_variants_f64(&self) -> Vec<f64>;
 }
 
@@ -58,6 +59,17 @@ pub trait PaintIfce:
     fn series_id(&self) -> &SeriesId;
 
     fn notes(&self) -> &str;
+
+    fn property_variants(&self) -> Vec<Property> {
+        let mut variants = vec![];
+        for (property_type, value) in
+            Self::property_types().zip(self.property_variants_f64().iter())
+        {
+            let property = Property::from((property_type, *value));
+            variants.push(property);
+        }
+        variants
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
@@ -98,7 +110,7 @@ mod paint_tests {
     use std::convert::From;
 
     use crate::paint::{HasProperties, PaintIfce, PaintSpec, SeriesId};
-    use crate::properties::{Property, PropertyType};
+    use crate::properties::PropertyType;
     use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math::HueConstants;
@@ -129,15 +141,6 @@ mod paint_tests {
 
     impl HasProperties for TestPaint {
         const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
-
-        fn property_variants(&self) -> Vec<Property> {
-            let mut variants = vec![];
-            for (property_type, value) in Self::property_types().zip(self.variants_64.iter()) {
-                let property = Property::from((property_type, *value));
-                variants.push(property);
-            }
-            variants
-        }
 
         fn property_variants_f64(&self) -> Vec<f64> {
             self.variants_64.clone()
