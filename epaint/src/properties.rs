@@ -57,10 +57,78 @@ pub enum Staining {
     NonStaining,
 }
 
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Finish {
+    Gloss,
+    SemiGloss,
+    SemiFlat,
+    Flat,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Opacity {
+    Opaque,
+    SemiOpaque,
+    SemiTransparent,
+    Transparent,
+    Clear,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Permanence {
+    ExtremelyPermanent,
+    #[default]
+    Permanent,
+    ModeratelyDurable,
+    Fugitive,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Fluorescence {
+    Fluorescent,
+    SemiFluorescent,
+    SemiNonFluorescent,
+    #[default]
+    NonFluorescent,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Metallicness {
+    Metal,
+    Metallic,
+    SemiMetallic,
+    #[default]
+    NonMetallic,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Granulation {
+    Granulating,
+    SomeGranulation,
+    #[default]
+    NonGranulating,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+pub enum Luminescence {
+    Luminescent,
+    SemiLuminescent,
+    #[default]
+    None,
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum PropertyType {
     Transparency,
     LightFastness,
+    Staining,
+    Finish,
+    Opacity,
+    Permanence,
+    Luminescence,
+    Fluorescence,
+    Metallicness,
+    Granulation,
 }
 
 impl PropertyType {
@@ -68,6 +136,14 @@ impl PropertyType {
         match self {
             Self::Transparency => Transparency::NAME,
             Self::LightFastness => LightFastness::NAME,
+            Self::Staining => Staining::NAME,
+            Self::Finish => Finish::NAME,
+            Self::Opacity => Opacity::NAME,
+            Self::Permanence => Permanence::NAME,
+            Self::Luminescence => Luminescence::NAME,
+            Self::Fluorescence => Fluorescence::NAME,
+            Self::Metallicness => Metallicness::NAME,
+            Self::Granulation => Granulation::NAME,
         }
     }
 
@@ -75,6 +151,14 @@ impl PropertyType {
         match self {
             Self::Transparency => Transparency::PROMPT,
             Self::LightFastness => LightFastness::PROMPT,
+            Self::Staining => Staining::PROMPT,
+            Self::Finish => Finish::PROMPT,
+            Self::Opacity => Opacity::PROMPT,
+            Self::Permanence => Permanence::PROMPT,
+            Self::Luminescence => Luminescence::PROMPT,
+            Self::Fluorescence => Fluorescence::PROMPT,
+            Self::Metallicness => Metallicness::PROMPT,
+            Self::Granulation => Granulation::PROMPT,
         }
     }
 
@@ -82,6 +166,14 @@ impl PropertyType {
         match self {
             Self::Transparency => Transparency::PROMPT,
             Self::LightFastness => LightFastness::PROMPT,
+            Self::Staining => Staining::PROMPT,
+            Self::Finish => Finish::PROMPT,
+            Self::Opacity => Opacity::PROMPT,
+            Self::Permanence => Permanence::PROMPT,
+            Self::Luminescence => Luminescence::PROMPT,
+            Self::Fluorescence => Fluorescence::PROMPT,
+            Self::Metallicness => Metallicness::PROMPT,
+            Self::Granulation => Granulation::PROMPT,
         }
     }
 
@@ -89,6 +181,14 @@ impl PropertyType {
         match self {
             Self::Transparency => Transparency::from(arg).value(),
             Self::LightFastness => LightFastness::from(arg).value(),
+            Self::Staining => Staining::from(arg).value(),
+            Self::Finish => Finish::from(arg).value(),
+            Self::Opacity => Opacity::from(arg).value(),
+            Self::Permanence => Permanence::from(arg).value(),
+            Self::Luminescence => Luminescence::from(arg).value(),
+            Self::Fluorescence => Fluorescence::from(arg).value(),
+            Self::Metallicness => Metallicness::from(arg).value(),
+            Self::Granulation => Granulation::from(arg).value(),
         }
     }
 
@@ -96,6 +196,14 @@ impl PropertyType {
         match self {
             Self::Transparency => Transparency::default().into(),
             Self::LightFastness => LightFastness::default().into(),
+            Self::Staining => Staining::default().into(),
+            Self::Finish => Finish::default().into(),
+            Self::Opacity => Opacity::default().into(),
+            Self::Permanence => Permanence::default().into(),
+            Self::Luminescence => Luminescence::default().into(),
+            Self::Fluorescence => Fluorescence::default().into(),
+            Self::Metallicness => Metallicness::default().into(),
+            Self::Granulation => Granulation::default().into(),
         }
     }
 }
@@ -107,6 +215,14 @@ impl std::str::FromStr for PropertyType {
         match string {
             "Transparency" => Ok(Self::Transparency),
             "LightFastness" => Ok(Self::LightFastness),
+            "Staining" => Ok(Self::Staining),
+            "Finish" => Ok(Self::Finish),
+            "Opacity" => Ok(Self::Opacity),
+            "Permanence" => Ok(Self::Permanence),
+            "Luminescence" => Ok(Self::Luminescence),
+            "Fluorescence" => Ok(Self::Fluorescence),
+            "Metallicness" => Ok(Self::Metallicness),
+            "Granulation" => Ok(Self::Granulation),
             &_ => Err(format!("Unknown property type: {}", string)),
         }
     }
@@ -135,6 +251,14 @@ impl Property {
         match self.property_type {
             PropertyType::Transparency => Transparency::from(self.value).abbrev_value(),
             PropertyType::LightFastness => LightFastness::from(self.value).abbrev_value(),
+            PropertyType::Staining => Staining::from(self.value).abbrev_value(),
+            PropertyType::Finish => Finish::from(self.value).abbrev_value(),
+            PropertyType::Opacity => Opacity::from(self.value).abbrev_value(),
+            PropertyType::Permanence => Permanence::from(self.value).abbrev_value(),
+            PropertyType::Luminescence => Luminescence::from(self.value).abbrev_value(),
+            PropertyType::Fluorescence => Fluorescence::from(self.value).abbrev_value(),
+            PropertyType::Granulation => Granulation::from(self.value).abbrev_value(),
+            PropertyType::Metallicness => Metallicness::from(self.value).abbrev_value(),
         }
     }
 
@@ -142,6 +266,14 @@ impl Property {
         match self.property_type {
             PropertyType::Transparency => Transparency::from(self.value).value(),
             PropertyType::LightFastness => LightFastness::from(self.value).value(),
+            PropertyType::Staining => Staining::from(self.value).value(),
+            PropertyType::Finish => Finish::from(self.value).value(),
+            PropertyType::Opacity => Opacity::from(self.value).value(),
+            PropertyType::Permanence => Permanence::from(self.value).value(),
+            PropertyType::Luminescence => Luminescence::from(self.value).value(),
+            PropertyType::Fluorescence => Fluorescence::from(self.value).value(),
+            PropertyType::Metallicness => Metallicness::from(self.value).value(),
+            PropertyType::Granulation => Granulation::from(self.value).value(),
         }
     }
 
@@ -214,6 +346,94 @@ impl FromStr for Property {
                         .into(),
                 })
             }
+            PropertyType::Fluorescence => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Fluorescence::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Fluorescence as Into<f64>>::into(Fluorescence::from_str(value)?).into(),
+                })
+            }
+            PropertyType::Finish => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Finish::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Finish as Into<f64>>::into(Finish::from_str(value)?).into(),
+                })
+            }
+            PropertyType::Staining => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Staining::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Staining as Into<f64>>::into(Staining::from_str(value)?),
+                })
+            }
+            PropertyType::Granulation => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Granulation::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Granulation as Into<f64>>::into(Granulation::from_str(value)?),
+                })
+            }
+            PropertyType::Opacity => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Opacity::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Opacity as Into<f64>>::into(Opacity::from_str(value)?),
+                })
+            }
+            PropertyType::Permanence => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Permanence::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Permanence as Into<f64>>::into(Permanence::from_str(value)?),
+                })
+            }
+            PropertyType::Luminescence => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Luminescence::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Luminescence as Into<f64>>::into(Luminescence::from_str(value)?),
+                })
+            }
+            PropertyType::Metallicness => {
+                let value = if let Some(value) = split.next() {
+                    value
+                } else {
+                    Metallicness::default().value()
+                };
+                Ok(Self {
+                    property_type,
+                    value: <Metallicness as Into<f64>>::into(Metallicness::from_str(value)?),
+                })
+            }
         };
         debug_assert_eq!(split.next(), None);
         result
@@ -234,6 +454,14 @@ impl From<(PropertyType, &str)> for Property {
         let variant = match property_type {
             PropertyType::Transparency => Transparency::from_str(value).unwrap().into(),
             PropertyType::LightFastness => LightFastness::from_str(value).unwrap().into(),
+            PropertyType::Staining => Staining::from_str(value).unwrap().into(),
+            PropertyType::Finish => Finish::from_str(value).unwrap().into(),
+            PropertyType::Opacity => Opacity::from_str(value).unwrap().into(),
+            PropertyType::Permanence => Permanence::from_str(value).unwrap().into(),
+            PropertyType::Luminescence => Luminescence::from_str(value).unwrap().into(),
+            PropertyType::Metallicness => Metallicness::from_str(value).unwrap().into(),
+            PropertyType::Granulation => Granulation::from_str(value).unwrap().into(),
+            PropertyType::Fluorescence => Fluorescence::from_str(value).unwrap().into(),
         };
         Self {
             property_type,
