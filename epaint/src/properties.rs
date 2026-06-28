@@ -24,7 +24,10 @@ pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Deb
     fn value(&self) -> &'static str;
 }
 
-pub trait PropertyIfce: PropertyConsts + PropertyFns + Clone + Copy + FromStr + Default {}
+pub trait PropertyIfce:
+    PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
+{
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Transparency {

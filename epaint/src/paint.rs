@@ -28,7 +28,7 @@ pub trait HasProperties {
         Self::PROPERTY_TYPES.iter().copied()
     }
 
-    fn properties_variants(&self, values: &[&str]) -> Vec<Property> {
+    fn properties_variants_for(&self, values: &[&str]) -> Vec<Property> {
         let mut properties = vec![];
         for (pt, value) in Self::property_types().zip(values) {
             let property = Property::from((pt, *value));
@@ -37,7 +37,7 @@ pub trait HasProperties {
         properties
     }
 
-    fn properties_variants_f64(&self, values: &[f64]) -> Vec<Property> {
+    fn properties_variants_f64_for(&self, values: &[f64]) -> Vec<Property> {
         let mut properties = vec![];
         for (pt, value) in Self::property_types().zip(values) {
             let property = Property::from((pt, *value));
@@ -45,6 +45,9 @@ pub trait HasProperties {
         }
         properties
     }
+
+    fn property_variants(&self) -> Vec<Property>;
+    fn property_variants_f64(&self) -> Vec<f64>;
 }
 
 pub trait PaintIfce:
@@ -96,7 +99,7 @@ mod paint_tests {
     use std::convert::From;
 
     use crate::paint::{HasProperties, PaintSpec, SeriesId};
-    use crate::properties::PropertyType;
+    use crate::properties::{Property, PropertyType};
     use colour_math::HCV;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
@@ -109,6 +112,7 @@ mod paint_tests {
         #[colour]
         colour: HCV,
         notes: String,
+        variants_64: Vec<f64>,
     }
 
     impl From<(PaintSpec, SeriesId)> for TestPaint {
@@ -118,12 +122,26 @@ mod paint_tests {
                 notes: value.0.notes,
                 colour: value.0.colour,
                 series_id: Some(value.1),
+                variants_64: value.0.property_variants.clone(),
             }
         }
     }
 
     impl HasProperties for TestPaint {
         const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
+
+        fn property_variants(&self) -> Vec<Property> {
+            let mut variants = vec![];
+            for (property_type, value) in Self::property_types().zip(self.variants_64.iter()) {
+                let property = Property::from((property_type, *value));
+                variants.push(property);
+            }
+            variants
+        }
+
+        fn property_variants_f64(&self) -> Vec<f64> {
+            self.variants_64.clone()
+        }
     }
 
     impl TestPaint {
@@ -165,10 +183,18 @@ mod paint_tests {
             property_variants: vec![2.0],
         };
         let series_id = SeriesId::new("DS".to_string(), "WC".to_string());
-        let paint: TestPaint = (paint_spec, series_id.clone()).into();
+        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint.colour(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
         assert_eq!(paint.series_id(), Some(series_id));
+        assert_eq!(paint.variants_64, vec![2.0]);
+        for (target, actual) in paint_spec
+            .property_variants
+            .iter()
+            .zip(paint.property_variants_f64().iter())
+        {
+            assert_eq!(target, actual);
+        }
     }
 }
