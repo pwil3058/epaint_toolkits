@@ -51,14 +51,13 @@ pub trait HasProperties {
 }
 
 pub trait PaintIfce:
-    ColourBasics + ColourAttributes + HasProperties + From<(PaintSpec, SeriesId)>
+    ColourBasics + ColourAttributes + HasProperties + From<(PaintSpec, SeriesId)> + ColourBasics
 {
     fn name(&self) -> &str;
+
     fn series_id(&self) -> &SeriesId;
 
-    fn notes(&self) -> Option<&str> {
-        None
-    }
+    fn notes(&self) -> &str;
 }
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
@@ -98,8 +97,9 @@ mod paint_tests {
     use serde::{Deserialize, Serialize};
     use std::convert::From;
 
-    use crate::paint::{HasProperties, PaintSpec, SeriesId};
+    use crate::paint::{HasProperties, PaintIfce, PaintSpec, SeriesId};
     use crate::properties::{Property, PropertyType};
+    use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
@@ -108,7 +108,7 @@ mod paint_tests {
     #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
     pub struct TestPaint {
         name: String,
-        series_id: Option<SeriesId>,
+        series_id: SeriesId,
         #[colour]
         colour: HCV,
         notes: String,
@@ -121,7 +121,7 @@ mod paint_tests {
                 name: value.0.name,
                 notes: value.0.notes,
                 colour: value.0.colour,
-                series_id: Some(value.1),
+                series_id: value.1,
                 variants_64: value.0.property_variants.clone(),
             }
         }
@@ -144,21 +144,17 @@ mod paint_tests {
         }
     }
 
-    impl TestPaint {
-        pub fn colour(&self) -> HCV {
-            self.colour
+    impl PaintIfce for TestPaint {
+        fn name(&self) -> &str {
+            &self.name
         }
 
-        pub fn name(&self) -> String {
-            self.name.to_string()
+        fn notes(&self) -> &str {
+            &self.notes
         }
 
-        pub fn notes(&self) -> String {
-            self.notes.to_string()
-        }
-
-        pub fn series_id(&self) -> Option<SeriesId> {
-            self.series_id.clone()
+        fn series_id(&self) -> &SeriesId {
+            &self.series_id
         }
     }
 
@@ -184,10 +180,10 @@ mod paint_tests {
         };
         let series_id = SeriesId::new("DS".to_string(), "WC".to_string());
         let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
-        assert_eq!(paint.colour(), HCV::RED_MAGENTA);
+        assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
-        assert_eq!(paint.series_id(), Some(series_id));
+        assert_eq!(paint.series_id(), &series_id);
         assert_eq!(paint.variants_64, vec![2.0]);
         for (target, actual) in paint_spec
             .property_variants
