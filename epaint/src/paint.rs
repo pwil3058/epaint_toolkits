@@ -22,7 +22,7 @@ impl SeriesId {
     }
 }
 
-pub trait HasProperties {
+pub trait PropertyTypes {
     const PROPERTY_TYPES: &'static [PropertyType];
 
     fn property_types() -> impl Iterator<Item = PropertyType> {
@@ -52,7 +52,7 @@ pub trait HasProperties {
 }
 
 pub trait PaintIfce:
-    ColourBasics + ColourAttributes + HasProperties + From<(PaintSpec, SeriesId)> + ColourBasics
+    ColourBasics + ColourAttributes + PropertyTypes + From<(PaintSpec, SeriesId)> + ColourBasics
 {
     fn name(&self) -> &str;
 
@@ -109,7 +109,7 @@ mod paint_tests {
     use serde::{Deserialize, Serialize};
     use std::convert::From;
 
-    use crate::paint::{HasProperties, PaintIfce, PaintSpec, SeriesId};
+    use crate::paint::{PaintIfce, PaintSpec, PropertyTypes, SeriesId};
     use crate::properties::PropertyType;
     use colour_math::ColourBasics;
     use colour_math::HCV;
@@ -139,7 +139,7 @@ mod paint_tests {
         }
     }
 
-    impl HasProperties for TestPaint {
+    impl PropertyTypes for TestPaint {
         const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
 
         fn property_variants_f64(&self) -> Vec<f64> {

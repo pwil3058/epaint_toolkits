@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{HasProperties, PaintIfce, PaintSpec, SeriesId};
+use crate::paint::{PaintIfce, PaintSpec, PropertyTypes, SeriesId};
 use crate::properties::PropertyType;
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
@@ -30,7 +30,7 @@ impl From<(PaintSpec, SeriesId)> for WaterColour {
     }
 }
 
-impl HasProperties for WaterColour {
+impl PropertyTypes for WaterColour {
     const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
 
     fn property_variants_f64(&self) -> Vec<f64> {
