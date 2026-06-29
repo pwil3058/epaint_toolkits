@@ -1,26 +1,13 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use serde::{Deserialize, Serialize};
+use std::rc::Rc;
 
 use colour_math::{ColourAttributes, ColourBasics, HCV, LightLevel};
 use colour_math_derive::Colour;
 
 use crate::properties::{Property, PropertyType};
-
-#[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
-pub struct SeriesId {
-    pub(crate) proprietor: String,
-    pub(crate) series_name: String,
-}
-
-impl SeriesId {
-    pub fn new(proprietor: String, series_name: String) -> Self {
-        Self {
-            proprietor,
-            series_name,
-        }
-    }
-}
+use crate::series::*;
 
 pub trait PropertyTypes {
     const PROPERTY_TYPES: &'static [PropertyType];
@@ -56,7 +43,7 @@ pub trait PaintIfce:
 {
     fn name(&self) -> &str;
 
-    fn series_id(&self) -> &SeriesId;
+    fn series_id(&self) -> Rc<SeriesId>;
 
     fn notes(&self) -> &str;
 
@@ -123,6 +110,12 @@ pub struct PaintSpec {
     pub property_variants: Vec<f64>,
 }
 
+impl PartialOrd for PaintSpec {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.name.partial_cmp(&other.name)
+    }
+}
+
 impl PaintSpec {
     pub fn new(
         colour: &impl ColourBasics,
@@ -148,21 +141,21 @@ impl Eq for PaintSpec {}
 
 #[cfg(test)]
 mod paint_tests {
-    use serde::{Deserialize, Serialize};
-    use std::convert::From;
-
-    use crate::paint::{PaintIfce, PaintSpec, PropertyTypes, SeriesId};
+    use crate::paint::{PaintIfce, PaintSpec, PropertyTypes};
     use crate::properties::PropertyType;
+    use crate::series::*;
     use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
     use colour_math_derive::Colour;
+    use std::convert::From;
+    use std::rc::Rc;
 
-    #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
+    #[derive(Debug, Colour, Clone)]
     pub struct TestPaint {
         name: String,
-        series_id: SeriesId,
+        series_id: Rc<SeriesId>,
         #[colour]
         colour: HCV,
         notes: String,
@@ -170,6 +163,7 @@ mod paint_tests {
     }
 
     impl_eq_for_paint!(TestPaint);
+    impl_ord_for_paint!(TestPaint);
 
     impl From<(PaintSpec, SeriesId)> for TestPaint {
         fn from(value: (PaintSpec, SeriesId)) -> Self {
@@ -177,7 +171,7 @@ mod paint_tests {
                 name: value.0.name,
                 notes: value.0.notes,
                 colour: value.0.colour,
-                series_id: value.1,
+                series_id: Rc::new(value.1),
                 variants_64: value.0.property_variants.clone(),
             }
         }
@@ -200,8 +194,8 @@ mod paint_tests {
             &self.notes
         }
 
-        fn series_id(&self) -> &SeriesId {
-            &self.series_id
+        fn series_id(&self) -> Rc<SeriesId> {
+            self.series_id.clone()
         }
     }
 
@@ -230,7 +224,7 @@ mod paint_tests {
         assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
-        assert_eq!(paint.series_id(), &series_id);
+        assert_eq!(*paint.series_id(), series_id);
         assert_eq!(paint.variants_64, vec![2.0]);
         for (target, actual) in paint_spec
             .property_variants
