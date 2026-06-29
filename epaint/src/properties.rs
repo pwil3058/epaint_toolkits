@@ -314,6 +314,20 @@ impl Ord for Property {
     }
 }
 
+macro_rules! prop_from_str_action {
+    ($variant: ident, $property_type: ident, $split: ident) => {{
+        let value = if let Some(value) = $split.next() {
+            value
+        } else {
+            $variant::default().value()
+        };
+        Ok(Self {
+            $property_type,
+            value: <$variant as Into<f64>>::into($variant::from_str(value)?).into(),
+        })
+    }};
+}
+
 impl FromStr for Property {
     type Err = String;
 
@@ -323,117 +337,18 @@ impl FromStr for Property {
         let property_type = PropertyType::from_str(type_name).unwrap();
         // TODO: write a declarative macro for this
         let result = match property_type {
-            PropertyType::Transparency => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Transparency::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Transparency as Into<f64>>::into(Transparency::from_str(value)?).into(),
-                })
-            }
+            PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
             PropertyType::LightFastness => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    LightFastness::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <LightFastness as Into<f64>>::into(LightFastness::from_str(value)?)
-                        .into(),
-                })
+                prop_from_str_action!(LightFastness, property_type, split)
             }
-            PropertyType::Fluorescence => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Fluorescence::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Fluorescence as Into<f64>>::into(Fluorescence::from_str(value)?).into(),
-                })
-            }
-            PropertyType::Finish => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Finish::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Finish as Into<f64>>::into(Finish::from_str(value)?).into(),
-                })
-            }
-            PropertyType::Staining => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Staining::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Staining as Into<f64>>::into(Staining::from_str(value)?),
-                })
-            }
-            PropertyType::Granulation => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Granulation::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Granulation as Into<f64>>::into(Granulation::from_str(value)?),
-                })
-            }
-            PropertyType::Opacity => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Opacity::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Opacity as Into<f64>>::into(Opacity::from_str(value)?),
-                })
-            }
-            PropertyType::Permanence => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Permanence::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Permanence as Into<f64>>::into(Permanence::from_str(value)?),
-                })
-            }
-            PropertyType::Luminescence => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Luminescence::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Luminescence as Into<f64>>::into(Luminescence::from_str(value)?),
-                })
-            }
-            PropertyType::Metallicness => {
-                let value = if let Some(value) = split.next() {
-                    value
-                } else {
-                    Metallicness::default().value()
-                };
-                Ok(Self {
-                    property_type,
-                    value: <Metallicness as Into<f64>>::into(Metallicness::from_str(value)?),
-                })
-            }
+            PropertyType::Fluorescence => prop_from_str_action!(Fluorescence, property_type, split),
+            PropertyType::Finish => prop_from_str_action!(Finish, property_type, split),
+            PropertyType::Staining => prop_from_str_action!(Staining, property_type, split),
+            PropertyType::Opacity => prop_from_str_action!(Opacity, property_type, split),
+            PropertyType::Permanence => prop_from_str_action!(Permanence, property_type, split),
+            PropertyType::Luminescence => prop_from_str_action!(Luminescence, property_type, split),
+            PropertyType::Granulation => prop_from_str_action!(Granulation, property_type, split),
+            PropertyType::Metallicness => prop_from_str_action!(Metallicness, property_type, split),
         };
         debug_assert_eq!(split.next(), None);
         result

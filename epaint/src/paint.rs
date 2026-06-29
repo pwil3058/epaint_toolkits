@@ -72,6 +72,48 @@ pub trait PaintIfce:
     }
 }
 
+#[macro_export]
+macro_rules! impl_eq_for_paint {
+    ($paint:ident) => {
+        impl PartialEq for $paint {
+            fn eq(&self, other: &Self) -> bool {
+                let mut result = false;
+                if self.name == other.name {
+                    result = self.series_id == other.series_id;
+                }
+                result
+            }
+        }
+
+        impl Eq for $paint {}
+    };
+}
+
+#[macro_export]
+macro_rules! impl_ord_for_paint {
+    ($paint:ident) => {
+        impl PartialOrd for $paint {
+            fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+                match self.name.cmp(&other.name) {
+                    std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
+                        std::cmp::Ordering::Equal => Some(std::cmp::Ordering::Equal),
+                        std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
+                        std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
+                    },
+                    std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
+                    std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
+                }
+            }
+        }
+
+        impl Ord for $paint {
+            fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+                self.partial_cmp(other).expect("comparable")
+            }
+        }
+    };
+}
+
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
 pub struct PaintSpec {
     pub name: String,
@@ -117,7 +159,7 @@ mod paint_tests {
     use colour_math::LightLevel;
     use colour_math_derive::Colour;
 
-    #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
+    #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
     pub struct TestPaint {
         name: String,
         series_id: SeriesId,
@@ -126,6 +168,8 @@ mod paint_tests {
         notes: String,
         variants_64: Vec<f64>,
     }
+
+    impl_eq_for_paint!(TestPaint);
 
     impl From<(PaintSpec, SeriesId)> for TestPaint {
         fn from(value: (PaintSpec, SeriesId)) -> Self {

@@ -7,8 +7,9 @@ use colour_math_derive::Colour;
 
 use crate::paint::{PaintIfce, PaintSpec, PropertyTypes, SeriesId};
 use crate::properties::PropertyType;
+use crate::{impl_eq_for_paint, impl_ord_for_paint};
 
-#[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq)]
+#[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct WaterColour {
     name: String,
     series_id: SeriesId,
@@ -17,6 +18,9 @@ pub struct WaterColour {
     notes: String,
     variants_64: Vec<f64>,
 }
+
+impl_eq_for_paint!(WaterColour);
+impl_ord_for_paint!(WaterColour);
 
 impl From<(PaintSpec, SeriesId)> for WaterColour {
     fn from(value: (PaintSpec, SeriesId)) -> Self {
