@@ -117,7 +117,7 @@ pub enum Luminescence {
     None,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 pub enum PropertyType {
     Transparency,
     LightFastness,
@@ -383,6 +383,16 @@ impl From<(PropertyType, &str)> for Property {
             value: variant,
         }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+pub struct FuzzyProperty(f64, PropertyType);
+
+#[derive(Debug)]
+pub struct PropertyMixer {
+    property_type: PropertyType,
+    sum: f64,
+    total_parts: u64,
 }
 
 #[cfg(test)]

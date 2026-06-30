@@ -3,6 +3,7 @@
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
+use colour_math::hue_wheel::MakeColouredShape;
 use colour_math::{ColourAttributes, ColourBasics, HCV, LightLevel};
 use colour_math_derive::Colour;
 
@@ -38,15 +39,15 @@ pub trait PropertyTypes {
     fn property_variants_f64(&self) -> Vec<f64>;
 }
 
-pub trait PaintIfce:
-    ColourBasics + ColourAttributes + PropertyTypes + From<(PaintSpec, SeriesId)> + ColourBasics
-{
+pub trait PaintEssentialsIfce: ColourBasics + ColourAttributes + ColourBasics {
     fn name(&self) -> &str;
 
     fn series_id(&self) -> Rc<SeriesId>;
 
     fn notes(&self) -> &str;
+}
 
+pub trait CompomentPaintIfce: PaintEssentialsIfce + PropertyTypes + MakeColouredShape {
     fn property_variants(&self) -> Vec<Property> {
         let mut variants = vec![];
         for (property_type, value) in
@@ -58,6 +59,8 @@ pub trait PaintIfce:
         variants
     }
 }
+
+pub trait PaintIfce: CompomentPaintIfce + From<(PaintSpec, SeriesId)> {}
 
 #[macro_export]
 macro_rules! impl_eq_for_paint {
@@ -141,7 +144,7 @@ impl Eq for PaintSpec {}
 
 #[cfg(test)]
 mod paint_tests {
-    use crate::paint::{PaintIfce, PaintSpec, PropertyTypes};
+    use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertyTypes};
     use crate::properties::PropertyType;
     use crate::series::*;
     use colour_math::ColourBasics;
@@ -185,7 +188,7 @@ mod paint_tests {
         }
     }
 
-    impl PaintIfce for TestPaint {
+    impl PaintEssentialsIfce for TestPaint {
         fn name(&self) -> &str {
             &self.name
         }

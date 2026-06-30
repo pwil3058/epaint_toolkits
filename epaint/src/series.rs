@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{PaintIfce, PaintSpec};
+use crate::paint::{PaintEssentialsIfce, PaintSpec};
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
@@ -31,12 +31,12 @@ impl fmt::Display for SeriesId {
 }
 
 #[derive(Debug)]
-pub struct PaintSeries<P: PaintIfce> {
+pub struct PaintSeries<P: PaintEssentialsIfce> {
     series_id: Rc<SeriesId>,
     paint_list: Vec<Rc<P>>,
 }
 
-impl<P: PaintIfce + PartialOrd> PaintSeries<P> {
+impl<P: PaintEssentialsIfce + PartialOrd> PaintSeries<P> {
     pub fn new(series_id: &Rc<SeriesId>) -> Self {
         let series_id = series_id.clone();
         Self {
@@ -168,6 +168,14 @@ impl PaintSeriesSpec {
         hasher.write_all(json_text.as_bytes())?;
         Ok(hasher.finish())
     }
+}
+
+pub trait PaintFinder<P: PaintEssentialsIfce> {
+    fn get_paint(
+        &self,
+        paint_id: &str,
+        series_id: Option<&SeriesId>,
+    ) -> Result<Rc<P>, crate::Error>;
 }
 
 #[cfg(test)]

@@ -8,6 +8,7 @@ authors = ["Peter Williams <pwil3058@bigpond.net.au> <pwil3058@bigpond.net.au"]
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 crypto-hash = "0.3.4"
+gcd = "2.3.0"
 
 epaint_derive = { path = "../epaint_derive" }
 colour_math = { path = "../colour_math" }

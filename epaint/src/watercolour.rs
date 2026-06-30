@@ -5,7 +5,7 @@ use std::rc::Rc;
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{PaintIfce, PaintSpec, PropertyTypes};
+use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertyTypes};
 use crate::properties::PropertyType;
 use crate::series::*;
 use crate::{impl_eq_for_paint, impl_ord_for_paint};
@@ -43,7 +43,7 @@ impl PropertyTypes for WaterColour {
     }
 }
 
-impl PaintIfce for WaterColour {
+impl PaintEssentialsIfce for WaterColour {
     fn name(&self) -> &str {
         &self.name
     }

@@ -6,10 +6,19 @@ use std::io;
 
 use serde_json;
 
+pub mod mixtures;
 pub mod paint;
 pub mod properties;
 pub mod series;
 pub mod watercolour;
+
+pub trait TooltipText {
+    fn tooltip_text(&self) -> String;
+}
+
+pub trait LabelText {
+    fn label_text(&self) -> String;
+}
 
 #[derive(Debug)]
 pub enum Error {
