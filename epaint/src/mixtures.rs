@@ -234,27 +234,6 @@ impl<P: CompomentPaintIfce> MixingSession<P> {
     }
 }
 
-impl<P: CompomentPaintIfce> MixingSession<P> {
-    pub fn read<R: Read>(
-        reader: &mut R,
-        series_paint_finder: &Rc<impl PaintFinder<P>>,
-    ) -> Result<Self, crate::Error> {
-        let saved_session = SaveableMixingSession::read(reader)?;
-        let mixing_session = saved_session.mixing_session(series_paint_finder)?;
-        Ok(mixing_session)
-    }
-}
-
-impl<P: CompomentPaintIfce> MixingSession<P> {
-    pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
-        SaveableMixingSession::from(self).write(writer)
-    }
-
-    pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
-        SaveableMixingSession::from(self).digest()
-    }
-}
-
 #[derive(Debug)]
 pub struct MixtureBuilder<P: CompomentPaintIfce> {
     name: String,
@@ -781,7 +760,7 @@ mod test {
         session.add_mixture(&mixture);
         let saveable_session = SaveableMixingSession::from(&session);
         let mut buffer: Vec<u8> = vec![];
-        let digest = session.write(&mut buffer).unwrap();
+        let digest = saveable_session.write(&mut buffer).unwrap();
         let read_session = SaveableMixingSession::read(&mut &buffer[..]).unwrap();
         assert_eq!(digest, read_session.digest().unwrap());
         assert_eq!(session.notes(), read_session.notes());
