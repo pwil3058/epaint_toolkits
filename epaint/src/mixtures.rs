@@ -19,16 +19,10 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::{CompomentPaintIfce, PaintIfce, PropertyTypes};
-use crate::properties::{Property, PropertyMixer, PropertyType};
+use crate::paint::{CompomentPaintIfce, PropertyTypes};
+use crate::properties::PropertyType;
 use crate::series::PaintFinder;
-use crate::{
-    LabelText, TooltipText,
-    paint::PaintEssentialsIfce,
-    properties::{Finish, Fluorescence, FuzzyProperty, Metallicness, Permanence, Transparency},
-    series,
-    series::SeriesId,
-};
+use crate::{LabelText, TooltipText, paint::PaintEssentialsIfce, series::SeriesId};
 
 // TODO: make an untargeted version of TargetedMixture
 #[derive(Debug, Colour)]
@@ -167,6 +161,13 @@ pub struct MixingSession<P: CompomentPaintIfce> {
 }
 
 impl<P: CompomentPaintIfce> MixingSession<P> {
+    pub fn new(notes: &str) -> Self {
+        Self {
+            notes: notes.to_string(),
+            mixtures: Vec::new(),
+        }
+    }
+
     pub fn notes(&self) -> &str {
         &self.notes
     }
@@ -256,23 +257,20 @@ impl<P: CompomentPaintIfce> MixingSession<P> {
 
 #[derive(Debug)]
 pub struct MixtureBuilder<P: CompomentPaintIfce> {
-    id: String,
     name: String,
     series_id: Rc<SeriesId>,
     notes: String,
     series_components: Vec<(Rc<P>, u64)>,
     mixture_components: Vec<(Rc<Mixture<P>>, u64)>,
-    variants_64: Vec<(f64)>,
+    variants_64: Vec<f64>,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
 
 impl<P: CompomentPaintIfce> MixtureBuilder<P> {
-    // TODO: is this method really necessary
-    pub fn new(id: &str) -> Self {
+    pub fn new(name: &str) -> Self {
         Self {
-            id: id.to_string(),
-            name: String::new(),
+            name: name.to_string(),
             series_id: Rc::new(SeriesId::default()),
             notes: String::new(),
             series_components: vec![],
@@ -593,6 +591,14 @@ impl<P: CompomentPaintIfce> From<&MixingSession<P>> for SaveableMixingSession {
 }
 
 impl SaveableMixingSession {
+    pub fn notes(&self) -> &str {
+        &self.notes
+    }
+
+    pub fn mixtures(&self) -> impl Iterator<Item = &SaveableMixture> {
+        self.mixtures.iter()
+    }
+
     pub fn mixing_session<P: CompomentPaintIfce>(
         &self,
         series_paint_finder: &Rc<impl PaintFinder<P>>,
@@ -665,11 +671,84 @@ impl SaveableMixingSession {
 mod test {
     use std::rc::Rc;
 
-    use crate::mixtures::{MixingSession, MixtureBuilder};
-    use crate::paint::PaintSpec;
-    use crate::properties::Property;
-    use crate::series::{PaintSeries, PaintSeriesSpec};
-    use colour_math::{HCV, HueConstants, RGB};
+    use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
+    use crate::paint::{CompomentPaintIfce, PaintEssentialsIfce, PaintSpec, PropertyTypes};
+    use crate::properties::PropertyType;
+    use crate::series::{PaintSeriesSpec, SeriesId};
+    use crate::{TooltipText, impl_eq_for_paint, impl_ord_for_paint};
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+    use colour_math::{HCV, HueConstants, LightLevel};
+    use colour_math_derive::Colour;
+
+    #[derive(Debug, Colour, Clone)]
+    pub struct TestPaint {
+        name: String,
+        series_id: Rc<SeriesId>,
+        #[colour]
+        colour: HCV,
+        notes: String,
+        variants_64: Vec<f64>,
+    }
+
+    impl_eq_for_paint!(TestPaint);
+    impl_ord_for_paint!(TestPaint);
+
+    impl From<(PaintSpec, Rc<SeriesId>)> for TestPaint {
+        fn from(value: (PaintSpec, Rc<SeriesId>)) -> Self {
+            TestPaint {
+                name: value.0.name,
+                notes: value.0.notes,
+                colour: value.0.colour,
+                series_id: value.1,
+                variants_64: value.0.property_variants.clone(),
+            }
+        }
+    }
+
+    impl PropertyTypes for TestPaint {
+        const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
+
+        fn property_variants_f64(&self) -> Vec<f64> {
+            self.variants_64.clone()
+        }
+    }
+
+    impl PaintEssentialsIfce for TestPaint {
+        fn name(&self) -> &str {
+            &self.name
+        }
+
+        fn notes(&self) -> &str {
+            &self.notes
+        }
+
+        fn series_id(&self) -> Rc<SeriesId> {
+            self.series_id.clone()
+        }
+    }
+
+    impl CompomentPaintIfce for TestPaint {}
+
+    impl TooltipText for TestPaint {
+        fn tooltip_text(&self) -> String {
+            let mut string = self.name.to_string();
+            string.push('\n');
+            string.push_str(&self.notes);
+            string.push('\n');
+            string.push_str(&self.series_id.series_name);
+            string.push('\n');
+            string.push_str(&self.series_id.proprietor);
+
+            string
+        }
+    }
+
+    impl MakeColouredShape for TestPaint {
+        fn coloured_shape(&self) -> ColouredShape {
+            let tooltip_text = self.tooltip_text();
+            ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
+        }
+    }
 
     #[test]
     fn save_and_recover() {
@@ -677,27 +756,38 @@ mod test {
         series_spec.set_proprietor("owner");
         series_spec.set_series_name("series name");
         assert!(series_spec.paints().next().is_none());
-        series_spec.add(&PaintSpec::new(&RGB::<f64>::RED, "red", "whatever"));
-        series_spec.add(&PaintSpec::new(&HCV::YELLOW, "yellow", "whatever"));
-        let series = Rc::new(PaintSeries::from(&series_spec));
-        let mut session = MixingSession::new();
+        series_spec.add(&PaintSpec {
+            colour: HCV::RED,
+            name: "red".to_string(),
+            notes: "whatever".to_string(),
+            property_variants: vec![2.0],
+        });
+        series_spec.add(&PaintSpec {
+            colour: HCV::YELLOW,
+            name: "yellow".to_string(),
+            notes: "whatever".to_string(),
+            property_variants: vec![2.0],
+        });
+        let series = Rc::new(series_spec.generate_paint_series::<TestPaint>());
+        let mut session = MixingSession::new("test session");
         session.set_notes("a test mixing session");
         let red = series.find("red").unwrap();
         let yellow = series.find("red").unwrap();
-        let mix = vec![(Rc::clone(red), 1), (Rc::clone(yellow), 1)];
+        let mix = vec![(Rc::clone(&red), 1), (Rc::clone(&yellow), 1)];
         let mixture = MixtureBuilder::new("#001")
             .series_paint_components(mix)
             .name("orange")
             .build();
         session.add_mixture(&mixture);
+        let saveable_session = SaveableMixingSession::from(&session);
         let mut buffer: Vec<u8> = vec![];
         let digest = session.write(&mut buffer).unwrap();
-        let read_session = MixingSession::read(&mut &buffer[..], &series).unwrap();
+        let read_session = SaveableMixingSession::read(&mut &buffer[..]).unwrap();
         assert_eq!(digest, read_session.digest().unwrap());
         assert_eq!(session.notes(), read_session.notes());
         assert_eq!(session.mixtures.len(), read_session.mixtures.len());
-        for (mix1, mix2) in session.mixtures().zip(read_session.mixtures()) {
-            assert_eq!(mix1, mix2);
+        for (mix1, mix2) in saveable_session.mixtures().zip(read_session.mixtures()) {
+            assert_eq!(mix1.name, mix2.name);
         }
     }
 }

@@ -60,7 +60,7 @@ pub trait CompomentPaintIfce: PaintEssentialsIfce + PropertyTypes + MakeColoured
     }
 }
 
-pub trait PaintIfce: CompomentPaintIfce + From<(PaintSpec, SeriesId)> {}
+// pub trait PaintIfce: CompomentPaintIfce + From<(PaintSpec, Rc<SeriesId>)> {}
 
 #[macro_export]
 macro_rules! impl_eq_for_paint {
@@ -113,30 +113,13 @@ pub struct PaintSpec {
     pub property_variants: Vec<f64>,
 }
 
+pub trait GeneratePaint<P: CompomentPaintIfce> {
+    fn generate_paint(&self, series_id: &Rc<SeriesId>) -> P;
+}
+
 impl PartialOrd for PaintSpec {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.name.partial_cmp(&other.name)
-    }
-}
-
-impl PaintSpec {
-    pub fn new(
-        colour: &impl ColourBasics,
-        name: &str,
-        notes: &str,
-        properties: &[PropertyType],
-    ) -> Self {
-        let mut property_variants = vec![];
-        for property in properties {
-            let variant: f64 = property.default_f64();
-            property_variants.push(variant);
-        }
-        Self {
-            colour: colour.hcv(),
-            name: name.to_string(),
-            notes: notes.to_string(),
-            property_variants,
-        }
     }
 }
 
@@ -144,13 +127,17 @@ impl Eq for PaintSpec {}
 
 #[cfg(test)]
 mod paint_tests {
-    use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertyTypes};
+    use crate::TooltipText;
+    use crate::paint::{
+        CompomentPaintIfce, GeneratePaint, PaintEssentialsIfce, PaintSpec, PropertyTypes,
+    };
     use crate::properties::PropertyType;
     use crate::series::*;
     use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
     use colour_math_derive::Colour;
     use std::convert::From;
     use std::rc::Rc;
@@ -168,6 +155,8 @@ mod paint_tests {
     impl_eq_for_paint!(TestPaint);
     impl_ord_for_paint!(TestPaint);
 
+    impl CompomentPaintIfce for TestPaint {}
+
     impl From<(PaintSpec, SeriesId)> for TestPaint {
         fn from(value: (PaintSpec, SeriesId)) -> Self {
             TestPaint {
@@ -176,6 +165,18 @@ mod paint_tests {
                 colour: value.0.colour,
                 series_id: Rc::new(value.1),
                 variants_64: value.0.property_variants.clone(),
+            }
+        }
+    }
+
+    impl GeneratePaint<TestPaint> for PaintSpec {
+        fn generate_paint(&self, series_id: &Rc<SeriesId>) -> TestPaint {
+            TestPaint {
+                name: self.name.to_string(),
+                notes: self.notes.to_string(),
+                colour: self.colour,
+                series_id: Rc::clone(series_id),
+                variants_64: self.property_variants.clone(),
             }
         }
     }
@@ -202,16 +203,48 @@ mod paint_tests {
         }
     }
 
+    impl TooltipText for TestPaint {
+        fn tooltip_text(&self) -> String {
+            let mut string = self.name.to_string();
+            string.push('\n');
+            string.push_str(&self.notes);
+            string.push('\n');
+            string.push_str(&self.series_id.series_name);
+            string.push('\n');
+            string.push_str(&self.series_id.proprietor);
+
+            string
+        }
+    }
+
+    impl MakeColouredShape for TestPaint {
+        fn coloured_shape(&self) -> ColouredShape {
+            let tooltip_text = self.tooltip_text();
+            ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
+        }
+    }
+
     #[test]
-    fn test_paint_spec_default_f64() {
-        let target = PaintSpec {
+    fn test_paint_spec_generate_paint() {
+        let series_id = Rc::new(SeriesId {
+            series_name: "name".to_string(),
+            proprietor: "Proprieter".to_string(),
+        });
+        let target_paint = TestPaint {
             colour: HCV::RED_MAGENTA,
+            series_id: series_id.clone(),
             name: "Red".to_string(),
             notes: "".to_string(),
-            property_variants: vec![2.0],
+            variants_64: vec![2.0],
         };
-        let paint = PaintSpec::new(&HCV::RED_MAGENTA, "Red", "", &[PropertyType::Transparency]);
-        assert_eq!(paint, target);
+        let paint_spec = PaintSpec {
+            colour: HCV::RED_MAGENTA,
+            name: "Red".to_string(),
+            notes: String::new(),
+            property_variants: vec![1.0],
+        };
+        let paint = paint_spec.generate_paint(&series_id);
+        assert_eq!(paint, target_paint);
     }
 
     #[test]

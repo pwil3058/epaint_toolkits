@@ -390,9 +390,9 @@ pub struct FuzzyProperty(f64, PropertyType);
 
 #[derive(Debug)]
 pub struct PropertyMixer {
-    property_type: PropertyType,
-    sum: f64,
-    total_parts: u64,
+    pub property_type: PropertyType,
+    pub sum: f64,
+    pub total_parts: u64,
 }
 
 #[cfg(test)]
