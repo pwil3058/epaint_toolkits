@@ -191,6 +191,21 @@ pub trait PaintFinder<P: PaintEssentialsIfce> {
         series_id: Option<&SeriesId>,
     ) -> Result<Rc<P>, crate::Error>;
 }
+//
+// #[cfg(test)]
+// impl<P: PaintEssentialsIfce> PaintFinder<P> for PaintSeries<P> {
+//     fn get_paint(
+//         &self,
+//         paint_name: &str,
+//         _series_id: Option<&SeriesId>,
+//     ) -> Result<Rc<P>, crate::Error> {
+//         if let Some(paint) = self.find(paint_name) {
+//             Ok(Rc::clone(paint))
+//         } else {
+//             Err(crate::Error::NotFound(paint_name.to_string()))
+//         }
+//     }
+// }
 
 #[cfg(test)]
 mod test {

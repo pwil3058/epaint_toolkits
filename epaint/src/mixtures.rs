@@ -36,7 +36,7 @@ pub struct Mixture<P: PropertiedPaint> {
     notes: String,
     series_id: Rc<SeriesId>,
     property_variants_f64: Vec<f64>,
-    components: Vec<(Paint<P>, u64)>,
+    components: Vec<(Rc<P>, u64)>,
 }
 
 impl<P: PropertiedPaint> Mixture<P> {
@@ -75,7 +75,7 @@ impl<P: PropertiedPaint> Mixture<P> {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &(Paint<P>, u64)> {
+    pub fn components(&self) -> impl Iterator<Item = &(Rc<P>, u64)> {
         self.components.iter()
     }
 }
@@ -174,11 +174,11 @@ impl<P: PropertiedPaint> MixingSession<P> {
 
         for mixture in self.mixtures.iter() {
             for (paint, _parts) in mixture.components.iter() {
-                if let Paint::Paint(series_paint) = paint {
-                    match v.binary_search_by_key(&series_paint.name(), |p: &Rc<P>| p.name()) {
-                        Ok(_) => (),
-                        Err(index) => v.insert(index, Rc::clone(series_paint)),
-                    }
+                match v.binary_search_by_key(&(paint.name(), paint.series_id()), |p: &Rc<P>| {
+                    (p.name(), p.series_id())
+                }) {
+                    Ok(_) => (),
+                    Err(index) => v.insert(index, Rc::clone(paint)),
                 }
             }
         }
@@ -229,7 +229,6 @@ pub struct MixtureBuilder<P: PropertiedPaint> {
     series_id: Rc<SeriesId>,
     notes: String,
     series_components: Vec<(Rc<P>, u64)>,
-    mixture_components: Vec<(Rc<Mixture<P>>, u64)>,
     variants_64: Vec<f64>,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
@@ -242,7 +241,6 @@ impl<P: PropertiedPaint> MixtureBuilder<P> {
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
-            mixture_components: vec![],
             variants_64: vec![],
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
@@ -275,24 +273,10 @@ impl<P: PropertiedPaint> MixtureBuilder<P> {
         self
     }
 
-    pub fn mixed_paint_components(&mut self, components: Vec<(Rc<Mixture<P>>, u64)>) -> &mut Self {
-        self.mixture_components = components;
-        self
-    }
-
-    pub fn mixed_paint_component(&mut self, component: (Rc<Mixture<P>>, u64)) -> &mut Self {
-        self.mixture_components.push(component);
-        self
-    }
-
     pub fn build(&self) -> Rc<Mixture<P>> {
-        debug_assert!((self.series_components.len() + self.mixture_components.len()) > 0);
+        debug_assert!(self.series_components.len() > 0);
         let mut gcd: u64 = 0;
         for (_, parts) in self.series_components.iter() {
-            debug_assert!(*parts > 0);
-            gcd = gcd.gcd(*parts);
-        }
-        for (_, parts) in self.mixture_components.iter() {
             debug_assert!(*parts > 0);
             gcd = gcd.gcd(*parts);
         }
@@ -303,13 +287,7 @@ impl<P: PropertiedPaint> MixtureBuilder<P> {
             let adjusted_parts = *parts / gcd;
             colour_mix.add(&paint.hcv(), adjusted_parts);
             // TODO: handle proerties
-            components.push((Paint::Paint(Rc::clone(paint)), adjusted_parts));
-        }
-        for (paint, parts) in self.mixture_components.iter() {
-            let adjusted_parts = *parts / gcd;
-            colour_mix.add(&paint.hcv(), adjusted_parts);
-            // TODO: handle proerties
-            components.push((Paint::Mixed(Rc::clone(paint)), adjusted_parts));
+            components.push((Rc::clone(paint), adjusted_parts));
         }
         let mp = Mixture::<P> {
             colour: colour_mix.mixed_colour().unwrap(),
@@ -485,29 +463,11 @@ impl<P: PropertiedPaint> PaintEssentialsIfce for Paint<P> {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub enum SaveablePaint {
-    Series(SeriesId, String),
-    Mixed(String),
-}
+pub struct SaveablePaint(SeriesId, String);
 
-impl<P: PropertiedPaint> From<(&Rc<P>, Option<Rc<SeriesId>>)> for SaveablePaint {
-    fn from(pair: (&Rc<P>, Option<Rc<SeriesId>>)) -> Self {
-        SaveablePaint::Series((*pair.0.series_id()).clone(), pair.0.name().to_string())
-    }
-}
-
-impl<P: PropertiedPaint> From<&Rc<Mixture<P>>> for SaveablePaint {
-    fn from(paint: &Rc<Mixture<P>>) -> Self {
-        SaveablePaint::Mixed(paint.name().to_string())
-    }
-}
-
-impl<P: PropertiedPaint> From<&Paint<P>> for SaveablePaint {
-    fn from(paint: &Paint<P>) -> Self {
-        match paint {
-            Paint::Paint(paint) => (paint, None).into(),
-            Paint::Mixed(paint) => paint.into(),
-        }
+impl<P: PropertiedPaint> From<&Rc<P>> for SaveablePaint {
+    fn from(paint: &Rc<P>) -> SaveablePaint {
+        SaveablePaint((*paint.series_id()).clone(), paint.name().to_string())
     }
 }
 
@@ -576,22 +536,9 @@ impl SaveableMixingSession {
                 mixture_builder.targeted_colour(&targeted_colour);
             }
             for saved_component in saved_mixture.components.iter() {
-                match &saved_component.0 {
-                    SaveablePaint::Series(_series_id, id) => {
-                        let paint = series_paint_finder.get_paint(id, None)?;
-                        mixture_builder.series_paint_component((paint, saved_component.1));
-                    }
-                    SaveablePaint::Mixed(name) => {
-                        match mixtures.binary_search_by_key(&name.as_str(), |p| p.name()) {
-                            Ok(index) => {
-                                let paint = mixtures.get(index).expect("binary searched index");
-                                mixture_builder
-                                    .mixed_paint_component((Rc::clone(paint), saved_component.1));
-                            }
-                            Err(_) => return Err(crate::Error::NotFound(name.to_string())),
-                        }
-                    }
-                }
+                let paint = series_paint_finder
+                    .get_paint(&saved_component.0.1, Some(&saved_component.0.0))?;
+                mixture_builder.series_paint_component((paint, saved_component.1));
             }
             let mixture = mixture_builder.build();
             mixtures.push(mixture);
