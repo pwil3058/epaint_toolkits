@@ -19,7 +19,7 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::PropertiedType;
+use crate::paint::PropertiedPaint;
 use crate::properties::PropertyType;
 use crate::series::PaintFinder;
 use crate::{
@@ -28,7 +28,7 @@ use crate::{
 
 // TODO: make an untargeted version of TargetedMixture
 #[derive(Debug, Colour)]
-pub struct Mixture<P: PropertiedType> {
+pub struct Mixture<P: PropertiedPaint> {
     colour: HCV,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
@@ -39,7 +39,7 @@ pub struct Mixture<P: PropertiedType> {
     components: Vec<(Paint<P>, u64)>,
 }
 
-impl<P: PropertiedType> Mixture<P> {
+impl<P: PropertiedPaint> Mixture<P> {
     // #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour {
@@ -82,11 +82,15 @@ impl<P: PropertiedType> Mixture<P> {
 
 impl_paint_essential_ifce!(Mixture, P);
 
-impl<P: PropertiedType> PropertiedType for Mixture<P> {
+impl<P: PropertiedPaint> PropertiedPaint for Mixture<P> {
     const PROPERTY_TYPES: &'static [PropertyType] = P::PROPERTY_TYPES;
+
+    fn property_variants_f64(&self) -> Vec<f64> {
+        self.property_variants_f64.clone()
+    }
 }
 
-impl<P: PropertiedType> TooltipText for Mixture<P> {
+impl<P: PropertiedPaint> TooltipText for Mixture<P> {
     fn tooltip_text(&self) -> String {
         let mut string = self.label_text();
         if !self.notes.is_empty() {
@@ -98,28 +102,28 @@ impl<P: PropertiedType> TooltipText for Mixture<P> {
     }
 }
 
-impl<P: PropertiedType> LabelText for Mixture<P> {
+impl<P: PropertiedPaint> LabelText for Mixture<P> {
     fn label_text(&self) -> String {
         format!("Mix {}", self.name)
     }
 }
 
-impl<P: PropertiedType> MakeColouredShape for Mixture<P> {
+impl<P: PropertiedPaint> MakeColouredShape for Mixture<P> {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Diamond)
     }
 }
 
-impl<P: PropertiedType> PartialEq for Mixture<P> {
+impl<P: PropertiedPaint> PartialEq for Mixture<P> {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name && self.series_id == other.series_id
     }
 }
 
-impl<P: PropertiedType> Eq for Mixture<P> {}
+impl<P: PropertiedPaint> Eq for Mixture<P> {}
 
-impl<P: PropertiedType> PartialOrd for Mixture<P> {
+impl<P: PropertiedPaint> PartialOrd for Mixture<P> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match self.name.cmp(&other.name) {
             Ordering::Less => Some(Ordering::Less),
@@ -133,19 +137,19 @@ impl<P: PropertiedType> PartialOrd for Mixture<P> {
     }
 }
 
-impl<P: PropertiedType> Ord for Mixture<P> {
+impl<P: PropertiedPaint> Ord for Mixture<P> {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
 }
 
 #[derive(Debug)]
-pub struct MixingSession<P: PropertiedType> {
+pub struct MixingSession<P: PropertiedPaint> {
     notes: String,
     mixtures: Vec<Rc<Mixture<P>>>,
 }
 
-impl<P: PropertiedType> MixingSession<P> {
+impl<P: PropertiedPaint> MixingSession<P> {
     pub fn new(notes: &str) -> Self {
         Self {
             notes: notes.to_string(),
@@ -220,7 +224,7 @@ impl<P: PropertiedType> MixingSession<P> {
 }
 
 #[derive(Debug)]
-pub struct MixtureBuilder<P: PropertiedType> {
+pub struct MixtureBuilder<P: PropertiedPaint> {
     name: String,
     series_id: Rc<SeriesId>,
     notes: String,
@@ -231,7 +235,7 @@ pub struct MixtureBuilder<P: PropertiedType> {
     targeted_colour: Option<HCV>,
 }
 
-impl<P: PropertiedType> MixtureBuilder<P> {
+impl<P: PropertiedPaint> MixtureBuilder<P> {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
@@ -324,16 +328,23 @@ impl<P: PropertiedType> MixtureBuilder<P> {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Paint<P: PropertiedType> {
+pub enum Paint<P: PropertiedPaint> {
     Paint(Rc<P>),
     Mixed(Rc<Mixture<P>>),
 }
 
-impl<P: PropertiedType> PropertiedType for Paint<P> {
+impl<P: PropertiedPaint> PropertiedPaint for Paint<P> {
     const PROPERTY_TYPES: &'static [PropertyType] = P::PROPERTY_TYPES;
+
+    fn property_variants_f64(&self) -> Vec<f64> {
+        match self {
+            Paint::Paint(paint) => paint.property_variants_f64(),
+            Paint::Mixed(paint) => paint.property_variants_f64(),
+        }
+    }
 }
 
-impl<P: PropertiedType + MakeColouredShape> MakeColouredShape for Paint<P> {
+impl<P: PropertiedPaint + MakeColouredShape> MakeColouredShape for Paint<P> {
     fn coloured_shape(&self) -> ColouredShape {
         match self {
             Paint::Paint(paint) => paint.coloured_shape(),
@@ -342,7 +353,7 @@ impl<P: PropertiedType + MakeColouredShape> MakeColouredShape for Paint<P> {
     }
 }
 
-impl<P: PropertiedType> ColourBasics for Paint<P> {
+impl<P: PropertiedPaint> ColourBasics for Paint<P> {
     fn hue(&self) -> Option<Hue> {
         match self {
             Paint::Paint(paint) => paint.hue(),
@@ -449,9 +460,9 @@ impl<P: PropertiedType> ColourBasics for Paint<P> {
     }
 }
 
-impl<P: PropertiedType> ColourAttributes for Paint<P> {}
+impl<P: PropertiedPaint> ColourAttributes for Paint<P> {}
 
-impl<P: PropertiedType> PaintEssentialsIfce for Paint<P> {
+impl<P: PropertiedPaint> PaintEssentialsIfce for Paint<P> {
     fn name(&self) -> &str {
         match self {
             Paint::Paint(paint) => paint.name(),
@@ -471,13 +482,6 @@ impl<P: PropertiedType> PaintEssentialsIfce for Paint<P> {
             Paint::Mixed(paint) => paint.notes(),
         }
     }
-
-    fn property_variants_f64(&self) -> Vec<f64> {
-        match self {
-            Paint::Paint(paint) => paint.property_variants_f64(),
-            Paint::Mixed(paint) => paint.property_variants_f64(),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -486,19 +490,19 @@ pub enum SaveablePaint {
     Mixed(String),
 }
 
-impl<P: PropertiedType> From<(&Rc<P>, Option<Rc<SeriesId>>)> for SaveablePaint {
+impl<P: PropertiedPaint> From<(&Rc<P>, Option<Rc<SeriesId>>)> for SaveablePaint {
     fn from(pair: (&Rc<P>, Option<Rc<SeriesId>>)) -> Self {
         SaveablePaint::Series((*pair.0.series_id()).clone(), pair.0.name().to_string())
     }
 }
 
-impl<P: PropertiedType> From<&Rc<Mixture<P>>> for SaveablePaint {
+impl<P: PropertiedPaint> From<&Rc<Mixture<P>>> for SaveablePaint {
     fn from(paint: &Rc<Mixture<P>>) -> Self {
         SaveablePaint::Mixed(paint.name().to_string())
     }
 }
 
-impl<P: PropertiedType> From<&Paint<P>> for SaveablePaint {
+impl<P: PropertiedPaint> From<&Paint<P>> for SaveablePaint {
     fn from(paint: &Paint<P>) -> Self {
         match paint {
             Paint::Paint(paint) => (paint, None).into(),
@@ -516,7 +520,7 @@ pub struct SaveableMixture {
     components: Vec<(SaveablePaint, u64)>,
 }
 
-impl<P: PropertiedType> From<&Rc<Mixture<P>>> for SaveableMixture {
+impl<P: PropertiedPaint> From<&Rc<Mixture<P>>> for SaveableMixture {
     fn from(rcmp: &Rc<Mixture<P>>) -> Self {
         let components = rcmp
             .components
@@ -539,7 +543,7 @@ pub struct SaveableMixingSession {
     mixtures: Vec<SaveableMixture>,
 }
 
-impl<P: PropertiedType> From<&MixingSession<P>> for SaveableMixingSession {
+impl<P: PropertiedPaint> From<&MixingSession<P>> for SaveableMixingSession {
     fn from(session: &MixingSession<P>) -> Self {
         let mixtures = session.mixtures.iter().map(SaveableMixture::from).collect();
         Self {
@@ -558,7 +562,7 @@ impl SaveableMixingSession {
         self.mixtures.iter()
     }
 
-    pub fn mixing_session<P: PropertiedType>(
+    pub fn mixing_session<P: PropertiedPaint>(
         &self,
         series_paint_finder: &Rc<impl PaintFinder<P>>,
     ) -> Result<MixingSession<P>, crate::Error> {

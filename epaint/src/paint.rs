@@ -13,26 +13,6 @@ pub trait PaintEssentialsIfce: ColourBasics + ColourAttributes + ColourBasics {
     fn name(&self) -> &str;
     fn series_id(&self) -> Rc<SeriesId>;
     fn notes(&self) -> &str;
-    fn property_variants_f64(&self) -> Vec<f64>;
-}
-
-pub trait PropertiedType: PaintEssentialsIfce {
-    const PROPERTY_TYPES: &'static [PropertyType];
-
-    fn property_types() -> impl Iterator<Item = PropertyType> {
-        Self::PROPERTY_TYPES.iter().copied()
-    }
-
-    fn properties(&self) -> Vec<Property> {
-        let mut properties = vec![];
-        for (property_type, variant_f64) in
-            Self::property_types().zip(self.property_variants_f64().iter())
-        {
-            let property = Property::from((property_type, *variant_f64));
-            properties.push(property);
-        }
-        properties
-    }
 }
 
 #[macro_export]
@@ -50,14 +30,10 @@ macro_rules! impl_paint_essential_ifce {
             fn notes(&self) -> &str {
                 &self.notes
             }
-
-            fn property_variants_f64(&self) -> Vec<f64> {
-                self.property_variants_f64.clone()
-            }
         }
     };
     ($paint:ident, $type:ident) => {
-        impl<$type: PropertiedType> PaintEssentialsIfce for $paint<$type> {
+        impl<$type: PropertiedPaint> PaintEssentialsIfce for $paint<$type> {
             fn name(&self) -> &str {
                 &self.name
             }
@@ -69,10 +45,74 @@ macro_rules! impl_paint_essential_ifce {
             fn notes(&self) -> &str {
                 &self.notes
             }
+        }
+    };
+}
+
+pub trait PropertiedPaint: PaintEssentialsIfce {
+    const PROPERTY_TYPES: &'static [PropertyType];
+
+    fn property_types() -> impl Iterator<Item = PropertyType> {
+        Self::PROPERTY_TYPES.iter().copied()
+    }
+
+    fn properties(&self) -> Vec<Property> {
+        let mut properties = vec![];
+        for (property_type, variant_f64) in
+            Self::property_types().zip(self.property_variants_f64().iter())
+        {
+            let property = Property::from((property_type, *variant_f64));
+            properties.push(property);
+        }
+        properties
+    }
+
+    fn property_variants_f64(&self) -> Vec<f64>;
+}
+
+#[macro_export]
+macro_rules! implement_propertied_paint {
+    ($paint:ident, $propertypes:expr) => {
+        impl PropertiedPaint for $paint {
+            const PROPERTY_TYPES: &'static [PropertyType] = $propertypes;
 
             fn property_variants_f64(&self) -> Vec<f64> {
                 self.property_variants_f64.clone()
             }
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! realize_propertied_paint {
+    ($name:ident, $propertypes:expr) => {
+        crate::declare_propertied_paint_struct!($name);
+        impl_paint_essential_ifce!($name);
+        implement_propertied_paint!($name, $propertypes);
+        crate::impl_eq_for_paint!($name);
+        crate::impl_ord_for_paint!($name);
+        crate::impl_from_paint_spec!($name);
+    };
+}
+
+crate::declare_propertied_paint_struct!(WaterColour);
+impl_paint_essential_ifce!(WaterColour);
+implement_propertied_paint!(WaterColour, &[PropertyType::Transparency]);
+crate::impl_eq_for_paint!(WaterColour);
+crate::impl_ord_for_paint!(WaterColour);
+crate::impl_from_paint_spec!(WaterColour);
+
+#[macro_export]
+macro_rules! declare_propertied_paint_struct {
+    ($name:ident) => {
+        #[derive(Debug, Colour, Clone)]
+        pub struct $name {
+            name: String,
+            series_id: Rc<SeriesId>,
+            #[colour]
+            colour: HCV,
+            notes: String,
+            property_variants_f64: Vec<f64>,
         }
     };
 }
@@ -176,7 +216,7 @@ macro_rules! impl_into_paint_spec {
 #[cfg(test)]
 mod paint_tests {
     use crate::TooltipText;
-    use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedType};
+    use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
     use crate::properties::PropertyType;
     use crate::series::*;
     use colour_math::ColourBasics;
@@ -188,25 +228,8 @@ mod paint_tests {
     use std::convert::From;
     use std::rc::Rc;
 
-    #[derive(Debug, Colour, Clone)]
-    pub struct TestPaint {
-        name: String,
-        series_id: Rc<SeriesId>,
-        #[colour]
-        colour: HCV,
-        notes: String,
-        property_variants_f64: Vec<f64>,
-    }
-
-    impl_eq_for_paint!(TestPaint);
-    impl_ord_for_paint!(TestPaint);
-    impl_paint_essential_ifce!(TestPaint);
-    impl_from_paint_spec!(TestPaint);
+    realize_propertied_paint!(TestPaint, &[PropertyType::Transparency]);
     impl_into_paint_spec!(TestPaint);
-
-    impl PropertiedType for TestPaint {
-        const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
-    }
 
     impl TooltipText for TestPaint {
         fn tooltip_text(&self) -> String {

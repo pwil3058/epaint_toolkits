@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedType};
+use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
@@ -142,7 +142,7 @@ impl PaintSeriesSpec {
         true
     }
 
-    pub fn generate_paint_series<P: PropertiedType>(&self) -> PaintSeries<P> {
+    pub fn generate_paint_series<P: PropertiedPaint>(&self) -> PaintSeries<P> {
         debug_assert!(self.is_sorted_unique());
         let series_id = Rc::new(self.series_id.clone());
         let paint_list = Vec::new();

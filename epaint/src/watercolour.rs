@@ -5,29 +5,17 @@ use std::rc::Rc;
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedType};
+use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
 use crate::properties::PropertyType;
 use crate::series::*;
 use crate::{
-    impl_eq_for_paint, impl_from_paint_spec, impl_ord_for_paint, impl_paint_essential_ifce,
+    declare_propertied_paint_struct, impl_eq_for_paint, impl_from_paint_spec, impl_ord_for_paint,
+    impl_paint_essential_ifce, implement_propertied_paint,
 };
 
-#[derive(Debug, Colour, Clone)]
-pub struct WaterColour {
-    name: String,
-    series_id: Rc<SeriesId>,
-    #[colour]
-    colour: HCV,
-    notes: String,
-    property_variants_f64: Vec<f64>,
-}
-
+declare_propertied_paint_struct!(WaterColour);
+impl_paint_essential_ifce!(WaterColour);
+implement_propertied_paint!(WaterColour, &[PropertyType::Transparency]);
 impl_eq_for_paint!(WaterColour);
 impl_ord_for_paint!(WaterColour);
-
-impl PropertiedType for WaterColour {
-    const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
-}
-
-impl_paint_essential_ifce!(WaterColour);
 impl_from_paint_spec!(WaterColour);
