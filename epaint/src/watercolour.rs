@@ -5,10 +5,12 @@ use std::rc::Rc;
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertyTypes};
+use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedType};
 use crate::properties::PropertyType;
 use crate::series::*;
-use crate::{impl_eq_for_paint, impl_ord_for_paint};
+use crate::{
+    impl_eq_for_paint, impl_from_paint_spec, impl_ord_for_paint, impl_paint_essential_ifce,
+};
 
 #[derive(Debug, Colour, Clone)]
 pub struct WaterColour {
@@ -17,42 +19,15 @@ pub struct WaterColour {
     #[colour]
     colour: HCV,
     notes: String,
-    variants_64: Vec<f64>,
+    property_variants_f64: Vec<f64>,
 }
 
 impl_eq_for_paint!(WaterColour);
 impl_ord_for_paint!(WaterColour);
 
-impl From<(PaintSpec, SeriesId)> for WaterColour {
-    fn from(value: (PaintSpec, SeriesId)) -> Self {
-        Self {
-            name: value.0.name,
-            notes: value.0.notes,
-            colour: value.0.colour,
-            series_id: Rc::new(value.1),
-            variants_64: value.0.property_variants.clone(),
-        }
-    }
-}
-
-impl PropertyTypes for WaterColour {
+impl PropertiedType for WaterColour {
     const PROPERTY_TYPES: &'static [PropertyType] = &[PropertyType::Transparency];
-
-    fn property_variants_f64(&self) -> Vec<f64> {
-        self.variants_64.clone()
-    }
 }
 
-impl PaintEssentialsIfce for WaterColour {
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn series_id(&self) -> Rc<SeriesId> {
-        self.series_id.clone()
-    }
-
-    fn notes(&self) -> &str {
-        &self.notes
-    }
-}
+impl_paint_essential_ifce!(WaterColour);
+impl_from_paint_spec!(WaterColour);

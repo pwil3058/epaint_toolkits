@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{CompomentPaintIfce, PaintEssentialsIfce, PaintSpec};
+use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedType};
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
@@ -142,12 +142,13 @@ impl PaintSeriesSpec {
         true
     }
 
-    pub fn generate_paint_series<P: CompomentPaintIfce>(&self) -> PaintSeries<P> {
+    pub fn generate_paint_series<P: PropertiedType>(&self) -> PaintSeries<P> {
         debug_assert!(self.is_sorted_unique());
         let series_id = Rc::new(self.series_id.clone());
         let paint_list = Vec::new();
         // for paint_spec in self.paint_spec_list.iter() {
-        //     paint_list.push(Rc::new(P::from((*paint_spec, Rc::clone(&series_id)))));
+        // let paint =
+        // paint_list.push(Rc::new(P::from((*paint_spec, Rc::clone(&series_id)))));
         // }
         PaintSeries::<P> {
             series_id,
@@ -206,13 +207,13 @@ mod test {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
-            property_variants: vec![1.0],
+            property_variants_f64: vec![1.0],
         });
         series_spec.add(&PaintSpec {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
-            property_variants: vec![1.0],
+            property_variants_f64: vec![1.0],
         });
         let mut buffer: Vec<u8> = vec![];
         let _digest = series_spec.write(&mut buffer);
