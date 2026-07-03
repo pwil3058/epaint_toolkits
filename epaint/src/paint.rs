@@ -95,13 +95,6 @@ macro_rules! realize_propertied_paint {
     };
 }
 
-crate::declare_propertied_paint_struct!(WaterColour);
-impl_paint_essential_ifce!(WaterColour);
-implement_propertied_paint!(WaterColour, &[PropertyType::Transparency]);
-crate::impl_eq_for_paint!(WaterColour);
-crate::impl_ord_for_paint!(WaterColour);
-crate::impl_from_paint_spec!(WaterColour);
-
 #[macro_export]
 macro_rules! declare_propertied_paint_struct {
     ($name:ident) => {
