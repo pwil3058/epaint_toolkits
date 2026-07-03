@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
+use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
@@ -74,7 +74,7 @@ impl<P: PaintEssentialsIfce + PartialOrd> PaintSeries<P> {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct PaintSeriesSpec {
     pub(crate) series_id: SeriesId,
-    pub(crate) paint_spec_list: Vec<PaintSpec>,
+    pub(crate) paint_spec_list: Vec<SerializablePaintData>,
 }
 
 impl PaintSeriesSpec {
@@ -90,11 +90,11 @@ impl PaintSeriesSpec {
         self.series_id.series_name = series_name.to_string()
     }
 
-    pub fn paints(&self) -> impl Iterator<Item = &PaintSpec> {
+    pub fn paints(&self) -> impl Iterator<Item = &SerializablePaintData> {
         self.paint_spec_list.iter()
     }
 
-    pub fn add(&mut self, paint: &PaintSpec) -> Option<PaintSpec> {
+    pub fn add(&mut self, paint: &SerializablePaintData) -> Option<SerializablePaintData> {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
@@ -113,7 +113,7 @@ impl PaintSeriesSpec {
         }
     }
 
-    pub fn remove(&mut self, id: &str) -> Result<PaintSpec, crate::Error> {
+    pub fn remove(&mut self, id: &str) -> Result<SerializablePaintData, crate::Error> {
         debug_assert!(self.is_sorted_unique());
         match self.paint_spec_list.binary_search_by_key(&id, |p| &p.name) {
             Ok(index) => Ok(self.paint_spec_list.remove(index)),
@@ -125,7 +125,7 @@ impl PaintSeriesSpec {
         self.paint_spec_list.clear()
     }
 
-    pub fn find(&self, id: &str) -> Option<&PaintSpec> {
+    pub fn find(&self, id: &str) -> Option<&SerializablePaintData> {
         debug_assert!(self.is_sorted_unique());
         match self.paint_spec_list.binary_search_by_key(&id, |p| &p.name) {
             Ok(index) => self.paint_spec_list.get(index),
@@ -209,7 +209,7 @@ pub trait PaintFinder<P: PaintEssentialsIfce> {
 
 #[cfg(test)]
 mod test {
-    use crate::series::{PaintSeriesSpec, PaintSpec};
+    use crate::series::{PaintSeriesSpec, SerializablePaintData};
     use colour_math::{HCV, HueConstants};
 
     #[test]
@@ -218,13 +218,13 @@ mod test {
         series_spec.set_proprietor("owner");
         series_spec.set_series_name("series name");
         assert!(series_spec.paints().next().is_none());
-        series_spec.add(&PaintSpec {
+        series_spec.add(&SerializablePaintData {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             property_variants_f64: vec![1.0],
         });
-        series_spec.add(&PaintSpec {
+        series_spec.add(&SerializablePaintData {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),

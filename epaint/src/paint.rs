@@ -160,21 +160,17 @@ macro_rules! impl_ord_for_paint {
 }
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd)]
-pub struct PaintSpec {
+pub struct SerializablePaintData {
     pub name: String,
     #[colour]
     pub colour: HCV,
     pub notes: String,
     pub property_variants_f64: Vec<f64>,
 }
-//
-// pub trait GeneratePaint<P: CompomentPaintIfce> {
-//     fn generate_paint(&self, series_id: &Rc<SeriesId>) -> P;
-// }
 
-impl Eq for PaintSpec {}
+impl Eq for SerializablePaintData {}
 
-impl Ord for PaintSpec {
+impl Ord for SerializablePaintData {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other).expect("comparable")
     }
@@ -183,8 +179,8 @@ impl Ord for PaintSpec {
 #[macro_export]
 macro_rules! impl_from_paint_spec {
     ($paint:ident) => {
-        impl From<(PaintSpec, Rc<SeriesId>)> for $paint {
-            fn from(value: (PaintSpec, Rc<SeriesId>)) -> Self {
+        impl From<(SerializablePaintData, Rc<SeriesId>)> for $paint {
+            fn from(value: (SerializablePaintData, Rc<SeriesId>)) -> Self {
                 Self {
                     name: value.0.name,
                     notes: value.0.notes,
@@ -200,7 +196,7 @@ macro_rules! impl_from_paint_spec {
 #[macro_export]
 macro_rules! impl_into_paint_spec {
     ($paint:ident) => {
-        impl From<&$paint> for PaintSpec {
+        impl From<&$paint> for SerializablePaintData {
             fn from(paint: &$paint) -> Self {
                 Self {
                     name: paint.name.to_string(),
@@ -216,7 +212,7 @@ macro_rules! impl_into_paint_spec {
 #[cfg(test)]
 mod paint_tests {
     use crate::TooltipText;
-    use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
+    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
     use crate::properties::PropertyType;
     use crate::series::*;
     use colour_math::ColourBasics;
@@ -265,7 +261,7 @@ mod paint_tests {
             notes: "".to_string(),
             property_variants_f64: vec![2.0],
         };
-        let paint_spec = PaintSpec {
+        let paint_spec = SerializablePaintData {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: String::new(),
@@ -277,7 +273,7 @@ mod paint_tests {
 
     #[test]
     fn test_paint_to_from_paint_spec() {
-        let paint_spec = PaintSpec {
+        let paint_spec = SerializablePaintData {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: "".to_string(),
@@ -297,7 +293,7 @@ mod paint_tests {
         {
             assert_eq!(target, actual);
         }
-        let recovered_paint_spec: PaintSpec = (&paint).into();
+        let recovered_paint_spec: SerializablePaintData = (&paint).into();
         assert_eq!(recovered_paint_spec, paint_spec);
     }
 }

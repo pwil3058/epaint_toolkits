@@ -5,7 +5,7 @@ use std::rc::Rc;
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{PaintEssentialsIfce, PaintSpec, PropertiedPaint};
+use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
 use crate::properties::PropertyType;
 use crate::series::*;
 use crate::{
