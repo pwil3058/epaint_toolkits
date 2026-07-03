@@ -54,12 +54,17 @@ impl<P: PaintEssentialsIfce + PartialOrd> PaintSeries<P> {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        while let Some(pair) = self.paint_list.windows(2).next() {
-            if pair[0] >= pair[1] {
-                return false;
+        match self.paint_list.len() {
+            0..2 => true,
+            _ => {
+                while let Some(pair) = self.paint_list.windows(2).next() {
+                    if pair[0] >= pair[1] {
+                        return false;
+                    }
+                }
+                true
             }
         }
-        true
     }
 
     pub fn find(&self, name: &str) -> Option<Rc<P>> {
@@ -134,12 +139,17 @@ impl PaintSeriesSpec {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        while let Some(pair) = self.paint_spec_list.windows(2).next() {
-            if pair[0] >= pair[1] {
-                return false;
-            };
+        match self.paint_spec_list.len() {
+            0..2 => true,
+            _ => {
+                while let Some(pair) = self.paint_spec_list.windows(2).next() {
+                    if pair[0] >= pair[1] {
+                        return false;
+                    }
+                }
+                true
+            }
         }
-        true
     }
 
     pub fn generate_paint_series<P: PropertiedPaint>(&self) -> PaintSeries<P> {
