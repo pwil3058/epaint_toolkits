@@ -459,7 +459,7 @@ mod test {
     }
 
     #[test]
-    fn serialize_and_deserialize() {
+    fn test_read_write_spec() {
         let mut series_spec = PaintSeriesSpec::default();
         series_spec.set_proprietor("owner");
         series_spec.set_series_name("series name");
@@ -487,6 +487,12 @@ mod test {
             .name("orange")
             .build();
         assert_eq!(mixture.colour(), HCV::RED_YELLOW);
+        session.add_mixture(&mixture);
+        let mixture = MixtureBuilder::new("#002")
+            .series_paint_component((Rc::clone(&yellow), 1))
+            .series_paint_component((Rc::clone(&red), 2))
+            .name("reddish_orange")
+            .build();
         session.add_mixture(&mixture);
         let saveable_session = SaveableMixingSession::from(&session);
         let mut buffer: Vec<u8> = vec![];
