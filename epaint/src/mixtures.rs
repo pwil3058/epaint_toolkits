@@ -437,20 +437,6 @@ mod test {
 
     realize_propertied_paint!(TestPaint, &[PropertyType::Transparency]);
 
-    impl TooltipText for TestPaint {
-        fn tooltip_text(&self) -> String {
-            let mut string = self.name.to_string();
-            string.push('\n');
-            string.push_str(&self.notes);
-            string.push('\n');
-            string.push_str(&self.series_id.series_name);
-            string.push('\n');
-            string.push_str(&self.series_id.proprietor);
-
-            string
-        }
-    }
-
     impl MakeColouredShape for TestPaint {
         fn coloured_shape(&self) -> ColouredShape {
             let tooltip_text = self.tooltip_text();
@@ -486,7 +472,7 @@ mod test {
             .series_paint_components(mix)
             .name("orange")
             .build();
-        assert_eq!(mixture.colour(), HCV::RED_YELLOW);
+        assert_eq!(mixture.colour, HCV::RED_YELLOW);
         session.add_mixture(&mixture);
         let mixture = MixtureBuilder::new("#002")
             .series_paint_component((Rc::clone(&yellow), 1))

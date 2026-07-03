@@ -92,6 +92,20 @@ macro_rules! realize_propertied_paint {
         crate::impl_eq_for_paint!($name);
         crate::impl_ord_for_paint!($name);
         crate::impl_from_paint_spec!($name);
+
+    impl TooltipText for $name {
+        fn tooltip_text(&self) -> String {
+            let mut string = self.name.to_string();
+            string.push('\n');
+            string.push_str(&self.notes);
+            string.push('\n');
+            string.push_str(&self.series_id.series_name);
+            string.push('\n');
+            string.push_str(&self.series_id.proprietor);
+
+            string
+        }
+    }
     };
 }
 
@@ -219,20 +233,6 @@ mod paint_tests {
 
     realize_propertied_paint!(TestPaint, &[PropertyType::Transparency]);
     impl_into_paint_spec!(TestPaint);
-
-    impl TooltipText for TestPaint {
-        fn tooltip_text(&self) -> String {
-            let mut string = self.name.to_string();
-            string.push('\n');
-            string.push_str(&self.notes);
-            string.push('\n');
-            string.push_str(&self.series_id.series_name);
-            string.push('\n');
-            string.push_str(&self.series_id.proprietor);
-
-            string
-        }
-    }
 
     impl MakeColouredShape for TestPaint {
         fn coloured_shape(&self) -> ColouredShape {
