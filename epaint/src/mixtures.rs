@@ -18,7 +18,7 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::PropertiedPaint;
+use crate::paint::{PropertiedPaint};
 use crate::properties::PropertyType;
 use crate::series::PaintFinder;
 use crate::{
@@ -424,20 +424,17 @@ mod test {
     use std::rc::Rc;
 
     use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
-    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
+    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, PropertiedPaintPlus, SerializablePaintData};
     use crate::properties::PropertyType;
-    use crate::series::{PaintSeriesSpec, SeriesId};
-    use crate::{
-        TooltipText, impl_paint_essential_ifce, implement_propertied_paint,
-        realize_propertied_paint,
-    };
+    use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
+    use crate::{TooltipText, realize_propertied_paint_plus};
     use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
     use colour_math::{HCV, HueConstants, LightLevel};
     use colour_math_derive::Colour;
 
-    realize_propertied_paint!(TestPaint, &[PropertyType::Transparency]);
+    realize_propertied_paint_plus!(MixableTestPaint, &[PropertyType::Transparency]);
 
-    impl MakeColouredShape for TestPaint {
+    impl MakeColouredShape for MixableTestPaint {
         fn coloured_shape(&self) -> ColouredShape {
             let tooltip_text = self.tooltip_text();
             ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
@@ -462,8 +459,8 @@ mod test {
             notes: "whatever".to_string(),
             property_variants_f64: vec![2.0],
         });
-        let series = Rc::new(series_spec.generate_paint_series::<TestPaint>());
-        let mut session: MixingSession<TestPaint> = MixingSession::new("test session");
+        let series: PaintSeries<MixableTestPaint> = (&series_spec).into();
+         let mut session: MixingSession<MixableTestPaint> = MixingSession::new("test session");
         session.set_notes("a test mixing session");
         let yellow = series.find("yellow").unwrap();
         let red = series.find("red").unwrap();

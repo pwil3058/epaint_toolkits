@@ -7,7 +7,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
+use crate::paint::{PaintEssentialsIfce, PropertiedPaintPlus, SerializablePaintData};
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
@@ -54,23 +54,18 @@ impl<P: PaintEssentialsIfce + PartialOrd> PaintSeries<P> {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        match self.paint_list.len() {
-            0..2 => true,
-            _ => {
-                while let Some(pair) = self.paint_list.windows(2).next() {
-                    if pair[0] >= pair[1] {
-                        return false;
-                    }
-                }
-                true
+        for i in 1..self.paint_list.len() {
+            if self.paint_list[i] <= self.paint_list[i - 1] {
+                return false;
             }
         }
+        true
     }
 
-    pub fn find(&self, name: &str) -> Option<Rc<P>> {
+    pub fn find(&self, name: &str) -> Option<&Rc<P>> {
         debug_assert!(self.is_sorted_unique());
         match self.paint_list.binary_search_by_key(&name, |p| p.name()) {
-            Ok(index) => self.paint_list.get(index).cloned(),
+            Ok(index) => self.paint_list.get(index),
             Err(_) => None,
         }
     }
@@ -83,8 +78,8 @@ pub struct PaintSeriesSpec {
 }
 
 impl PaintSeriesSpec {
-    pub fn series_id(&self) -> &SeriesId {
-        &self.series_id
+    pub fn series_id(&self) -> Rc<SeriesId> {
+        Rc::new(self.series_id.clone())
     }
 
     pub fn set_proprietor(&mut self, proprietor: &str) {
@@ -139,31 +134,28 @@ impl PaintSeriesSpec {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        match self.paint_spec_list.len() {
-            0..2 => true,
-            _ => {
-                while let Some(pair) = self.paint_spec_list.windows(2).next() {
-                    if pair[0] >= pair[1] {
-                        return false;
-                    }
-                }
-                true
+        for i in 1..self.paint_spec_list.len() {
+            if self.paint_spec_list[i] <= self.paint_spec_list[i - 1] {
+                return false;
             }
         }
+        true
     }
+}
 
-    pub fn generate_paint_series<P: PropertiedPaint>(&self) -> PaintSeries<P> {
-        debug_assert!(self.is_sorted_unique());
-        let series_id = Rc::new(self.series_id.clone());
-        let paint_list = Vec::new();
-        // for paint_spec in self.paint_spec_list.iter() {
-        // let paint =
-        // paint_list.push(Rc::new(P::from((*paint_spec, Rc::clone(&series_id)))));
-        // }
+impl<P: PropertiedPaintPlus> From<&PaintSeriesSpec> for PaintSeries<P> {
+    fn from(data: &PaintSeriesSpec) -> PaintSeries<P> {
+        let series_id = data.series_id();
+        let mut paint_list = Vec::new();
+        for paint_spec in data.paint_spec_list.iter() {
+            let paint: P = (paint_spec.clone(), Rc::clone(&series_id)).into();
+            paint_list.push(Rc::new(paint));
+        }
         PaintSeries::<P> {
             series_id,
             paint_list,
         }
+
     }
 }
 
@@ -219,8 +211,17 @@ pub trait PaintFinder<P: PaintEssentialsIfce> {
 
 #[cfg(test)]
 mod test {
-    use crate::series::{PaintSeriesSpec, SerializablePaintData};
-    use colour_math::{HCV, HueConstants};
+    use std::rc::Rc;
+
+    use colour_math::{HCV, HueConstants, LightLevel};
+    use colour_math_derive::Colour;
+
+    use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
+    use crate::{realize_propertied_paint_plus, TooltipText};
+    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, PropertiedPaintPlus, SerializablePaintData};
+    use crate::properties::PropertyType;
+
+    realize_propertied_paint_plus!(MixableTestPaint, &[PropertyType::Transparency]);
 
     #[test]
     fn save_and_recover() {
@@ -250,6 +251,13 @@ mod test {
         );
         for (pspec1, pspec2) in series_spec.paints().zip(read_spec.paints()) {
             assert_eq!(*pspec1, *pspec2);
+        }
+        let series: PaintSeries<MixableTestPaint> = (&series_spec).into();
+        assert_eq!(series.series_id, series_spec.series_id());
+        let found_red = series.find("red");
+        assert_eq!(found_red.unwrap().colour, HCV::RED);
+        for (spec_paint, paint) in series_spec.paints().zip(read_spec.paints()) {
+            assert_eq!(spec_paint.colour, paint.colour);
         }
     }
 }

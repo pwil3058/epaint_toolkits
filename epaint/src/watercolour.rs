@@ -5,17 +5,10 @@ use std::rc::Rc;
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
+use crate::paint::{PaintEssentialsIfce, PropertiedPaint, PropertiedPaintPlus, SerializablePaintData};
 use crate::properties::PropertyType;
 use crate::series::*;
-use crate::{
-    declare_propertied_paint_struct, impl_eq_for_paint, impl_from_paint_spec, impl_ord_for_paint,
-    impl_paint_essential_ifce, implement_propertied_paint,
-};
+use crate::realize_propertied_paint_plus;
+use crate::TooltipText;
 
-declare_propertied_paint_struct!(WaterColour);
-impl_paint_essential_ifce!(WaterColour);
-implement_propertied_paint!(WaterColour, &[PropertyType::Transparency]);
-impl_eq_for_paint!(WaterColour);
-impl_ord_for_paint!(WaterColour);
-impl_from_paint_spec!(WaterColour);
+realize_propertied_paint_plus!(Watercolour, &[PropertyType::Transparency]);

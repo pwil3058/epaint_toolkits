@@ -70,6 +70,8 @@ pub trait PropertiedPaint: PaintEssentialsIfce {
     fn property_variants_f64(&self) -> Vec<f64>;
 }
 
+pub trait PropertiedPaintPlus: PropertiedPaint + From<(SerializablePaintData, Rc<SeriesId>)> {}
+
 #[macro_export]
 macro_rules! implement_propertied_paint {
     ($paint:ident, $propertypes:expr) => {
@@ -87,25 +89,35 @@ macro_rules! implement_propertied_paint {
 macro_rules! realize_propertied_paint {
     ($name:ident, $propertypes:expr) => {
         crate::declare_propertied_paint_struct!($name);
-        impl_paint_essential_ifce!($name);
-        implement_propertied_paint!($name, $propertypes);
+        crate::impl_paint_essential_ifce!($name);
+        crate::implement_propertied_paint!($name, $propertypes);
         crate::impl_eq_for_paint!($name);
         crate::impl_ord_for_paint!($name);
-        crate::impl_from_paint_spec!($name);
 
-    impl TooltipText for $name {
-        fn tooltip_text(&self) -> String {
-            let mut string = self.name.to_string();
-            string.push('\n');
-            string.push_str(&self.notes);
-            string.push('\n');
-            string.push_str(&self.series_id.series_name);
-            string.push('\n');
-            string.push_str(&self.series_id.proprietor);
+         impl TooltipText for $name {
+             fn tooltip_text(&self) -> String {
+                 let mut string = self.name.to_string();
+                 string.push('\n');
+                 string.push_str(&self.notes);
+                 string.push('\n');
+                 string.push_str(&self.series_id.series_name);
+                 string.push('\n');
+                 string.push_str(&self.series_id.proprietor);
 
-            string
+                string
+             }
         }
-    }
+    };
+}
+
+#[macro_export]
+macro_rules! realize_propertied_paint_plus {
+    ($name:ident, $propertypes:expr) => {
+        crate::realize_propertied_paint!($name, $propertypes);
+        crate::impl_from_paint_spec!($name);
+        crate::impl_into_paint_spec!($name);
+
+        impl PropertiedPaintPlus for $name {}
     };
 }
 
@@ -219,7 +231,7 @@ macro_rules! impl_into_paint_spec {
 #[cfg(test)]
 mod paint_tests {
     use crate::TooltipText;
-    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, SerializablePaintData};
+    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, PropertiedPaintPlus, SerializablePaintData};
     use crate::properties::PropertyType;
     use crate::series::*;
     use colour_math::ColourBasics;
@@ -231,10 +243,9 @@ mod paint_tests {
     use std::convert::From;
     use std::rc::Rc;
 
-    realize_propertied_paint!(TestPaint, &[PropertyType::Transparency]);
-    impl_into_paint_spec!(TestPaint);
+    realize_propertied_paint_plus!(SeriesTestPaint, &[PropertyType::Transparency]);
 
-    impl MakeColouredShape for TestPaint {
+    impl MakeColouredShape for SeriesTestPaint {
         fn coloured_shape(&self) -> ColouredShape {
             let tooltip_text = self.tooltip_text();
             ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
@@ -247,7 +258,7 @@ mod paint_tests {
             series_name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
         });
-        let target_paint = TestPaint {
+        let target_paint = SeriesTestPaint {
             colour: HCV::RED_MAGENTA,
             series_id: series_id.clone(),
             name: "Red".to_string(),
@@ -260,7 +271,7 @@ mod paint_tests {
             notes: String::new(),
             property_variants_f64: vec![1.0],
         };
-        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
+        let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint, target_paint);
     }
 
@@ -273,7 +284,7 @@ mod paint_tests {
             property_variants_f64: vec![2.0],
         };
         let series_id = SeriesId::new("DS".to_string(), "WC".to_string());
-        let paint: TestPaint = (paint_spec.clone(), Rc::new(series_id.clone())).into();
+        let paint: SeriesTestPaint = (paint_spec.clone(), Rc::new(series_id.clone())).into();
         assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
