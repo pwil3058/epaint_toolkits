@@ -6,11 +6,11 @@ use std::io;
 
 use serde_json;
 
-pub mod mixtures;
+// pub mod mixtures;
 pub mod paint;
 pub mod properties;
-pub mod series;
-pub mod watercolour;
+// pub mod series;
+// pub mod watercolour;
 
 pub trait TooltipText {
     fn tooltip_text(&self) -> String;
@@ -25,8 +25,8 @@ pub enum Error {
     IOError(io::Error),
     SerdeJsonError(serde_json::Error),
     NotFound(String),
-    UnknownSeries(series::SeriesId),
-    UnknownSeriesPaint(series::SeriesId, String),
+    // UnknownSeries(series::SeriesId),
+    // UnknownSeriesPaint(series::SeriesId, String),
     NotAValidLegacySpec,
     NotImplemented,
 }
@@ -37,10 +37,10 @@ impl fmt::Display for Error {
             Error::IOError(err) => write!(f, "IOError: {err}"),
             Error::SerdeJsonError(err) => write!(f, "Serde Json Error: {err}"),
             Error::NotFound(string) => write!(f, "{string}: Not found."),
-            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
-            Error::UnknownSeriesPaint(series_id, id) => {
-                write!(f, "{id}:({series_id}): unknown paint")
-            }
+            // Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
+            // Error::UnknownSeriesPaint(series_id, id) => {
+            //     write!(f, "{id}:({series_id}): unknown paint")
+            // }
             Error::NotAValidLegacySpec => write!(f, "Not a valid specification."),
             Error::NotImplemented => write!(f, "Feature not yet implemented."),
         }
