@@ -3,8 +3,13 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::rc::Rc;
 
+use serde::{Deserialize, Serialize};
 use serde_json;
+
+use crate::properties::{Property, PropertyType};
+use colour_math::{ColourAttributes, ColourBasics};
 
 // pub mod mixtures;
 pub mod paint;
@@ -20,13 +25,41 @@ pub trait LabelText {
     fn label_text(&self) -> String;
 }
 
+#[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
+pub struct SeriesId {
+    pub(crate) proprietor: String,
+    pub(crate) series_name: String,
+}
+
+impl fmt::Display for SeriesId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}:({})", self.series_name, self.proprietor)
+    }
+}
+
+pub trait PaintEssence:
+    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + TooltipText + LabelText
+{
+    const PROPERTY_TYPES: &'static [PropertyType];
+
+    fn name(&self) -> &str;
+    fn series_id(&self) -> Rc<SeriesId>;
+    fn notes(&self) -> &str;
+    fn properties(&self) -> impl Iterator<Item = Property>;
+    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
+
+    fn property_types() -> impl Iterator<Item = PropertyType> {
+        Self::PROPERTY_TYPES.iter().copied()
+    }
+}
+
 #[derive(Debug)]
 pub enum Error {
     IOError(io::Error),
     SerdeJsonError(serde_json::Error),
     NotFound(String),
-    // UnknownSeries(series::SeriesId),
-    // UnknownSeriesPaint(series::SeriesId, String),
+    UnknownSeries(SeriesId),
+    UnknownSeriesPaint(SeriesId, String),
     NotAValidLegacySpec,
     NotImplemented,
 }
@@ -37,10 +70,10 @@ impl fmt::Display for Error {
             Error::IOError(err) => write!(f, "IOError: {err}"),
             Error::SerdeJsonError(err) => write!(f, "Serde Json Error: {err}"),
             Error::NotFound(string) => write!(f, "{string}: Not found."),
-            // Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
-            // Error::UnknownSeriesPaint(series_id, id) => {
-            //     write!(f, "{id}:({series_id}): unknown paint")
-            // }
+            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
+            Error::UnknownSeriesPaint(series_id, id) => {
+                write!(f, "{id}:({series_id}): unknown paint")
+            }
             Error::NotAValidLegacySpec => write!(f, "Not a valid specification."),
             Error::NotImplemented => write!(f, "Feature not yet implemented."),
         }

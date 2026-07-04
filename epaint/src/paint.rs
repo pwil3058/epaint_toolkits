@@ -3,180 +3,30 @@
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
-use colour_math::{ColourAttributes, ColourBasics, HCV, LightLevel};
+use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::properties::{Property, PropertyType};
-// use crate::series::*;
-use crate::{LabelText, TooltipText};
+use crate::{PaintEssence, SeriesId};
 
-#[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
-pub struct SeriesId {
-    pub(crate) proprietor: String,
-    pub(crate) series_name: String,
+#[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd)]
+pub struct SerializablePaintData {
+    pub name: String,
+    #[colour]
+    pub colour: HCV,
+    pub notes: String,
+    pub property_variants_f64: Vec<f64>,
 }
 
-pub trait PaintEssentialsIfce:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord
+pub trait Paint:
+    PaintEssence
+    + From<(SerializablePaintData, Rc<SeriesId>)>
+    + Into<(SerializablePaintData, Rc<SeriesId>)>
 {
-    fn name(&self) -> &str;
-    fn series_id(&self) -> Rc<SeriesId>;
-    fn notes(&self) -> &str;
 }
 
 #[macro_export]
-macro_rules! impl_paint_essential_ifce {
-    ($paint:ty) => {
-        impl PaintEssentialsIfce for $paint {
-            fn name(&self) -> &str {
-                &self.name
-            }
-
-            fn series_id(&self) -> Rc<SeriesId> {
-                self.series_id.clone()
-            }
-
-            fn notes(&self) -> &str {
-                &self.notes
-            }
-        }
-    }; // ($paint:ty, $type:ident) => {
-       //     impl<$type: PropertiedPaintPlus> PaintEssentialsIfce for $paint<$type> {
-       //         fn name(&self) -> &str {
-       //             &self.name
-       //         }
-       //
-       //         fn series_id(&self) -> Rc<SeriesId> {
-       //             self.series_id.clone()
-       //         }
-       //
-       //         fn notes(&self) -> &str {
-       //             &self.notes
-       //         }
-       //     }
-       // };
-}
-
-pub trait Properties: PaintEssentialsIfce + TooltipText + LabelText {
-    const PROPERTY_TYPES: &'static [PropertyType];
-
-    fn property_types() -> impl Iterator<Item = PropertyType> {
-        Self::PROPERTY_TYPES.iter().copied()
-    }
-
-    fn properties(&self) -> impl Iterator<Item = Property>;
-    fn property_variants_f64(&self) -> Vec<f64>;
-}
-
-#[macro_export]
-macro_rules! impl_properties {
-    ($paint:ty, $propertypes:expr) => {
-        impl Properties for $paint {
-            const PROPERTY_TYPES: &'static [PropertyType] = $propertypes;
-
-            fn properties(&self) -> impl Iterator<Item = Property> {
-                Self::property_types()
-                    .zip(self.property_variants_f64.iter())
-                    .map(|(p, v)| Property::from((p, *v)))
-            }
-
-            fn property_variants_f64(&self) -> Vec<f64> {
-                self.property_variants_f64.clone()
-            }
-        }
-
-        impl TooltipText for $paint {
-            fn tooltip_text(&self) -> String {
-                let mut string = self.name.to_string();
-                string.push('\n');
-                string.push_str(&self.notes);
-                string.push('\n');
-                string.push_str(&self.series_id.series_name);
-                string.push('\n');
-                string.push_str(&self.series_id.proprietor);
-
-                string
-            }
-        }
-
-        impl LabelText for $paint {
-            fn label_text(&self) -> String {
-                format!("Mix {}", self.name)
-            }
-        }
-    };
-}
-
-pub trait PropertiedPaintPlus: Properties + From<(SerializablePaintData, Rc<SeriesId>)> {}
-
-#[macro_export]
-macro_rules! implement_propertied_paint {
-    ($paint:ty, $propertypes:expr) => {
-        impl Properties for $paint {
-            const PROPERTY_TYPES: &'static [PropertyType] = $propertypes;
-
-            fn properties(&self) -> Vec<Property> {
-                Self::property_types()
-                    .zip(self.property_variants_f64.iter())
-                    .map(|(p, v)| Property::from((p, *v)))
-            }
-
-            fn property_variants_f64(&self) -> Vec<f64> {
-                self.property_variants_f64.clone()
-            }
-        }
-
-        impl TooltipText for $paint {
-            fn tooltip_text(&self) -> String {
-                let mut string = self.name.to_string();
-                string.push('\n');
-                string.push_str(&self.notes);
-                string.push('\n');
-                string.push_str(&self.series_id.series_name);
-                string.push('\n');
-                string.push_str(&self.series_id.proprietor);
-
-                string
-            }
-        }
-
-        impl LabelText for $paint {
-            fn label_text(&self) -> String {
-                format!("Mix {}", self.name)
-            }
-        }
-    };
-}
-
-#[macro_export]
-macro_rules! realize_propertied_paint {
-    ($name:ident, $propertypes:expr) => {
-        crate::declare_propertied_paint_struct!($name);
-        crate::impl_paint_essential_ifce!($name);
-        crate::implement_propertied_paint!($name, $propertypes);
-        crate::impl_eq_for_paint!($name);
-        crate::impl_ord_for_paint!($name);
-    };
-}
-
-#[macro_export]
-macro_rules! realize_propertied_paint_plus {
-    ($name:ident, $propertypes:expr) => {
-        crate::declare_propertied_paint_struct!($name);
-        crate::impl_paint_essential_ifce!($name);
-        crate::implement_propertied_paint!($name, $propertypes);
-        crate::impl_eq_for_paint!($name);
-        crate::impl_ord_for_paint!($name);
-        crate::impl_from_paint_spec!($name);
-        crate::impl_into_paint_spec!($name);
-
-        impl PropertiedPaintPlus for $name {}
-    };
-}
-
-#[macro_export]
-macro_rules! declare_propertied_paint_struct {
-    ($name:ident) => {
+macro_rules! create_paint {
+    ($name:ident, $property_types:expr) => {
         #[derive(Debug, Colour, Clone)]
         pub struct $name {
             name: String,
@@ -187,6 +37,7 @@ macro_rules! declare_propertied_paint_struct {
             property_variants_f64: Vec<f64>,
         }
 
+        #[cfg(test)]
         impl $name {
             pub fn new(
                 name: &str,
@@ -204,13 +55,34 @@ macro_rules! declare_propertied_paint_struct {
                 }
             }
         }
-    };
-}
 
-#[macro_export]
-macro_rules! impl_eq_for_paint {
-    ($paint:ty) => {
-        impl PartialEq for $paint {
+        impl PaintEssence for $name {
+            const PROPERTY_TYPES: &'static [PropertyType] = $property_types;
+
+            fn name(&self) -> &str {
+                &self.name
+            }
+
+            fn series_id(&self) -> Rc<SeriesId> {
+                self.series_id.clone()
+            }
+
+            fn notes(&self) -> &str {
+                &self.notes
+            }
+
+            fn properties(&self) -> impl Iterator<Item = Property> {
+                Self::property_types()
+                    .zip(self.property_variants_f64.iter())
+                    .map(|(p, v)| Property::from((p, *v)))
+            }
+
+            fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
+                self.property_variants_f64.iter().copied()
+            }
+        }
+
+        impl PartialEq for $name {
             fn eq(&self, other: &Self) -> bool {
                 let mut result = false;
                 if self.name == other.name {
@@ -220,14 +92,9 @@ macro_rules! impl_eq_for_paint {
             }
         }
 
-        impl Eq for $paint {}
-    };
-}
+        impl Eq for $name {}
 
-#[macro_export]
-macro_rules! impl_ord_for_paint {
-    ($paint:ty) => {
-        impl PartialOrd for $paint {
+        impl PartialOrd for $name {
             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
                 match self.name.cmp(&other.name) {
                     std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
@@ -241,53 +108,46 @@ macro_rules! impl_ord_for_paint {
             }
         }
 
-        impl Ord for $paint {
+        impl Ord for $name {
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-                self.partial_cmp(other).expect("comparable")
+                self.partial_cmp(other).expect("paints are comparable")
             }
         }
-    };
-}
 
-#[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd)]
-pub struct SerializablePaintData {
-    pub name: String,
-    #[colour]
-    pub colour: HCV,
-    pub notes: String,
-    pub property_variants_f64: Vec<f64>,
-}
+        impl TooltipText for $name {
+            fn tooltip_text(&self) -> String {
+                let mut string = self.name.to_string();
+                string.push('\n');
+                string.push_str(&self.notes);
+                string.push('\n');
+                string.push_str(&self.series_id.series_name);
+                string.push('\n');
+                string.push_str(&self.series_id.proprietor);
 
-impl Eq for SerializablePaintData {}
+                string
+            }
+        }
 
-impl Ord for SerializablePaintData {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).expect("comparable")
-    }
-}
+        impl LabelText for $name {
+            fn label_text(&self) -> String {
+                format!("Mix {}", self.name)
+            }
+        }
 
-#[macro_export]
-macro_rules! impl_from_paint_spec {
-    ($paint:ty) => {
-        impl From<(SerializablePaintData, Rc<SeriesId>)> for $paint {
-            fn from(value: (SerializablePaintData, Rc<SeriesId>)) -> Self {
+        impl From<(SerializablePaintData, Rc<SeriesId>)> for $name {
+            fn from(arg: (SerializablePaintData, Rc<SeriesId>)) -> Self {
                 Self {
-                    name: value.0.name,
-                    notes: value.0.notes,
-                    colour: value.0.colour,
-                    series_id: value.1,
-                    property_variants_f64: value.0.property_variants_f64.clone(),
+                    name: arg.0.name,
+                    notes: arg.0.notes,
+                    colour: arg.0.colour,
+                    series_id: arg.1,
+                    property_variants_f64: arg.0.property_variants_f64.clone(),
                 }
             }
         }
-    };
-}
 
-#[macro_export]
-macro_rules! impl_into_paint_spec {
-    ($paint:ty) => {
-        impl From<&$paint> for SerializablePaintData {
-            fn from(paint: &$paint) -> Self {
+        impl From<&$name> for SerializablePaintData {
+            fn from(paint: &$name) -> Self {
                 Self {
                     name: paint.name.to_string(),
                     notes: paint.notes.to_string(),
@@ -302,19 +162,14 @@ macro_rules! impl_into_paint_spec {
 #[cfg(test)]
 mod paint_tests {
     use super::*;
-    use crate::properties::*;
     use colour_math::HueConstants;
-
     use colour_math::LightLevel;
     use colour_math_derive::Colour;
 
-    declare_propertied_paint_struct!(TestPaint);
-    impl_eq_for_paint!(TestPaint);
-    impl_ord_for_paint!(TestPaint);
-    impl_paint_essential_ifce!(TestPaint);
-    impl_properties!(TestPaint, &[PropertyType::Transparency]);
-    impl_from_paint_spec!(TestPaint);
-    impl_into_paint_spec!(TestPaint);
+    use crate::properties::*;
+    use crate::*;
+
+    create_paint!(TestPaint, &[PropertyType::Transparency]);
 
     #[test]
     fn test_making_an_example() {
