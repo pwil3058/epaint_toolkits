@@ -1,0 +1,31 @@
+[package]
+name = "epaint_gtk"
+version = "0.1.0"
+authors = ["Peter Williams <pwil3058@gmail.bigpond.net.au"]
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+targeted_mixtures = []
+palette_samples = []
+mixtures_may_mix = []
+
+[dependencies]
+serde = "1.0"
+serde_derive = "1.0"
+
+gcd = "2.0.1"
+
+#pw_gix = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+#pw_gtk_ext = { path = "../../rs_pw_gix/pw_gtk_ext" }
+num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+pw_pathux = { git = "https://github.com/pwil3058/rs_pw_pathux.git" }
+
+colour_math = { path = "../colour_math" }
+colour_math_cairo = { path = "../colour_math_cairo" }
+colour_math_gtk = { path = "../colour_math_gtk" }
+
+epaint = { path = "../epaint" }

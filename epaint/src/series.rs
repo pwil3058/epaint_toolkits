@@ -134,7 +134,6 @@ impl<P: Paint> From<&PaintSeriesSpec> for PaintSeries<P> {
             series_id,
             paint_list,
         }
-
     }
 }
 
@@ -192,15 +191,16 @@ pub trait PaintFinder<P: Paint> {
 mod test {
     use std::rc::Rc;
 
-    use colour_math::{HCV, HueConstants, LightLevel, ColourBasics};
-    use colour_math_derive::Colour;
     use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+    use colour_math::{ColourBasics, HueConstants, LightLevel, HCV};
+    use colour_math_derive::Colour;
 
-    use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
-    use crate::{TooltipText, LabelText, create_paint};
     use crate::paint::{Paint, SerializablePaintData};
     use crate::properties::{Property, PropertyType};
+    use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
+    use crate::GetSeriesId;
     use crate::PaintEssence;
+    use crate::{create_paint, LabelText, TooltipText};
 
     create_paint!(MixableTestPaint, &[PropertyType::Transparency]);
 

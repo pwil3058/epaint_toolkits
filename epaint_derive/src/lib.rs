@@ -119,6 +119,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
 
             fn list_header(&self) -> &'static str { Self::LIST_HEADER }
 
+            fn str_values() -> Vec<&'static str> {
+                vec![#(#value_tokens)*]
+            }
+
             fn abbrev_value(&self) -> &'static str {
                 match *self {
                     #(#abbrev_tokens)*

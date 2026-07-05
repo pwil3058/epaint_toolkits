@@ -9,10 +9,9 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 
 use crate::properties::{Property, PropertyType};
-use colour_math::{ColourAttributes, ColourBasics};
-use colour_math::hue_wheel::MakeColouredShape;
+use colour_math::{ColourAttributes, ColourBasics, HCV};
 
-pub mod mixtures;
+//pub mod mixtures;
 pub mod paint;
 pub mod properties;
 pub mod series;
@@ -38,21 +37,27 @@ impl fmt::Display for SeriesId {
     }
 }
 
+pub trait GetSeriesId {
+    fn series_id(&self) -> Rc<SeriesId>;
+}
+
 pub trait PaintEssence:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + TooltipText + LabelText + MakeColouredShape
+    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
     const PROPERTY_TYPES: &'static [PropertyType];
 
     fn name(&self) -> &str;
-    fn series_id(&self) -> Rc<SeriesId>;
+    fn colour(&self) -> HCV;
     fn notes(&self) -> &str;
     fn properties(&self) -> impl Iterator<Item = Property>;
-    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
+    fn property_variants_f64(&self) -> impl Iterator<Item = f64>;
 
     fn property_types() -> impl Iterator<Item = PropertyType> {
         Self::PROPERTY_TYPES.iter().copied()
     }
 }
+
+pub trait PaintEssenceSerde: PaintEssence + for<'a> Deserialize<'a> + Serialize {}
 
 #[derive(Debug)]
 pub enum Error {

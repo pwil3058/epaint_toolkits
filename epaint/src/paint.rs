@@ -3,12 +3,13 @@
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
-use colour_math::{HCV, LightLevel};
+use colour_math::hue_wheel::MakeColouredShape;
+use colour_math::{ColourIfce, LightLevel, HCV};
 use colour_math_derive::Colour;
 
-use crate::{PaintEssence, SeriesId};
+use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
-#[derive(Debug, Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd)]
+#[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct SerializablePaintData {
     pub name: String,
     #[colour]
@@ -17,8 +18,66 @@ pub struct SerializablePaintData {
     pub property_variants_f64: Vec<f64>,
 }
 
+impl PartialEq for SerializablePaintData {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
+    }
+}
+
+impl Eq for SerializablePaintData {}
+
+impl PartialOrd for SerializablePaintData {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.name.cmp(&other.name).into()
+    }
+}
+
+impl Ord for SerializablePaintData {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other)
+            .expect("serializable paints are comparable")
+    }
+}
+
+// impl PaintEssence for SerializablePaintData {
+//     const PROPERTY_TYPES: &'static [PropertyType] = P::PROPERTY_TYPES;
+//
+//     fn name(&self) -> &str {
+//         &self.name
+//     }
+//
+//     fn notes(&self) -> &str {
+//         &self.notes
+//     }
+//
+//     fn colour(&self) -> HCV {
+//         self.colour.clone()
+//     }
+//
+//     fn property_types() -> impl Iterator<Item = PropertyType> {
+//         Self::PROPERTY_TYPES.iter().copied()
+//     }
+//
+//     fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
+//         self.property_variants_f64.iter().copied()
+//     }
+//
+//     fn properties(&self) -> impl Iterator<Item = Property> {
+//         Self::property_types()
+//             .zip(self.property_variants_f64())
+//             .map(|(p, v)| Property::from((p, v)))
+//     }
+// }
+
 pub trait Paint:
-    PaintEssence + From<(SerializablePaintData, Rc<SeriesId>)> + Into<SerializablePaintData>
+    PaintEssence
+    + GetSeriesId
+    + From<(SerializablePaintData, Rc<SeriesId>)>
+    + Into<SerializablePaintData>
+    + ColourIfce
+    + TooltipText
+    + LabelText
+    + MakeColouredShape
 {
 }
 
@@ -61,22 +120,31 @@ macro_rules! create_paint {
                 &self.name
             }
 
-            fn series_id(&self) -> Rc<SeriesId> {
-                self.series_id.clone()
-            }
-
             fn notes(&self) -> &str {
                 &self.notes
             }
 
+            fn colour(&self) -> HCV {
+                self.colour.clone()
+            }
+
+            fn property_types() -> impl Iterator<Item = PropertyType> {
+                Self::PROPERTY_TYPES.iter().copied()
+            }
             fn properties(&self) -> impl Iterator<Item = Property> {
                 Self::property_types()
-                    .zip(self.property_variants_f64.iter())
-                    .map(|(p, v)| Property::from((p, *v)))
+                    .zip(self.property_variants_f64())
+                    .map(|(p, v)| Property::from((p, v)))
             }
 
             fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
                 self.property_variants_f64.iter().copied()
+            }
+        }
+
+        impl GetSeriesId for $name {
+            fn series_id(&self) -> Rc<SeriesId> {
+                self.series_id.clone()
             }
         }
 
@@ -172,20 +240,18 @@ mod paint_tests {
     use std::rc::Rc;
 
     use super::*;
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+    use colour_math::ColourBasics;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
-    use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math_derive::Colour;
-    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 
-    use crate::{TooltipText, LabelText};
     use crate::paint::{Paint, SerializablePaintData};
     use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
-
-    create_paint!(SeriesTestPaint, &[PropertyType::Transparency]);
+    use crate::{LabelText, TooltipText};
 
     create_paint!(TestPaint, &[PropertyType::Transparency]);
 
@@ -205,52 +271,56 @@ mod paint_tests {
         assert_eq!(paint.name(), "whatever");
     }
 
-        #[test]
-        fn test_paint_spec_generate_paint() {
-            let series_id = Rc::new(SeriesId {
-                series_name: "name".to_string(),
-                proprietor: "Proprieter".to_string(),
-            });
-            let target_paint = SeriesTestPaint {
-                colour: HCV::RED_MAGENTA,
-                series_id: series_id.clone(),
-                name: "Red".to_string(),
-                notes: "".to_string(),
-                property_variants_f64: vec![2.0],
-            };
-            let paint_spec = SerializablePaintData {
-                colour: HCV::RED_MAGENTA,
-                name: "Red".to_string(),
-                notes: String::new(),
-                property_variants_f64: vec![1.0],
-            };
-            let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
-            assert_eq!(paint, target_paint);
-        }
+    #[test]
+    fn test_paint_spec_generate_paint() {
+        let series_id = Rc::new(SeriesId {
+            series_name: "name".to_string(),
+            proprietor: "Proprieter".to_string(),
+        });
+        let target_paint = TestPaint {
+            colour: HCV::RED_MAGENTA,
+            series_id: series_id.clone(),
+            name: "Red".to_string(),
+            notes: "".to_string(),
+            property_variants_f64: vec![2.0],
+        };
+        let paint_spec = SerializablePaintData {
+            colour: HCV::RED_MAGENTA,
+            name: "Red".to_string(),
+            notes: String::new(),
+            property_variants_f64: vec![1.0],
+        };
+        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
+        assert_eq!(paint, target_paint);
+    }
 
-        #[test]
-        fn test_paint_to_from_paint_spec() {
-            let paint_spec = SerializablePaintData {
-                colour: HCV::RED_MAGENTA,
-                name: "Red".to_string(),
-                notes: "".to_string(),
-                property_variants_f64: vec![2.0],
-            };
-            let series_id = Rc::new(SeriesId{series_name: "DS".to_string(), proprietor: "WC".to_string()});
-            let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
-            assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
-            assert_eq!(paint.name(), "Red");
-            assert_eq!(paint.notes(), "");
-            assert_eq!(paint.series_id, series_id.into());
-            assert_eq!(paint.property_variants_f64, vec![2.0]);
-            for (target, actual) in paint_spec
-                .property_variants_f64
-                .iter().copied()
-                .zip(paint.property_variants_f64())
-            {
-                assert_eq!(target, actual);
-            }
-            let recovered_paint_spec: SerializablePaintData = paint.into();
-            assert_eq!(recovered_paint_spec, paint_spec);
+    #[test]
+    fn test_paint_to_from_paint_spec() {
+        let paint_spec = SerializablePaintData {
+            colour: HCV::RED_MAGENTA,
+            name: "Red".to_string(),
+            notes: "".to_string(),
+            property_variants_f64: vec![2.0],
+        };
+        let series_id = Rc::new(SeriesId {
+            series_name: "DS".to_string(),
+            proprietor: "WC".to_string(),
+        });
+        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
+        assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
+        assert_eq!(paint.name(), "Red");
+        assert_eq!(paint.notes(), "");
+        assert_eq!(paint.series_id, series_id.into());
+        assert_eq!(paint.property_variants_f64, vec![2.0]);
+        for (target, actual) in paint_spec
+            .property_variants_f64
+            .iter()
+            .copied()
+            .zip(paint.property_variants_f64())
+        {
+            assert_eq!(target, actual);
         }
+        let recovered_paint_spec: SerializablePaintData = paint.into();
+        assert_eq!(recovered_paint_spec, paint_spec);
+    }
 }

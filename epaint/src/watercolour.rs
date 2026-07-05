@@ -3,12 +3,13 @@
 use std::rc::Rc;
 
 use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
-use colour_math::{HCV, LightLevel};
+use colour_math::{LightLevel, HCV};
 use colour_math_derive::Colour;
 
 use crate::create_paint;
 use crate::paint::{Paint, SerializablePaintData};
 use crate::properties::{Property, PropertyType};
+use crate::GetSeriesId;
 use crate::{LabelText, TooltipText};
 use crate::{PaintEssence, SeriesId};
 

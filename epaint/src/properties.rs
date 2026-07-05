@@ -20,6 +20,7 @@ pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Deb
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
+    fn str_values() -> Vec<&'static str>;
     fn abbrev_value(&self) -> &'static str;
     fn value(&self) -> &'static str;
 }

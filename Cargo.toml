@@ -10,4 +10,5 @@ members = [
     "colour_math_gui_gtk",
     "epaint",
     "epaint_derive",
+    "epaint_gtk"
 ]
