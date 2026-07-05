@@ -229,7 +229,7 @@ impl std::str::FromStr for PropertyType {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
 pub struct Property {
     pub property_type: PropertyType,
     pub value: f64,
