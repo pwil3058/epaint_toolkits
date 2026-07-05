@@ -7,10 +7,10 @@ use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
 use crate::paint::{Paint, SerializablePaintData};
-use crate::SeriesId;
+use crate::{PaintEssence, SeriesId};
 
 #[derive(Debug)]
-pub struct PaintSeries<P: Paint> {
+pub struct PaintSeries<P: PaintEssence> {
     series_id: Rc<SeriesId>,
     paint_list: Vec<Rc<P>>,
 }
@@ -194,6 +194,7 @@ mod test {
 
     use colour_math::{HCV, HueConstants, LightLevel, ColourBasics};
     use colour_math_derive::Colour;
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 
     use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
     use crate::{TooltipText, LabelText, create_paint};

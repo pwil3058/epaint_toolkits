@@ -168,14 +168,24 @@ macro_rules! create_paint {
 
 #[cfg(test)]
 mod paint_tests {
+    use std::convert::From;
+    use std::rc::Rc;
+
     use super::*;
     use colour_math::HueConstants;
     use colour_math::LightLevel;
+    use colour_math::ColourBasics;
+    use colour_math::HCV;
     use colour_math_derive::Colour;
     use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 
+    use crate::{TooltipText, LabelText};
+    use crate::paint::{Paint, SerializablePaintData};
+    use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
+
+    create_paint!(SeriesTestPaint, &[PropertyType::Transparency]);
 
     create_paint!(TestPaint, &[PropertyType::Transparency]);
 
@@ -195,75 +205,52 @@ mod paint_tests {
         assert_eq!(paint.name(), "whatever");
     }
 
-    // old test starts here
-    //     use crate::{TooltipText, LabelText};
-    //     use crate::paint::{PaintEssentialsIfce, Properties, PropertiedPaintPlus, SerializablePaintData};
-    //     use crate::properties::PropertyType;
-    //     use crate::series::*;
-    //     use colour_math::ColourBasics;
-    //     use colour_math::HCV;
-    //     use colour_math::HueConstants;
-    //     use colour_math::LightLevel;
-    //     use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
-    //     use colour_math_derive::Colour;
-    //     use std::convert::From;
-    //     use std::rc::Rc;
-    //
-    //     realize_propertied_paint_plus!(SeriesTestPaint, &[PropertyType::Transparency]);
-    //
-    //     impl MakeColouredShape for SeriesTestPaint {
-    //         fn coloured_shape(&self) -> ColouredShape {
-    //             let tooltip_text = self.tooltip_text();
-    //             ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
-    //         }
-    //     }
-    //
-    //     #[test]
-    //     fn test_paint_spec_generate_paint() {
-    //         let series_id = Rc::new(SeriesId {
-    //             series_name: "name".to_string(),
-    //             proprietor: "Proprieter".to_string(),
-    //         });
-    //         let target_paint = SeriesTestPaint {
-    //             colour: HCV::RED_MAGENTA,
-    //             series_id: series_id.clone(),
-    //             name: "Red".to_string(),
-    //             notes: "".to_string(),
-    //             property_variants_f64: vec![2.0],
-    //         };
-    //         let paint_spec = SerializablePaintData {
-    //             colour: HCV::RED_MAGENTA,
-    //             name: "Red".to_string(),
-    //             notes: String::new(),
-    //             property_variants_f64: vec![1.0],
-    //         };
-    //         let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
-    //         assert_eq!(paint, target_paint);
-    //     }
-    //
-    //     #[test]
-    //     fn test_paint_to_from_paint_spec() {
-    //         let paint_spec = SerializablePaintData {
-    //             colour: HCV::RED_MAGENTA,
-    //             name: "Red".to_string(),
-    //             notes: "".to_string(),
-    //             property_variants_f64: vec![2.0],
-    //         };
-    //         let series_id = SeriesId::new("DS".to_string(), "WC".to_string());
-    //         let paint: SeriesTestPaint = (paint_spec.clone(), Rc::new(series_id.clone())).into();
-    //         assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
-    //         assert_eq!(paint.name(), "Red");
-    //         assert_eq!(paint.notes(), "");
-    //         assert_eq!(paint.series_id, series_id.into());
-    //         assert_eq!(paint.property_variants_f64, vec![2.0]);
-    //         for (target, actual) in paint_spec
-    //             .property_variants_f64
-    //             .iter()
-    //             .zip(paint.property_variants_f64().iter())
-    //         {
-    //             assert_eq!(target, actual);
-    //         }
-    //         let recovered_paint_spec: SerializablePaintData = (&paint).into();
-    //         assert_eq!(recovered_paint_spec, paint_spec);
-    //     }
+        #[test]
+        fn test_paint_spec_generate_paint() {
+            let series_id = Rc::new(SeriesId {
+                series_name: "name".to_string(),
+                proprietor: "Proprieter".to_string(),
+            });
+            let target_paint = SeriesTestPaint {
+                colour: HCV::RED_MAGENTA,
+                series_id: series_id.clone(),
+                name: "Red".to_string(),
+                notes: "".to_string(),
+                property_variants_f64: vec![2.0],
+            };
+            let paint_spec = SerializablePaintData {
+                colour: HCV::RED_MAGENTA,
+                name: "Red".to_string(),
+                notes: String::new(),
+                property_variants_f64: vec![1.0],
+            };
+            let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
+            assert_eq!(paint, target_paint);
+        }
+
+        #[test]
+        fn test_paint_to_from_paint_spec() {
+            let paint_spec = SerializablePaintData {
+                colour: HCV::RED_MAGENTA,
+                name: "Red".to_string(),
+                notes: "".to_string(),
+                property_variants_f64: vec![2.0],
+            };
+            let series_id = Rc::new(SeriesId{series_name: "DS".to_string(), proprietor: "WC".to_string()});
+            let paint: SeriesTestPaint = (paint_spec.clone(), series_id.clone()).into();
+            assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
+            assert_eq!(paint.name(), "Red");
+            assert_eq!(paint.notes(), "");
+            assert_eq!(paint.series_id, series_id.into());
+            assert_eq!(paint.property_variants_f64, vec![2.0]);
+            for (target, actual) in paint_spec
+                .property_variants_f64
+                .iter().copied()
+                .zip(paint.property_variants_f64())
+            {
+                assert_eq!(target, actual);
+            }
+            let recovered_paint_spec: SerializablePaintData = paint.into();
+            assert_eq!(recovered_paint_spec, paint_spec);
+        }
 }
