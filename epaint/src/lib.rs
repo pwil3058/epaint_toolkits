@@ -10,12 +10,13 @@ use serde_json;
 
 use crate::properties::{Property, PropertyType};
 use colour_math::{ColourAttributes, ColourBasics};
+use colour_math::hue_wheel::MakeColouredShape;
 
 // pub mod mixtures;
 pub mod paint;
 pub mod properties;
-// pub mod series;
-// pub mod watercolour;
+pub mod series;
+pub mod watercolour;
 
 pub trait TooltipText {
     fn tooltip_text(&self) -> String;
@@ -38,7 +39,7 @@ impl fmt::Display for SeriesId {
 }
 
 pub trait PaintEssence:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + TooltipText + LabelText
+    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + TooltipText + LabelText + MakeColouredShape
 {
     const PROPERTY_TYPES: &'static [PropertyType];
 

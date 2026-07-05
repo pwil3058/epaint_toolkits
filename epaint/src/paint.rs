@@ -18,9 +18,7 @@ pub struct SerializablePaintData {
 }
 
 pub trait Paint:
-    PaintEssence
-    + From<(SerializablePaintData, Rc<SeriesId>)>
-    + Into<SerializablePaintData>
+    PaintEssence + From<(SerializablePaintData, Rc<SeriesId>)> + Into<SerializablePaintData>
 {
 }
 
@@ -77,8 +75,15 @@ macro_rules! create_paint {
                     .map(|(p, v)| Property::from((p, *v)))
             }
 
-            fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
+            fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
                 self.property_variants_f64.iter().copied()
+            }
+        }
+
+        impl MakeColouredShape for $name {
+            fn coloured_shape(&self) -> ColouredShape {
+                let tooltip_text = self.tooltip_text();
+                ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
             }
         }
 
@@ -146,7 +151,7 @@ macro_rules! create_paint {
             }
         }
 
-        impl Into<SerializablePaintData> for  $name{
+        impl Into<SerializablePaintData> for $name {
             fn into(self) -> SerializablePaintData {
                 SerializablePaintData {
                     name: self.name,
@@ -167,6 +172,7 @@ mod paint_tests {
     use colour_math::HueConstants;
     use colour_math::LightLevel;
     use colour_math_derive::Colour;
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 
     use crate::properties::*;
     use crate::*;
