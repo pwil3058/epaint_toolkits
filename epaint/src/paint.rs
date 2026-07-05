@@ -20,7 +20,7 @@ pub struct SerializablePaintData {
 pub trait Paint:
     PaintEssence
     + From<(SerializablePaintData, Rc<SeriesId>)>
-    + Into<(SerializablePaintData, Rc<SeriesId>)>
+    + Into<SerializablePaintData>
 {
 }
 
@@ -146,16 +146,18 @@ macro_rules! create_paint {
             }
         }
 
-        impl From<&$name> for SerializablePaintData {
-            fn from(paint: &$name) -> Self {
-                Self {
-                    name: paint.name.to_string(),
-                    notes: paint.notes.to_string(),
-                    colour: paint.colour.clone(),
-                    property_variants_f64: paint.property_variants_f64.clone(),
+        impl Into<SerializablePaintData> for  $name{
+            fn into(self) -> SerializablePaintData {
+                SerializablePaintData {
+                    name: self.name,
+                    colour: self.colour,
+                    notes: self.notes,
+                    property_variants_f64: self.property_variants_f64,
                 }
             }
         }
+
+        impl Paint for $name {}
     };
 }
 

@@ -7,7 +7,7 @@ use colour_math_derive::Colour;
 
 use crate::create_paint;
 use crate::{PaintEssence, SeriesId};
-use crate::paint::SerializablePaintData;
+use crate::paint::{Paint, SerializablePaintData};
 use crate::properties:: {Property, PropertyType};
 use crate::{LabelText, TooltipText};
 

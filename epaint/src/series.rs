@@ -1,42 +1,21 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::fmt;
 use std::io::{Read, Write};
 use std::rc::Rc;
 
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{PaintEssentialsIfce, PropertiedPaintPlus, SerializablePaintData};
-
-#[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
-pub struct SeriesId {
-    pub(crate) proprietor: String,
-    pub(crate) series_name: String,
-}
-
-impl SeriesId {
-    pub fn new(proprietor: String, series_name: String) -> Self {
-        Self {
-            proprietor,
-            series_name,
-        }
-    }
-}
-
-impl fmt::Display for SeriesId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:({})", self.series_name, self.proprietor)
-    }
-}
+use crate::paint::{Paint, SerializablePaintData};
+use crate::SeriesId;
 
 #[derive(Debug)]
-pub struct PaintSeries<P: PaintEssentialsIfce> {
+pub struct PaintSeries<P: Paint> {
     series_id: Rc<SeriesId>,
     paint_list: Vec<Rc<P>>,
 }
 
-impl<P: PaintEssentialsIfce + PartialOrd> PaintSeries<P> {
+impl<P: Paint> PaintSeries<P> {
     pub fn new(series_id: &SeriesId) -> Self {
         let series_id = Rc::new(series_id.clone());
         Self {
@@ -143,7 +122,7 @@ impl PaintSeriesSpec {
     }
 }
 
-impl<P: PropertiedPaintPlus> From<&PaintSeriesSpec> for PaintSeries<P> {
+impl<P: Paint> From<&PaintSeriesSpec> for PaintSeries<P> {
     fn from(data: &PaintSeriesSpec) -> PaintSeries<P> {
         let series_id = data.series_id();
         let mut paint_list = Vec::new();
@@ -186,7 +165,7 @@ impl PaintSeriesSpec {
     }
 }
 
-pub trait PaintFinder<P: PaintEssentialsIfce> {
+pub trait PaintFinder<P: Paint> {
     fn get_paint(
         &self,
         paint_name: &str,
@@ -213,15 +192,32 @@ pub trait PaintFinder<P: PaintEssentialsIfce> {
 mod test {
     use std::rc::Rc;
 
-    use colour_math::{HCV, HueConstants, LightLevel};
+    use colour_math::{HCV, HueConstants, LightLevel, ColourBasics};
     use colour_math_derive::Colour;
 
     use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
-    use crate::{realize_propertied_paint_plus, TooltipText};
-    use crate::paint::{PaintEssentialsIfce, PropertiedPaint, PropertiedPaintPlus, SerializablePaintData};
-    use crate::properties::PropertyType;
+    use crate::{TooltipText, LabelText, create_paint};
+    use crate::paint::{Paint, SerializablePaintData};
+    use crate::properties::{Property, PropertyType};
+    use crate::PaintEssence;
 
-    realize_propertied_paint_plus!(MixableTestPaint, &[PropertyType::Transparency]);
+    create_paint!(MixableTestPaint, &[PropertyType::Transparency]);
+
+    #[test]
+    fn create_paint_instance() {
+        let paint = MixableTestPaint::new(
+            "whatever",
+            Rc::new(SeriesId {
+                proprietor: "joe".to_string(),
+                series_name: "blah".to_string(),
+            }),
+            HCV::RED,
+            "notes",
+            &[1_f64],
+        );
+        assert_eq!(paint.hcv(), HCV::RED);
+        assert_eq!(paint.name(), "whatever");
+    }
 
     #[test]
     fn save_and_recover() {
