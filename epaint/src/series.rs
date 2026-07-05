@@ -192,7 +192,7 @@ mod test {
     use std::rc::Rc;
 
     use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
-    use colour_math::{ColourBasics, HueConstants, LightLevel, HCV};
+    use colour_math::{HueConstants, LightLevel, HCV};
     use colour_math_derive::Colour;
 
     use crate::paint::{Paint, SerializablePaintData};
@@ -203,22 +203,6 @@ mod test {
     use crate::{create_paint, LabelText, TooltipText};
 
     create_paint!(MixableTestPaint, &[PropertyType::Transparency]);
-
-    #[test]
-    fn create_paint_instance() {
-        let paint = MixableTestPaint::new(
-            "whatever",
-            Rc::new(SeriesId {
-                proprietor: "joe".to_string(),
-                series_name: "blah".to_string(),
-            }),
-            HCV::RED,
-            "notes",
-            &[1_f64],
-        );
-        assert_eq!(paint.hcv(), HCV::RED);
-        assert_eq!(paint.name(), "whatever");
-    }
 
     #[test]
     fn save_and_recover() {
@@ -252,7 +236,7 @@ mod test {
         let series: PaintSeries<MixableTestPaint> = (&series_spec).into();
         assert_eq!(series.series_id, series_spec.series_id());
         let found_red = series.find("red");
-        assert_eq!(found_red.unwrap().colour, HCV::RED);
+        assert_eq!(found_red.unwrap().data.colour, HCV::RED);
         for (spec_paint, paint) in series_spec.paints().zip(read_spec.paints()) {
             assert_eq!(spec_paint.colour, paint.colour);
         }

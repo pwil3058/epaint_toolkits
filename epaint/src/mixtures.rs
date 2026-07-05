@@ -11,9 +11,9 @@ use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
 use colour_math::{
-    ColourBasics, HCV, LightLevel, RGB,
-    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
-    mixing::SubtractiveMixer,
+    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape}, mixing::SubtractiveMixer, ColourBasics, LightLevel,
+    HCV,
+    RGB,
 };
 
 use colour_math_derive::Colour;
@@ -21,7 +21,7 @@ use colour_math_derive::Colour;
 use crate::paint::Paint;
 use crate::properties::{Property, PropertyType};
 use crate::series::PaintFinder;
-use crate::{LabelText, PaintEssence, SeriesId, TooltipText};
+use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 pub trait MixtureIfce<P>: PaintEssence {
     fn targeted_colour(&self) -> Option<HCV>;
@@ -35,7 +35,7 @@ pub trait MixtureIfce<P>: PaintEssence {
     }
 }
 
-#[derive(Debug, Colour)]
+#[derive(Debug, Colour, Clone)]
 pub struct Mixture<P: PaintEssence> {
     colour: HCV,
     // #[cfg(feature = "targeted_mixtures")]
@@ -104,22 +104,28 @@ impl<P: Paint> PaintEssence for Mixture<P> {
         &self.name
     }
 
-    fn series_id(&self) -> Rc<SeriesId> {
-        self.series_id.clone()
-    }
-
     fn notes(&self) -> &str {
         &self.notes
     }
 
+    fn colour(&self) -> HCV {
+        self.colour.clone()
+    }
+
     fn properties(&self) -> impl Iterator<Item = Property> {
         Self::property_types()
-            .zip(self.property_variants_f64.iter())
-            .map(|(p, v)| Property::from((p, *v)))
+            .zip(self.property_variants_f64())
+            .map(|(p, v)| Property::from((p, v)))
     }
 
     fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
         self.property_variants_f64.iter().copied()
+    }
+}
+
+impl<P: Paint> GetSeriesId for Mixture<P> {
+    fn series_id(&self) -> Rc<SeriesId> {
+        self.series_id.clone()
     }
 }
 
@@ -458,15 +464,20 @@ impl SaveableMixingSession {
 mod test {
     use std::rc::Rc;
 
-    use crate::mixtures::{MixingSession, Mixture, MixtureBuilder, SaveableMixingSession};
+    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+    use colour_math::HueConstants;
+    use colour_math::{LightLevel, HCV};
+    use colour_math_derive::Colour;
+
+    use crate::create_paint;
     use crate::paint::{Paint, SerializablePaintData};
     use crate::properties::{Property, PropertyType};
-    use crate::{create_paint, SeriesId, PaintEssence};
-    use crate::series::{PaintSeries, PaintSeriesSpec};
+    use crate::GetSeriesId;
     use crate::{LabelText, TooltipText};
-    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
-    use colour_math::{HCV, HueConstants, LightLevel};
-    use colour_math_derive::Colour;
+    use crate::{PaintEssence, SeriesId};
+
+    use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
+    use crate::series::{PaintSeries, PaintSeriesSpec};
 
     create_paint!(TestPaint, &[PropertyType::Transparency]);
 
@@ -489,7 +500,7 @@ mod test {
             property_variants_f64: vec![2.0],
         });
         let series: PaintSeries<TestPaint> = (&series_spec).into();
-        let mut session: MixingSession<Mixture<TestPaint>> = MixingSession::new("test session");
+        let mut session: MixingSession<TestPaint> = MixingSession::new("test session");
         session.set_notes("a test mixing session");
         let yellow = series.find("yellow").unwrap();
         let red = series.find("red").unwrap();

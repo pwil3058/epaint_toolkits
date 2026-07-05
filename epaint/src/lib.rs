@@ -11,7 +11,7 @@ use serde_json;
 use crate::properties::{Property, PropertyType};
 use colour_math::{ColourAttributes, ColourBasics, HCV};
 
-//pub mod mixtures;
+pub mod mixtures;
 pub mod paint;
 pub mod properties;
 pub mod series;
