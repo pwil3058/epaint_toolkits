@@ -12,7 +12,7 @@ use crate::properties::{Property, PropertyType};
 use colour_math::{ColourAttributes, ColourBasics};
 use colour_math::hue_wheel::MakeColouredShape;
 
-// pub mod mixtures;
+pub mod mixtures;
 pub mod paint;
 pub mod properties;
 pub mod series;
