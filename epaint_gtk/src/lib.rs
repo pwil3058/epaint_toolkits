@@ -10,6 +10,7 @@ use std::{error, fmt, io};
 // pub mod spec_edit;
 // pub mod storage;
 pub mod properties;
+pub mod spec_edit;
 //
 // pub mod colour {
 //     pub use colour_math_gtk::{colour::*, coloured::*};

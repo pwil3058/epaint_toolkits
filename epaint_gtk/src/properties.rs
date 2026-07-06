@@ -2,14 +2,12 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use epaint::paint::SerializablePaintData;
 use epaint::properties::Property;
 pub use epaint::properties::{
     str_values, Finish, Fluorescence, Granulation, LightFastness, Metallicness, Opacity,
     Permanence, PropertyIfce, PropertyType, Staining, Transparency,
 };
 
-use epaint::SeriesId;
 use pw_gtk_ext::{
     gtk,
     gtk::{ComboBoxExt, ComboBoxTextExt},
@@ -77,5 +75,9 @@ impl PropertyEntry {
 
     pub fn connect_changed<F: Fn(&Self) + 'static>(&self, f: F) {
         self.callbacks.borrow_mut().push(Box::new(f))
+    }
+
+    pub fn property_type(&self) -> PropertyType {
+        self.property_type
     }
 }

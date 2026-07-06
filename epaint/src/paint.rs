@@ -78,6 +78,7 @@ macro_rules! create_paint {
             fn property_types() -> impl Iterator<Item = PropertyType> {
                 Self::PROPERTY_TYPES.iter().copied()
             }
+
             fn properties(&self) -> impl Iterator<Item = Property> {
                 Self::property_types()
                     .zip(self.property_variants_f64())
