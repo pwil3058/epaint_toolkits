@@ -132,6 +132,21 @@ pub enum PropertyType {
     Granulation,
 }
 
+pub fn str_values(property: PropertyType) -> Vec<&'static str> {
+    match property {
+        PropertyType::Transparency => Transparency::str_values(),
+        PropertyType::LightFastness => LightFastness::str_values(),
+        PropertyType::Staining => Staining::str_values(),
+        PropertyType::Finish => Finish::str_values(),
+        PropertyType::Opacity => Opacity::str_values(),
+        PropertyType::Permanence => Permanence::str_values(),
+        PropertyType::Luminescence => Luminescence::str_values(),
+        PropertyType::Fluorescence => Fluorescence::str_values(),
+        PropertyType::Metallicness => Metallicness::str_values(),
+        PropertyType::Granulation => Granulation::str_values(),
+    }
+}
+
 impl PropertyType {
     pub fn name(&self) -> &'static str {
         match self {

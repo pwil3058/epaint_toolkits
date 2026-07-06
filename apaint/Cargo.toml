@@ -1,0 +1,30 @@
+[package]
+name = "apaint"
+version = "0.1.0"
+authors = ["Peter Williams <pwil3058@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = []
+targeted_mixtures = []
+
+[dependencies]
+crypto-hash = "0.*"
+serde = "1.0.*"
+
+serde_derive = "1.0.*"
+serde_json = "1.0.*"
+gcd = "2.3.*"
+lazy_static = "1.4.*"
+num-traits = "0.2.*"
+regex = "1.9.*"
+
+apaint_boilerplate = { path = "../apaint_boilerplate" }
+
+#colour_math_derive = { git = "https://github.com/pwil3058/rs_colour_math.git" }
+colour_math_derive = { path = "../colour_math_derive" }
+#colour_math = { git = "https://github.com/pwil3058/rs_colour_math.git" }
+colour_math = { path = "../colour_math" }
+num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
