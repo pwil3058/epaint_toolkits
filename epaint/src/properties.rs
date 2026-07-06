@@ -222,6 +222,28 @@ impl PropertyType {
             Self::Granulation => Granulation::default().into(),
         }
     }
+
+    pub fn default_str(&self) -> &'static str {
+        match self {
+            Self::Transparency => Transparency::default().value(),
+            Self::LightFastness => LightFastness::default().value(),
+            Self::Staining => Staining::default().value(),
+            Self::Finish => Finish::default().value(),
+            Self::Opacity => Opacity::default().value(),
+            Self::Permanence => Permanence::default().value(),
+            Self::Luminescence => Luminescence::default().value(),
+            Self::Fluorescence => Fluorescence::default().value(),
+            Self::Metallicness => Metallicness::default().value(),
+            Self::Granulation => Granulation::default().value(),
+        }
+    }
+
+    pub fn default_property(&self) -> Property {
+        Property {
+            property_type: *self,
+            value: self.default_f64(),
+        }
+    }
 }
 
 impl std::str::FromStr for PropertyType {
@@ -351,7 +373,6 @@ impl FromStr for Property {
         let mut split = string.split("::");
         let type_name = split.next().unwrap();
         let property_type = PropertyType::from_str(type_name).unwrap();
-        // TODO: write a declarative macro for this
         let result = match property_type {
             PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
             PropertyType::LightFastness => {

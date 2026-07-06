@@ -2,37 +2,40 @@
 
 use std::{cell::RefCell, rc::Rc};
 
+use epaint::paint::SerializablePaintData;
+use epaint::properties::Property;
+pub use epaint::properties::{
+    str_values, Finish, Fluorescence, Granulation, LightFastness, Metallicness, Opacity,
+    Permanence, PropertyIfce, PropertyType, Staining, Transparency,
+};
+
+use epaint::SeriesId;
 use pw_gtk_ext::{
     gtk,
     gtk::{ComboBoxExt, ComboBoxTextExt},
     wrapper::*,
 };
 
-pub use epaint::properties::{
-    Finish, Fluorescence, Granulation, LightFastness, Metallicness, Opacity, Permanence,
-    PropertyIfce, PropertyType, Staining, Transparency,
-};
-
 type ChangeCallback<T> = Box<dyn Fn(&T)>;
 
 #[derive(PWO)]
-pub struct PropertyEntry<C: 'static + PropertyIfce> {
+pub struct PropertyEntry {
     combo_box_text: gtk::ComboBoxText,
     callbacks: RefCell<Vec<ChangeCallback<Self>>>,
-    marker: std::marker::PhantomData<C>,
+    property_type: PropertyType,
 }
 
-impl<C: PropertyIfce> PropertyEntry<C> {
-    pub fn new() -> Rc<Self> {
+impl PropertyEntry {
+    pub fn new(property_type: PropertyType) -> Rc<Self> {
         let combo_box_text = gtk::ComboBoxText::new();
-        for str_value in C::str_values().iter() {
+        for str_value in str_values(property_type).iter() {
             combo_box_text.append_text(str_value);
         }
         combo_box_text.set_id_column(0);
         let ce = Rc::new(Self {
             combo_box_text,
             callbacks: RefCell::new(vec![]),
-            marker: std::marker::PhantomData,
+            property_type,
         });
         ce.set_value(None);
         let ce_clone = Rc::clone(&ce);
@@ -45,29 +48,29 @@ impl<C: PropertyIfce> PropertyEntry<C> {
     }
 
     pub fn label(&self) -> gtk::Label {
-        gtk::Label::new(Some(C::NAME))
+        gtk::Label::new(Some(self.property_type.name()))
     }
 
     pub fn prompt(&self, align: gtk::Align) -> gtk::Label {
         gtk::LabelBuilder::new()
-            .label(C::PROMPT)
+            .label(self.property_type.prompt())
             .halign(align)
             .build()
     }
 
-    pub fn value(&self) -> C {
+    pub fn value(&self) -> Property {
         if let Some(text) = self.combo_box_text.get_active_text() {
-            C::from_str(&text).expect("all strings should be valid")
+            Property::from((self.property_type, text.as_ref()))
         } else {
-            C::default()
+            self.property_type.default_property()
         }
     }
 
-    pub fn set_value(&self, new_value: Option<C>) {
+    pub fn set_value(&self, new_value: Option<Property>) {
         let id = if let Some(new_value) = new_value {
             new_value.value()
         } else {
-            C::default().value()
+            self.property_type.default_str()
         };
         self.combo_box_text.set_active_id(Some(id));
     }
@@ -76,13 +79,3 @@ impl<C: PropertyIfce> PropertyEntry<C> {
         self.callbacks.borrow_mut().push(Box::new(f))
     }
 }
-
-pub type FinishEntry = PropertyEntry<Finish>;
-pub type TransparencyEntry = PropertyEntry<Transparency>;
-pub type PermanenceEntry = PropertyEntry<Permanence>;
-pub type FluorescenceEntry = PropertyEntry<Fluorescence>;
-pub type MetallicnessEntry = PropertyEntry<Metallicness>;
-pub type GranulationEntry = PropertyEntry<Granulation>;
-pub type LightFastnessEntry = PropertyEntry<LightFastness>;
-pub type StainingEntry = PropertyEntry<Staining>;
-pub type OpacityEntry = PropertyEntry<Opacity>;

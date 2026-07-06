@@ -4,7 +4,7 @@ extern crate proc_macro;
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Ident, parse_macro_input};
+use syn::{parse_macro_input, Data, DeriveInput, Ident};
 
 fn acronym(input: &str) -> String {
     let mut output = String::new();
@@ -93,6 +93,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     #enum_name::#v_name => #count as f64,
                 };
                 to_f64_tokens.push(to_f64_token);
+
                 count += 1;
             }
         }
