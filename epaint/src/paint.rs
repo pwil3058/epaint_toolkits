@@ -56,8 +56,8 @@ macro_rules! create_paint {
     ($property_types:expr) => {
         #[derive(Debug, Colour, Clone)]
         pub struct Paint {
-            data: SerializablePaintData,
-            series_id: Rc<SeriesId>,
+            pub data: SerializablePaintData,
+            pub series_id: Rc<SeriesId>,
         }
 
         impl PaintEssence for Paint {

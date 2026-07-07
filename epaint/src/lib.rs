@@ -27,8 +27,8 @@ pub trait LabelText {
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
 pub struct SeriesId {
-    pub(crate) proprietor: String,
-    pub(crate) series_name: String,
+    pub proprietor: String,
+    pub series_name: String,
 }
 
 impl fmt::Display for SeriesId {

@@ -4,3 +4,19 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+
+pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+
+colour_math = { path = "../colour_math" }
+colour_math_derive = { path = "../colour_math_derive" }
+
+[dependencies.epaint]
+path = "../epaint"
+features = ["targeted_mixtures"]
+
+epaint_derive = { path = "../epaint_derive" }
+
+[dependencies.epaint_gtk]
+path = "../epaint_gtk"
+features = ["targeted_mixtures", "palette_samples"]
+#features = ["palette_samples"]

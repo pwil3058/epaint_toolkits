@@ -28,4 +28,7 @@ colour_math = { path = "../colour_math" }
 colour_math_cairo = { path = "../colour_math_cairo" }
 colour_math_gtk = { path = "../colour_math_gtk" }
 
-epaint = { path = "../epaint" }
+[dependencies.epaint]
+path = "../epaint"
+features = ["targeted_mixtures"]
+
