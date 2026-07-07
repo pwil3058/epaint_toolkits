@@ -12,5 +12,5 @@ members = [
     "epaint_derive",
     "epaint_gtk",
     "apaint_gtk",
-    "apaint",
+    "apaint", "epaint_gtk_gui",
 ]
