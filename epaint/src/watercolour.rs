@@ -7,10 +7,10 @@ use colour_math::{LightLevel, HCV};
 use colour_math_derive::Colour;
 
 use crate::create_paint;
-use crate::paint::{Paint, SerializablePaintData};
+use crate::paint::{PaintIfce, SerializablePaintData};
 use crate::properties::{Property, PropertyType};
 use crate::GetSeriesId;
 use crate::{LabelText, TooltipText};
 use crate::{PaintEssence, SeriesId};
 
-create_paint!(Watercolour, &[PropertyType::Transparency]);
+create_paint!(&[PropertyType::Transparency]);

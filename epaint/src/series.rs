@@ -6,7 +6,7 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{Paint, SerializablePaintData};
+use crate::paint::{PaintIfce, SerializablePaintData};
 use crate::{PaintEssence, SeriesId};
 
 #[derive(Debug)]
@@ -15,7 +15,7 @@ pub struct PaintSeries<P: PaintEssence> {
     paint_list: Vec<Rc<P>>,
 }
 
-impl<P: Paint> PaintSeries<P> {
+impl<P: PaintIfce> PaintSeries<P> {
     pub fn new(series_id: &SeriesId) -> Self {
         let series_id = Rc::new(series_id.clone());
         Self {
@@ -122,7 +122,7 @@ impl PaintSeriesSpec {
     }
 }
 
-impl<P: Paint> From<&PaintSeriesSpec> for PaintSeries<P> {
+impl<P: PaintIfce> From<&PaintSeriesSpec> for PaintSeries<P> {
     fn from(data: &PaintSeriesSpec) -> PaintSeries<P> {
         let series_id = data.series_id();
         let mut paint_list = Vec::new();
@@ -164,7 +164,7 @@ impl PaintSeriesSpec {
     }
 }
 
-pub trait PaintFinder<P: Paint> {
+pub trait PaintFinder<P: PaintIfce> {
     fn get_paint(
         &self,
         paint_name: &str,
@@ -195,14 +195,14 @@ mod test {
     use colour_math::{HueConstants, LightLevel, HCV};
     use colour_math_derive::Colour;
 
-    use crate::paint::{Paint, SerializablePaintData};
+    use crate::paint::{PaintIfce, SerializablePaintData};
     use crate::properties::{Property, PropertyType};
     use crate::series::{PaintSeries, PaintSeriesSpec, SeriesId};
     use crate::GetSeriesId;
     use crate::PaintEssence;
     use crate::{create_paint, LabelText, TooltipText};
 
-    create_paint!(MixableTestPaint, &[PropertyType::Transparency]);
+    create_paint!(&[PropertyType::Transparency]);
 
     #[test]
     fn save_and_recover() {
@@ -233,7 +233,7 @@ mod test {
         for (pspec1, pspec2) in series_spec.paints().zip(read_spec.paints()) {
             assert_eq!(*pspec1, *pspec2);
         }
-        let series: PaintSeries<MixableTestPaint> = (&series_spec).into();
+        let series: PaintSeries<Paint> = (&series_spec).into();
         assert_eq!(series.series_id, series_spec.series_id());
         let found_red = series.find("red");
         assert_eq!(found_red.unwrap().data.colour, HCV::RED);

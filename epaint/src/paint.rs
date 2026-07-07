@@ -39,7 +39,7 @@ impl Ord for SerializablePaintData {
     }
 }
 
-pub trait Paint:
+pub trait PaintIfce:
     PaintEssence
     + GetSeriesId
     + From<(SerializablePaintData, Rc<SeriesId>)>
@@ -53,14 +53,14 @@ pub trait Paint:
 
 #[macro_export]
 macro_rules! create_paint {
-    ($name:ident, $property_types:expr) => {
+    ($property_types:expr) => {
         #[derive(Debug, Colour, Clone)]
-        pub struct $name {
+        pub struct Paint {
             data: SerializablePaintData,
             series_id: Rc<SeriesId>,
         }
 
-        impl PaintEssence for $name {
+        impl PaintEssence for Paint {
             const PROPERTY_TYPES: &'static [PropertyType] = $property_types;
 
             fn name(&self) -> &str {
@@ -90,13 +90,13 @@ macro_rules! create_paint {
             }
         }
 
-        impl GetSeriesId for $name {
+        impl GetSeriesId for Paint {
             fn series_id(&self) -> Rc<SeriesId> {
                 self.series_id.clone()
             }
         }
 
-        impl MakeColouredShape for $name {
+        impl MakeColouredShape for Paint {
             fn coloured_shape(&self) -> ColouredShape {
                 let tooltip_text = self.tooltip_text();
                 ColouredShape::new(
@@ -108,7 +108,7 @@ macro_rules! create_paint {
             }
         }
 
-        impl PartialEq for $name {
+        impl PartialEq for Paint {
             fn eq(&self, other: &Self) -> bool {
                 let mut result = false;
                 if self.data.name == other.data.name {
@@ -118,9 +118,9 @@ macro_rules! create_paint {
             }
         }
 
-        impl Eq for $name {}
+        impl Eq for Paint {}
 
-        impl PartialOrd for $name {
+        impl PartialOrd for Paint {
             fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
                 match self.data.name.cmp(&other.data.name) {
                     std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
@@ -134,13 +134,13 @@ macro_rules! create_paint {
             }
         }
 
-        impl Ord for $name {
+        impl Ord for Paint {
             fn cmp(&self, other: &Self) -> std::cmp::Ordering {
                 self.partial_cmp(other).expect("paints are comparable")
             }
         }
 
-        impl TooltipText for $name {
+        impl TooltipText for Paint {
             fn tooltip_text(&self) -> String {
                 let mut string = self.data.name.to_string();
                 string.push('\n');
@@ -154,13 +154,13 @@ macro_rules! create_paint {
             }
         }
 
-        impl LabelText for $name {
+        impl LabelText for Paint {
             fn label_text(&self) -> String {
                 format!("Mix {}", self.data.name)
             }
         }
 
-        impl From<(SerializablePaintData, Rc<SeriesId>)> for $name {
+        impl From<(SerializablePaintData, Rc<SeriesId>)> for Paint {
             fn from(arg: (SerializablePaintData, Rc<SeriesId>)) -> Self {
                 Self {
                     data: arg.0,
@@ -169,7 +169,7 @@ macro_rules! create_paint {
             }
         }
 
-        impl Into<SerializablePaintData> for $name {
+        impl Into<SerializablePaintData> for Paint {
             fn into(self) -> SerializablePaintData {
                 SerializablePaintData {
                     name: self.data.name,
@@ -180,7 +180,7 @@ macro_rules! create_paint {
             }
         }
 
-        impl Paint for $name {}
+        impl PaintIfce for Paint {}
     };
 }
 
@@ -197,13 +197,13 @@ mod paint_tests {
     use colour_math::HCV;
     use colour_math_derive::Colour;
 
-    use crate::paint::{Paint, SerializablePaintData};
+    use crate::paint::{PaintIfce, SerializablePaintData};
     use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
     use crate::{LabelText, TooltipText};
 
-    create_paint!(TestPaint, &[PropertyType::Transparency]);
+    create_paint!(&[PropertyType::Transparency]);
 
     #[test]
     fn test_paint_spec_generate_paint() {
@@ -211,7 +211,7 @@ mod paint_tests {
             series_name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
         });
-        let target_paint = TestPaint {
+        let target_paint = Paint {
             data: SerializablePaintData {
                 colour: HCV::RED_MAGENTA,
                 name: "Red".to_string(),
@@ -226,7 +226,7 @@ mod paint_tests {
             notes: String::new(),
             property_variants_f64: vec![1.0],
         };
-        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
+        let paint: Paint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint, target_paint);
     }
 
@@ -242,7 +242,7 @@ mod paint_tests {
             series_name: "DS".to_string(),
             proprietor: "WC".to_string(),
         });
-        let paint: TestPaint = (paint_spec.clone(), series_id.clone()).into();
+        let paint: Paint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
