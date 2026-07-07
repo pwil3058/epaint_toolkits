@@ -3,12 +3,12 @@
 use std::{error, fmt, io};
 
 // pub mod factory;
-// pub mod icons;
-// pub mod list;
+pub mod icons;
 // pub mod mixer;
 // pub mod series;
 // pub mod spec_edit;
 // pub mod storage;
+pub mod list;
 pub mod properties;
 pub mod spec_edit;
 //

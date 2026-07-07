@@ -90,6 +90,36 @@ macro_rules! create_paint {
             }
         }
 
+        impl PaintEssence for SerializablePaintData {
+            const PROPERTY_TYPES: &'static [PropertyType] = $property_types;
+
+            fn name(&self) -> &str {
+                &self.name
+            }
+
+            fn notes(&self) -> &str {
+                &self.notes
+            }
+
+            fn colour(&self) -> HCV {
+                self.colour.clone()
+            }
+
+            fn property_types() -> impl Iterator<Item = PropertyType> {
+                Self::PROPERTY_TYPES.iter().copied()
+            }
+
+            fn properties(&self) -> impl Iterator<Item = Property> {
+                Self::property_types()
+                    .zip(self.property_variants_f64())
+                    .map(|(p, v)| Property::from((p, v)))
+            }
+
+            fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
+                self.property_variants_f64.iter().copied()
+            }
+        }
+
         impl GetSeriesId for Paint {
             fn series_id(&self) -> Rc<SeriesId> {
                 self.series_id.clone()
