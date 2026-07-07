@@ -23,7 +23,6 @@ type ChangeCallback = Box<dyn Fn(u64)>;
 #[derive(PWO, Wrapper)]
 pub struct BasicPaintSpecEditor {
     vbox: gtk::Box,
-    id_entry: gtk::Entry,
     name_entry: gtk::Entry,
     notes_entry: gtk::Entry,
     colour_editor: Rc<ColourEditor<u16>>,
@@ -87,13 +86,6 @@ impl BasicPaintSpecEditor {
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
         let label = gtk::LabelBuilder::new()
-            .label("Id:")
-            .halign(gtk::Align::End)
-            .build();
-        grid.attach(&label, 0, 0, 1, 1);
-        let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
-        grid.attach(&id_entry, 1, 0, 1, 1);
-        let label = gtk::LabelBuilder::new()
             .label("Name:")
             .halign(gtk::Align::End)
             .build();
@@ -146,7 +138,6 @@ impl BasicPaintSpecEditor {
             .expect("Duplicate key or button: reset");
         let bpe = Rc::new(Self {
             vbox,
-            id_entry,
             name_entry,
             notes_entry,
             colour_editor,
@@ -166,25 +157,6 @@ impl BasicPaintSpecEditor {
 
         let bpe_c = Rc::clone(&bpe);
         reset_btn.connect_clicked(move |_| bpe_c.process_reset_action());
-
-        let bpe_c = Rc::clone(&bpe);
-        bpe.id_entry.connect_changed(move |entry| {
-            let mut masked_condns = MaskedCondns {
-                condns: 0,
-                mask: SAV_ID_READY + SAV_ID_CHANGED,
-            };
-            if entry.get_text_length() > 0 {
-                masked_condns.condns += SAV_ID_READY;
-            };
-            if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
-                if spec.name != entry.get_text() {
-                    masked_condns.condns += SAV_ID_CHANGED;
-                }
-            }
-            bpe_c.buttons.update_condns(masked_condns);
-            bpe_c.update_has_changes();
-            bpe_c.inform_changed();
-        });
 
         let bpe_c = Rc::clone(&bpe);
         bpe.name_entry.connect_changed(move |entry| {
@@ -350,7 +322,6 @@ impl BasicPaintSpecEditor {
             }
         }
         self.set_current_spec(None);
-        self.id_entry.set_text("");
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         // NB: do not reset properties
@@ -428,7 +399,6 @@ impl BasicPaintSpecEditor {
 
     pub fn hard_reset(&self) {
         self.set_current_spec(None);
-        self.id_entry.set_text("");
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         for property_entry in self.property_entries.iter() {
