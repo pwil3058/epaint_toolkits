@@ -42,22 +42,20 @@ pub trait GetSeriesId {
 }
 
 pub trait PaintEssence:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
+ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
     const PROPERTY_TYPES: &'static [PropertyType];
 
     fn name(&self) -> &str;
     fn colour(&self) -> HCV;
     fn notes(&self) -> &str;
-    fn properties(&self) -> impl Iterator<Item = Property>;
-    fn property_variants_f64(&self) -> impl Iterator<Item = f64>;
+    fn properties(&self) -> impl Iterator<Item=Property>;
+    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
 
-    fn property_types() -> impl Iterator<Item = PropertyType> {
+    fn property_types() -> impl Iterator<Item=PropertyType> {
         Self::PROPERTY_TYPES.iter().copied()
     }
 }
-
-pub trait PaintEssenceSerde: PaintEssence + for<'a> Deserialize<'a> + Serialize {}
 
 #[derive(Debug)]
 pub enum Error {
@@ -107,3 +105,5 @@ impl From<serde_json::Error> for Error {
         Error::SerdeJsonError(err)
     }
 }
+
+pub type Result<T> = std::result::Result<T, crate::Error>;
