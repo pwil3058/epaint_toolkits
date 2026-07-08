@@ -15,7 +15,6 @@ pub mod mixtures;
 pub mod paint;
 pub mod properties;
 pub mod series;
-pub mod watercolour;
 
 pub trait TooltipText {
     fn tooltip_text(&self) -> String;
@@ -44,17 +43,11 @@ pub trait GetSeriesId {
 pub trait PaintEssence:
 ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
-    const PROPERTY_TYPES: &'static [PropertyType];
-
     fn name(&self) -> &str;
     fn colour(&self) -> HCV;
     fn notes(&self) -> &str;
     fn properties(&self) -> impl Iterator<Item=Property>;
-    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
-
-    fn property_types() -> impl Iterator<Item=PropertyType> {
-        Self::PROPERTY_TYPES.iter().copied()
-    }
+    fn property_types(&self) -> impl Iterator<Item=PropertyType>;
 }
 
 #[derive(Debug)]

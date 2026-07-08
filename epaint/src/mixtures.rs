@@ -18,14 +18,14 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::PaintIfce;
-use crate::properties::{Property, PropertyType};
+use crate::paint::{Paint};
+use crate::properties::{Properties, Property, PropertyType};
 use crate::series::PaintFinder;
 use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
-pub trait MixtureIfce<P>: PaintEssence {
+pub trait MixtureIfce: PaintEssence {
     fn targeted_colour(&self) -> Option<HCV>;
-    fn components(&self) -> impl Iterator<Item=(Rc<P>, u64)>;
+    fn components(&self) -> impl Iterator<Item=(Rc<Paint>, u64)>;
 
     fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour() {
@@ -36,28 +36,28 @@ pub trait MixtureIfce<P>: PaintEssence {
 }
 
 #[derive(Debug, Colour, Clone)]
-pub struct Mixture<P: PaintEssence> {
+pub struct Mixture {
     colour: HCV,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
     name: String,
     notes: String,
+    properties: Properties,
     series_id: Rc<SeriesId>,
-    property_variants_f64: Vec<f64>,
-    components: Vec<(Rc<P>, u64)>,
+    components: Vec<(Rc<Paint>, u64)>,
 }
 
-impl<P: PaintIfce> MixtureIfce<P> for Mixture<P> {
+impl MixtureIfce for Mixture {
     fn targeted_colour(&self) -> Option<HCV> {
         self.targeted_colour.into()
     }
 
-    fn components(&self) -> impl Iterator<Item=(Rc<P>, u64)> {
+    fn components(&self) -> impl Iterator<Item=(Rc<Paint>, u64)> {
         self.components.iter().map(|(rc, p)| (rc.clone(), *p))
     }
 }
 
-impl<P: PaintIfce> Mixture<P> {
+impl Mixture {
     // #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour {
@@ -93,13 +93,12 @@ impl<P: PaintIfce> Mixture<P> {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item=&(Rc<P>, u64)> {
+    pub fn components(&self) -> impl Iterator<Item=&(Rc<Paint>, u64)> {
         self.components.iter()
     }
 }
-impl<P: PaintIfce> PaintEssence for Mixture<P> {
-    const PROPERTY_TYPES: &'static [PropertyType] = P::PROPERTY_TYPES;
 
+impl PaintEssence for Mixture {
     fn name(&self) -> &str {
         &self.name
     }
@@ -112,24 +111,22 @@ impl<P: PaintIfce> PaintEssence for Mixture<P> {
         self.colour.clone()
     }
 
-    fn properties(&self) -> impl Iterator<Item=Property> {
-        Self::property_types()
-            .zip(self.property_variants_f64())
-            .map(|(p, v)| Property::from((p, v)))
+    fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+        self.properties.property_types()
     }
 
-    fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
-        self.property_variants_f64.iter().copied()
+    fn properties(&self) -> impl Iterator<Item=Property> {
+        self.properties.properties()
     }
 }
 
-impl<P: PaintIfce> GetSeriesId for Mixture<P> {
+impl GetSeriesId for Mixture {
     fn series_id(&self) -> Rc<SeriesId> {
         self.series_id.clone()
     }
 }
 
-impl<P: PaintIfce> TooltipText for Mixture<P> {
+impl TooltipText for Mixture {
     fn tooltip_text(&self) -> String {
         let mut string = self.label_text();
         if !self.notes.is_empty() {
@@ -141,28 +138,28 @@ impl<P: PaintIfce> TooltipText for Mixture<P> {
     }
 }
 
-impl<P: PaintIfce> LabelText for Mixture<P> {
+impl LabelText for Mixture {
     fn label_text(&self) -> String {
         format!("Mix {}", self.name)
     }
 }
 
-impl<P: PaintIfce> MakeColouredShape for Mixture<P> {
+impl MakeColouredShape for Mixture {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Diamond)
     }
 }
 
-impl<P: PaintIfce> PartialEq for Mixture<P> {
+impl PartialEq for Mixture {
     fn eq(&self, other: &Self) -> bool {
         self.name == other.name && self.series_id == other.series_id
     }
 }
 
-impl<P: PaintIfce> Eq for Mixture<P> {}
+impl Eq for Mixture {}
 
-impl<P: PaintIfce> PartialOrd for Mixture<P> {
+impl PartialOrd for Mixture {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match self.name.cmp(&other.name) {
             Ordering::Less => Some(Ordering::Less),
@@ -176,19 +173,19 @@ impl<P: PaintIfce> PartialOrd for Mixture<P> {
     }
 }
 
-impl<P: PaintIfce> Ord for Mixture<P> {
+impl Ord for Mixture {
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
 }
 
 #[derive(Debug)]
-pub struct MixingSession<P: PaintIfce> {
+pub struct MixingSession {
     notes: String,
-    mixtures: Vec<Rc<Mixture<P>>>,
+    mixtures: Vec<Rc<Mixture>>,
 }
 
-impl<P: PaintIfce> MixingSession<P> {
+impl MixingSession {
     pub fn new(notes: &str) -> Self {
         Self {
             notes: notes.to_string(),
@@ -204,16 +201,16 @@ impl<P: PaintIfce> MixingSession<P> {
         self.notes = notes.to_string()
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item=&Rc<Mixture<P>>> {
+    pub fn mixtures(&self) -> impl Iterator<Item=&Rc<Mixture>> {
         self.mixtures.iter()
     }
 
-    pub fn series_paints(&self) -> Vec<Rc<P>> {
-        let mut v: Vec<Rc<P>> = vec![];
+    pub fn series_paints(&self) -> Vec<Rc<Paint>> {
+        let mut v: Vec<Rc<Paint>> = vec![];
 
         for mixture in self.mixtures.iter() {
             for (paint, _parts) in mixture.components.iter() {
-                match v.binary_search_by_key(&(paint.name(), paint.series_id()), |p: &Rc<P>| {
+                match v.binary_search_by_key(&(paint.name(), paint.series_id()), |p: &Rc<Paint>| {
                     (p.name(), p.series_id())
                 }) {
                     Ok(_) => (),
@@ -225,7 +222,7 @@ impl<P: PaintIfce> MixingSession<P> {
         v
     }
 
-    pub fn add_mixture(&mut self, mixture: &Rc<Mixture<P>>) -> Option<Rc<Mixture<P>>> {
+    pub fn add_mixture(&mut self, mixture: &Rc<Mixture>) -> Option<Rc<Mixture>> {
         debug_assert!(self.is_sorted_unique());
         match self
             .mixtures
@@ -244,7 +241,7 @@ impl<P: PaintIfce> MixingSession<P> {
         }
     }
 
-    pub fn mixture(&self, name: &str) -> Option<&Rc<Mixture<P>>> {
+    pub fn mixture(&self, name: &str) -> Option<&Rc<Mixture>> {
         debug_assert!(self.is_sorted_unique());
         match self.mixtures.binary_search_by_key(&name, |p| p.name()) {
             Ok(index) => self.mixtures.get(index),
@@ -263,24 +260,24 @@ impl<P: PaintIfce> MixingSession<P> {
 }
 
 #[derive(Debug)]
-pub struct MixtureBuilder<P: PaintIfce> {
+pub struct MixtureBuilder {
     name: String,
     series_id: Rc<SeriesId>,
     notes: String,
-    series_components: Vec<(Rc<P>, u64)>,
-    variants_64: Vec<f64>,
+    series_components: Vec<(Rc<Paint>, u64)>,
+    properties: Properties,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
 
-impl<P: PaintIfce> MixtureBuilder<P> {
+impl MixtureBuilder {
     pub fn new(name: &str) -> Self {
         Self {
             name: name.to_string(),
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
-            variants_64: vec![],
+            properties: Properties::new(&[]),
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
         }
@@ -302,17 +299,17 @@ impl<P: PaintIfce> MixtureBuilder<P> {
         self
     }
 
-    pub fn series_paint_components(&mut self, components: Vec<(Rc<P>, u64)>) -> &mut Self {
+    pub fn series_paint_components(&mut self, components: Vec<(Rc<Paint>, u64)>) -> &mut Self {
         self.series_components = components;
         self
     }
 
-    pub fn series_paint_component(&mut self, component: (Rc<P>, u64)) -> &mut Self {
+    pub fn series_paint_component(&mut self, component: (Rc<Paint>, u64)) -> &mut Self {
         self.series_components.push(component);
         self
     }
 
-    pub fn build(&self) -> Rc<Mixture<P>> {
+    pub fn build(&self) -> Rc<Mixture> {
         debug_assert!(self.series_components.len() > 0);
         let mut gcd: u64 = 0;
         for (_, parts) in self.series_components.iter() {
@@ -325,19 +322,17 @@ impl<P: PaintIfce> MixtureBuilder<P> {
         for (paint, parts) in self.series_components.iter() {
             let adjusted_parts = *parts / gcd;
             colour_mix.add(&paint.hcv(), adjusted_parts);
-            // TODO: handle proerties
+            // TODO: handle properly
             components.push((Rc::clone(paint), adjusted_parts));
         }
-        let mp = Mixture::<P> {
+        let mp = Mixture {
             colour: colour_mix.mixed_colour().unwrap(),
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: self.targeted_colour,
             name: self.name.clone(),
             series_id: self.series_id.clone(),
             notes: self.notes.clone(),
-            property_variants_f64: self.variants_64.clone(),
-            // TODO: handle properties
-            // properties: vec![],
+            properties: self.properties.clone(),
             components,
         };
         Rc::new(mp)
@@ -347,8 +342,8 @@ impl<P: PaintIfce> MixtureBuilder<P> {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SaveablePaint(SeriesId, String);
 
-impl<P: PaintIfce> From<&Rc<P>> for SaveablePaint {
-    fn from(paint: &Rc<P>) -> SaveablePaint {
+impl From<&Rc<Paint>> for SaveablePaint {
+    fn from(paint: &Rc<Paint>) -> SaveablePaint {
         SaveablePaint((*paint.series_id()).clone(), paint.name().to_string())
     }
 }
@@ -362,8 +357,8 @@ pub struct SaveableMixture {
     components: Vec<(SaveablePaint, u64)>,
 }
 
-impl<P: PaintIfce> From<&Rc<Mixture<P>>> for SaveableMixture {
-    fn from(rcmp: &Rc<Mixture<P>>) -> Self {
+impl From<&Rc<Mixture>> for SaveableMixture {
+    fn from(rcmp: &Rc<Mixture>) -> Self {
         let components = rcmp
             .components
             .iter()
@@ -385,8 +380,8 @@ pub struct SaveableMixingSession {
     mixtures: Vec<SaveableMixture>,
 }
 
-impl<P: PaintIfce> From<&MixingSession<P>> for SaveableMixingSession {
-    fn from(session: &MixingSession<P>) -> Self {
+impl From<&MixingSession> for SaveableMixingSession {
+    fn from(session: &MixingSession) -> Self {
         let mixtures = session.mixtures.iter().map(SaveableMixture::from).collect();
         Self {
             notes: session.notes.to_string(),
@@ -405,11 +400,11 @@ impl SaveableMixingSession {
     }
 
     // TODO: implement From for mixing session instead of this
-    pub fn mixing_session<P: PaintIfce>(
+    pub fn mixing_session(
         &self,
-        series_paint_finder: &Rc<impl PaintFinder<P>>,
-    ) -> Result<MixingSession<P>, crate::Error> {
-        let mut mixtures: Vec<Rc<Mixture<P>>> = vec![];
+        series_paint_finder: &Rc<impl PaintFinder<Paint>>,
+    ) -> Result<MixingSession, crate::Error> {
+        let mut mixtures: Vec<Rc<Mixture>> = vec![];
         for saved_mixture in self.mixtures.iter() {
             let mut mixture_builder = MixtureBuilder::new(&saved_mixture.name);
             mixture_builder.name(&saved_mixture.name);

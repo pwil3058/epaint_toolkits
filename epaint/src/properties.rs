@@ -431,44 +431,26 @@ pub struct PropertyMixer {
     pub total_parts: u64,
 }
 
-pub trait Properties: PartialEq + PartialOrd + Ord + Clone + Serialize + for<'a> Deserialize<'a> {
-    const PROPERTY_TYPES: &'static [PropertyType];
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Properties(Vec<Property>);
 
-    fn properties(&self) -> impl Iterator<Item=Property> {
-        Self::property_types()
-            .zip(self.property_variants_f64())
-            .map(|(p, v)| Property::from((p, v)))
+impl Properties {
+    pub fn new(vec: &[PropertyType]) -> Self {
+        Self(vec.iter().map(|t| t.default_property()).collect())
     }
 
-    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
-
-    fn property_types() -> impl Iterator<Item=PropertyType> {
-        Self::PROPERTY_TYPES.iter().copied()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
-pub struct PropertiesData {
-    pub variants_f64: Vec<f64>,
-}
-
-impl Eq for PropertiesData {}
-
-impl Ord for PropertiesData {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
-    }
-}
-
-impl Properties for PropertiesData {
-    const PROPERTY_TYPES: &'static [PropertyType] = &[];
-
-    fn property_types() -> impl Iterator<Item=PropertyType> {
-        Self::PROPERTY_TYPES.iter().copied()
+    pub fn update(&mut self, properties: &[Property]) {
+        debug_assert_eq!(self.0.len(), properties.len());
+        debug_assert!(self.0.iter().zip(properties).all(|(left, right)| left.property_type == right.property_type));
+        Self(properties.to_vec());
     }
 
-    fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
-        self.variants_f64.iter().copied()
+    pub fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+        self.0.iter().map(|p| p.property_type())
+    }
+
+    pub fn properties(&self) -> impl Iterator<Item=Property> {
+        self.0.iter().copied()
     }
 }
 
