@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
 pub trait PropertyConsts:
-    FromStr<Err = String> + PartialEq + PartialOrd + Default + fmt::Debug
+FromStr<Err=String> + PartialEq + PartialOrd + Default + fmt::Debug
 {
     const NAME: &'static str;
     const PROMPT: &'static str;
@@ -16,7 +16,7 @@ pub trait PropertyConsts:
     const ABBREV_VARIANT_STRS: &'static [&'static str];
 }
 
-pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
+pub trait PropertyFns: FromStr<Err=String> + PartialEq + PartialOrd + fmt::Debug {
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
@@ -26,9 +26,8 @@ pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Deb
 }
 
 pub trait PropertyIfce:
-    PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
-{
-}
+PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
+{}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Transparency {
@@ -430,6 +429,47 @@ pub struct PropertyMixer {
     pub property_type: PropertyType,
     pub sum: f64,
     pub total_parts: u64,
+}
+
+pub trait Properties: PartialEq + PartialOrd + Ord + Clone + Serialize + for<'a> Deserialize<'a> {
+    const PROPERTY_TYPES: &'static [PropertyType];
+
+    fn properties(&self) -> impl Iterator<Item=Property> {
+        Self::property_types()
+            .zip(self.property_variants_f64())
+            .map(|(p, v)| Property::from((p, v)))
+    }
+
+    fn property_variants_f64(&self) -> impl Iterator<Item=f64>;
+
+    fn property_types() -> impl Iterator<Item=PropertyType> {
+        Self::PROPERTY_TYPES.iter().copied()
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, PartialOrd)]
+pub struct PropertiesData {
+    pub variants_f64: Vec<f64>,
+}
+
+impl Eq for PropertiesData {}
+
+impl Ord for PropertiesData {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
+impl Properties for PropertiesData {
+    const PROPERTY_TYPES: &'static [PropertyType] = &[];
+
+    fn property_types() -> impl Iterator<Item=PropertyType> {
+        Self::PROPERTY_TYPES.iter().copied()
+    }
+
+    fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
+        self.variants_f64.iter().copied()
+    }
 }
 
 #[cfg(test)]

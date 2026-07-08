@@ -4,56 +4,22 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use colour_math::ScalarAttribute;
+use colour_math_gtk::colour_edit::{ColourEditor, ColourEditorBuilder};
+use epaint::paint::SerializablePaintData;
+use epaint::properties::{Property, PropertyType};
+use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 use pw_gtk_ext::{
     gtk::{self, prelude::*},
     sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled, SAV_NEXT_CONDN},
     wrapper::*,
 };
 
+use crate::sav_state::*;
 use crate::properties::PropertyEntry;
-use colour_math_gtk::colour_edit::{ColourEditor, ColourEditorBuilder};
-use epaint::paint::SerializablePaintData;
-use epaint::properties::{Property, PropertyType};
-use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 type AddCallback = Box<dyn Fn(&SerializablePaintData)>;
 type AcceptCallback = Box<dyn Fn(&str, &SerializablePaintData)>;
 type ChangeCallback = Box<dyn Fn(u64)>;
-
-#[derive(PWO, Wrapper)]
-pub struct BasicPaintSpecEditor {
-    vbox: gtk::Box,
-    name_entry: gtk::Entry,
-    notes_entry: gtk::Entry,
-    colour_editor: Rc<ColourEditor<u16>>,
-    property_entries: Vec<Rc<PropertyEntry>>,
-    buttons: ConditionalWidgetGroups<gtk::Button>,
-    current_spec: RefCell<Option<SerializablePaintData>>,
-    add_callbacks: RefCell<Vec<AddCallback>>,
-    accept_callbacks: RefCell<Vec<AcceptCallback>>,
-    change_callbacks: RefCell<Vec<ChangeCallback>>,
-}
-
-const SAV_EDITING: u64 = SAV_NEXT_CONDN;
-const SAV_NOT_EDITING: u64 = SAV_NEXT_CONDN << 1;
-const SAV_ID_READY: u64 = SAV_NEXT_CONDN << 2;
-const SAV_NAME_READY: u64 = SAV_NEXT_CONDN << 3;
-const SAV_NOTES_READY: u64 = SAV_NEXT_CONDN << 4;
-const SAV_HAS_CHANGES: u64 = SAV_NEXT_CONDN << 5;
-const SAV_ID_CHANGED: u64 = SAV_NEXT_CONDN << 6;
-const SAV_NAME_CHANGED: u64 = SAV_NEXT_CONDN << 7;
-const SAV_NOTES_CHANGED: u64 = SAV_NEXT_CONDN << 8;
-const SAV_RGB_CHANGED: u64 = SAV_NEXT_CONDN << 9;
-
-const SAV_FINISH_CHANGED: u64 = SAV_NEXT_CONDN << 10;
-const SAV_PERMANENCE_CHANGED: u64 = SAV_NEXT_CONDN << 11;
-const SAV_TRANSPARENCY_CHANGED: u64 = SAV_NEXT_CONDN << 12;
-const SAV_FLUORESCENCE_CHANGED: u64 = SAV_NEXT_CONDN << 13;
-const SAV_METALLICNESS_CHANGED: u64 = SAV_NEXT_CONDN << 14;
-const SAV_OPACITY_CHANGED: u64 = SAV_NEXT_CONDN << 15;
-const SAV_LIGHTFASTNESS_CHANGED: u64 = SAV_NEXT_CONDN << 16;
-const SAV_GRANULATION_CHANGED: u64 = SAV_NEXT_CONDN << 17;
-const SAV_STAINING_CHANGED: u64 = SAV_NEXT_CONDN << 18;
 
 const CHANGED_MASK: u64 = SAV_ID_CHANGED
     + SAV_NAME_CHANGED
@@ -78,6 +44,20 @@ pub fn property_sav_changed(property_type: PropertyType) -> u64 {
         PropertyType::LightFastness => SAV_GRANULATION_CHANGED,
         PropertyType::Fluorescence => SAV_FLUORESCENCE_CHANGED,
     }
+}
+
+#[derive(PWO, Wrapper)]
+pub struct BasicPaintSpecEditor {
+    vbox: gtk::Box,
+    name_entry: gtk::Entry,
+    notes_entry: gtk::Entry,
+    colour_editor: Rc<ColourEditor<u16>>,
+    property_entries: Vec<Rc<PropertyEntry>>,
+    buttons: ConditionalWidgetGroups<gtk::Button>,
+    current_spec: RefCell<Option<SerializablePaintData>>,
+    add_callbacks: RefCell<Vec<AddCallback>>,
+    accept_callbacks: RefCell<Vec<AcceptCallback>>,
+    change_callbacks: RefCell<Vec<ChangeCallback>>,
 }
 
 impl BasicPaintSpecEditor {

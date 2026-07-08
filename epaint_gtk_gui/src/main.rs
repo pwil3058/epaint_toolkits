@@ -14,12 +14,12 @@ use colour_math::{HueConstants, LightLevel, HCV};
 use colour_math_derive::Colour;
 
 use epaint::create_paint;
+use epaint::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 use epaint::paint::{PaintIfce, SerializablePaintData};
 use epaint::properties::{
     Property, PropertyType,
     PropertyType::{Granulation, LightFastness, Luminescence, Staining, Transparency},
 };
-use epaint::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
 

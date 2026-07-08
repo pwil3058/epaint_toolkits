@@ -30,5 +30,5 @@ colour_math_gtk = { path = "../colour_math_gtk" }
 
 [dependencies.epaint]
 path = "../epaint"
-features = ["targeted_mixtures"]
+features = []
 

@@ -25,7 +25,7 @@ use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 pub trait MixtureIfce<P>: PaintEssence {
     fn targeted_colour(&self) -> Option<HCV>;
-    fn components(&self) -> impl Iterator<Item = (Rc<P>, u64)>;
+    fn components(&self) -> impl Iterator<Item=(Rc<P>, u64)>;
 
     fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour() {
@@ -52,7 +52,7 @@ impl<P: PaintIfce> MixtureIfce<P> for Mixture<P> {
         self.targeted_colour.into()
     }
 
-    fn components(&self) -> impl Iterator<Item = (Rc<P>, u64)> {
+    fn components(&self) -> impl Iterator<Item=(Rc<P>, u64)> {
         self.components.iter().map(|(rc, p)| (rc.clone(), *p))
     }
 }
@@ -93,7 +93,7 @@ impl<P: PaintIfce> Mixture<P> {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &(Rc<P>, u64)> {
+    pub fn components(&self) -> impl Iterator<Item=&(Rc<P>, u64)> {
         self.components.iter()
     }
 }
@@ -112,13 +112,13 @@ impl<P: PaintIfce> PaintEssence for Mixture<P> {
         self.colour.clone()
     }
 
-    fn properties(&self) -> impl Iterator<Item = Property> {
+    fn properties(&self) -> impl Iterator<Item=Property> {
         Self::property_types()
             .zip(self.property_variants_f64())
             .map(|(p, v)| Property::from((p, v)))
     }
 
-    fn property_variants_f64(&self) -> impl Iterator<Item = f64> {
+    fn property_variants_f64(&self) -> impl Iterator<Item=f64> {
         self.property_variants_f64.iter().copied()
     }
 }
@@ -204,7 +204,7 @@ impl<P: PaintIfce> MixingSession<P> {
         self.notes = notes.to_string()
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item = &Rc<Mixture<P>>> {
+    pub fn mixtures(&self) -> impl Iterator<Item=&Rc<Mixture<P>>> {
         self.mixtures.iter()
     }
 
@@ -400,7 +400,7 @@ impl SaveableMixingSession {
         &self.notes
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item = &SaveableMixture> {
+    pub fn mixtures(&self) -> impl Iterator<Item=&SaveableMixture> {
         self.mixtures.iter()
     }
 
