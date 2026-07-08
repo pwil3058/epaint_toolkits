@@ -265,7 +265,7 @@ pub struct MixtureBuilder {
     series_id: Rc<SeriesId>,
     notes: String,
     series_components: Vec<(Rc<Paint>, u64)>,
-    properties: Properties,
+    properties: Vec<Property>,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
@@ -277,7 +277,7 @@ impl MixtureBuilder {
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
-            properties: Properties::new(&[]),
+            properties: vec![],
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
         }
@@ -332,7 +332,7 @@ impl MixtureBuilder {
             name: self.name.clone(),
             series_id: self.series_id.clone(),
             notes: self.notes.clone(),
-            properties: self.properties.clone(),
+            properties: Properties::new(&self.properties),
             components,
         };
         Rc::new(mp)

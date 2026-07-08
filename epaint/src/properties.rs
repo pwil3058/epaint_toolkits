@@ -435,8 +435,12 @@ pub struct PropertyMixer {
 pub struct Properties(Vec<Property>);
 
 impl Properties {
-    pub fn new(vec: &[PropertyType]) -> Self {
+    pub fn new_fm_types(vec: &[PropertyType]) -> Self {
         Self(vec.iter().map(|t| t.default_property()).collect())
+    }
+
+    pub fn new(vec: &[Property]) -> Self {
+        Self(vec.to_vec())
     }
 
     pub fn update(&mut self, properties: &[Property]) {
