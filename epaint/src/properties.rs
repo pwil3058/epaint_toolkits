@@ -432,7 +432,7 @@ pub struct PropertyMixer {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Properties(Vec<Property>);
+pub struct Properties(pub Vec<Property>);
 
 impl Properties {
     pub fn new_fm_types(vec: &[PropertyType]) -> Self {
