@@ -402,7 +402,7 @@ impl SaveableMixingSession {
     // TODO: implement From for mixing session instead of this
     pub fn mixing_session(
         &self,
-        series_paint_finder: &Rc<impl PaintFinder<Paint>>,
+        series_paint_finder: &Rc<impl PaintFinder>,
     ) -> Result<MixingSession, crate::Error> {
         let mut mixtures: Vec<Rc<Mixture>> = vec![];
         for saved_mixture in self.mixtures.iter() {
@@ -459,22 +459,14 @@ impl SaveableMixingSession {
 mod test {
     use std::rc::Rc;
 
-    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
     use colour_math::HueConstants;
-    use colour_math::{LightLevel, HCV};
-    use colour_math_derive::Colour;
+    use colour_math::{HCV};
 
-    use crate::create_paint;
-    use crate::paint::{PaintIfce, SerializablePaintData};
-    use crate::properties::{Property, PropertyType};
-    use crate::GetSeriesId;
-    use crate::{LabelText, TooltipText};
-    use crate::{PaintEssence, SeriesId};
+    use crate::paint::{SerializablePaintData};
+    use crate::properties::{Properties, Property, PropertyType};
 
     use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
     use crate::series::{PaintSeries, PaintSeriesSpec};
-
-    create_paint!(&[PropertyType::Transparency]);
 
     #[test]
     fn test_read_write_spec() {
@@ -486,16 +478,16 @@ mod test {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
-            property_variants_f64: vec![2.0],
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         });
         series_spec.add(&SerializablePaintData {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
-            property_variants_f64: vec![2.0],
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         });
-        let series: PaintSeries<Paint> = (&series_spec).into();
-        let mut session: MixingSession<Paint> = MixingSession::new("test session");
+        let series: PaintSeries = (&series_spec).into();
+        let mut session: MixingSession = MixingSession::new("test session");
         session.set_notes("a test mixing session");
         let yellow = series.find("yellow").unwrap();
         let red = series.find("red").unwrap();

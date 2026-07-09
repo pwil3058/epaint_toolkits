@@ -62,7 +62,7 @@ impl Ord for SerializablePaintData {
     }
 }
 
-#[derive(Debug, Colour, Clone)]
+#[derive(Debug, Colour, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Paint {
     pub data: SerializablePaintData,
     pub series_id: Rc<SeriesId>,
@@ -108,37 +108,37 @@ impl MakeColouredShape for Paint {
     }
 }
 
-impl PartialEq for Paint {
-    fn eq(&self, other: &Self) -> bool {
-        let mut result = false;
-        if self.data.name == other.data.name {
-            result = self.series_id == other.series_id;
-        }
-        result
-    }
-}
-
-impl Eq for Paint {}
-
-impl PartialOrd for Paint {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        match self.data.name.cmp(&other.data.name) {
-            std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
-                std::cmp::Ordering::Equal => Some(std::cmp::Ordering::Equal),
-                std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
-                std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
-            },
-            std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
-            std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
-        }
-    }
-}
-
-impl Ord for Paint {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).expect("paints are comparable")
-    }
-}
+// impl PartialEq for Paint {
+//     fn eq(&self, other: &Self) -> bool {
+//         let mut result = false;
+//         if self.data.name == other.data.name {
+//             result = self.series_id == other.series_id;
+//         }
+//         result
+//     }
+// }
+//
+// impl Eq for Paint {}
+//
+// impl PartialOrd for Paint {
+//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+//         match self.data.name.cmp(&other.data.name) {
+//             std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
+//                 std::cmp::Ordering::Equal => Some(std::cmp::Ordering::Equal),
+//                 std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
+//                 std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
+//             },
+//             std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
+//             std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
+//         }
+//     }
+// }
+//
+// impl Ord for Paint {
+//     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+//         self.partial_cmp(other).expect("paints are comparable")
+//     }
+// }
 
 impl TooltipText for Paint {
     fn tooltip_text(&self) -> String {
@@ -194,20 +194,14 @@ mod paint_tests {
     use std::rc::Rc;
 
     use super::*;
-    use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
     use colour_math::ColourBasics;
     use colour_math::HueConstants;
-    use colour_math::LightLevel;
     use colour_math::HCV;
-    use colour_math_derive::Colour;
 
-    use crate::paint::{PaintIfce, SerializablePaintData};
+    use crate::paint::{SerializablePaintData};
     use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
-    use crate::{LabelText, TooltipText};
-
-    create_paint!(&[PropertyType::Transparency]);
 
     #[test]
     fn test_paint_spec_generate_paint() {
@@ -220,7 +214,7 @@ mod paint_tests {
                 colour: HCV::RED_MAGENTA,
                 name: "Red".to_string(),
                 notes: "".to_string(),
-                property_variants_f64: vec![2.0],
+                properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
             },
             series_id: series_id.clone(),
         };
@@ -228,7 +222,7 @@ mod paint_tests {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: String::new(),
-            property_variants_f64: vec![1.0],
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         };
         let paint: Paint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint, target_paint);
@@ -240,7 +234,7 @@ mod paint_tests {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: "".to_string(),
-            property_variants_f64: vec![2.0],
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         };
         let series_id = Rc::new(SeriesId {
             series_name: "DS".to_string(),
@@ -251,12 +245,10 @@ mod paint_tests {
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
         assert_eq!(paint.series_id, series_id.into());
-        assert_eq!(paint.data.property_variants_f64, vec![2.0]);
+        assert_eq!(paint.data.properties, Properties(vec![Property::from((PropertyType::Transparency, 2.0))]));
         for (target, actual) in paint_spec
-            .property_variants_f64
-            .iter()
-            .copied()
-            .zip(paint.property_variants_f64())
+            .properties()
+            .zip(paint.properties())
         {
             assert_eq!(target, actual);
         }

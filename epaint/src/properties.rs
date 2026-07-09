@@ -222,6 +222,21 @@ impl PropertyType {
         }
     }
 
+    pub fn default_u64(&self) -> u64 {
+        match self {
+            Self::Transparency => Transparency::default().into(),
+            Self::LightFastness => LightFastness::default().into(),
+            Self::Staining => Staining::default().into(),
+            Self::Finish => Finish::default().into(),
+            Self::Opacity => Opacity::default().into(),
+            Self::Permanence => Permanence::default().into(),
+            Self::Luminescence => Luminescence::default().into(),
+            Self::Fluorescence => Fluorescence::default().into(),
+            Self::Metallicness => Metallicness::default().into(),
+            Self::Granulation => Granulation::default().into(),
+        }
+    }
+
     pub fn default_str(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::default().value(),
@@ -240,7 +255,7 @@ impl PropertyType {
     pub fn default_property(&self) -> Property {
         Property {
             property_type: *self,
-            value: self.default_f64(),
+            value: self.default_u64(),
         }
     }
 }
@@ -265,10 +280,10 @@ impl std::str::FromStr for PropertyType {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Copy, Debug)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Property {
     pub property_type: PropertyType,
-    pub value: f64,
+    pub value: u64,
 }
 
 impl Property {
@@ -323,17 +338,17 @@ impl Property {
     }
 }
 
-impl PartialEq for Property {
-    fn eq(&self, other: &Self) -> bool {
-        if self.property_type == other.property_type {
-            self.value == other.value
-        } else {
-            false
-        }
-    }
-}
-
-impl Eq for Property {}
+// impl PartialEq for Property {
+//     fn eq(&self, other: &Self) -> bool {
+//         if self.property_type == other.property_type {
+//             self.value == other.value
+//         } else {
+//             false
+//         }
+//     }
+// }
+//
+// impl Eq for Property {}
 
 impl PartialOrd for Property {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -360,7 +375,7 @@ macro_rules! prop_from_str_action {
         };
         Ok(Self {
             $property_type,
-            value: <$variant as Into<f64>>::into($variant::from_str(value)?).into(),
+            value: <$variant as Into<u64>>::into($variant::from_str(value)?).into(),
         })
     }};
 }
@@ -395,7 +410,16 @@ impl From<(PropertyType, f64)> for Property {
     fn from((property_type, value): (PropertyType, f64)) -> Self {
         Self {
             property_type,
-            value,
+            value: value as u64,
+        }
+    }
+}
+
+impl From<(PropertyType, u64)> for Property {
+    fn from((property_type, value): (PropertyType, u64)) -> Self {
+        Self {
+            property_type,
+            value: value,
         }
     }
 }
@@ -431,7 +455,7 @@ pub struct PropertyMixer {
     pub total_parts: u64,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Properties(pub Vec<Property>);
 
 impl Properties {
@@ -500,14 +524,14 @@ mod tests {
             Property::from_str("LightFastness::Excellent"),
             Ok(Property {
                 property_type: PropertyType::LightFastness,
-                value: 1.0
+                value: 1
             })
         );
         assert_eq!(
             Property::from_str("LightFastness"),
             Ok(Property {
                 property_type: PropertyType::LightFastness,
-                value: 2.0
+                value: 2
             })
         )
     }

@@ -43,6 +43,8 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let mut from_tokens = vec![];
     let mut from_f64_tokens = vec![];
     let mut to_f64_tokens = vec![];
+    let mut from_u64_tokens = vec![];
+    let mut to_u64_tokens = vec![];
     let mut value_tokens = vec![];
     let mut first: Option<Ident> = None;
     let mut default: Option<Ident> = None;
@@ -93,6 +95,16 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     #enum_name::#v_name => #count as f64,
                 };
                 to_f64_tokens.push(to_f64_token);
+
+                let from_u64_token = quote! {
+                    #count => #enum_name::#v_name,
+                };
+                from_u64_tokens.push(from_u64_token);
+
+                let to_u64_token = quote! {
+                    #enum_name::#v_name => #count,
+                };
+                to_u64_tokens.push(to_u64_token);
 
                 count += 1;
             }
@@ -163,6 +175,33 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
             fn from(arg: #enum_name) -> f64 {
                 match arg {
                     #(#to_f64_tokens)*
+                }
+            }
+        }
+
+        impl std::convert::From<u64> for #enum_name {
+            fn from(float: u64) -> #enum_name {
+                match float {
+                    #(#from_u64_tokens)*
+                    _ => panic!("u64: {} out of range for '{}'", float, #name),
+                }
+            }
+        }
+
+        impl std::convert::From<#enum_name> for u64 {
+            fn from(arg: #enum_name) -> u64 {
+                match arg {
+                    #(#to_u64_tokens)*
+                }
+            }
+        }
+
+        impl std::convert::Into<Property> for #enum_name {
+            fn into(self) -> Property {
+                let value: u64 = self.into();
+                Property{
+                    property_type: PropertyType::#enum_name,
+                    value: value,
                 }
             }
         }
