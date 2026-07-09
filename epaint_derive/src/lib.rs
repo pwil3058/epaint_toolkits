@@ -206,6 +206,17 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl std::convert::TryFrom<&Property> for #enum_name {
+            type Error = &'static str;
+
+            fn try_from(property: &Property) -> Result<Self, Self::Error> {
+                match PropertyType::#enum_name == property.property_type {
+                    true => Ok(Self::from(property.value)),
+                    false => Err("Incompatible property type")
+                }
+            }
+        }
+
         impl std::default::Default for #enum_name {
             fn default() -> Self { #enum_name::#default_value }
         }
