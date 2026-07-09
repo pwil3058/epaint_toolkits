@@ -2,9 +2,6 @@
 
 use std::{error, fmt, io};
 
-use epaint::properties::PropertyType;
-use pw_gtk_ext::sav_state::SAV_NEXT_CONDN;
-
 pub mod icons;
 pub mod properties;
 pub mod sav_state;
@@ -12,17 +9,13 @@ pub mod spec_edit;
 
 pub mod colour {
     pub use colour_math_gtk::{colour::*, coloured::*};
-    use epaint::{LabelText, TooltipText};
 
-    pub trait PartsColour:
-    colour_math::ColourIfce + epaint::TooltipText + epaint::LabelText + Ord + 'static
-    {}
+    pub trait PartsColour: colour_math::ColourIfce + Ord + 'static {}
 
-    use epaint::mixtures::{Mixture, MixtureIfce};
-    use epaint::paint::PaintIfce;
+    use epaint::{mixtures::Mixture, paint::Paint};
 
-    impl<P: PaintIfce + 'static> PartsColour for Mixture<P> {}
-    // impl<P: PaintIfce> PartsColour<P> for P {}
+    impl PartsColour for Paint {}
+    impl PartsColour for Mixture {}
 }
 
 #[derive(Debug)]

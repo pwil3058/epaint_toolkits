@@ -5,17 +5,19 @@ use std::rc::Rc;
 
 use colour_math::ScalarAttribute;
 use colour_math_gtk::colour_edit::{ColourEditor, ColourEditorBuilder};
-use epaint::paint::SerializablePaintData;
-use epaint::properties::{Property, PropertyType};
 use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 use pw_gtk_ext::{
     gtk::{self, prelude::*},
-    sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled, SAV_NEXT_CONDN},
+    sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled},
     wrapper::*,
 };
 
-use crate::sav_state::*;
+use epaint::PaintEssence;
+use epaint::paint::SerializablePaintData;
+use epaint::properties::{Properties, Property, PropertyType};
+
 use crate::properties::PropertyEntry;
+use crate::sav_state::*;
 
 type AddCallback = Box<dyn Fn(&SerializablePaintData)>;
 type AcceptCallback = Box<dyn Fn(&str, &SerializablePaintData)>;
@@ -192,23 +194,44 @@ impl BasicPaintSpecEditor {
             bpe_c.inform_changed();
         });
 
-        for (index, property_entry) in bpe.property_entries.iter().map(Rc::clone).enumerate() {
-            let bpe_c = Rc::clone(&bpe);
-            property_entry.connect_changed(move |entry| {
-                let sav_condn = property_sav_changed(entry.property_type());
-                let mut masked_condns = MaskedCondns {
-                    condns: 0,
-                    mask: sav_condn,
-                };
-                if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
-                    if spec.property_variants_f64[index] != entry.value().value {
+        // for (index, property_entry) in bpe.property_entries.iter().map(Rc::clone).enumerate() {
+        //     let bpe_c = Rc::clone(&bpe);
+        //     property_entry.connect_changed(move |entry| {
+        //         let sav_condn = property_sav_changed(entry.property_type());
+        //         let mut masked_condns = MaskedCondns {
+        //             condns: 0,
+        //             mask: sav_condn,
+        //         };
+        //         if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+        //             if spec.property_variants_f64[index] != entry.value().value {
+        //                 masked_condns.condns += sav_condn;
+        //             }
+        //         }
+        //         bpe_c.buttons.update_condns(masked_condns);
+        //         bpe_c.update_has_changes();
+        //         bpe_c.inform_changed();
+        //     })
+        // }
+        if let Some(spec) = bpe.current_spec.borrow().as_ref() {
+            for (property, property_entry) in spec
+                .properties()
+                .zip(bpe.property_entries.iter().map(Rc::clone))
+            {
+                let bpe_c = Rc::clone(&bpe);
+                property_entry.connect_changed(move |property_entry| {
+                    let sav_condn = property_sav_changed(property_entry.property_type());
+                    let mut masked_condns = MaskedCondns {
+                        condns: 0,
+                        mask: sav_condn,
+                    };
+                    if property != property_entry.value() {
                         masked_condns.condns += sav_condn;
                     }
-                }
-                bpe_c.buttons.update_condns(masked_condns);
-                bpe_c.update_has_changes();
-                bpe_c.inform_changed();
-            })
+                    bpe_c.buttons.update_condns(masked_condns);
+                    bpe_c.update_has_changes();
+                    bpe_c.inform_changed();
+                })
+            }
         }
 
         // NB: needed to correctly set the current state
@@ -234,16 +257,18 @@ impl BasicPaintSpecEditor {
     }
 
     fn spec_from_entries(&self) -> SerializablePaintData {
-        let property_variants_f64: Vec<f64> = self
-            .property_entries
-            .iter()
-            .map(|entry| entry.value().value)
-            .collect();
+        let properties: Properties = Properties(
+            self.property_entries
+                .iter()
+                .map(|e| e.value())
+                // .map(|entry| entry.value().value)
+                .collect(),
+        );
         SerializablePaintData {
             colour: self.colour_editor.hcv(),
             name: self.name_entry.get_text().to_string(),
             notes: self.notes_entry.get_text().to_string(),
-            property_variants_f64,
+            properties,
         }
     }
 
@@ -332,11 +357,11 @@ impl BasicPaintSpecEditor {
         for (property_entry, spec_value) in self
             .property_entries
             .iter()
-            .zip(spec.property_variants_f64.iter())
+            .zip(spec.properties().map(|p| p.value))
         {
             let property = Property {
                 property_type: property_entry.property_type(),
-                value: spec_value.clone(),
+                value: spec_value,
             };
             property_entry.set_value(Some(property))
         }
