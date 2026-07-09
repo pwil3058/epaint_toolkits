@@ -6,25 +6,25 @@ use pw_gtk_ext::{
     gtkx::list::ListViewSpec,
 };
 
-use apaint::{
-    mixtures::{Mixture, Paint},
+use epaint::{
+    PaintEssence,
+    mixtures::Mixture,
+    paint::{Paint, SerializablePaintData},
     properties::PropertyType,
-    series::{BasicPaintSpec, SeriesPaint},
-    BasicPaintIfce,
 };
 
-use colour_math::{ScalarAttribute, HCV};
+use colour_math::{HCV, ScalarAttribute};
 
 pub struct BasicPaintListViewSpec {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: Vec<PropertyType>,
 }
 
 impl BasicPaintListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], properties: &[PropertyType]) -> Self {
+    pub fn new(attributes: &[ScalarAttribute], propery_types: &[PropertyType]) -> Self {
         Self {
             attributes: attributes.to_vec(),
-            properties: properties.to_vec(),
+            property_types: propery_types.to_vec(),
         }
     }
 }
@@ -40,7 +40,7 @@ impl ListViewSpec for BasicPaintListViewSpec {
             glib::Type::String,
             f64::static_type(),
         ];
-        for _ in 0..self.attributes.len() * 3 + self.properties.len() {
+        for _ in 0..self.attributes.len() * 3 + self.property_types.len() {
             column_types.push(glib::Type::String);
         }
         #[cfg(feature = "targeted_mixtures")]
@@ -52,7 +52,7 @@ impl ListViewSpec for BasicPaintListViewSpec {
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
         #[cfg(feature = "targeted_mixtures")]
-        let target_col = 7 + self.attributes.len() as i32 * 3 + self.properties.len() as i32;
+        let target_col = 7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Id")
@@ -132,9 +132,9 @@ impl ListViewSpec for BasicPaintListViewSpec {
             index += 3;
         }
 
-        for property in self.properties.iter() {
+        for property_types in self.property_types.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
-                .title(property.list_header_name())
+                .title(property_types.list_header())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
@@ -151,8 +151,8 @@ impl ListViewSpec for BasicPaintListViewSpec {
     }
 }
 
-pub trait PaintListRow: BasicPaintIfce {
-    fn row(&self, attributes: &[ScalarAttribute], properties: &[PropertyType]) -> Vec<glib::Value> {
+pub trait PaintListRow: PaintEssence {
+    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
         use colour_math::ColourBasics;
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
@@ -165,11 +165,11 @@ pub trait PaintListRow: BasicPaintIfce {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.id().to_value(),
+            self.name().to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
-            self.name().unwrap_or("").to_value(),
-            self.notes().unwrap_or("").to_value(),
+            self.name().to_value(),
+            self.notes().to_value(),
             hcv_bg.pango_string().to_value(),
             ha.to_value(),
         ];
@@ -180,8 +180,13 @@ pub trait PaintListRow: BasicPaintIfce {
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());
         }
-        for property in properties.iter() {
-            let string = self.property(*property).abbrev();
+        // for property_type in property_types.iter() {
+        // let string = property_type.abbrev();
+        // let string = self.property(*property_type).abbrev();
+        // row.push(string.to_value());
+        // }
+        for property in self.properties() {
+            let string = property.abbrev_value();
             row.push(string.to_value());
         }
         #[cfg(feature = "targeted_mixtures")]
@@ -192,12 +197,12 @@ pub trait PaintListRow: BasicPaintIfce {
     }
 }
 
-impl PaintListRow for SeriesPaint {}
+impl PaintListRow for Paint {}
 
-impl PaintListRow for BasicPaintSpec {}
+impl PaintListRow for SerializablePaintData {}
 
 impl PaintListRow for Mixture {
-    fn row(&self, attributes: &[ScalarAttribute], properties: &[PropertyType]) -> Vec<glib::Value> {
+    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
         use colour_math::ColourAttributes;
         use colour_math::ColourBasics;
         let ha: f64 = if let Some(angle) = self.hue_angle() {
@@ -211,11 +216,11 @@ impl PaintListRow for Mixture {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.id().to_value(),
+            self.name().to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
-            self.name().unwrap_or("").to_value(),
-            self.notes().unwrap_or("").to_value(),
+            self.name().to_value(),
+            self.notes().to_value(),
             hcv_bg.pango_string().to_value(),
             ha.to_value(),
         ];
@@ -226,8 +231,8 @@ impl PaintListRow for Mixture {
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());
         }
-        for property in properties.iter() {
-            let string = self.property(*property).abbrev();
+        for property in self.properties() {
+            let string = property.abbrev_value();
             row.push(string.to_value());
         }
         #[cfg(feature = "targeted_mixtures")]
@@ -239,5 +244,3 @@ impl PaintListRow for Mixture {
         row
     }
 }
-
-impl PaintListRow for Paint {}
