@@ -451,7 +451,7 @@ pub struct FuzzyProperty(f64, PropertyType);
 #[derive(Debug)]
 pub struct PropertyMixer {
     pub property_type: PropertyType,
-    pub sum: f64,
+    pub sum: u128,
     pub total_parts: u64,
 }
 
