@@ -6,6 +6,7 @@ pub mod icons;
 pub mod list;
 pub mod properties;
 pub mod sav_state;
+pub mod series;
 pub mod spec_edit;
 
 pub mod colour {
