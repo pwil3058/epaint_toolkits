@@ -467,9 +467,12 @@ impl Properties {
         Self(vec.to_vec())
     }
 
+    pub fn is_compatible(&self, properties: &[Property]) -> bool {
+        self.0.len() == properties.len() && self.0.iter().zip(properties).all(|(left, right)| left.property_type == right.property_type)
+    }
+
     pub fn update(&mut self, properties: &[Property]) {
-        debug_assert_eq!(self.0.len(), properties.len());
-        debug_assert!(self.0.iter().zip(properties).all(|(left, right)| left.property_type == right.property_type));
+        debug_assert!(self.is_compatible(properties));
         Self(properties.to_vec());
     }
 
