@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
 use colour_math::hue_wheel::{MakeColouredShape, ColouredShape, Shape};
-use colour_math::{ColourIfce, LightLevel, HCV};
+use colour_math::{LightLevel, HCV};
 use colour_math_derive::Colour;
 
 use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
@@ -108,38 +108,6 @@ impl MakeColouredShape for Paint {
     }
 }
 
-// impl PartialEq for Paint {
-//     fn eq(&self, other: &Self) -> bool {
-//         let mut result = false;
-//         if self.data.name == other.data.name {
-//             result = self.series_id == other.series_id;
-//         }
-//         result
-//     }
-// }
-//
-// impl Eq for Paint {}
-//
-// impl PartialOrd for Paint {
-//     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-//         match self.data.name.cmp(&other.data.name) {
-//             std::cmp::Ordering::Equal => match self.series_id.cmp(&other.series_id) {
-//                 std::cmp::Ordering::Equal => Some(std::cmp::Ordering::Equal),
-//                 std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
-//                 std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
-//             },
-//             std::cmp::Ordering::Less => Some(std::cmp::Ordering::Less),
-//             std::cmp::Ordering::Greater => Some(std::cmp::Ordering::Greater),
-//         }
-//     }
-// }
-//
-// impl Ord for Paint {
-//     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-//         self.partial_cmp(other).expect("paints are comparable")
-//     }
-// }
-
 impl TooltipText for Paint {
     fn tooltip_text(&self) -> String {
         let mut string = self.data.name.to_string();
@@ -174,19 +142,6 @@ impl Into<SerializablePaintData> for Paint {
         self.data.clone()
     }
 }
-
-impl PaintIfce for Paint {}
-
-pub trait PaintIfce:
-PaintEssence
-+ GetSeriesId
-+ From<(SerializablePaintData, Rc<SeriesId>)>
-+ Into<SerializablePaintData>
-+ ColourIfce
-+ TooltipText
-+ LabelText
-+ MakeColouredShape
-{}
 
 #[cfg(test)]
 mod paint_tests {
