@@ -2,9 +2,10 @@
 
 extern crate proc_macro;
 
+use heck::KebabCase;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{parse_macro_input, Data, DeriveInput, Ident};
+use syn::{Data, DeriveInput, Ident, parse_macro_input};
 
 fn acronym(input: &str) -> String {
     let mut output = String::new();
@@ -63,7 +64,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     }
                 }
                 let v_abbrev = acronym(&v.ident.to_string());
-                let v_full = v.ident.to_string(); //.to_kebab_case();
+                let v_full = v.ident.to_string().to_kebab_case();
                 let token = quote! {
                     #v_full,
                 };
