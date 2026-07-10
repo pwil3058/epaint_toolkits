@@ -13,6 +13,7 @@ use epaint::paint::SerializablePaintData;
 use epaint::properties::{
     Properties,
     PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
+    PropertyTypes,
 };
 
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
@@ -38,7 +39,7 @@ fn main() {
         name: "Paint Nama".to_string(),
         colour: HCV::MAGENTA,
         notes: "Notes".to_string(),
-        properties: Properties::new_fm_types(&property_types),
+        properties: Properties::from(PropertyTypes(property_types.to_vec())),
     };
     paint_spec.name = "name".to_string();
     paint_spec.notes = "notes".to_string();

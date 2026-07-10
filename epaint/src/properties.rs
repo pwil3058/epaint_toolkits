@@ -446,6 +446,8 @@ impl From<(PropertyType, &str)> for Property {
     }
 }
 
+pub struct PropertyTypes(pub Vec<PropertyType>);
+
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct FuzzyProperty(f64, PropertyType);
 
@@ -460,10 +462,6 @@ pub struct PropertyMixer {
 pub struct Properties(pub Vec<Property>);
 
 impl Properties {
-    pub fn new_fm_types(vec: &[PropertyType]) -> Self {
-        Self(vec.iter().map(|t| t.default_property()).collect())
-    }
-
     pub fn new(vec: &[Property]) -> Self {
         Self(vec.to_vec())
     }
@@ -488,6 +486,24 @@ impl Properties {
 
     pub fn properties(&self) -> impl Iterator<Item = Property> {
         self.0.iter().copied()
+    }
+}
+
+impl From<Properties> for PropertyTypes {
+    fn from(properties: Properties) -> Self {
+        PropertyTypes(properties.property_types().collect())
+    }
+}
+
+impl From<PropertyTypes> for Properties {
+    fn from(property_types: PropertyTypes) -> Self {
+        Self(
+            property_types
+                .0
+                .iter()
+                .map(|t| t.default_property())
+                .collect(),
+        )
     }
 }
 

@@ -86,6 +86,28 @@ impl PropertyEntry {
     }
 }
 
+pub trait PropertyEntries {
+    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>>;
+}
+
+impl PropertyEntries for Properties {
+    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
+        self.property_types().map(|p| PropertyEntry::new(p))
+    }
+}
+
+impl PropertyEntries for Paint {
+    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
+        self.data.properties.property_entries()
+    }
+}
+
+impl PropertyEntries for Mixture {
+    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
+        self.properties.property_entries()
+    }
+}
+
 #[derive(PWO)]
 pub struct PropertiesDisplay {
     vbox: gtk::Box,

@@ -21,34 +21,36 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{hue_wheel::MakeColouredShape, ScalarAttribute, HCV};
+use colour_math::{HCV, ScalarAttribute, hue_wheel::MakeColouredShape};
 use colour_math_gtk::{
     colour::GdkColour,
     hue_wheel::{GtkHueWheel, GtkHueWheelBuilder},
 };
 use pw_gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
-use apaint::{
-    legacy::{legacy_series::SeriesPaintSeriesSpec00, read_legacy_paint_series_spec},
+use epaint::{
+    SeriesId,
+    paint::Paint,
     properties::PropertyType,
-    series::{SeriesId, SeriesPaint, SeriesPaintFinder, SeriesPaintSeries, SeriesPaintSeriesSpec},
+    series::{PaintFinder, PaintSeries, PaintSeriesSpec},
 };
 
 use crate::{
     icons,
     list::{BasicPaintListViewSpec, PaintListRow},
+    sav_state::SAV_NOT_HAS_TARGET,
 };
 
 pub mod display;
 
 use crate::series::display::*;
 
-type PaintActionCallback = Box<dyn Fn(Rc<SeriesPaint>)>;
+type PaintActionCallback = Box<dyn Fn(Rc<Paint>)>;
 
 #[derive(PWO, Wrapper)]
 struct SeriesPage {
     paned: gtk::Paned,
-    paint_series: SeriesPaintSeries,
+    paint_series: PaintSeries,
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     callbacks: RefCell<HashMap<String, Vec<PaintActionCallback>>>,
@@ -98,7 +100,7 @@ impl SeriesPageBuilder {
         self
     }
 
-    fn build(&self, paint_series: SeriesPaintSeries) -> Rc<SeriesPage> {
+    fn build(&self, paint_series: PaintSeries) -> Rc<SeriesPage> {
         let paned = gtk::PanedBuilder::new().build();
         paned.set_position_from_recollections("SeriesPage:paned_position", 200);
         let hue_wheel = GtkHueWheelBuilder::new()
@@ -163,7 +165,7 @@ impl SeriesPage {
         self.list_view.update_popup_condns(changed_condns);
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<SeriesPaint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(Rc<Paint>) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -264,7 +266,7 @@ impl SeriesBinder {
         }
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<SeriesPaint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(Rc<Paint>) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -272,7 +274,7 @@ impl SeriesBinder {
             .push(Box::new(callback));
     }
 
-    fn invoke_named_callback(&self, item: &str, paint: Rc<SeriesPaint>) {
+    fn invoke_named_callback(&self, item: &str, paint: Rc<Paint>) {
         for callback in self
             .callbacks
             .borrow()
@@ -341,12 +343,12 @@ impl SeriesBinder {
 }
 
 trait RcSeriesBinder {
-    fn add_series(&self, new_series: SeriesPaintSeries, path: &Path) -> Result<(), crate::Error>;
+    fn add_series(&self, new_series: PaintSeries, path: &Path) -> Result<(), crate::Error>;
     fn add_series_from_file(&self, path: &Path) -> Result<(), crate::Error>;
 }
 
 impl RcSeriesBinder for Rc<SeriesBinder> {
-    fn add_series(&self, new_series: SeriesPaintSeries, path: &Path) -> Result<(), crate::Error> {
+    fn add_series(&self, new_series: PaintSeries, path: &Path) -> Result<(), crate::Error> {
         match self.binary_search_series_id(new_series.series_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
                 "{}: Series already in binder",
@@ -408,14 +410,14 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
             return Err(crate::Error::DuplicateFile(msg));
         }
         let mut file = File::open(path)?;
-        let new_series_spec = match SeriesPaintSeriesSpec::read(&mut file) {
+        let new_series_spec = match PaintSeriesSpec::read(&mut file) {
             Ok(spec) => spec,
             Err(_) => {
                 let mut file = File::open(path)?;
-                match SeriesPaintSeriesSpec00::<f64>::read(&mut file) {
+                match PaintSeriesSpec00::<f64>::read(&mut file) {
                     Ok(spec) => spec,
                     Err(err) => match &err {
-                        apaint::Error::SerdeJsonError(_) => {
+                        epaint::Error::SerdeJsonError(_) => {
                             let mut file = File::open(path)?;
                             if let Ok(series) = read_legacy_paint_series_spec(&mut file) {
                                 series
@@ -433,12 +435,8 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
     }
 }
 
-impl SeriesPaintFinder for SeriesBinder {
-    fn get_series_paint(
-        &self,
-        paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> apaint::Result<Rc<SeriesPaint>> {
+impl PaintFinder for SeriesBinder {
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
         if let Some(series_id) = series_id {
             let bsr = self
                 .pages
@@ -447,12 +445,12 @@ impl SeriesPaintFinder for SeriesBinder {
             match bsr {
                 Ok(index) => match self.pages.borrow()[index].0.paint_series.find(paint_id) {
                     Some(paint) => Ok(Rc::clone(paint)),
-                    None => Err(apaint::Error::UnknownSeriesPaint(
+                    None => Err(epaint::Error::UnknownPaint(
                         series_id.clone(),
                         paint_id.to_string(),
                     )),
                 },
-                Err(_) => Err(apaint::Error::UnknownSeries(series_id.clone())),
+                Err(_) => Err(epaint::Error::UnknownSeries(series_id.clone())),
             }
         } else {
             for page in self.pages.borrow().iter() {
@@ -460,7 +458,7 @@ impl SeriesPaintFinder for SeriesBinder {
                     return Ok(Rc::clone(paint));
                 }
             }
-            Err(apaint::Error::NotFound(paint_id.to_string()))
+            Err(epaint::Error::NotFound(paint_id.to_string()))
         }
     }
 }
@@ -487,17 +485,17 @@ impl PaintSeriesManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<SeriesPaint>) {
+    fn display_paint_information(&self, paint: &Rc<Paint>) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_add_paint(&self, paint: &Rc<SeriesPaint>) {
+    fn inform_add_paint(&self, paint: &Rc<Paint>) {
         for callback in self.add_paint_callbacks.borrow().iter() {
             callback(Rc::clone(paint));
         }
     }
 
-    pub fn connect_add_paint<F: Fn(Rc<SeriesPaint>) + 'static>(&self, callback: F) {
+    pub fn connect_add_paint<F: Fn(Rc<Paint>) + 'static>(&self, callback: F) {
         self.add_paint_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -514,12 +512,8 @@ impl PaintSeriesManager {
     }
 }
 
-impl SeriesPaintFinder for PaintSeriesManager {
-    fn get_series_paint(
-        &self,
-        paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> apaint::Result<Rc<SeriesPaint>> {
+impl PaintFinder for PaintSeriesManager {
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
         self.binder.get_series_paint(paint_id, series_id)
     }
 }
@@ -657,17 +651,17 @@ impl PaintStandardsManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<SeriesPaint>) {
+    fn display_paint_information(&self, paint: &Rc<Paint>) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_set_as_target(&self, paint: &Rc<SeriesPaint>) {
+    fn inform_set_as_target(&self, paint: &Rc<Paint>) {
         for callback in self.set_as_target_callbacks.borrow().iter() {
             callback(Rc::clone(paint));
         }
     }
 
-    pub fn connect_set_as_target<F: Fn(Rc<SeriesPaint>) + 'static>(&self, callback: F) {
+    pub fn connect_set_as_target<F: Fn(Rc<Paint>) + 'static>(&self, callback: F) {
         self.set_as_target_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -678,12 +672,8 @@ impl PaintStandardsManager {
     }
 }
 
-impl SeriesPaintFinder for PaintStandardsManager {
-    fn get_series_paint(
-        &self,
-        paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> apaint::Result<Rc<SeriesPaint>> {
+impl PaintFinder for PaintStandardsManager {
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
         self.binder.get_series_paint(paint_id, series_id)
     }
 }
@@ -742,7 +732,7 @@ impl PaintStandardsManagerBuilder {
                     Some("Set the indicated standard as the target in the mixer"),
                 )
                     .into(),
-                SAV_HOVER_OK + crate::mixer::palette::PalettePaintMixer::SAV_NOT_HAS_TARGET,
+                SAV_HOVER_OK + SAV_NOT_HAS_TARGET,
             ),
         ];
         let binder = SeriesBinder::new(
@@ -770,7 +760,7 @@ impl PaintStandardsManagerBuilder {
                 0,
                 "Set as Target",
                 Some("Set this colour as the mixer target"),
-                crate::mixer::palette::PalettePaintMixer::SAV_NOT_HAS_TARGET,
+                SAV_NOT_HAS_TARGET,
             )])
             .build();
 

@@ -1,5 +1,7 @@
 // Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
 
+use std::cell::RefCell;
+use std::collections::HashMap;
 use std::{collections::BTreeMap, rc::Rc};
 
 use pw_gtk_ext::{
@@ -9,31 +11,30 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, ScalarAttribute, HCV};
-#[cfg(feature = "targeted_mixtures")]
+use colour_math::{ColourBasics, HCV, ScalarAttribute};
+// #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
 use colour_math_gtk::coloured::Colourable;
 
-use apaint::{properties::PropertyType, series::SeriesPaint, BasicPaintIfce};
+use epaint::{GetSeriesId, PaintEssence, paint::Paint, properties::PropertyType};
 
+use crate::properties::PropertiesDisplayIfce;
 use crate::series::PaintActionCallback;
-use std::cell::RefCell;
-use std::collections::HashMap;
 
 #[derive(PWO)]
 pub struct PaintDisplay {
     vbox: gtk::Box,
-    paint: Rc<SeriesPaint>,
-    #[cfg(feature = "targeted_mixtures")]
+    paint: Rc<Paint>,
+    // #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     cads: Rc<ColourAttributeDisplayStack>,
 }
 
 impl PaintDisplay {
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     pub fn set_target_colour(&self, new_target: Option<&impl GdkColour>) {
         if let Some(colour) = new_target {
             self.target_label.set_label("Current Target");
@@ -46,7 +47,7 @@ impl PaintDisplay {
         };
     }
 
-    pub fn paint(&self) -> &Rc<SeriesPaint> {
+    pub fn paint(&self) -> &Rc<Paint> {
         &self.paint
     }
 }
@@ -55,7 +56,7 @@ impl PaintDisplay {
 pub struct PaintDisplayBuilder {
     attributes: Vec<ScalarAttribute>,
     properties: Vec<PropertyType>,
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     target_colour: Option<HCV>,
 }
 
@@ -74,7 +75,7 @@ impl PaintDisplayBuilder {
         self
     }
 
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&mut self, target_colour: Option<&impl GdkColour>) -> &mut Self {
         self.target_colour = if let Some(target_colour) = target_colour {
             Some(target_colour.hcv())
@@ -84,38 +85,34 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn build(&self, paint: &Rc<SeriesPaint>) -> PaintDisplay {
+    pub fn build(&self, paint: &Rc<Paint>) -> PaintDisplay {
         let hcv = paint.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let label = gtk::LabelBuilder::new().label(paint.id()).build();
+        let label = gtk::LabelBuilder::new().label(paint.name()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new()
-            .label(paint.name().unwrap_or(""))
-            .build();
+        let label = gtk::LabelBuilder::new().label(paint.name()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
+        let label = gtk::LabelBuilder::new().label(paint.notes()).build();
+        label.set_widget_colour(&hcv);
+        vbox.pack_start(&label, false, false, 0);
+
+        let series_id = paint.series_id();
         let label = gtk::LabelBuilder::new()
-            .label(paint.notes().unwrap_or(""))
+            .label(&series_id.series_name)
             .build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
         let series_id = paint.series_id();
         let label = gtk::LabelBuilder::new()
-            .label(series_id.series_name())
-            .build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
-
-        let series_id = paint.series_id();
-        let label = gtk::LabelBuilder::new()
-            .label(series_id.proprietor())
+            .label(&series_id.proprietor)
             .build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
@@ -125,7 +122,7 @@ impl PaintDisplayBuilder {
             .build();
         cads.set_colour(Some(&hcv));
 
-        #[cfg(feature = "targeted_mixtures")]
+        // #[cfg(feature = "targeted_mixtures")]
         let target_label = if let Some(target_colour) = self.target_colour {
             let label = gtk::LabelBuilder::new().label("Target").build();
             label.set_widget_colour(&target_colour);
@@ -136,24 +133,31 @@ impl PaintDisplayBuilder {
             label.set_widget_colour(&hcv);
             label
         };
-        #[cfg(feature = "targeted_mixtures")]
+        // #[cfg(feature = "targeted_mixtures")]
         vbox.pack_start(&target_label, true, true, 0);
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        for property_type in self.properties.iter() {
-            let value = paint.property(*property_type).full();
-            let label = gtk::LabelBuilder::new().label(value).build();
-            label.set_widget_colour(&hcv);
-            vbox.pack_start(&label, false, false, 0);
-        }
+        // for property_type in self.properties.iter() {
+        //     let value = paint.property(*property_type).full();
+        //     let label = gtk::LabelBuilder::new().label(value).build();
+        //     label.set_widget_colour(&hcv);
+        //     vbox.pack_start(&label, false, false, 0);
+        // }
+        let properties_display = paint.properties_display(Some(&hcv));
+        // for property in paint.properties() {
+        //     let value = property.value();
+        //     let label = gtk::LabelBuilder::new().label(value).build();
+        //     label.set_widget_colour(&hcv);
+        //     vbox.pack_start(&properties_displayl, false, false, 0);
+        // }
         vbox.show_all();
 
         PaintDisplay {
             vbox,
             paint: Rc::clone(paint),
-            #[cfg(feature = "targeted_mixtures")]
+            // #[cfg(feature = "targeted_mixtures")]
             target_label,
-            #[cfg(feature = "targeted_mixtures")]
+            // #[cfg(feature = "targeted_mixtures")]
             cads,
         }
     }
@@ -161,7 +165,7 @@ impl PaintDisplayBuilder {
 
 struct PaintDisplayDialog {
     dialog: gtk::Dialog,
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     display: PaintDisplay,
 }
 
@@ -171,7 +175,7 @@ pub struct PaintDisplayDialogManager<W: TopGtkWindow> {
     button_callbacks: RefCell<HashMap<u16, Vec<PaintActionCallback>>>,
     paint_display_builder: RefCell<PaintDisplayBuilder>,
     conditional_widgets_builder: ConditionalWidgetsBuilder,
-    dialogs: RefCell<BTreeMap<Rc<SeriesPaint>, PaintDisplayDialog>>,
+    dialogs: RefCell<BTreeMap<Rc<Paint>, PaintDisplayDialog>>,
 }
 
 impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
@@ -188,7 +192,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         dialog
     }
 
-    #[cfg(feature = "targeted_mixtures")]
+    // #[cfg(feature = "targeted_mixtures")]
     pub fn set_target_colour(&self, colour: Option<&impl GdkColour>) {
         self.paint_display_builder
             .borrow_mut()
@@ -198,7 +202,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    fn inform_button_action(&self, action: u16, paint: Rc<SeriesPaint>) {
+    fn inform_button_action(&self, action: u16, paint: Rc<Paint>) {
         let button_callbacks = self.button_callbacks.borrow();
         for callback in button_callbacks
             .get(&action)
@@ -209,11 +213,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    pub fn connect_action_button<F: Fn(Rc<SeriesPaint>) + 'static>(
-        &self,
-        action: u16,
-        callback: F,
-    ) {
+    pub fn connect_action_button<F: Fn(Rc<Paint>) + 'static>(&self, action: u16, callback: F) {
         self.button_callbacks
             .borrow_mut()
             .get_mut(&action)
@@ -223,11 +223,11 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
 }
 
 pub trait DisplayPaint {
-    fn display_paint(&self, paint: &Rc<SeriesPaint>);
+    fn display_paint(&self, paint: &Rc<Paint>);
 }
 
 impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
-    fn display_paint(&self, paint: &Rc<SeriesPaint>) {
+    fn display_paint(&self, paint: &Rc<Paint>) {
         if !self.dialogs.borrow().contains_key(paint) {
             let dialog = self.new_dialog();
             let display = self.paint_display_builder.borrow().build(paint);
@@ -249,10 +249,10 @@ impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>
                     self_c.inform_button_action(code, Rc::clone(&paint_c));
                 }
             });
-            #[cfg(feature = "targeted_mixtures")]
+            // #[cfg(feature = "targeted_mixtures")]
             let pdd = PaintDisplayDialog { dialog, display };
-            #[cfg(not(feature = "targeted_mixtures"))]
-            let pdd = PaintDisplayDialog { dialog };
+            // #[cfg(not(feature = "targeted_mixtures"))]
+            // let pdd = PaintDisplayDialog { dialog };
             self.dialogs.borrow_mut().insert(Rc::clone(paint), pdd);
         };
         let dialogs = self.dialogs.borrow();
@@ -316,7 +316,7 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
         paint_display_builder
             .attributes(&self.attributes)
             .properties(&self.properties);
-        #[cfg(feature = "targeted_mixtures")]
+        // #[cfg(feature = "targeted_mixtures")]
         if let Some(target_colour) = self.target_colour {
             paint_display_builder.target_colour(Some(&target_colour));
         }
