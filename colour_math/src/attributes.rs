@@ -439,3 +439,12 @@ impl IntoProp for Value {}
 
 impl_to_from_number!(UFDRNumber, u128, Value);
 impl_to_from_number!(FDRNumber, i128, Value);
+
+pub enum Family {
+    Reds,
+    Greens,
+    Blues,
+    Cyans,
+    Yellows,
+    Magentas,
+}

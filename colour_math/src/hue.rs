@@ -12,13 +12,13 @@ use num_traits_plus::float_plus::FloatPlus;
 pub mod angle;
 
 use crate::{
-    attributes::Chroma,
+    attributes::{Chroma, Family, Warmth},
     debug::{AbsDiff, ApproxEq, PropDiff},
     fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,
-    ColourBasics, HueConstants, LightLevel, Warmth,
+    ColourBasics, HueConstants, LightLevel,
 };
 
 pub(crate) trait HueBasics: Copy + Debug + Sized + Into<Hue> {
@@ -135,6 +135,8 @@ pub(crate) trait HueIfce:
     fn angle(&self) -> Angle;
 
     fn warmth(&self) -> Warmth;
+
+    fn family(&self) -> Family;
 
     fn max_chroma_rgb<T: LightLevel>(&self) -> RGB<T> {
         self.max_chroma_hcv().rgb::<T>()
@@ -503,6 +505,14 @@ impl HueIfce for RGBHue {
             RGBHue::Blue => Warmth::BLUE,
         }
     }
+
+    fn family(&self) -> Family {
+        match self {
+            RGBHue::Red => Family::Reds,
+            RGBHue::Green => Family::Greens,
+            RGBHue::Blue => Family::Blues,
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
@@ -697,6 +707,14 @@ impl HueIfce for CMYHue {
             CMYHue::Cyan => Warmth::CYAN,
             CMYHue::Magenta => Warmth::MAGENTA,
             CMYHue::Yellow => Warmth::YELLOW,
+        }
+    }
+
+    fn family(&self) -> Family {
+        match self {
+            CMYHue::Cyan => Family::Cyans,
+            CMYHue::Magenta => Family::Magentas,
+            CMYHue::Yellow => Family::Yellows,
         }
     }
 }
@@ -1109,6 +1127,53 @@ impl HueIfce for SextantHue {
             }
         }
     }
+
+    fn family(&self) -> Family {
+        match self {
+            SextantHue(Sextant::BlueCyan, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Blues
+                } else {
+                    Family::Cyans
+                }
+            }
+            SextantHue(Sextant::BlueMagenta, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Blues
+                } else {
+                    Family::Magentas
+                }
+            }
+            SextantHue(Sextant::RedMagenta, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Reds
+                } else {
+                    Family::Magentas
+                }
+            }
+            SextantHue(Sextant::RedYellow, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Reds
+                } else {
+                    Family::Yellows
+                }
+            }
+            SextantHue(Sextant::GreenYellow, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Greens
+                } else {
+                    Family::Yellows
+                }
+            }
+            SextantHue(Sextant::GreenCyan, prop) => {
+                if prop < &Prop::HALF {
+                    Family::Greens
+                } else {
+                    Family::Cyans
+                }
+            }
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Copy, Serialize, Deserialize)]
@@ -1452,6 +1517,14 @@ impl HueIfce for Hue {
             Self::Primary(rgb_hue) => rgb_hue.warmth(),
             Self::Secondary(cmy_hue) => cmy_hue.warmth(),
             Self::Sextant(sextant_hue) => sextant_hue.warmth(),
+        }
+    }
+
+    fn family(&self) -> Family {
+        match self {
+            Self::Primary(rgb_hue) => rgb_hue.family(),
+            Self::Secondary(cmy_hue) => cmy_hue.family(),
+            Self::Sextant(sextant_hue) => sextant_hue.family(),
         }
     }
 
