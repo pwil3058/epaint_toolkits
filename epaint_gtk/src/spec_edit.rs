@@ -43,7 +43,7 @@ pub fn property_sav_changed(property_type: PropertyType) -> u64 {
         PropertyType::Luminescence => SAV_LIGHTFASTNESS_CHANGED,
         PropertyType::Granulation => SAV_GRANULATION_CHANGED,
         PropertyType::Staining => SAV_STAINING_CHANGED,
-        PropertyType::LightFastness => SAV_GRANULATION_CHANGED,
+        PropertyType::Lightfastness => SAV_GRANULATION_CHANGED,
         PropertyType::Fluorescence => SAV_FLUORESCENCE_CHANGED,
     }
 }

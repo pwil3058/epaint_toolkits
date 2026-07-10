@@ -2,16 +2,20 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use epaint::properties::Property;
-pub use epaint::properties::{
-    str_values, Finish, Fluorescence, Granulation, LightFastness, Metallicness, Opacity,
-    Permanence, PropertyIfce, PropertyType, Staining, Transparency,
-};
-
 use pw_gtk_ext::{
     gtk,
-    gtk::{ComboBoxExt, ComboBoxTextExt},
+    gtk::{BoxExt, ComboBoxExt, ComboBoxTextExt, WidgetExt},
     wrapper::*,
+};
+
+use colour_math::HCV;
+use colour_math_gtk::coloured::Colourable;
+
+use epaint::mixtures::Mixture;
+use epaint::paint::Paint;
+pub use epaint::properties::{
+    Finish, Fluorescence, Granulation, Lightfastness, Metallicness, Opacity, Permanence,
+    Properties, Property, PropertyIfce, PropertyType, Staining, Transparency, str_values,
 };
 
 type ChangeCallback<T> = Box<dyn Fn(&T)>;
@@ -79,5 +83,48 @@ impl PropertyEntry {
 
     pub fn property_type(&self) -> PropertyType {
         self.property_type
+    }
+}
+
+#[derive(PWO)]
+pub struct PropertiesDisplay {
+    vbox: gtk::Box,
+}
+
+impl PropertiesDisplay {
+    pub fn create(properties: &Properties, colour: Option<&HCV>) -> Rc<Self> {
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
+        for property in properties.properties() {
+            let value = property.value();
+            let label = gtk::LabelBuilder::new().label(value).build();
+            if let Some(colour) = colour {
+                label.set_widget_colour(colour)
+            };
+            vbox.pack_start(&label, false, false, 0);
+        }
+        vbox.show_all();
+        Rc::new(PropertiesDisplay { vbox: vbox })
+    }
+}
+
+pub trait PropertiesDisplayIfce {
+    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay>;
+}
+
+impl PropertiesDisplayIfce for Properties {
+    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
+        PropertiesDisplay::create(self, colour)
+    }
+}
+
+impl PropertiesDisplayIfce for Paint {
+    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
+        self.data.properties.properties_display(colour)
+    }
+}
+
+impl PropertiesDisplayIfce for Mixture {
+    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
+        self.properties.properties_display(colour)
     }
 }

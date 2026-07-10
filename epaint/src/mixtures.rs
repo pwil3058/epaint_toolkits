@@ -11,21 +11,21 @@ use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
 use colour_math::{
-    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape}, mixing::SubtractiveMixer, ColourBasics, LightLevel,
-    HCV,
-    RGB,
+    ColourBasics, HCV, LightLevel, RGB,
+    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
+    mixing::SubtractiveMixer,
 };
 
 use colour_math_derive::Colour;
 
-use crate::paint::{Paint};
+use crate::paint::Paint;
 use crate::properties::{Properties, Property, PropertyType};
 use crate::series::PaintFinder;
 use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 pub trait MixtureIfce: PaintEssence {
     fn targeted_colour(&self) -> Option<HCV>;
-    fn components(&self) -> impl Iterator<Item=(Rc<Paint>, u64)>;
+    fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)>;
 
     fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour() {
@@ -37,14 +37,14 @@ pub trait MixtureIfce: PaintEssence {
 
 #[derive(Debug, Colour, Clone)]
 pub struct Mixture {
-    colour: HCV,
+    pub colour: HCV,
     // #[cfg(feature = "targeted_mixtures")]
-    targeted_colour: Option<HCV>,
-    name: String,
-    notes: String,
-    properties: Properties,
-    series_id: Rc<SeriesId>,
-    components: Vec<(Rc<Paint>, u64)>,
+    pub targeted_colour: Option<HCV>,
+    pub name: String,
+    pub notes: String,
+    pub properties: Properties,
+    pub series_id: Rc<SeriesId>,
+    pub components: Vec<(Rc<Paint>, u64)>,
 }
 
 impl MixtureIfce for Mixture {
@@ -52,7 +52,7 @@ impl MixtureIfce for Mixture {
         self.targeted_colour.into()
     }
 
-    fn components(&self) -> impl Iterator<Item=(Rc<Paint>, u64)> {
+    fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)> {
         self.components.iter().map(|(rc, p)| (rc.clone(), *p))
     }
 }
@@ -93,7 +93,7 @@ impl Mixture {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item=&(Rc<Paint>, u64)> {
+    pub fn components(&self) -> impl Iterator<Item = &(Rc<Paint>, u64)> {
         self.components.iter()
     }
 }
@@ -111,11 +111,11 @@ impl PaintEssence for Mixture {
         self.colour.clone()
     }
 
-    fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
         self.properties.property_types()
     }
 
-    fn properties(&self) -> impl Iterator<Item=Property> {
+    fn properties(&self) -> impl Iterator<Item = Property> {
         self.properties.properties()
     }
 }
@@ -201,7 +201,7 @@ impl MixingSession {
         self.notes = notes.to_string()
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item=&Rc<Mixture>> {
+    pub fn mixtures(&self) -> impl Iterator<Item = &Rc<Mixture>> {
         self.mixtures.iter()
     }
 
@@ -395,7 +395,7 @@ impl SaveableMixingSession {
         &self.notes
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item=&SaveableMixture> {
+    pub fn mixtures(&self) -> impl Iterator<Item = &SaveableMixture> {
         self.mixtures.iter()
     }
 
@@ -459,10 +459,10 @@ impl SaveableMixingSession {
 mod test {
     use std::rc::Rc;
 
+    use colour_math::HCV;
     use colour_math::HueConstants;
-    use colour_math::{HCV};
 
-    use crate::paint::{SerializablePaintData};
+    use crate::paint::SerializablePaintData;
     use crate::properties::{Properties, Property, PropertyType};
 
     use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};

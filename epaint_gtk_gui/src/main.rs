@@ -12,7 +12,7 @@ use colour_math::{HCV, HueConstants};
 use epaint::paint::SerializablePaintData;
 use epaint::properties::{
     Properties,
-    PropertyType::{Granulation, LightFastness, Luminescence, Staining, Transparency},
+    PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
 };
 
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
@@ -27,7 +27,7 @@ fn main() {
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
     let property_types = vec![
         Transparency,
-        LightFastness,
+        Lightfastness,
         Staining,
         Granulation,
         Luminescence,
