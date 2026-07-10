@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
 pub trait PropertyConsts:
-FromStr<Err=String> + PartialEq + PartialOrd + Default + fmt::Debug
+    FromStr<Err = String> + PartialEq + PartialOrd + Default + fmt::Debug
 {
     const NAME: &'static str;
     const PROMPT: &'static str;
@@ -16,7 +16,7 @@ FromStr<Err=String> + PartialEq + PartialOrd + Default + fmt::Debug
     const ABBREV_VARIANT_STRS: &'static [&'static str];
 }
 
-pub trait PropertyFns: FromStr<Err=String> + PartialEq + PartialOrd + fmt::Debug {
+pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
     fn list_header(&self) -> &'static str;
@@ -26,8 +26,9 @@ pub trait PropertyFns: FromStr<Err=String> + PartialEq + PartialOrd + fmt::Debug
 }
 
 pub trait PropertyIfce:
-PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
-{}
+    PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
+{
+}
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Transparency {
@@ -40,11 +41,11 @@ pub enum Transparency {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
-pub enum LightFastness {
-    Excellent,
+pub enum Lightfastness {
+    ExcellentLightfastness,
     #[default]
-    VeryGood,
-    Fair,
+    VeryGoodLightfastness,
+    FairLightfastness,
     Fugitive,
 }
 
@@ -120,7 +121,7 @@ pub enum Luminescence {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
 pub enum PropertyType {
     Transparency,
-    LightFastness,
+    Lightfastness,
     Staining,
     Finish,
     Opacity,
@@ -134,7 +135,7 @@ pub enum PropertyType {
 pub fn str_values(property: PropertyType) -> Vec<&'static str> {
     match property {
         PropertyType::Transparency => Transparency::str_values(),
-        PropertyType::LightFastness => LightFastness::str_values(),
+        PropertyType::Lightfastness => Lightfastness::str_values(),
         PropertyType::Staining => Staining::str_values(),
         PropertyType::Finish => Finish::str_values(),
         PropertyType::Opacity => Opacity::str_values(),
@@ -150,7 +151,7 @@ impl PropertyType {
     pub fn name(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::NAME,
-            Self::LightFastness => LightFastness::NAME,
+            Self::Lightfastness => Lightfastness::NAME,
             Self::Staining => Staining::NAME,
             Self::Finish => Finish::NAME,
             Self::Opacity => Opacity::NAME,
@@ -165,7 +166,7 @@ impl PropertyType {
     pub fn prompt(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::PROMPT,
-            Self::LightFastness => LightFastness::PROMPT,
+            Self::Lightfastness => Lightfastness::PROMPT,
             Self::Staining => Staining::PROMPT,
             Self::Finish => Finish::PROMPT,
             Self::Opacity => Opacity::PROMPT,
@@ -180,7 +181,7 @@ impl PropertyType {
     pub fn list_header(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::PROMPT,
-            Self::LightFastness => LightFastness::PROMPT,
+            Self::Lightfastness => Lightfastness::PROMPT,
             Self::Staining => Staining::PROMPT,
             Self::Finish => Finish::PROMPT,
             Self::Opacity => Opacity::PROMPT,
@@ -195,7 +196,7 @@ impl PropertyType {
     pub fn value(&self, arg: f64) -> &'static str {
         match self {
             Self::Transparency => Transparency::from(arg).value(),
-            Self::LightFastness => LightFastness::from(arg).value(),
+            Self::Lightfastness => Lightfastness::from(arg).value(),
             Self::Staining => Staining::from(arg).value(),
             Self::Finish => Finish::from(arg).value(),
             Self::Opacity => Opacity::from(arg).value(),
@@ -210,7 +211,7 @@ impl PropertyType {
     pub fn default_f64(&self) -> f64 {
         match self {
             Self::Transparency => Transparency::default().into(),
-            Self::LightFastness => LightFastness::default().into(),
+            Self::Lightfastness => Lightfastness::default().into(),
             Self::Staining => Staining::default().into(),
             Self::Finish => Finish::default().into(),
             Self::Opacity => Opacity::default().into(),
@@ -225,7 +226,7 @@ impl PropertyType {
     pub fn default_u64(&self) -> u64 {
         match self {
             Self::Transparency => Transparency::default().into(),
-            Self::LightFastness => LightFastness::default().into(),
+            Self::Lightfastness => Lightfastness::default().into(),
             Self::Staining => Staining::default().into(),
             Self::Finish => Finish::default().into(),
             Self::Opacity => Opacity::default().into(),
@@ -240,7 +241,7 @@ impl PropertyType {
     pub fn default_str(&self) -> &'static str {
         match self {
             Self::Transparency => Transparency::default().value(),
-            Self::LightFastness => LightFastness::default().value(),
+            Self::Lightfastness => Lightfastness::default().value(),
             Self::Staining => Staining::default().value(),
             Self::Finish => Finish::default().value(),
             Self::Opacity => Opacity::default().value(),
@@ -266,7 +267,7 @@ impl std::str::FromStr for PropertyType {
     fn from_str(string: &str) -> Result<PropertyType, String> {
         match string {
             "Transparency" => Ok(Self::Transparency),
-            "LightFastness" => Ok(Self::LightFastness),
+            "LightFastness" => Ok(Self::Lightfastness),
             "Staining" => Ok(Self::Staining),
             "Finish" => Ok(Self::Finish),
             "Opacity" => Ok(Self::Opacity),
@@ -302,7 +303,7 @@ impl Property {
     pub fn abbrev_value(&self) -> &'static str {
         match self.property_type {
             PropertyType::Transparency => Transparency::from(self.value).abbrev_value(),
-            PropertyType::LightFastness => LightFastness::from(self.value).abbrev_value(),
+            PropertyType::Lightfastness => Lightfastness::from(self.value).abbrev_value(),
             PropertyType::Staining => Staining::from(self.value).abbrev_value(),
             PropertyType::Finish => Finish::from(self.value).abbrev_value(),
             PropertyType::Opacity => Opacity::from(self.value).abbrev_value(),
@@ -317,7 +318,7 @@ impl Property {
     pub fn value(&self) -> &'static str {
         match self.property_type {
             PropertyType::Transparency => Transparency::from(self.value).value(),
-            PropertyType::LightFastness => LightFastness::from(self.value).value(),
+            PropertyType::Lightfastness => Lightfastness::from(self.value).value(),
             PropertyType::Staining => Staining::from(self.value).value(),
             PropertyType::Finish => Finish::from(self.value).value(),
             PropertyType::Opacity => Opacity::from(self.value).value(),
@@ -389,8 +390,8 @@ impl FromStr for Property {
         let property_type = PropertyType::from_str(type_name).unwrap();
         let result = match property_type {
             PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
-            PropertyType::LightFastness => {
-                prop_from_str_action!(LightFastness, property_type, split)
+            PropertyType::Lightfastness => {
+                prop_from_str_action!(Lightfastness, property_type, split)
             }
             PropertyType::Fluorescence => prop_from_str_action!(Fluorescence, property_type, split),
             PropertyType::Finish => prop_from_str_action!(Finish, property_type, split),
@@ -428,7 +429,7 @@ impl From<(PropertyType, &str)> for Property {
     fn from((property_type, value): (PropertyType, &str)) -> Self {
         let variant = match property_type {
             PropertyType::Transparency => Transparency::from_str(value).unwrap().into(),
-            PropertyType::LightFastness => LightFastness::from_str(value).unwrap().into(),
+            PropertyType::Lightfastness => Lightfastness::from_str(value).unwrap().into(),
             PropertyType::Staining => Staining::from_str(value).unwrap().into(),
             PropertyType::Finish => Finish::from_str(value).unwrap().into(),
             PropertyType::Opacity => Opacity::from_str(value).unwrap().into(),
@@ -468,7 +469,12 @@ impl Properties {
     }
 
     pub fn is_compatible(&self, properties: &[Property]) -> bool {
-        self.0.len() == properties.len() && self.0.iter().zip(properties).all(|(left, right)| left.property_type == right.property_type)
+        self.0.len() == properties.len()
+            && self
+                .0
+                .iter()
+                .zip(properties)
+                .all(|(left, right)| left.property_type == right.property_type)
     }
 
     pub fn update(&mut self, properties: &[Property]) {
@@ -476,11 +482,11 @@ impl Properties {
         Self(properties.to_vec());
     }
 
-    pub fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+    pub fn property_types(&self) -> impl Iterator<Item = PropertyType> {
         self.0.iter().map(|p| p.property_type())
     }
 
-    pub fn properties(&self) -> impl Iterator<Item=Property> {
+    pub fn properties(&self) -> impl Iterator<Item = Property> {
         self.0.iter().copied()
     }
 }
@@ -496,7 +502,7 @@ mod tests {
             PropertyType::from_str("Transparency").unwrap()
         );
         assert_eq!(
-            PropertyType::LightFastness,
+            PropertyType::Lightfastness,
             PropertyType::from_str("LightFastness").unwrap()
         )
     }
@@ -508,8 +514,8 @@ mod tests {
             Transparency::Clear.value()
         );
         assert_eq!(
-            PropertyType::LightFastness.value(1.0),
-            LightFastness::Excellent.value()
+            PropertyType::Lightfastness.value(1.0),
+            Lightfastness::Excellent.value()
         );
     }
 
@@ -526,14 +532,14 @@ mod tests {
         assert_eq!(
             Property::from_str("LightFastness::Excellent"),
             Ok(Property {
-                property_type: PropertyType::LightFastness,
+                property_type: PropertyType::Lightfastness,
                 value: 1
             })
         );
         assert_eq!(
             Property::from_str("LightFastness"),
             Ok(Property {
-                property_type: PropertyType::LightFastness,
+                property_type: PropertyType::Lightfastness,
                 value: 2
             })
         )
@@ -559,7 +565,7 @@ mod tests {
     #[test]
     fn test_property_default() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
-        assert_eq!(LightFastness::default(), LightFastness::VeryGood);
+        assert_eq!(Lightfastness::default(), Lightfastness::VeryGood);
     }
 
     #[test]
