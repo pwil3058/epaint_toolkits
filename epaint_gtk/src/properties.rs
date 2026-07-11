@@ -4,12 +4,9 @@ use std::{cell::RefCell, rc::Rc};
 
 use pw_gtk_ext::{
     gtk,
-    gtk::{BoxExt, ComboBoxExt, ComboBoxTextExt, WidgetExt},
+    gtk::{ComboBoxExt, ComboBoxTextExt},
     wrapper::*,
 };
-
-use colour_math::HCV;
-use colour_math_gtk::coloured::Colourable;
 
 use epaint::mixtures::Mixture;
 use epaint::paint::Paint;
@@ -105,48 +102,5 @@ impl PropertyEntries for Paint {
 impl PropertyEntries for Mixture {
     fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
         self.properties.property_entries()
-    }
-}
-
-#[derive(PWO)]
-pub struct PropertiesDisplay {
-    vbox: gtk::Box,
-}
-
-impl PropertiesDisplay {
-    pub fn create(properties: &Properties, colour: Option<&HCV>) -> Rc<Self> {
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        for property in properties.properties() {
-            let value = property.value();
-            let label = gtk::LabelBuilder::new().label(value).build();
-            if let Some(colour) = colour {
-                label.set_widget_colour(colour)
-            };
-            vbox.pack_start(&label, false, false, 0);
-        }
-        vbox.show_all();
-        Rc::new(PropertiesDisplay { vbox: vbox })
-    }
-}
-
-pub trait PropertiesDisplayIfce {
-    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay>;
-}
-
-impl PropertiesDisplayIfce for Properties {
-    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
-        PropertiesDisplay::create(self, colour)
-    }
-}
-
-impl PropertiesDisplayIfce for Paint {
-    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
-        self.data.properties.properties_display(colour)
-    }
-}
-
-impl PropertiesDisplayIfce for Mixture {
-    fn properties_display(&self, colour: Option<&HCV>) -> Rc<PropertiesDisplay> {
-        self.properties.properties_display(colour)
     }
 }
