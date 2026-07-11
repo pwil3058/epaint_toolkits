@@ -26,20 +26,20 @@ fn main() {
     };
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    let property_types = vec![
+    let property_types = PropertyTypes(vec![
         Transparency,
         Lightfastness,
         Staining,
         Granulation,
         Luminescence,
-    ];
+    ]);
     let bpe = BasicPaintSpecEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
     let mut paint_spec = SerializablePaintData {
         name: "Paint Nama".to_string(),
         colour: HCV::MAGENTA,
         notes: "Notes".to_string(),
-        properties: Properties::from(PropertyTypes(property_types.to_vec())),
+        properties: Properties::from(&property_types),
     };
     paint_spec.name = "name".to_string();
     paint_spec.notes = "notes".to_string();

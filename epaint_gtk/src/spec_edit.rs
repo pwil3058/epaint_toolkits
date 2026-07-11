@@ -14,7 +14,7 @@ use pw_gtk_ext::{
 
 use epaint::PaintEssence;
 use epaint::paint::SerializablePaintData;
-use epaint::properties::{Properties, Property, PropertyType};
+use epaint::properties::{Properties, Property, PropertyType, PropertyTypes};
 
 use crate::properties::PropertyEntry;
 use crate::sav_state::*;
@@ -63,7 +63,7 @@ pub struct BasicPaintSpecEditor {
 }
 
 impl BasicPaintSpecEditor {
-    pub fn new(attributes: &[ScalarAttribute], property_types: &[PropertyType]) -> Rc<Self> {
+    pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
@@ -83,7 +83,7 @@ impl BasicPaintSpecEditor {
         grid.attach(&notes_entry, 1, 2, 1, 1);
 
         let mut property_entries: Vec<Rc<PropertyEntry>> = Vec::new();
-        for property_type in property_types.iter().copied() {
+        for property_type in property_types.iter() {
             property_entries.push(PropertyEntry::new(property_type));
         }
 

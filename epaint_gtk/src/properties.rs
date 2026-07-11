@@ -30,7 +30,7 @@ pub struct PropertyEntry {
 impl PropertyEntry {
     pub fn new(property_type: PropertyType) -> Rc<Self> {
         let combo_box_text = gtk::ComboBoxText::new();
-        for str_value in str_values(property_type).iter() {
+        for str_value in str_values(&property_type).iter() {
             combo_box_text.append_text(str_value);
         }
         combo_box_text.set_id_column(0);

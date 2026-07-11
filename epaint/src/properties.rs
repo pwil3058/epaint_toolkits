@@ -132,7 +132,16 @@ pub enum PropertyType {
     Granulation,
 }
 
-pub fn str_values(property: PropertyType) -> Vec<&'static str> {
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct PropertyTypes(pub Vec<PropertyType>);
+
+impl PropertyTypes {
+    pub fn iter(&self) -> impl Iterator<Item = PropertyType> {
+        self.0.iter().copied()
+    }
+}
+
+pub fn str_values(property: &PropertyType) -> Vec<&'static str> {
     match property {
         PropertyType::Transparency => Transparency::str_values(),
         PropertyType::Lightfastness => Lightfastness::str_values(),
@@ -446,8 +455,6 @@ impl From<(PropertyType, &str)> for Property {
     }
 }
 
-pub struct PropertyTypes(pub Vec<PropertyType>);
-
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct FuzzyProperty(f64, PropertyType);
 
@@ -460,6 +467,12 @@ pub struct PropertyMixer {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Properties(pub Vec<Property>);
+
+impl Properties {
+    pub fn iter(&self) -> impl Iterator<Item = Property> {
+        self.0.iter().copied()
+    }
+}
 
 impl Properties {
     pub fn new(vec: &[Property]) -> Self {
@@ -495,8 +508,8 @@ impl From<Properties> for PropertyTypes {
     }
 }
 
-impl From<PropertyTypes> for Properties {
-    fn from(property_types: PropertyTypes) -> Self {
+impl From<&PropertyTypes> for Properties {
+    fn from(property_types: &PropertyTypes) -> Self {
         Self(
             property_types
                 .0
