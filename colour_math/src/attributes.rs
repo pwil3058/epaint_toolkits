@@ -440,6 +440,7 @@ impl IntoProp for Value {}
 impl_to_from_number!(UFDRNumber, u128, Value);
 impl_to_from_number!(FDRNumber, i128, Value);
 
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Family {
     Reds,
     Greens,

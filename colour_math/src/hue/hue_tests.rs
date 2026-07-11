@@ -1375,3 +1375,8 @@ fn general_try_rgb_for_sum_and_chroma() {
         }
     }
 }
+
+#[test]
+fn test_hue_families() {
+    assert_eq!(Hue::RED.family(), Family::Reds);
+}
