@@ -1379,4 +1379,57 @@ fn general_try_rgb_for_sum_and_chroma() {
 #[test]
 fn test_hue_families() {
     assert_eq!(Hue::RED.family(), Family::Reds);
+    assert_eq!(Hue::GREEN.family(), Family::Greens);
+    assert_eq!(Hue::BLUE.family(), Family::Blues);
+    assert_eq!(Hue::CYAN.family(), Family::Cyans);
+    assert_eq!(Hue::MAGENTA.family(), Family::Magentas);
+    assert_eq!(Hue::YELLOW.family(), Family::Yellows);
+    assert_eq!(
+        RGB([u8::MAX, u8::MAX / 4, 0]).hue().unwrap().family(),
+        Family::Reds
+    );
+    assert_eq!(
+        RGB([u8::MAX, u8::MAX / 4 * 3, 0]).hue().unwrap().family(),
+        Family::Yellows
+    );
+    assert_eq!(
+        RGB([u8::MAX, 0, u8::MAX / 4]).hue().unwrap().family(),
+        Family::Reds
+    );
+    assert_eq!(
+        RGB([u8::MAX, 0, u8::MAX / 4 * 3]).hue().unwrap().family(),
+        Family::Magentas
+    );
+    assert_eq!(
+        RGB([0, u8::MAX, u8::MAX / 4]).hue().unwrap().family(),
+        Family::Greens
+    );
+    assert_eq!(
+        RGB([0, u8::MAX, u8::MAX / 4 * 3]).hue().unwrap().family(),
+        Family::Cyans
+    );
+    assert_eq!(
+        RGB([u8::MAX / 4, u8::MAX, 0]).hue().unwrap().family(),
+        Family::Greens
+    );
+    assert_eq!(
+        RGB([u8::MAX / 4 * 3, u8::MAX, 0]).hue().unwrap().family(),
+        Family::Yellows
+    );
+    assert_eq!(
+        RGB([0, u8::MAX / 4, u8::MAX]).hue().unwrap().family(),
+        Family::Blues
+    );
+    assert_eq!(
+        RGB([0, u8::MAX / 4 * 3, u8::MAX]).hue().unwrap().family(),
+        Family::Cyans
+    );
+    assert_eq!(
+        RGB([u8::MAX / 4, 0, u8::MAX]).hue().unwrap().family(),
+        Family::Blues
+    );
+    assert_eq!(
+        RGB([u8::MAX / 4 * 3, 0, u8::MAX]).hue().unwrap().family(),
+        Family::Magentas
+    );
 }
