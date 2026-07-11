@@ -276,7 +276,7 @@ impl std::str::FromStr for PropertyType {
     fn from_str(string: &str) -> Result<PropertyType, String> {
         match string {
             "Transparency" => Ok(Self::Transparency),
-            "LightFastness" => Ok(Self::Lightfastness),
+            "Lightfastness" => Ok(Self::Lightfastness),
             "Staining" => Ok(Self::Staining),
             "Finish" => Ok(Self::Finish),
             "Opacity" => Ok(Self::Opacity),
@@ -532,7 +532,7 @@ mod tests {
         );
         assert_eq!(
             PropertyType::Lightfastness,
-            PropertyType::from_str("LightFastness").unwrap()
+            PropertyType::from_str("Lightfastness").unwrap()
         )
     }
 
@@ -550,23 +550,22 @@ mod tests {
 
     #[test]
     fn test_split() {
-        assert_eq!(
-            "Transparency::Transparent".split("::").next().unwrap(),
-            "Transparency"
-        );
+        let mut split = "Transparency::Transparent".split("::");
+        assert_eq!(split.next().unwrap(), "Transparency");
+        assert_eq!(split.next().unwrap(), "Transparent");
     }
 
     #[test]
     fn test_property_from_string() {
         assert_eq!(
-            Property::from_str("LightFastness::Excellent"),
+            Property::from_str("Lightfastness::ExcellentLightfastness"),
             Ok(Property {
                 property_type: PropertyType::Lightfastness,
                 value: 1
             })
         );
         assert_eq!(
-            Property::from_str("LightFastness"),
+            Property::from_str("Lightfastness::VeryGoodLightfastness"),
             Ok(Property {
                 property_type: PropertyType::Lightfastness,
                 value: 2
@@ -594,7 +593,10 @@ mod tests {
     #[test]
     fn test_property_default() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
-        assert_eq!(Lightfastness::default(), Lightfastness::VeryGoodLightfastness);
+        assert_eq!(
+            Lightfastness::default(),
+            Lightfastness::VeryGoodLightfastness
+        );
     }
 
     #[test]
@@ -605,8 +607,11 @@ mod tests {
         for a in ["O", "SO", "ST", "C"].iter() {
             assert_eq!(Transparency::from_str(a).unwrap().abbrev_value(), *a);
         }
-        for a in ["Opaque", "SemiOpaque", "SemiTransparent", "Clear"].iter() {
-            assert_eq!(Transparency::from_str(a).unwrap().value(), *a);
+        for a in ["opaque", "semi-opaque", "semi-transparent", "clear"]
+            .iter()
+            .cloned()
+        {
+            assert_eq!(Transparency::from_str(a).unwrap().value(), a);
         }
     }
 

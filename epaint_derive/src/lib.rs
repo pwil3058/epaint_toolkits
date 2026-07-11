@@ -49,7 +49,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let mut value_tokens = vec![];
     let mut first: Option<Ident> = None;
     let mut default: Option<Ident> = None;
-    let fmt_str = format!("\"{{}}\": Malformed '{name}' value string");
+    let fmt_str = format!("'{{}}': Malformed '{name}' value string");
     match parsed_input.data {
         Data::Enum(e) => {
             let mut count: u64 = 1;
@@ -65,6 +65,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                 }
                 let v_abbrev = acronym(&v.ident.to_string());
                 let v_full = v.ident.to_string().to_kebab_case();
+                let v_full_normal = v.ident.to_string();
                 let token = quote! {
                     #v_full,
                 };
@@ -83,7 +84,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                 full_variant_tokens.push_str(format!("{}, ", v_full).as_str());
 
                 let from_token = quote! {
-                    #v_abbrev | #v_full => Ok(#enum_name::#v_name),
+                    #v_abbrev | #v_full | #v_full_normal => Ok(#enum_name::#v_name),
                 };
                 from_tokens.push(from_token);
 
