@@ -9,12 +9,7 @@ use std::{
 use crypto_hash::{Algorithm, Hasher};
 use gcd::Gcd;
 
-use colour_math::{
-    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
-    mixing::SubtractiveMixer,
-    Angle, Chroma, ColourAttributes, ColourBasics, Greyness, Hue, LightLevel, Prop, Value, Warmth,
-    HCV, RGB,
-};
+use colour_math::{beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape}, mixing::SubtractiveMixer, Angle, Chroma, ColourAttributes, ColourBasics, Family, Greyness, Hue, LightLevel, Prop, Value, Warmth, HCV, RGB};
 
 use colour_math_derive::Colour;
 
@@ -489,6 +484,13 @@ impl ColourBasics for Paint {
         match self {
             Paint::Series(paint) => paint.warmth(),
             Paint::Mixed(paint) => paint.warmth(),
+        }
+    }
+
+    fn family(&self) -> Option<Family> {
+        match self {
+            Paint::Series(paint) => paint.family(),
+            Paint::Mixed(paint) => paint.family(),
         }
     }
 

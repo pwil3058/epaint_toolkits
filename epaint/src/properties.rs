@@ -544,7 +544,7 @@ mod tests {
         );
         assert_eq!(
             PropertyType::Lightfastness.value(1.0),
-            Lightfastness::Excellent.value()
+            Lightfastness::ExcellentLightfastness.value()
         );
     }
 
@@ -594,7 +594,7 @@ mod tests {
     #[test]
     fn test_property_default() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
-        assert_eq!(Lightfastness::default(), Lightfastness::VeryGood);
+        assert_eq!(Lightfastness::default(), Lightfastness::VeryGoodLightfastness);
     }
 
     #[test]
