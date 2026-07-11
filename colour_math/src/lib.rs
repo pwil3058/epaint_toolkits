@@ -10,7 +10,7 @@ use num_traits_plus::float_plus::*;
 use hue::HueIfce;
 
 pub use crate::{
-    attributes::{Chroma, Greyness, Value, Warmth},
+    attributes::{Chroma, Family, Greyness, Value, Warmth},
     beigui::{attr_display, hue_wheel},
     fdrn::{IntoProp, Prop, UFDRNumber},
     hcv::HCV,
@@ -175,6 +175,8 @@ pub trait ColourBasics {
 
     fn warmth(&self) -> Warmth;
 
+    fn family(&self) -> Option<Family>;
+
     fn hcv(&self) -> HCV;
     fn rgb<L: LightLevel>(&self) -> RGB<L>;
 
@@ -188,7 +190,22 @@ pub trait ColourBasics {
 
     fn best_foreground(&self) -> HCV {
         match self.chroma() {
-            Chroma::Shade(_) => HCV::WHITE,
+            Chroma::Shade(_) => {
+                if let Some(family) = self.family() {
+                    match family {
+                        Family::Yellows | Family::Cyans => {
+                            if self.value() < Value::ONE / 4 {
+                                HCV::WHITE
+                            } else {
+                                HCV::BLACK
+                            }
+                        }
+                        _ => HCV::WHITE,
+                    }
+                } else {
+                    HCV::WHITE
+                }
+            }
             Chroma::Tint(_) => HCV::BLACK,
             _ => {
                 if self.value() < Value::ONE / 2 {

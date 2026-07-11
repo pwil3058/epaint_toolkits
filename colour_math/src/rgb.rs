@@ -11,6 +11,7 @@ use std::{
 use lazy_static::lazy_static;
 use regex::Regex;
 
+use crate::attributes::Family;
 use crate::{
     attributes::{Chroma, Value, Warmth},
     debug::ApproxEq,
@@ -87,6 +88,10 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
             Ok(hue) => Some(hue),
             Err(_) => None,
         }
+    }
+
+    fn family(&self) -> Option<Family> {
+        Some(self.hue()?.family())
     }
 
     fn is_grey(&self) -> bool {

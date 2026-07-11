@@ -5,6 +5,7 @@ use std::{
     ops::{Add, Sub},
 };
 
+use crate::attributes::Family;
 use crate::{
     attributes::{Chroma, Value, Warmth},
     fdrn::{IntoProp, Prop, UFDRNumber},
@@ -316,6 +317,10 @@ impl ColourBasics for HCV {
 
     fn hue_angle(&self) -> Option<Angle> {
         self.hue.map(|hue| hue.angle())
+    }
+
+    fn family(&self) -> Option<Family> {
+        Some(self.hue()?.family())
     }
 
     fn is_grey(&self) -> bool {

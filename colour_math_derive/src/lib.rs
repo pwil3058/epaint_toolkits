@@ -76,6 +76,10 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.warmth()
             }
 
+            fn family(&self) -> Option<colour_math::Family> {
+                self.#colour.family()
+            }
+
             fn hcv(&self) -> colour_math::HCV {
                 self.#colour.hcv()
             }
