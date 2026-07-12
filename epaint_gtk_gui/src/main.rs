@@ -20,6 +20,7 @@ use epaint::properties::{
     PropertyTypes,
 };
 
+use epaint_gtk::series::PaintSeriesManagerBuilder;
 use epaint_gtk::series::display::*;
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
 
@@ -68,6 +69,15 @@ fn main() {
         .property_types(&property_types);
     let display = builder.build(&Rc::new(paint));
     vbox.pack_start(display.pwo(), true, true, 0);
+    let mut paint_series_manager_builder = PaintSeriesManagerBuilder::new();
+    paint_series_manager_builder.property_types(&property_types);
+    paint_series_manager_builder.attributes(&[
+        ScalarAttribute::Value,
+        ScalarAttribute::Greyness,
+        ScalarAttribute::Chroma,
+    ]);
+    let paint_series_manager = paint_series_manager_builder.build();
+    vbox.pack_start(paint_series_manager.pwo(), true, true, 0);
     vbox.show_all();
     win.add(&vbox);
     win.connect_destroy(|_| gtk::main_quit());
