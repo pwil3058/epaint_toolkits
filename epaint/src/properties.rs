@@ -132,10 +132,14 @@ pub enum PropertyType {
     Granulation,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
 pub struct PropertyTypes(pub Vec<PropertyType>);
 
 impl PropertyTypes {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = PropertyType> {
         self.0.iter().copied()
     }

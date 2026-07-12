@@ -41,13 +41,13 @@ pub trait GetSeriesId {
 }
 
 pub trait PaintEssence:
-ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
+    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
     fn name(&self) -> &str;
     fn colour(&self) -> HCV;
     fn notes(&self) -> &str;
-    fn properties(&self) -> impl Iterator<Item=Property>;
-    fn property_types(&self) -> impl Iterator<Item=PropertyType>;
+    fn properties(&self) -> impl Iterator<Item = Property>;
+    fn property_types(&self) -> impl Iterator<Item = PropertyType>;
 }
 
 #[derive(Debug)]
@@ -56,7 +56,7 @@ pub enum Error {
     SerdeJsonError(serde_json::Error),
     NotFound(String),
     UnknownSeries(SeriesId),
-    UnknownSeriesPaint(SeriesId, String),
+    UnknownPaint(SeriesId, String),
     NotAValidLegacySpec,
     NotImplemented,
 }
@@ -68,7 +68,7 @@ impl fmt::Display for Error {
             Error::SerdeJsonError(err) => write!(f, "Serde Json Error: {err}"),
             Error::NotFound(string) => write!(f, "{string}: Not found."),
             Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
-            Error::UnknownSeriesPaint(series_id, id) => {
+            Error::UnknownPaint(series_id, id) => {
                 write!(f, "{id}:({series_id}): unknown paint")
             }
             Error::NotAValidLegacySpec => write!(f, "Not a valid specification."),

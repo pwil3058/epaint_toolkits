@@ -31,7 +31,7 @@ use pw_gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
 use epaint::{
     SeriesId,
     paint::Paint,
-    properties::PropertyType,
+    properties::PropertyTypes,
     series::{PaintFinder, PaintSeries, PaintSeriesSpec},
 };
 
@@ -59,7 +59,7 @@ struct SeriesPage {
 #[derive(Clone)]
 struct SeriesPageBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     menu_items: Vec<(&'static str, MenuItemSpec, u64)>,
     selection_mode: gtk::SelectionMode,
 }
@@ -68,7 +68,7 @@ impl Default for SeriesPageBuilder {
     fn default() -> Self {
         Self {
             attributes: vec![],
-            properties: vec![],
+            property_types: PropertyTypes(vec![]),
             menu_items: vec![],
             selection_mode: gtk::SelectionMode::None,
         }
@@ -85,8 +85,8 @@ impl SeriesPageBuilder {
         self
     }
 
-    fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    fn property_types(&mut self, property_types: &PropertyTypes) -> &mut Self {
+        self.property_types = property_types.clone();
         self
     }
 
@@ -107,14 +107,14 @@ impl SeriesPageBuilder {
             .menu_item_specs(&self.menu_items)
             .attributes(&self.attributes)
             .build();
-        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.properties);
+        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(self.menu_items.to_vec())
             .selection_mode(self.selection_mode)
             .build(&list_spec);
         for paint in paint_series.paints() {
             hue_wheel.add_item(paint.coloured_shape());
-            let row = paint.row(&self.attributes, &self.properties);
+            let row = paint.row(&self.attributes);
             list_view.add_row(&row);
         }
         let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
@@ -156,8 +156,8 @@ impl SeriesPageBuilder {
 }
 
 impl SeriesPage {
-    fn series_id(&self) -> &Rc<SeriesId> {
-        self.paint_series.series_id()
+    fn series_id(&self) -> Rc<SeriesId> {
+        Rc::clone(&self.paint_series.series_id())
     }
 
     fn update_popup_condns(&self, changed_condns: MaskedCondns) {
@@ -207,7 +207,7 @@ impl SeriesBinder {
     fn new(
         menu_items: &[(&'static str, MenuItemSpec, u64)],
         attributes: &[ScalarAttribute],
-        properties: &[PropertyType],
+        property_types: &PropertyTypes,
         loaded_files_data_path: Option<PathBuf>,
         selection_mode: gtk::SelectionMode,
     ) -> Rc<Self> {
@@ -222,7 +222,7 @@ impl SeriesBinder {
         let mut series_page_builder = SeriesPageBuilder::new();
         series_page_builder
             .attributes(attributes)
-            .properties(properties)
+            .property_types(property_types)
             .menu_items(menu_items)
             .selection_mode(selection_mode);
         let binder = Rc::new(Self {
@@ -248,7 +248,7 @@ impl SeriesBinder {
     fn binary_search_series_id(&self, sid: &Rc<SeriesId>) -> Result<usize, usize> {
         self.pages
             .borrow()
-            .binary_search_by_key(&sid, |(page, _)| page.series_id())
+            .binary_search_by_key(sid, |(page, _)| page.series_id())
     }
 
     fn find_file_path(&self, path: &Path) -> Option<usize> {
@@ -349,7 +349,7 @@ trait RcSeriesBinder {
 
 impl RcSeriesBinder for Rc<SeriesBinder> {
     fn add_series(&self, new_series: PaintSeries, path: &Path) -> Result<(), crate::Error> {
-        match self.binary_search_series_id(new_series.series_id()) {
+        match self.binary_search_series_id(&new_series.series_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
                 "{}: Series already in binder",
                 &new_series.series_id()
@@ -357,13 +357,13 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
             Err(index) => {
                 let l_text = format!(
                     "{}\n{}",
-                    new_series.series_id().series_name(),
-                    new_series.series_id().proprietor(),
+                    new_series.series_id().series_name,
+                    new_series.series_id().proprietor,
                 );
                 let tt_text = format!(
                     "Remove {} ({}) from the tool kit",
-                    new_series.series_id().series_name(),
-                    new_series.series_id().proprietor(),
+                    new_series.series_id().series_name,
+                    new_series.series_id().proprietor,
                 );
                 let label = TabRemoveLabelBuilder::new()
                     .label_text(l_text.as_str())
@@ -374,8 +374,8 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
                 label.connect_remove_page(move || self_c.remove_series(&sid));
                 let l_text = format!(
                     "{} ({})",
-                    new_series.series_id().series_name(),
-                    new_series.series_id().proprietor(),
+                    new_series.series_id().series_name,
+                    new_series.series_id().proprietor,
                 );
                 let menu_label = gtk::Label::new(Some(l_text.as_str()));
                 let new_page = self.series_page_builder.build(new_series);
@@ -412,23 +412,7 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
         let mut file = File::open(path)?;
         let new_series_spec = match PaintSeriesSpec::read(&mut file) {
             Ok(spec) => spec,
-            Err(_) => {
-                let mut file = File::open(path)?;
-                match PaintSeriesSpec00::<f64>::read(&mut file) {
-                    Ok(spec) => spec,
-                    Err(err) => match &err {
-                        epaint::Error::SerdeJsonError(_) => {
-                            let mut file = File::open(path)?;
-                            if let Ok(series) = read_legacy_paint_series_spec(&mut file) {
-                                series
-                            } else {
-                                return Err(crate::Error::APaintError(err));
-                            }
-                        }
-                        _ => return Err(crate::Error::APaintError(err)),
-                    },
-                }
-            }
+            Err(err) => return Err(crate::Error::APaintError(err)),
         };
         self.add_series((&new_series_spec).into(), path)?;
         Ok(())
@@ -436,12 +420,13 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
 }
 
 impl PaintFinder for SeriesBinder {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
         if let Some(series_id) = series_id {
+            let series_id_c = Rc::new(series_id.clone());
             let bsr = self
                 .pages
                 .borrow()
-                .binary_search_by_key(&series_id, |(page, _)| page.series_id());
+                .binary_search_by_key(&series_id_c, |(page, _)| page.series_id());
             match bsr {
                 Ok(index) => match self.pages.borrow()[index].0.paint_series.find(paint_id) {
                     Some(paint) => Ok(Rc::clone(paint)),
@@ -513,15 +498,15 @@ impl PaintSeriesManager {
 }
 
 impl PaintFinder for PaintSeriesManager {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
-        self.binder.get_series_paint(paint_id, series_id)
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
+        self.binder.get_paint(paint_id, series_id)
     }
 }
 
 #[derive(Default)]
 pub struct PaintSeriesManagerBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     loaded_files_data_path: Option<PathBuf>,
     change_notifier: ChangedCondnsNotifier,
 }
@@ -536,8 +521,8 @@ impl PaintSeriesManagerBuilder {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    pub fn property_types(&mut self, properties: &PropertyTypes) -> &mut Self {
+        self.property_types = properties.clone();
         self
     }
 
@@ -577,7 +562,7 @@ impl PaintSeriesManagerBuilder {
         let binder = SeriesBinder::new(
             menu_items,
             &self.attributes,
-            &self.properties,
+            &self.property_types,
             self.loaded_files_data_path.clone(),
             gtk::SelectionMode::Multiple,
         );
@@ -593,7 +578,7 @@ impl PaintSeriesManagerBuilder {
         vbox.show_all();
         let display_dialog_manager = PaintDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
-            .properties(&self.properties)
+            .property_types(&self.property_types)
             .change_notifier(&self.change_notifier)
             .buttons(&[(0, "Add", Some("Add this paint to the mixer/palette"), 0)])
             .build();
@@ -673,15 +658,15 @@ impl PaintStandardsManager {
 }
 
 impl PaintFinder for PaintStandardsManager {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> apaint::Result<Rc<Paint>> {
-        self.binder.get_series_paint(paint_id, series_id)
+    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
+        self.binder.get_paint(paint_id, series_id)
     }
 }
 
 #[derive(Default)]
 pub struct PaintStandardsManagerBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     loaded_files_data_path: Option<PathBuf>,
     change_notifier: ChangedCondnsNotifier,
 }
@@ -697,8 +682,8 @@ impl PaintStandardsManagerBuilder {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    pub fn property_types(&mut self, property_types: &PropertyTypes) -> &mut Self {
+        self.property_types = property_types.clone();
         self
     }
 
@@ -738,7 +723,7 @@ impl PaintStandardsManagerBuilder {
         let binder = SeriesBinder::new(
             menu_items,
             &self.attributes,
-            &self.properties,
+            &self.property_types,
             self.loaded_files_data_path.clone(),
             gtk::SelectionMode::None,
         );
@@ -754,7 +739,7 @@ impl PaintStandardsManagerBuilder {
         vbox.show_all();
         let display_dialog_manager = PaintDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
-            .properties(&self.properties)
+            .property_types(&self.property_types)
             .change_notifier(&self.change_notifier)
             .buttons(&[(
                 0,

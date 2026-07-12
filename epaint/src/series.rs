@@ -6,8 +6,8 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{SerializablePaintData, Paint};
-use crate::{SeriesId, PaintEssence};
+use crate::paint::{Paint, SerializablePaintData};
+use crate::{PaintEssence, SeriesId};
 
 #[derive(Debug)]
 pub struct PaintSeries {
@@ -28,7 +28,7 @@ impl PaintSeries {
         self.series_id.clone()
     }
 
-    pub fn paints(&self) -> impl Iterator<Item=Rc<Paint>> {
+    pub fn paints(&self) -> impl Iterator<Item = Rc<Paint>> {
         self.paint_list.iter().cloned()
     }
 
@@ -69,7 +69,7 @@ impl PaintSeriesSpec {
         self.series_id.series_name = series_name.to_string()
     }
 
-    pub fn paints(&self) -> impl Iterator<Item=&SerializablePaintData> {
+    pub fn paints(&self) -> impl Iterator<Item = &SerializablePaintData> {
         self.paint_spec_list.iter()
     }
 
@@ -189,10 +189,10 @@ pub trait PaintFinder {
 
 #[cfg(test)]
 mod test {
-    use colour_math::{HueConstants, HCV};
+    use colour_math::{HCV, HueConstants};
 
-    use crate::paint::{SerializablePaintData};
-    use crate::properties::{Property, PropertyType, Properties};
+    use crate::paint::SerializablePaintData;
+    use crate::properties::{Properties, Property, PropertyType};
     use crate::series::{PaintSeries, PaintSeriesSpec};
 
     #[test]

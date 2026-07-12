@@ -18,9 +18,8 @@ use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::{GetSeriesId, PaintEssence, paint::Paint, properties::PropertyType};
+use epaint::{GetSeriesId, PaintEssence, paint::Paint, properties::PropertyTypes};
 
-use crate::properties::PropertiesDisplayIfce;
 use crate::series::PaintActionCallback;
 
 #[derive(PWO)]
@@ -55,7 +54,7 @@ impl PaintDisplay {
 #[derive(Default)]
 pub struct PaintDisplayBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     // #[cfg(feature = "targeted_mixtures")]
     target_colour: Option<HCV>,
 }
@@ -70,8 +69,8 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    pub fn property_types(&mut self, property_types: &PropertyTypes) -> &mut Self {
+        self.property_types = property_types.clone();
         self
     }
 
@@ -143,13 +142,13 @@ impl PaintDisplayBuilder {
         //     label.set_widget_colour(&hcv);
         //     vbox.pack_start(&label, false, false, 0);
         // }
-        let properties_display = paint.properties_display(Some(&hcv));
-        // for property in paint.properties() {
-        //     let value = property.value();
-        //     let label = gtk::LabelBuilder::new().label(value).build();
-        //     label.set_widget_colour(&hcv);
-        //     vbox.pack_start(&properties_displayl, false, false, 0);
-        // }
+        // let properties_display = paint.properties_display(Some(&hcv));
+        for property in paint.properties() {
+            let value = property.value();
+            let label = gtk::LabelBuilder::new().label(value).build();
+            label.set_widget_colour(&hcv);
+            vbox.pack_start(&label, false, false, 0);
+        }
         vbox.show_all();
 
         PaintDisplay {
@@ -265,7 +264,7 @@ pub struct PaintDisplayDialogManagerBuilder<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(u16, &'static str, Option<&'static str>, u64)>,
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     target_colour: Option<HCV>,
     change_notifier: ChangedCondnsNotifier,
 }
@@ -277,7 +276,7 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
             caller: caller.clone(),
             buttons: vec![],
             attributes: vec![],
-            properties: vec![],
+            property_types: PropertyTypes::default(),
             target_colour: None,
             change_notifier,
         }
@@ -288,8 +287,8 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    pub fn property_types(&mut self, property_types: &PropertyTypes) -> &mut Self {
+        self.property_types = property_types.clone();
         self
     }
 
@@ -315,7 +314,7 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
         let mut paint_display_builder = PaintDisplayBuilder::new();
         paint_display_builder
             .attributes(&self.attributes)
-            .properties(&self.properties);
+            .property_types(&self.property_types);
         // #[cfg(feature = "targeted_mixtures")]
         if let Some(target_colour) = self.target_colour {
             paint_display_builder.target_colour(Some(&target_colour));

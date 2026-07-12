@@ -10,21 +10,21 @@ use epaint::{
     PaintEssence,
     mixtures::Mixture,
     paint::{Paint, SerializablePaintData},
-    properties::PropertyType,
 };
 
 use colour_math::{HCV, ScalarAttribute};
+use epaint::properties::PropertyTypes;
 
 pub struct BasicPaintListViewSpec {
     attributes: Vec<ScalarAttribute>,
-    property_types: Vec<PropertyType>,
+    property_types: PropertyTypes,
 }
 
 impl BasicPaintListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], propery_types: &[PropertyType]) -> Self {
+    pub fn new(attributes: &[ScalarAttribute], propery_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
-            property_types: propery_types.to_vec(),
+            property_types: propery_types.clone(),
         }
     }
 }
