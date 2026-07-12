@@ -43,6 +43,8 @@ pub trait GetSeriesId {
 pub trait PaintEssence:
     ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
+    #[cfg(feature = "paints_have_ids")]
+    fn id(&self) -> &str;
     fn name(&self) -> &str;
     fn colour(&self) -> HCV;
     fn notes(&self) -> &str;

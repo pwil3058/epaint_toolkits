@@ -11,6 +11,7 @@ default = []
 targeted_mixtures = []
 palette_samples = []
 mixtures_may_mix = []
+paints_have_ids = []
 
 [dependencies]
 serde = "1.0"

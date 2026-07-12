@@ -12,6 +12,8 @@ use crate::properties::{Properties, Property, PropertyType};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct SerializablePaintData {
+    #[cfg(feature = "paints_have_ids")]
+    pub id: String,
     pub name: String,
     #[colour]
     pub colour: HCV,
@@ -20,6 +22,8 @@ pub struct SerializablePaintData {
 }
 
 impl PaintEssence for SerializablePaintData {
+    #[cfg(feature = "paints_have_ids")]
+    fn id(&self) -> &str { &self.id }
     fn name(&self) -> &str {
         &self.name
     }
@@ -69,6 +73,8 @@ pub struct Paint {
 }
 
 impl PaintEssence for Paint {
+    #[cfg(feature = "paints_have_ids")]
+    fn id(&self) -> &str { &self.data.id }
     fn name(&self) -> &str {
         &self.data.name
     }

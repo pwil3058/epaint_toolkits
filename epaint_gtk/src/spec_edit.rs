@@ -51,6 +51,8 @@ pub fn property_sav_changed(property_type: PropertyType) -> u64 {
 #[derive(PWO, Wrapper)]
 pub struct BasicPaintSpecEditor {
     vbox: gtk::Box,
+    #[cfg(feature = "paints_have_ids")]
+    id_entry: gtk::Entry,
     name_entry: gtk::Entry,
     notes_entry: gtk::Entry,
     colour_editor: Rc<ColourEditor<u16>>,
@@ -67,11 +69,25 @@ impl BasicPaintSpecEditor {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
+
         let label = gtk::LabelBuilder::new()
             .label("Name:")
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, 1, 1, 1);
+
+        #[cfg(feature = "paints_have_ids")]
+        let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        #[cfg(feature = "paints_have_ids")]
+        {
+            grid.attach(&id_entry, 1, 1, 1, 1);
+            let label = gtk::LabelBuilder::new()
+                .label("Id:")
+                .halign(gtk::Align::End)
+                .build();
+            grid.attach(&label, 0, 2, 1, 1);
+        }
+
         let name_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&name_entry, 1, 1, 1, 1);
         let label = gtk::LabelBuilder::new()
@@ -79,6 +95,7 @@ impl BasicPaintSpecEditor {
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, 2, 1, 1);
+
         let notes_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&notes_entry, 1, 2, 1, 1);
 
@@ -120,6 +137,8 @@ impl BasicPaintSpecEditor {
             .expect("Duplicate key or button: reset");
         let bpe = Rc::new(Self {
             vbox,
+            #[cfg(feature = "paints_have_ids")]
+            id_entry,
             name_entry,
             notes_entry,
             colour_editor,
@@ -265,6 +284,8 @@ impl BasicPaintSpecEditor {
                 .collect(),
         );
         SerializablePaintData {
+            #[cfg(feature = "paints_have_ids")]
+            id: self.id_entry.get_text().to_string(),
             colour: self.colour_editor.hcv(),
             name: self.name_entry.get_text().to_string(),
             notes: self.notes_entry.get_text().to_string(),

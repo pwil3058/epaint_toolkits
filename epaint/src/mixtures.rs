@@ -37,6 +37,9 @@ pub trait MixtureIfce: PaintEssence {
 
 #[derive(Debug, Colour, Clone)]
 pub struct Mixture {
+    #[cfg(feature = "paints_have_ids")]
+    pub id: String,
+    #[colour]
     pub colour: HCV,
     // #[cfg(feature = "targeted_mixtures")]
     pub targeted_colour: Option<HCV>,
@@ -99,6 +102,8 @@ impl Mixture {
 }
 
 impl PaintEssence for Mixture {
+    #[cfg(feature = "paints_have_ids")]
+    fn id(&self) -> &str { &self.id }
     fn name(&self) -> &str {
         &self.name
     }
@@ -261,6 +266,8 @@ impl MixingSession {
 
 #[derive(Debug)]
 pub struct MixtureBuilder {
+    #[cfg(feature = "paints_have_ids")]
+    id: String,
     name: String,
     series_id: Rc<SeriesId>,
     notes: String,
@@ -271,9 +278,11 @@ pub struct MixtureBuilder {
 }
 
 impl MixtureBuilder {
-    pub fn new(name: &str) -> Self {
+     pub fn new() -> Self {
         Self {
-            name: name.to_string(),
+            #[cfg(feature = "paints_have_ids")]
+            id: String::new(),
+            name: String::new(),
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
@@ -281,6 +290,12 @@ impl MixtureBuilder {
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
         }
+    }
+
+    #[cfg(feature = "paints_have_ids")]
+    pub fn id(&mut self, id: &str) -> &mut Self {
+        self.id = id.to_string();
+        self
     }
 
     pub fn name(&mut self, name: &str) -> &mut Self {
@@ -326,6 +341,8 @@ impl MixtureBuilder {
             components.push((Rc::clone(paint), adjusted_parts));
         }
         let mp = Mixture {
+            #[cfg(feature = "paints_have_ids")]
+            id: self.name.to_string(),
             colour: colour_mix.mixed_colour().unwrap(),
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: self.targeted_colour,
@@ -350,6 +367,8 @@ impl From<&Rc<Paint>> for SaveablePaint {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SaveableMixture {
+    #[cfg(feature = "paints_have_ids")]
+    id: String,
     // #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
     name: String,
@@ -365,6 +384,8 @@ impl From<&Rc<Mixture>> for SaveableMixture {
             .map(|(paint, parts)| (SaveablePaint::from(paint), *parts))
             .collect();
         Self {
+            #[cfg(feature = "paints_have_ids")]
+            id: rcmp.id.to_string(),
             // #[cfg(feature = "targeted_mixtures")]
             targeted_colour: rcmp.targeted_colour,
             name: rcmp.name.to_string(),
@@ -406,7 +427,9 @@ impl SaveableMixingSession {
     ) -> Result<MixingSession, crate::Error> {
         let mut mixtures: Vec<Rc<Mixture>> = vec![];
         for saved_mixture in self.mixtures.iter() {
-            let mut mixture_builder = MixtureBuilder::new(&saved_mixture.name);
+            let mut mixture_builder = MixtureBuilder::new();
+            #[cfg(feature = "paints_have_ids")]
+            mixture_builder.id(&saved_mixture.id);
             mixture_builder.name(&saved_mixture.name);
             mixture_builder.notes(&saved_mixture.notes);
             // #[cfg(feature = "targeted_mixtures")]
