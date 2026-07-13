@@ -19,7 +19,7 @@ use colour_math_gtk::coloured::Colourable;
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};
 
-use epaint::{PaintEssence, mixtures::Mixture, properties::PropertyType};
+use epaint::{PaintEssence, mixtures::Mixture, properties::PropertyTypes};
 
 use crate::list::PaintListRow;
 
@@ -55,7 +55,7 @@ impl MixtureDisplay {
 #[derive(Default)]
 pub struct MixtureDisplayBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     #[cfg(feature = "targeted_mixtures")]
     target_colour: Option<HCV>,
     list_spec: ComponentsListViewSpec,
@@ -68,13 +68,13 @@ impl MixtureDisplayBuilder {
 
     pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
         self.attributes = attributes.to_vec();
-        self.list_spec = ComponentsListViewSpec::new(&self.attributes, &self.properties);
+        self.list_spec = ComponentsListViewSpec::new(&self.attributes, &self.property_types);
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
-        self.list_spec = ComponentsListViewSpec::new(&self.attributes, &self.properties);
+    pub fn property_types(&mut self, properties: &PropertyTypes) -> &mut Self {
+        self.property_types = properties.clone();
+        self.list_spec = ComponentsListViewSpec::new(&self.attributes, &self.property_types);
         self
     }
 
@@ -235,7 +235,7 @@ pub struct MixtureDisplayDialogManagerBuilder<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(&'static str, Option<&'static str>, u16)>,
     attributes: Vec<ScalarAttribute>,
-    properties_: Vec<PropertyType>,
+    property_types_: PropertyTypes,
     target_colour: Option<HCV>,
 }
 
@@ -245,7 +245,7 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
             caller: caller.clone(),
             buttons: vec![],
             attributes: vec![],
-            properties_: vec![],
+            property_types_: PropertyTypes(vec![]),
             target_colour: None,
         }
     }
@@ -255,8 +255,8 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties_ = properties.to_vec();
+    pub fn properties(&mut self, property_types: &PropertyTypes) -> &mut Self {
+        self.property_types_ = property_types.clone();
         self
     }
 
@@ -273,7 +273,7 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
         let mut mixture_display_builder = MixtureDisplayBuilder::new();
         mixture_display_builder
             .attributes(&self.attributes)
-            .properties(&self.properties_);
+            .property_types(&self.property_types_);
         #[cfg(feature = "targeted_mixtures")]
         if let Some(target_colour) = self.target_colour {
             mixture_display_builder.target_colour(Some(&target_colour));
@@ -290,14 +290,14 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
 #[derive(Default)]
 pub struct ComponentsListViewSpec {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
 }
 
 impl ComponentsListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], properties: &[PropertyType]) -> Self {
+    pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
-            properties: properties.to_vec(),
+            property_types: property_types.clone(),
         }
     }
 }
@@ -314,7 +314,7 @@ impl ListViewSpec for ComponentsListViewSpec {
             f64::static_type(),
             u64::static_type(),
         ];
-        for _ in 0..self.attributes.len() * 3 + self.properties.len() {
+        for _ in 0..self.attributes.len() * 3 + self.property_types.len() {
             column_types.push(glib::Type::String);
         }
         #[cfg(feature = "targeted_mixtures")]
@@ -326,7 +326,7 @@ impl ListViewSpec for ComponentsListViewSpec {
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
         #[cfg(feature = "targeted_mixtures")]
-        let target_col = 8 + self.attributes.len() as i32 * 3 + self.properties.len() as i32;
+        let target_col = 8 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Parts")
@@ -419,7 +419,7 @@ impl ListViewSpec for ComponentsListViewSpec {
             index += 3;
         }
 
-        for characteristic in self.properties.iter() {
+        for characteristic in self.property_types.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
                 .title(characteristic.list_header())
                 .sort_column_id(index)

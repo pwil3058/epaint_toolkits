@@ -49,7 +49,8 @@ use epaint::{
     PaintEssence,
     mixtures::{MixingSession, MixtureBuilder},
     paint::Paint,
-    properties::PropertyType,
+    properties::PropertyTypes,
+    series::PaintFinder,
 };
 
 use crate::{
@@ -69,8 +70,6 @@ use crate::series::display::{
 };
 #[cfg(feature = "targeted_mixtures")]
 use crate::series::{PaintStandardsManager, PaintStandardsManagerBuilder};
-use epaint::mixtures::SaveableMixingSession;
-use epaint::series::PaintFinder;
 
 pub const IMAGE_AVAILABLE: u64 = SAV_NEXT_CONDN;
 pub const HAS_SAMPLES: u64 = SAV_NEXT_CONDN << 1;
@@ -321,7 +320,7 @@ pub struct PalettePaintMixer {
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    // property_types: PropertyTypes,
     mix_entry: Rc<PalettePaintEntry>,
     series_paint_spinner_box: Rc<PartsSpinButtonBox<Paint>>,
     change_notifier: ChangedCondnsNotifier,
@@ -417,14 +416,14 @@ impl PalettePaintMixer {
             .update_session_is_saveable(!self.mixing_session.borrow().notes().is_empty());
     }
 
-    fn write_to_file<Q: AsRef<Path>>(&self, path: Q) -> apaint::Result<Vec<u8>> {
+    fn write_to_file<Q: AsRef<Path>>(&self, path: Q) -> epaint::Result<Vec<u8>> {
         let path: &Path = path.as_ref();
         let mut file = File::create(path)?;
         let new_digest = self.mixing_session.borrow_mut().write(&mut file)?;
         Ok(new_digest)
     }
 
-    fn read_from_file<Q: AsRef<Path>>(&self, path: Q) -> apaint::Result<Vec<u8>> {
+    fn read_from_file<Q: AsRef<Path>>(&self, path: Q) -> epaint::Result<Vec<u8>> {
         let path: &Path = path.as_ref();
         let mut file = File::open(path)?;
         let session = MixingSession::read(&mut file, &self.paint_series_manager)?;
@@ -503,8 +502,7 @@ impl PalettePaintMixer {
         self.hue_wheel.add_item(mixed_paint.coloured_shape());
         #[cfg(feature = "targeted_mixtures")]
         self.hue_wheel.add_item(mixed_paint.targeted_rgb_shape());
-        self.list_view
-            .add_row(&mixed_paint.row(&self.attributes, &self.properties));
+        self.list_view.add_row(&mixed_paint.row(&self.attributes));
         self.mix_entry.id_label.set_label("MIX#???");
         self.mix_entry.name_entry.set_text("");
         self.mix_entry.notes_entry.set_text("");
@@ -523,7 +521,7 @@ impl PalettePaintMixer {
         self.set_target_colour(Option::<&HCV>::None);
     }
 
-    pub fn full_reset(&self) -> apaint::Result<Vec<u8>> {
+    pub fn full_reset(&self) -> epaint::Result<Vec<u8>> {
         #[cfg(feature = "palette_samples")]
         self.mix_entry.delete_samples();
         self.notes_entry.set_text("");
@@ -550,7 +548,7 @@ impl PalettePaintMixer {
 #[derive(Default)]
 pub struct PalettePaintMixerBuilder {
     attributes: Vec<ScalarAttribute>,
-    properties: Vec<PropertyType>,
+    property_types: PropertyTypes,
     config_dir_path: Option<PathBuf>,
 }
 
@@ -564,8 +562,8 @@ impl PalettePaintMixerBuilder {
         self
     }
 
-    pub fn properties(&mut self, properties: &[PropertyType]) -> &mut Self {
-        self.properties = properties.to_vec();
+    pub fn property_types(&mut self, properties: &PropertyTypes) -> &mut Self {
+        self.property_types = properties.clone();
         self
     }
 
@@ -598,7 +596,7 @@ impl PalettePaintMixerBuilder {
                 SAV_HOVER_OK,
             )])
             .build();
-        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.properties);
+        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(vec![(
                 "info",
@@ -616,18 +614,18 @@ impl PalettePaintMixerBuilder {
 
         let mixture_display_dialog_manager = MixtureDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
-            .properties(&self.properties)
+            .properties(&self.property_types)
             .build();
 
         let paint_display_dialog_manager = PaintDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
-            .properties(&self.properties)
+            .property_types(&self.property_types)
             .build();
 
         let mut builder = PaintSeriesManagerBuilder::new();
         builder
             .attributes(&self.attributes)
-            .properties(&self.properties)
+            .property_types(&self.property_types)
             .change_notifier(&change_notifier);
         if let Some(ref config_dir_path) = self.config_dir_path {
             builder.loaded_files_data_path(&config_dir_path.join("paint_series_files"));
@@ -648,7 +646,7 @@ impl PalettePaintMixerBuilder {
         {
             builder
                 .attributes(&self.attributes)
-                .properties(&self.properties)
+                .property_types(&self.property_types)
                 .change_notifier(&change_notifier);
             if let Some(ref config_dir_path) = self.config_dir_path {
                 builder.loaded_files_data_path(&config_dir_path.join("paint_standards_files"));
@@ -766,7 +764,7 @@ impl PalettePaintMixerBuilder {
             hue_wheel,
             list_view,
             attributes: self.attributes.clone(),
-            properties: self.properties.clone(),
+            // property_types: self.property_types.clone(),
             mix_entry,
             series_paint_spinner_box,
             change_notifier,
@@ -808,10 +806,12 @@ impl PalettePaintMixerBuilder {
             let tpm_c = Rc::clone(&tpm);
             tpm.paint_standards_manager
                 .connect_set_as_target(move |paint| {
+                    #[cfg(feature = "paints_have_ids")]
                     let id = paint.id();
-                    let name = paint.name().unwrap_or("");
+                    let name = paint.name();
                     let colour = paint.hcv();
-                    tpm_c.start_new_mixture(id, name, &colour);
+                    let notes = paint.notes();
+                    tpm_c.start_new_mixture(name, notes, &colour);
                 });
         }
 
@@ -873,14 +873,14 @@ impl PalettePaintMixerBuilder {
                     .mixture_display_dialog_manager
                     .borrow_mut()
                     .display_mixture(mixture);
-            } else if let Ok(paint) = tpm_c.paint_series_manager.get_series_paint(id, None) {
+            } else if let Ok(paint) = tpm_c.paint_series_manager.get_paint(id, None) {
                 tpm_c
                     .paint_display_dialog_manager
                     .borrow_mut()
                     .display_paint(&paint);
             } else {
                 #[cfg(feature = "targeted_mixtures")]
-                if let Ok(standard) = tpm_c.paint_standards_manager.get_series_paint(id, None) {
+                if let Ok(standard) = tpm_c.paint_standards_manager.get_paint(id, None) {
                     tpm_c
                         .paint_display_dialog_manager
                         .borrow_mut()

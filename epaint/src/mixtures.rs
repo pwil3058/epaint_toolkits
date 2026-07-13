@@ -205,9 +205,9 @@ pub struct MixingSession {
 }
 
 impl MixingSession {
-    pub fn new(notes: &str) -> Self {
+    pub fn new() -> Self {
         Self {
-            notes: notes.to_string(),
+            notes: "".to_string(),
             mixtures: Vec::new(),
         }
     }
