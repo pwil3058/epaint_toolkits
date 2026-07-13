@@ -10,8 +10,10 @@ use crypto_hash::{Algorithm, Hasher};
 use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "targeted_mixtures")]
+use colour_math::RGB;
 use colour_math::{
-    ColourBasics, HCV, LightLevel, RGB,
+    ColourBasics, HCV, LightLevel,
     beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
     mixing::SubtractiveMixer,
 };
@@ -24,9 +26,11 @@ use crate::series::PaintFinder;
 use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 pub trait MixtureIfce: PaintEssence {
+    #[cfg(feature = "targeted_mixtures")]
     fn targeted_colour(&self) -> Option<HCV>;
     fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)>;
 
+    #[cfg(feature = "targeted_mixtures")]
     fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour() {
             return Some(colour.rgb::<L>());
@@ -37,11 +41,10 @@ pub trait MixtureIfce: PaintEssence {
 
 #[derive(Debug, Colour, Clone)]
 pub struct Mixture {
-    #[cfg(feature = "paints_have_ids")]
     pub id: String,
     #[colour]
     pub colour: HCV,
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub targeted_colour: Option<HCV>,
     pub name: String,
     pub notes: String,
@@ -51,6 +54,7 @@ pub struct Mixture {
 }
 
 impl MixtureIfce for Mixture {
+    #[cfg(feature = "targeted_mixtures")]
     fn targeted_colour(&self) -> Option<HCV> {
         self.targeted_colour.into()
     }
@@ -61,7 +65,7 @@ impl MixtureIfce for Mixture {
 }
 
 impl Mixture {
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if let Some(ref colour) = self.targeted_colour {
             Some(colour.rgb::<L>())
@@ -70,7 +74,7 @@ impl Mixture {
         }
     }
 
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_colour(&self) -> Option<HCV> {
         if let Some(colour) = self.targeted_colour {
             Some(colour)
@@ -79,7 +83,7 @@ impl Mixture {
         }
     }
 
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb_shape(&self) -> ColouredShape {
         let tooltip_text = format!("Target for: {}", self.tooltip_text());
         let id = self.targeted_rgb_id();
@@ -91,7 +95,7 @@ impl Mixture {
         )
     }
 
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb_id(&self) -> String {
         format!("TARGET({})", self.name)
     }
@@ -106,6 +110,7 @@ impl PaintEssence for Mixture {
     fn id(&self) -> &str {
         &self.id
     }
+
     fn name(&self) -> &str {
         &self.name
     }
@@ -124,6 +129,13 @@ impl PaintEssence for Mixture {
 
     fn properties(&self) -> impl Iterator<Item = Property> {
         self.properties.properties()
+    }
+}
+
+#[cfg(not(feature = "targeted_mixtures"))]
+impl Mixture {
+    pub fn id(&self) -> &str {
+        &self.id
     }
 }
 
@@ -289,33 +301,30 @@ impl MixingSession {
 
 #[derive(Debug)]
 pub struct MixtureBuilder {
-    #[cfg(feature = "paints_have_ids")]
     id: String,
     name: String,
     series_id: Rc<SeriesId>,
     notes: String,
     series_components: Vec<(Rc<Paint>, u64)>,
     properties: Vec<Property>,
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
 
 impl MixtureBuilder {
-    pub fn new() -> Self {
+    pub fn new(id: &str) -> Self {
         Self {
-            #[cfg(feature = "paints_have_ids")]
-            id: String::new(),
+            id: id.to_string(),
             name: String::new(),
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
             properties: vec![],
-            // #[cfg(feature = "targeted_mixtures")]
+            #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
         }
     }
 
-    #[cfg(feature = "paints_have_ids")]
     pub fn id(&mut self, id: &str) -> &mut Self {
         self.id = id.to_string();
         self
@@ -331,7 +340,7 @@ impl MixtureBuilder {
         self
     }
 
-    //#[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_colour(&mut self, colour: &impl ColourBasics) -> &mut Self {
         self.targeted_colour = Some(colour.hcv());
         self
@@ -364,10 +373,9 @@ impl MixtureBuilder {
             components.push((Rc::clone(paint), adjusted_parts));
         }
         let mp = Mixture {
-            #[cfg(feature = "paints_have_ids")]
-            id: self.name.to_string(),
+            id: self.id.to_string(),
             colour: colour_mix.mixed_colour().unwrap(),
-            // #[cfg(feature = "targeted_mixtures")]
+            #[cfg(feature = "targeted_mixtures")]
             targeted_colour: self.targeted_colour,
             name: self.name.clone(),
             series_id: self.series_id.clone(),
@@ -390,9 +398,8 @@ impl From<&Rc<Paint>> for SaveablePaint {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SaveableMixture {
-    #[cfg(feature = "paints_have_ids")]
     id: String,
-    // #[cfg(feature = "targeted_mixtures")]
+    #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
     name: String,
     notes: String,
@@ -407,9 +414,8 @@ impl From<&Rc<Mixture>> for SaveableMixture {
             .map(|(paint, parts)| (SaveablePaint::from(paint), *parts))
             .collect();
         Self {
-            #[cfg(feature = "paints_have_ids")]
             id: rcmp.id.to_string(),
-            // #[cfg(feature = "targeted_mixtures")]
+            #[cfg(feature = "targeted_mixtures")]
             targeted_colour: rcmp.targeted_colour,
             name: rcmp.name.to_string(),
             notes: rcmp.notes.to_string(),
@@ -450,12 +456,12 @@ impl SaveableMixingSession {
     ) -> Result<MixingSession, crate::Error> {
         let mut mixtures: Vec<Rc<Mixture>> = vec![];
         for saved_mixture in self.mixtures.iter() {
-            let mut mixture_builder = MixtureBuilder::new();
+            let mut mixture_builder = MixtureBuilder::new(&saved_mixture.id);
             #[cfg(feature = "paints_have_ids")]
             mixture_builder.id(&saved_mixture.id);
             mixture_builder.name(&saved_mixture.name);
             mixture_builder.notes(&saved_mixture.notes);
-            // #[cfg(feature = "targeted_mixtures")]
+            #[cfg(feature = "targeted_mixtures")]
             if let Some(targeted_colour) = saved_mixture.targeted_colour {
                 mixture_builder.targeted_colour(&targeted_colour);
             }

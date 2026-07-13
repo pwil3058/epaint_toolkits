@@ -432,18 +432,10 @@ impl PalettePaintMixer {
         self.notes_entry.set_text(session.notes());
         for mixture in session.mixtures() {
             for (paint, _) in mixture.components() {
-                match paint {
-                    Paint::Series(series_paint) => {
-                        self.add_series_paint(series_paint);
-                    }
-                    Paint::Mixed(_mixed_paint) => {
-                        // TODO: add mixed paints to spinners
-                    }
-                }
+                self.add_series_paint(paint);
             }
             self.hue_wheel.add_item(mixture.coloured_shape());
-            self.list_view
-                .add_row(&mixture.row(&self.attributes, &self.properties));
+            self.list_view.add_row(&mixture.row(&self.attributes));
         }
         let digest = session.digest().expect("should work");
         *self.mixing_session.borrow_mut() = session;
