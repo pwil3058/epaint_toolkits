@@ -103,7 +103,9 @@ impl Mixture {
 
 impl PaintEssence for Mixture {
     #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str { &self.id }
+    fn id(&self) -> &str {
+        &self.id
+    }
     fn name(&self) -> &str {
         &self.name
     }
@@ -264,6 +266,27 @@ impl MixingSession {
     }
 }
 
+impl MixingSession {
+    pub fn read<R: Read>(
+        reader: &mut R,
+        series_paint_finder: &Rc<impl PaintFinder>,
+    ) -> Result<Self, crate::Error> {
+        let saved_session = SaveableMixingSession::read(reader)?;
+        let mixing_session = saved_session.mixing_session(series_paint_finder)?;
+        Ok(mixing_session)
+    }
+}
+
+impl MixingSession {
+    pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
+        SaveableMixingSession::from(self).write(writer)
+    }
+
+    pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
+        SaveableMixingSession::from(self).digest()
+    }
+}
+
 #[derive(Debug)]
 pub struct MixtureBuilder {
     #[cfg(feature = "paints_have_ids")]
@@ -278,7 +301,7 @@ pub struct MixtureBuilder {
 }
 
 impl MixtureBuilder {
-     pub fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             #[cfg(feature = "paints_have_ids")]
             id: String::new(),

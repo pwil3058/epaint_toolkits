@@ -12,14 +12,14 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, ScalarAttribute, HCV};
+use colour_math::{ColourBasics, HCV, ScalarAttribute};
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::coloured::Colourable;
 
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};
 
-use apaint::{mixtures::Mixture, properties::PropertyType, BasicPaintIfce};
+use epaint::{PaintEssence, mixtures::Mixture, properties::PropertyType};
 
 use crate::list::PaintListRow;
 
@@ -94,19 +94,18 @@ impl MixtureDisplayBuilder {
             .orientation(gtk::Orientation::Vertical)
             .build();
 
+        #[cfg(feature = "paints_have_ids")]
         let label = gtk::LabelBuilder::new().label(mixture.id()).build();
+        #[cfg(feature = "paints_have_ids")]
+        label.set_widget_colour(&colour);
+        #[cfg(feature = "paints_have_ids")]
+        vbox.pack_start(&label, false, false, 0);
+
+        let label = gtk::LabelBuilder::new().label(mixture.name()).build();
         label.set_widget_colour(&colour);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new()
-            .label(mixture.name().unwrap_or(""))
-            .build();
-        label.set_widget_colour(&colour);
-        vbox.pack_start(&label, false, false, 0);
-
-        let label = gtk::LabelBuilder::new()
-            .label(mixture.notes().unwrap_or(""))
-            .build();
+        let label = gtk::LabelBuilder::new().label(mixture.notes()).build();
         label.set_widget_colour(&colour);
         vbox.pack_start(&label, false, false, 0);
 
@@ -138,8 +137,14 @@ impl MixtureDisplayBuilder {
 
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        for property_type in self.properties.iter() {
-            let value = mixture.property(*property_type).full();
+        // for property_type in self.properties.iter() {
+        //     let value = mixture.property(*property_type).full();
+        //     let label = gtk::LabelBuilder::new().label(value).build();
+        //     label.set_widget_colour(&colour);
+        //     vbox.pack_start(&label, false, false, 0);
+        // }
+        for property in mixture.properties() {
+            let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
             label.set_widget_colour(&colour);
             vbox.pack_start(&label, false, false, 0);
@@ -148,7 +153,7 @@ impl MixtureDisplayBuilder {
         let list_view = ListViewWithPopUpMenuBuilder::new().build(&self.list_spec);
         vbox.pack_start(list_view.pwo(), false, false, 0);
         for (paint, parts) in mixture.components() {
-            let mut row = paint.row(&self.attributes, &self.properties);
+            let mut row = paint.row(&self.attributes);
             let value: glib::Value = (*parts).to_value();
             row.insert(7, value);
             list_view.add_row(&row);
@@ -416,7 +421,7 @@ impl ListViewSpec for ComponentsListViewSpec {
 
         for characteristic in self.properties.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
-                .title(characteristic.list_header_name())
+                .title(characteristic.list_header())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();

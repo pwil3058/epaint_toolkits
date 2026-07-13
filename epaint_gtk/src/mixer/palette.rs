@@ -15,7 +15,7 @@ use pw_gtk_ext::{
         paned::RememberPosition,
     },
     sav_state::{
-        ChangedCondnsNotifier, MaskedCondns, WidgetStatesControlled, SAV_HOVER_OK, SAV_NEXT_CONDN,
+        ChangedCondnsNotifier, MaskedCondns, SAV_HOVER_OK, SAV_NEXT_CONDN, WidgetStatesControlled,
     },
     wrapper::*,
 };
@@ -29,7 +29,7 @@ use pw_gtk_ext::{
 };
 
 use colour_math::{
-    hue_wheel::MakeColouredShape, mixing::SubtractiveMixer, RGBConstants, ScalarAttribute, HCV,
+    HCV, RGBConstants, ScalarAttribute, hue_wheel::MakeColouredShape, mixing::SubtractiveMixer,
 };
 use colour_math_cairo::CairoSetColour;
 
@@ -45,11 +45,11 @@ use colour_math_gtk::{
 };
 use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
-use apaint::{
-    mixtures::{MixingSession, MixtureBuilder, Paint},
+use epaint::{
+    PaintEssence,
+    mixtures::{MixingSession, MixtureBuilder},
+    paint::Paint,
     properties::PropertyType,
-    series::SeriesPaint,
-    BasicPaintIfce,
 };
 
 use crate::{
@@ -69,9 +69,8 @@ use crate::series::display::{
 };
 #[cfg(feature = "targeted_mixtures")]
 use crate::series::{PaintStandardsManager, PaintStandardsManagerBuilder};
-#[cfg(feature = "mixtures_may_mix")]
-use apaint::mixtures::Mixture;
-use apaint::series::SeriesPaintFinder;
+use epaint::mixtures::SaveableMixingSession;
+use epaint::series::PaintFinder;
 
 pub const IMAGE_AVAILABLE: u64 = SAV_NEXT_CONDN;
 pub const HAS_SAMPLES: u64 = SAV_NEXT_CONDN << 1;
@@ -324,9 +323,7 @@ pub struct PalettePaintMixer {
     attributes: Vec<ScalarAttribute>,
     properties: Vec<PropertyType>,
     mix_entry: Rc<PalettePaintEntry>,
-    series_paint_spinner_box: Rc<PartsSpinButtonBox<SeriesPaint>>,
-    #[cfg(feature = "mixtures_may_mix")]
-    mixed_paint_spinner_box: Rc<PartsSpinButtonBox<Mixture>>,
+    series_paint_spinner_box: Rc<PartsSpinButtonBox<Paint>>,
     change_notifier: ChangedCondnsNotifier,
     paint_series_manager: Rc<PaintSeriesManager>,
     #[cfg(feature = "targeted_mixtures")]
@@ -352,35 +349,19 @@ impl PalettePaintMixer {
         self.next_mix_id.set(self.next_mix_id.get() + 1);
     }
 
-    fn add_series_paint(&self, paint: &Rc<SeriesPaint>) {
+    fn add_series_paint(&self, paint: &Rc<Paint>) {
         self.series_paint_spinner_box.add_paint(paint);
         self.hue_wheel.add_item(paint.coloured_shape());
     }
 
-    fn remove_series_paint(&self, paint: &Rc<SeriesPaint>) {
+    fn remove_series_paint(&self, paint: &Rc<Paint>) {
         self.series_paint_spinner_box.remove_paint(paint);
-        self.hue_wheel.remove_item(paint.id());
-    }
-
-    #[cfg(feature = "mixtures_may_mix")]
-    fn add_mixed_paint(&self, paint: &Rc<Mixture>) {
-        self.mixed_paint_spinner_box.add_paint(paint);
-        self.hue_wheel.add_item(paint.coloured_shape());
-    }
-
-    #[cfg(feature = "mixtures_may_mix")]
-    fn remove_mixed_paint(&self, paint: &Rc<Mixture>) {
-        self.mixed_paint_spinner_box.remove_paint(paint);
-        // NB: we don't remove from the hue wheel as the mixture is still in the mixture list
+        self.hue_wheel.remove_item(paint.abbrev_key());
     }
 
     fn contributions_changed(&self) {
         let mut colour_mixer = SubtractiveMixer::new();
         for (colour, parts) in self.series_paint_spinner_box.colour_contributions() {
-            colour_mixer.add(&colour, parts);
-        }
-        #[cfg(feature = "mixtures_may_mix")]
-        for (colour, parts) in self.mixed_paint_spinner_box.colour_contributions() {
             colour_mixer.add(&colour, parts);
         }
         let mut condns = MaskedCondns {
@@ -519,9 +500,6 @@ impl PalettePaintMixer {
             .name(&self.mix_entry.name_entry.get_text())
             .notes(&self.mix_entry.notes_entry.get_text())
             .series_paint_components(self.series_paint_spinner_box.paint_contributions());
-        #[cfg(feature = "mixtures_may_mix")]
-        mixed_paint_builder
-            .mixed_paint_components(self.mixed_paint_spinner_box.paint_contributions());
         #[cfg(feature = "targeted_mixtures")]
         mixed_paint_builder.targeted_colour(
             &self
@@ -570,8 +548,6 @@ impl PalettePaintMixer {
 
     pub fn zero_all_parts(&self) {
         self.series_paint_spinner_box.zero_all_parts();
-        #[cfg(feature = "mixtures_may_mix")]
-        self.mixed_paint_spinner_box.zero_all_parts();
     }
 
     pub fn needs_saving(&self) -> bool {
@@ -632,29 +608,19 @@ impl PalettePaintMixerBuilder {
             .build();
         let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.properties);
         let list_view = ListViewWithPopUpMenuBuilder::new()
-            .menu_items(vec![
+            .menu_items(vec![(
+                "info",
                 (
-                    "info",
-                    (
-                        "Paint Information",
-                        None,
-                        Some("Display information for the indicated paint."),
-                    )
-                        .into(),
-                    SAV_HOVER_OK,
-                ),
-                #[cfg(feature = "mixtures_may_mix")]
-                (
-                    "add",
-                    ("Add", None, Some("Add the indicated paint to the palette.")).into(),
-                    SAV_HOVER_OK,
-                ),
-            ])
+                    "Paint Information",
+                    None,
+                    Some("Display information for the indicated paint."),
+                )
+                    .into(),
+                SAV_HOVER_OK,
+            )])
             .build(&list_spec);
         let mix_entry = PalettePaintEntry::new(&self.attributes);
-        let series_paint_spinner_box = PartsSpinButtonBox::<SeriesPaint>::new("Paints", 4, true);
-        #[cfg(feature = "mixtures_may_mix")]
-        let mixed_paint_spinner_box = PartsSpinButtonBox::<Mixture>::new("Mixed Paints", 4, true);
+        let series_paint_spinner_box = PartsSpinButtonBox::<Paint>::new("Paints", 4, true);
 
         let mixture_display_dialog_manager = MixtureDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
@@ -797,8 +763,6 @@ impl PalettePaintMixerBuilder {
 
         vbox.pack_start(&button_box, false, false, 0);
         vbox.pack_start(series_paint_spinner_box.pwo(), false, false, 0);
-        #[cfg(feature = "mixtures_may_mix")]
-        vbox.pack_start(mixed_paint_spinner_box.pwo(), false, false, 0);
         vbox.pack_start(list_view.pwo(), true, true, 0);
         vbox.show_all();
 
@@ -813,8 +777,6 @@ impl PalettePaintMixerBuilder {
             properties: self.properties.clone(),
             mix_entry,
             series_paint_spinner_box,
-            #[cfg(feature = "mixtures_may_mix")]
-            mixed_paint_spinner_box,
             change_notifier,
             paint_series_manager,
             #[cfg(feature = "targeted_mixtures")]
@@ -869,23 +831,6 @@ impl PalettePaintMixerBuilder {
         tpm.series_paint_spinner_box
             .connect_removal_requested(move |p| tpm_c.remove_series_paint(p));
 
-        #[cfg(feature = "mixtures_may_mix")]
-        {
-            let tpm_c = Rc::clone(&tpm);
-            tpm.mixed_paint_spinner_box
-                .connect_contributions_changed(move || tpm_c.contributions_changed());
-
-            let tpm_c = Rc::clone(&tpm);
-            tpm.mixed_paint_spinner_box
-                .connect_removal_requested(move |p| tpm_c.remove_mixed_paint(p));
-        }
-
-        #[cfg(feature = "mixtures_may_mix")]
-        let tpm_c = Rc::clone(&tpm);
-        #[cfg(feature = "mixtures_may_mix")]
-        tpm.mixed_paint_spinner_box
-            .connect_removal_requested(move |p| tpm_c.remove_mixed_paint(p));
-
         let tpm_c = Rc::clone(&tpm);
         #[cfg(not(feature = "targeted_mixtures"))]
         new_mix_btn.connect_clicked(move |_| tpm_c.start_new_mixture());
@@ -927,18 +872,6 @@ impl PalettePaintMixerBuilder {
                 .borrow_mut()
                 .display_mixture(mixture);
         });
-
-        #[cfg(feature = "mixtures_may_mix")]
-        {
-            let tpm_c = Rc::clone(&tpm);
-            tpm.list_view.connect_popup_menu_item("add", move |id, _| {
-                let mixing_session = tpm_c.mixing_session.borrow();
-                let mixture = mixing_session
-                    .mixture(&id.unwrap())
-                    .expect("programm error");
-                tpm_c.add_mixed_paint(&mixture);
-            });
-        }
 
         let tpm_c = Rc::clone(&tpm);
         tpm.hue_wheel.connect_popup_menu_item("info", move |id| {

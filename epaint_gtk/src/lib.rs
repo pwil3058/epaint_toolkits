@@ -5,18 +5,23 @@ use std::{error, fmt, io};
 pub mod factory;
 pub mod icons;
 pub mod list;
+pub mod mixer;
 pub mod properties;
 pub mod sav_state;
 pub mod series;
 pub mod spec_edit;
 pub mod storage;
+pub mod window;
 
 pub mod colour {
     pub use colour_math_gtk::{colour::*, coloured::*};
 
-    pub trait PartsColour: colour_math::ColourIfce + Ord + 'static {}
+    pub trait PartsColour:
+        colour_math::ColourIfce + Ord + 'static + TooltipText + LabelText
+    {
+    }
 
-    use epaint::{mixtures::Mixture, paint::Paint};
+    use epaint::{LabelText, TooltipText, mixtures::Mixture, paint::Paint};
 
     impl PartsColour for Paint {}
     impl PartsColour for Mixture {}

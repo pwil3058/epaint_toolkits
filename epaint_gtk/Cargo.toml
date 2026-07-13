@@ -10,7 +10,6 @@ edition = "2024"
 default = []
 targeted_mixtures = []
 palette_samples = []
-mixtures_may_mix = []
 paints_have_ids = []
 
 [dependencies]
