@@ -19,7 +19,7 @@ pub trait PropertyConsts:
 pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
     fn name(&self) -> &'static str;
     fn prompt(&self) -> &'static str;
-    fn list_header(&self) -> &'static str;
+    fn list_header() -> &'static str;
     fn str_values() -> Vec<&'static str>;
     fn abbrev_value(&self) -> &'static str;
     fn value(&self) -> &'static str;
@@ -193,16 +193,16 @@ impl PropertyType {
 
     pub fn list_header(&self) -> &'static str {
         match self {
-            Self::Transparency => Transparency::PROMPT,
-            Self::Lightfastness => Lightfastness::PROMPT,
-            Self::Staining => Staining::PROMPT,
-            Self::Finish => Finish::PROMPT,
-            Self::Opacity => Opacity::PROMPT,
-            Self::Permanence => Permanence::PROMPT,
-            Self::Luminescence => Luminescence::PROMPT,
-            Self::Fluorescence => Fluorescence::PROMPT,
-            Self::Metallicness => Metallicness::PROMPT,
-            Self::Granulation => Granulation::PROMPT,
+            Self::Transparency => Transparency::list_header(),
+            Self::Lightfastness => Lightfastness::list_header(),
+            Self::Staining => Staining::list_header(),
+            Self::Finish => Finish::list_header(),
+            Self::Opacity => Opacity::list_header(),
+            Self::Permanence => Permanence::list_header(),
+            Self::Luminescence => Luminescence::list_header(),
+            Self::Fluorescence => Fluorescence::list_header(),
+            Self::Metallicness => Metallicness::list_header(),
+            Self::Granulation => Granulation::list_header(),
         }
     }
 

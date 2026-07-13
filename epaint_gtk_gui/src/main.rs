@@ -20,6 +20,7 @@ use epaint::properties::{
     PropertyTypes,
 };
 
+use epaint_gtk::factory::BasicPaintFactoryBuilder;
 use epaint_gtk::series::PaintSeriesManagerBuilder;
 use epaint_gtk::series::display::*;
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
@@ -30,8 +31,6 @@ fn main() {
         println!("GTK init failed");
         return;
     };
-    let win = gtk::Window::new(gtk::WindowType::Toplevel);
-    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
     let property_types = PropertyTypes(vec![
         Transparency,
         Lightfastness,
@@ -39,6 +38,22 @@ fn main() {
         Granulation,
         Luminescence,
     ]);
+    let win = gtk::Window::new(gtk::WindowType::Toplevel);
+    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    vbox.pack_start(
+        BasicPaintFactoryBuilder::new()
+            .attributes(&[
+                ScalarAttribute::Value,
+                ScalarAttribute::Greyness,
+                //ScalarAttribute::Chroma,
+            ])
+            .property_types(&property_types)
+            .build()
+            .pwo(),
+        false,
+        false,
+        0,
+    );
     let bpe = BasicPaintSpecEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
     let mut paint_spec = SerializablePaintData {

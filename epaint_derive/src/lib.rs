@@ -132,7 +132,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
 
             fn prompt(&self) -> &'static str { Self::PROMPT }
 
-            fn list_header(&self) -> &'static str { Self::LIST_HEADER }
+            fn list_header() -> &'static str { Self::LIST_HEADER }
 
             fn str_values() -> Vec<&'static str> {
                 vec![#(#value_tokens)*]

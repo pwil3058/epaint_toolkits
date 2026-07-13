@@ -3,12 +3,12 @@
 use serde::{Deserialize, Serialize};
 use std::rc::Rc;
 
-use colour_math::hue_wheel::{MakeColouredShape, ColouredShape, Shape};
-use colour_math::{LightLevel, HCV};
+use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 use crate::properties::{Properties, Property, PropertyType};
+use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct SerializablePaintData {
@@ -23,7 +23,9 @@ pub struct SerializablePaintData {
 
 impl PaintEssence for SerializablePaintData {
     #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str { &self.id }
+    fn id(&self) -> &str {
+        &self.id
+    }
     fn name(&self) -> &str {
         &self.name
     }
@@ -36,12 +38,30 @@ impl PaintEssence for SerializablePaintData {
         &self.notes
     }
 
-    fn properties(&self) -> impl Iterator<Item=Property> {
+    fn properties(&self) -> impl Iterator<Item = Property> {
         self.properties.properties()
     }
 
-    fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
         self.properties.property_types()
+    }
+}
+
+impl MakeColouredShape for SerializablePaintData {
+    fn coloured_shape(&self) -> ColouredShape {
+        let tooltip_text = self.tooltip_text();
+        ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
+    }
+}
+
+impl TooltipText for SerializablePaintData {
+    fn tooltip_text(&self) -> String {
+        let mut string = self.name.to_string();
+        string.push('\n');
+        string.push_str(&self.notes);
+        string.push('\n');
+
+        string
     }
 }
 
@@ -74,7 +94,9 @@ pub struct Paint {
 
 impl PaintEssence for Paint {
     #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str { &self.data.id }
+    fn id(&self) -> &str {
+        &self.data.id
+    }
     fn name(&self) -> &str {
         &self.data.name
     }
@@ -87,11 +109,11 @@ impl PaintEssence for Paint {
         self.data.colour.clone()
     }
 
-    fn property_types(&self) -> impl Iterator<Item=PropertyType> {
+    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
         self.data.property_types()
     }
 
-    fn properties(&self) -> impl Iterator<Item=Property> {
+    fn properties(&self) -> impl Iterator<Item = Property> {
         self.data.properties.properties()
     }
 }
@@ -156,10 +178,10 @@ mod paint_tests {
 
     use super::*;
     use colour_math::ColourBasics;
-    use colour_math::HueConstants;
     use colour_math::HCV;
+    use colour_math::HueConstants;
 
-    use crate::paint::{SerializablePaintData};
+    use crate::paint::SerializablePaintData;
     use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
@@ -206,11 +228,11 @@ mod paint_tests {
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
         assert_eq!(paint.series_id, series_id.into());
-        assert_eq!(paint.data.properties, Properties(vec![Property::from((PropertyType::Transparency, 2.0))]));
-        for (target, actual) in paint_spec
-            .properties()
-            .zip(paint.properties())
-        {
+        assert_eq!(
+            paint.data.properties,
+            Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
+        );
+        for (target, actual) in paint_spec.properties().zip(paint.properties()) {
             assert_eq!(target, actual);
         }
         let recovered_paint_spec: SerializablePaintData = paint.into();
