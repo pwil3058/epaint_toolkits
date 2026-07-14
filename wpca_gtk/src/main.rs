@@ -52,9 +52,9 @@ mod icon {
         "RRYYRRYY",
         "YYRR____",
         "________",
+        "RRRRYY__",
         "RR______",
         "RRYYRR__",
-        "________",
     ];
 
     pub fn pcatkrs_pixbuf(size: i32) -> Option<gdk_pixbuf::Pixbuf> {
