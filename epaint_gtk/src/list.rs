@@ -32,6 +32,7 @@ impl BasicPaintListViewSpec {
 impl ListViewSpec for BasicPaintListViewSpec {
     fn column_types(&self) -> Vec<glib::Type> {
         let mut column_types = vec![
+            #[cfg(feature = "paints_have_ids")]
             glib::Type::String,
             glib::Type::String,
             glib::Type::String,
@@ -54,20 +55,23 @@ impl ListViewSpec for BasicPaintListViewSpec {
         #[cfg(feature = "targeted_mixtures")]
         let target_col = 7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Id")
-            .resizable(false)
-            .sort_column_id(0)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 0);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
-        cols.push(col);
+        #[cfg(feature = "paints_have_ids")]
+        {
+            let col = gtk::TreeViewColumnBuilder::new()
+                .title("Id")
+                .resizable(false)
+                .sort_column_id(0)
+                .sort_indicator(true)
+                .build();
+            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
+            col.pack_start(&cell, false);
+            col.add_attribute(&cell, "text", 0);
+            col.add_attribute(&cell, "background", 1);
+            col.add_attribute(&cell, "foreground", 2);
+            cols.push(col);
+        }
 
-        let col = gtk::TreeViewColumnBuilder::new()
+    let col = gtk::TreeViewColumnBuilder::new()
             .title("Name")
             .resizable(true)
             .sort_column_id(3)
@@ -165,7 +169,8 @@ pub trait PaintListRow: PaintEssence {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.name().to_value(),
+            #[cfg(feature = "paints_have_ids")]
+            self.id().to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             self.name().to_value(),
@@ -216,7 +221,8 @@ impl PaintListRow for Mixture {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.name().to_value(),
+            #[cfg(feature = "paints_have_ids")]
+            self.id().to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             self.name().to_value(),
