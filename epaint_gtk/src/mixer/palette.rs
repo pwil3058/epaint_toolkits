@@ -320,7 +320,6 @@ pub struct PalettePaintMixer {
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
-    // property_types: PropertyTypes,
     mix_entry: Rc<PalettePaintEntry>,
     series_paint_spinner_box: Rc<PartsSpinButtonBox<Paint>>,
     change_notifier: ChangedCondnsNotifier,

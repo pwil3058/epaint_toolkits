@@ -1,0 +1,16 @@
+/* XPM */
+static char * pcatk_xpm[] = {
+    "8 8 3 1",
+    "R c #FF0000",
+    "Y c #FFFF00",
+    "_ c #000000",
+    "YYRRRR__",
+    "YYRRRRYY",
+    "RRYYRRYY",
+    "YYRR____",
+    "________",
+    "RRRRYY__",
+    "RR______",
+    "RRYYRR__",
+
+ };

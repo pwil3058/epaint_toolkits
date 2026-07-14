@@ -136,13 +136,6 @@ impl PaintDisplayBuilder {
         vbox.pack_start(&target_label, true, true, 0);
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        // for property_type in self.properties.iter() {
-        //     let value = paint.property(*property_type).full();
-        //     let label = gtk::LabelBuilder::new().label(value).build();
-        //     label.set_widget_colour(&hcv);
-        //     vbox.pack_start(&label, false, false, 0);
-        // }
-        // let properties_display = paint.properties_display(Some(&hcv));
         for property in paint.iter_properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();

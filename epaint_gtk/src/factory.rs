@@ -19,13 +19,14 @@ use pw_gtk_ext::{
 use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
+use epaint::properties::PropertyTypes;
+use epaint::{PaintEssence, paint::SerializablePaintData, series::PaintSeriesSpec};
+
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
     spec_edit::BasicPaintSpecEditor,
     storage::{StorageManager, StorageManagerBuilder},
 };
-use epaint::properties::PropertyTypes;
-use epaint::{PaintEssence, paint::SerializablePaintData, series::PaintSeriesSpec};
 
 #[derive(PWO, Wrapper)]
 pub struct BasicPaintFactory {
@@ -286,7 +287,6 @@ impl BasicPaintFactoryBuilder {
             hue_wheel,
             list_view,
             attributes: self.attributes.to_vec(),
-            // property_types: self.property_types.clone(),
             paint_series: RefCell::new(PaintSeriesSpec::default()),
             proprietor_entry,
             series_name_entry,

@@ -1,0 +1,23 @@
+[package]
+name = "wpca_gtk"
+version = "0.1.0"
+authors = ["Peter Williams <pwil3058@bigpond.net.au>  <pwil3058@gmail.com>"]
+edition = "2024"
+
+[dependencies]
+#pw_gix = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+#pw_gtk_ext = { path = "../rs_pw_gix/pw_gtk_ext" }
+pw_pathux = { git = "https://github.com/pwil3058/rs_pw_pathux" }
+
+colour_math = { path = "../colour_math" }
+
+[dependencies.epaint]
+path = "../epaint"
+version = "*"
+features = []
+
+[dependencies.epaint_gtk]
+path = "../epaint_gtk"
+version = "*"
+features = ["palette_samples"]

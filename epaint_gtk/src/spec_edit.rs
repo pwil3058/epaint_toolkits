@@ -33,6 +33,11 @@ const CHANGED_MASK: u64 = SAV_ID_CHANGED
     + SAV_FLUORESCENCE_CHANGED
     + SAV_METALLICNESS_CHANGED;
 
+#[cfg(feature = "paints_have_ids")]
+const SAV_KEY_READY: u64 = SAV_ID_READY + SAV_NAME_READY;
+#[cfg(not(feature = "paints_have_ids"))]
+const SAV_KEY_READY: u64 = SAV_NAME_READY;
+
 pub fn property_sav_changed(property_type: PropertyType) -> u64 {
     match property_type {
         PropertyType::Finish => SAV_FINISH_CHANGED,
@@ -123,13 +128,13 @@ impl BasicPaintSpecEditor {
             .widget_states_controlled(WidgetStatesControlled::Sensitivity)
             .build::<gtk::Button>();
         buttons
-            .add_widget("add", &add_btn, SAV_ID_READY + SAV_NOT_EDITING)
+            .add_widget("add", &add_btn, SAV_KEY_READY + SAV_NOT_EDITING)
             .expect("Duplicate key or button: add");
         buttons
             .add_widget(
                 "accept",
                 &accept_btn,
-                SAV_ID_READY + SAV_HAS_CHANGES + SAV_EDITING,
+                SAV_KEY_READY + SAV_HAS_CHANGES + SAV_EDITING,
             )
             .expect("Duplicate key or button: accept");
         buttons
@@ -269,7 +274,7 @@ impl BasicPaintSpecEditor {
             if self.buttons.current_condns() & CHANGED_MASK != 0 {
                 masked_condns.condns = SAV_HAS_CHANGES;
             }
-        } else if self.buttons.current_condns() & SAV_ID_READY != 0 {
+        } else if self.buttons.current_condns() & SAV_KEY_READY != 0 {
             masked_condns.condns = SAV_HAS_CHANGES;
         }
         self.buttons.update_condns(masked_condns);
@@ -318,7 +323,7 @@ impl BasicPaintSpecEditor {
 
     fn process_reset_action(&self) {
         if self.buttons.current_condns() & SAV_HAS_CHANGES != 0 {
-            if self.buttons.current_condns() & SAV_ID_READY != 0 {
+            if self.buttons.current_condns() & SAV_KEY_READY != 0 {
                 let buttons = &[
                     ("Cancel", gtk::ResponseType::Other(0)),
                     ("Save and Continue", gtk::ResponseType::Other(1)),
