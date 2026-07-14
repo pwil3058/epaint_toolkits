@@ -172,7 +172,7 @@ impl MakeColouredShape for Mixture {
 
 impl PartialEq for Mixture {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name && self.series_id == other.series_id
+        self.name == other.id && self.series_id == other.series_id
     }
 }
 
@@ -180,7 +180,7 @@ impl Eq for Mixture {}
 
 impl PartialOrd for Mixture {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.name.cmp(&other.name) {
+        match self.id.cmp(&other.id) {
             Ordering::Less => Some(Ordering::Less),
             Ordering::Greater => Some(Ordering::Greater),
             Ordering::Equal => match self.series_id.cmp(&other.series_id) {
@@ -391,7 +391,7 @@ pub struct SaveablePaint(SeriesId, String);
 
 impl From<&Rc<Paint>> for SaveablePaint {
     fn from(paint: &Rc<Paint>) -> SaveablePaint {
-        SaveablePaint((*paint.series_id()).clone(), paint.name().to_string())
+        SaveablePaint((*paint.series_id()).clone(), paint.abbrev_key().to_string())
     }
 }
 

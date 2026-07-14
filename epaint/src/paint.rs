@@ -67,7 +67,7 @@ impl TooltipText for SerializablePaintData {
 
 impl PartialEq for SerializablePaintData {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.abbrev_key() == other.abbrev_key()
     }
 }
 
@@ -75,7 +75,7 @@ impl Eq for SerializablePaintData {}
 
 impl PartialOrd for SerializablePaintData {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.name.cmp(&other.name).into()
+        self.abbrev_key().cmp(&other.abbrev_key()).into()
     }
 }
 
