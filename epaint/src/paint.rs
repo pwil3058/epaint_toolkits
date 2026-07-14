@@ -38,12 +38,12 @@ impl PaintEssence for SerializablePaintData {
         &self.notes
     }
 
-    fn properties(&self) -> impl Iterator<Item = Property> {
+    fn iter_properties(&self) -> impl Iterator<Item = Property> {
         self.properties.properties()
     }
 
-    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.properties.property_types()
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
+        self.properties.iter_property_types()
     }
 }
 
@@ -109,11 +109,11 @@ impl PaintEssence for Paint {
         self.data.colour.clone()
     }
 
-    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.data.property_types()
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
+        self.data.iter_property_types()
     }
 
-    fn properties(&self) -> impl Iterator<Item = Property> {
+    fn iter_properties(&self) -> impl Iterator<Item = Property> {
         self.data.properties.properties()
     }
 }
@@ -232,7 +232,7 @@ mod paint_tests {
             paint.data.properties,
             Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
         );
-        for (target, actual) in paint_spec.properties().zip(paint.properties()) {
+        for (target, actual) in paint_spec.iter_properties().zip(paint.iter_properties()) {
             assert_eq!(target, actual);
         }
         let recovered_paint_spec: SerializablePaintData = paint.into();

@@ -490,7 +490,7 @@ impl PalettePaintMixer {
         mixed_paint_builder
             .name(&self.mix_entry.name_entry.get_text())
             .notes(&self.mix_entry.notes_entry.get_text())
-            .series_paint_components(self.series_paint_spinner_box.paint_contributions());
+            .paint_components(self.series_paint_spinner_box.paint_contributions());
         #[cfg(feature = "targeted_mixtures")]
         mixed_paint_builder.targeted_colour(
             &self

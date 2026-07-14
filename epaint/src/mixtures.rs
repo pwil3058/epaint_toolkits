@@ -21,7 +21,7 @@ use colour_math::{
 use colour_math_derive::Colour;
 
 use crate::paint::Paint;
-use crate::properties::{Properties, Property, PropertyType};
+use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
 use crate::series::PaintFinder;
 use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
@@ -123,11 +123,11 @@ impl PaintEssence for Mixture {
         self.colour.clone()
     }
 
-    fn property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.properties.property_types()
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
+        self.properties.iter_property_types()
     }
 
-    fn properties(&self) -> impl Iterator<Item = Property> {
+    fn iter_properties(&self) -> impl Iterator<Item = Property> {
         self.properties.properties()
     }
 }
@@ -306,7 +306,6 @@ pub struct MixtureBuilder {
     series_id: Rc<SeriesId>,
     notes: String,
     series_components: Vec<(Rc<Paint>, u64)>,
-    properties: Vec<Property>,
     #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
@@ -319,7 +318,6 @@ impl MixtureBuilder {
             series_id: Rc::<SeriesId>::default(),
             notes: String::new(),
             series_components: vec![],
-            properties: vec![],
             #[cfg(feature = "targeted_mixtures")]
             targeted_colour: None,
         }
@@ -346,12 +344,12 @@ impl MixtureBuilder {
         self
     }
 
-    pub fn series_paint_components(&mut self, components: Vec<(Rc<Paint>, u64)>) -> &mut Self {
+    pub fn paint_components(&mut self, components: Vec<(Rc<Paint>, u64)>) -> &mut Self {
         self.series_components = components;
         self
     }
 
-    pub fn series_paint_component(&mut self, component: (Rc<Paint>, u64)) -> &mut Self {
+    pub fn paint_component(&mut self, component: (Rc<Paint>, u64)) -> &mut Self {
         self.series_components.push(component);
         self
     }
@@ -366,10 +364,11 @@ impl MixtureBuilder {
         debug_assert!(gcd > 0);
         let mut components = vec![];
         let mut colour_mix = SubtractiveMixer::new();
+        let mut properties_mixer = PropertiesMixer::default();
         for (paint, parts) in self.series_components.iter() {
             let adjusted_parts = *parts / gcd;
             colour_mix.add(&paint.hcv(), adjusted_parts);
-            // TODO: handle properly
+            properties_mixer.add(&paint.data.properties, adjusted_parts);
             components.push((Rc::clone(paint), adjusted_parts));
         }
         let mp = Mixture {
@@ -380,7 +379,7 @@ impl MixtureBuilder {
             name: self.name.clone(),
             series_id: self.series_id.clone(),
             notes: self.notes.clone(),
-            properties: Properties::new(&self.properties),
+            properties: properties_mixer.mixed_properties(),
             components,
         };
         Rc::new(mp)
@@ -468,7 +467,7 @@ impl SaveableMixingSession {
             for saved_component in saved_mixture.components.iter() {
                 let paint = series_paint_finder
                     .get_paint(&saved_component.0.1, Some(&saved_component.0.0))?;
-                mixture_builder.series_paint_component((paint, saved_component.1));
+                mixture_builder.paint_component((paint, saved_component.1));
             }
             let mixture = mixture_builder.build();
             mixtures.push(mixture);
@@ -545,14 +544,14 @@ mod test {
         let red = series.find("red").unwrap();
         let mix = vec![(Rc::clone(&red), 1), (Rc::clone(&yellow), 1)];
         let mixture = MixtureBuilder::new("#001")
-            .series_paint_components(mix)
+            .paint_components(mix)
             .name("orange")
             .build();
         assert_eq!(mixture.colour, HCV::RED_YELLOW);
         session.add_mixture(&mixture);
         let mixture = MixtureBuilder::new("#002")
-            .series_paint_component((Rc::clone(&yellow), 1))
-            .series_paint_component((Rc::clone(&red), 2))
+            .paint_component((Rc::clone(&yellow), 1))
+            .paint_component((Rc::clone(&red), 2))
             .name("reddish_orange")
             .build();
         session.add_mixture(&mixture);

@@ -132,19 +132,6 @@ pub enum PropertyType {
     Granulation,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
-pub struct PropertyTypes(pub Vec<PropertyType>);
-
-impl PropertyTypes {
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-
-    pub fn iter(&self) -> impl Iterator<Item = PropertyType> {
-        self.0.iter().copied()
-    }
-}
-
 pub fn str_values(property: &PropertyType) -> Vec<&'static str> {
     match property {
         PropertyType::Transparency => Transparency::str_values(),
@@ -291,6 +278,19 @@ impl std::str::FromStr for PropertyType {
             "Granulation" => Ok(Self::Granulation),
             &_ => Err(format!("Unknown property type: {}", string)),
         }
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Default)]
+pub struct PropertyTypes(pub Vec<PropertyType>);
+
+impl PropertyTypes {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = PropertyType> {
+        self.0.iter().copied()
     }
 }
 
@@ -459,17 +459,7 @@ impl From<(PropertyType, &str)> for Property {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
-pub struct FuzzyProperty(f64, PropertyType);
-
-#[derive(Debug)]
-pub struct PropertyMixer {
-    pub property_type: PropertyType,
-    pub sum: u128,
-    pub total_parts: u64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct Properties(pub Vec<Property>);
 
 impl Properties {
@@ -497,8 +487,16 @@ impl Properties {
         Self(properties.to_vec());
     }
 
-    pub fn property_types(&self) -> impl Iterator<Item = PropertyType> {
+    pub fn property_types(&self) -> PropertyTypes {
+        PropertyTypes(self.0.iter().map(|p| p.property_type()).collect())
+    }
+
+    pub fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
         self.0.iter().map(|p| p.property_type())
+    }
+
+    pub fn property_variants_u64(&self) -> Vec<u64> {
+        self.0.iter().map(|p| p.value as u64).collect()
     }
 
     pub fn properties(&self) -> impl Iterator<Item = Property> {
@@ -508,7 +506,7 @@ impl Properties {
 
 impl From<Properties> for PropertyTypes {
     fn from(properties: Properties) -> Self {
-        PropertyTypes(properties.property_types().collect())
+        properties.property_types()
     }
 }
 
@@ -521,6 +519,54 @@ impl From<&PropertyTypes> for Properties {
                 .map(|t| t.default_property())
                 .collect(),
         )
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct PropertiesMixer {
+    pub property_types: PropertyTypes,
+    pub sums: Vec<u64>,
+    pub total_parts: u64,
+}
+
+impl PropertiesMixer {
+    pub fn new(property_types: &PropertyTypes) -> Self {
+        Self {
+            property_types: property_types.clone(),
+            sums: Vec::with_capacity(property_types.len()),
+            total_parts: 0,
+        }
+    }
+
+    pub fn add(&mut self, properties: &Properties, parts: u64) {
+        if self.property_types.0.is_empty() {
+            self.property_types = properties.property_types();
+            self.sums = properties.property_variants_u64();
+            self.total_parts = parts;
+        } else {
+            let variant_64s = properties.property_variants_u64();
+            for index in 0..self.property_types.0.len() {
+                self.sums[index] += variant_64s[index] * parts;
+            }
+            self.total_parts += parts;
+        }
+    }
+
+    pub fn mixed_properties(&self) -> Properties {
+        let mut properties = Vec::new();
+        for property in self
+            .property_types
+            .0
+            .iter()
+            .zip(self.sums.iter())
+            .map(|(t, v)| Property {
+                property_type: *t,
+                value: v / self.total_parts,
+            })
+        {
+            properties.push(property)
+        }
+        Properties(properties)
     }
 }
 

@@ -8,7 +8,7 @@ use std::rc::Rc;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-use crate::properties::{Property, PropertyType};
+use crate::properties::{Property, PropertyType, PropertyTypes};
 use colour_math::{ColourAttributes, ColourBasics, HCV};
 
 pub mod mixtures;
@@ -62,8 +62,11 @@ pub trait PaintEssence:
     fn name(&self) -> &str;
     fn colour(&self) -> HCV;
     fn notes(&self) -> &str;
-    fn properties(&self) -> impl Iterator<Item = Property>;
-    fn property_types(&self) -> impl Iterator<Item = PropertyType>;
+    fn iter_properties(&self) -> impl Iterator<Item = Property>;
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType>;
+    fn property_types(&self) -> PropertyTypes {
+        PropertyTypes(self.iter_property_types().collect())
+    }
 }
 
 #[derive(Debug)]

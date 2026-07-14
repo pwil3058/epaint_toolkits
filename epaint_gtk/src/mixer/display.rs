@@ -143,7 +143,7 @@ impl MixtureDisplayBuilder {
         //     label.set_widget_colour(&colour);
         //     vbox.pack_start(&label, false, false, 0);
         // }
-        for property in mixture.properties() {
+        for property in mixture.iter_properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
             label.set_widget_colour(&colour);

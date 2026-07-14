@@ -143,7 +143,7 @@ impl PaintDisplayBuilder {
         //     vbox.pack_start(&label, false, false, 0);
         // }
         // let properties_display = paint.properties_display(Some(&hcv));
-        for property in paint.properties() {
+        for property in paint.iter_properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
             label.set_widget_colour(&hcv);

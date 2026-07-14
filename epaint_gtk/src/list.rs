@@ -185,7 +185,7 @@ pub trait PaintListRow: PaintEssence {
         // let string = self.property(*property_type).abbrev();
         // row.push(string.to_value());
         // }
-        for property in self.properties() {
+        for property in self.iter_properties() {
             let string = property.abbrev_value();
             row.push(string.to_value());
         }
@@ -231,7 +231,7 @@ impl PaintListRow for Mixture {
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());
         }
-        for property in self.properties() {
+        for property in self.iter_properties() {
             let string = property.abbrev_value();
             row.push(string.to_value());
         }
