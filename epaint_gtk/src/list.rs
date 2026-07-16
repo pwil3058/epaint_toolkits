@@ -32,6 +32,7 @@ impl BasicPaintListViewSpec {
 impl ListViewSpec for BasicPaintListViewSpec {
     fn column_types(&self) -> Vec<glib::Type> {
         let mut column_types = vec![
+            #[cfg(feature = "paints_have_ids")]
             glib::Type::String,
             glib::Type::String,
             glib::Type::String,
@@ -52,46 +53,59 @@ impl ListViewSpec for BasicPaintListViewSpec {
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
         #[cfg(feature = "targeted_mixtures")]
-        let target_col = 7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
+        {
+            #[cfg(feature = "paints_have_ids")]
+            let mut target_col = 7;
+            #[cfg(not(feature = "paints_have_ids"))]
+            let mut target_col = 6;
+            target_col += self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
+        }
 
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Id")
-            .resizable(false)
-            .sort_column_id(0)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 0);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
-        cols.push(col);
+        let mut next_col = 2;
+        #[cfg(feature = "paints_have_ids")]
+        {
+            let col = gtk::TreeViewColumnBuilder::new()
+                .title("Id")
+                .resizable(false)
+                .sort_column_id(next_col)
+                .sort_indicator(true)
+                .build();
+            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
+            col.pack_start(&cell, false);
+            col.add_attribute(&cell, "text", next_col);
+            col.add_attribute(&cell, "background", 0);
+            col.add_attribute(&cell, "foreground", 1);
+            cols.push(col);
+            next_col += 1
+        }
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Name")
             .resizable(true)
-            .sort_column_id(3)
+            .sort_column_id(next_col)
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
         col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 3);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
+        col.add_attribute(&cell, "text", next_col);
+        col.add_attribute(&cell, "background", 0);
+        col.add_attribute(&cell, "foreground", 1);
         cols.push(col);
+        next_col += 1;
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Notes")
             .resizable(true)
-            .sort_column_id(4)
+            .sort_column_id(next_col)
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
         col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 4);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
+        col.add_attribute(&cell, "text", next_col);
+        col.add_attribute(&cell, "background", 0);
+        col.add_attribute(&cell, "foreground", 1);
         cols.push(col);
+        next_col += 1;
 
         #[cfg(feature = "targeted_mixtures")]
         {
@@ -108,15 +122,16 @@ impl ListViewSpec for BasicPaintListViewSpec {
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Hue")
-            .sort_column_id(6)
+            .sort_column_id(next_col + 1)
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
         col.pack_start(&cell, false);
-        col.add_attribute(&cell, "background", 5);
+        col.add_attribute(&cell, "background", next_col);
         cols.push(col);
+        next_col += 2;
 
-        let mut index = 7;
+        let mut index = next_col;
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
                 .title(&attr.to_string())
@@ -141,8 +156,8 @@ impl ListViewSpec for BasicPaintListViewSpec {
             let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
             col.pack_start(&cell, false);
             col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", 1);
-            col.add_attribute(&cell, "foreground", 2);
+            col.add_attribute(&cell, "background", 0);
+            col.add_attribute(&cell, "foreground", 1);
             cols.push(col);
             index += 1;
         }
@@ -165,9 +180,10 @@ pub trait PaintListRow: PaintEssence {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.name().to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
+            #[cfg(feature = "paints_have_ids")]
+            self.id().to_value(),
             self.name().to_value(),
             self.notes().to_value(),
             hcv_bg.pango_string().to_value(),
