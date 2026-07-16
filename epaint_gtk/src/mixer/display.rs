@@ -19,7 +19,10 @@ use colour_math_gtk::coloured::Colourable;
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};
 
-use epaint::{PaintEssence, mixtures::Mixture, properties::PropertyTypes};
+use epaint::{
+    mixtures::{Mixture, MixtureIfce},
+    properties::PropertyTypes,
+};
 
 use crate::list::PaintListRow;
 
@@ -94,11 +97,8 @@ impl MixtureDisplayBuilder {
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        #[cfg(feature = "paints_have_ids")]
         let label = gtk::LabelBuilder::new().label(mixture.id()).build();
-        #[cfg(feature = "paints_have_ids")]
         label.set_widget_colour(&colour);
-        #[cfg(feature = "paints_have_ids")]
         vbox.pack_start(&label, false, false, 0);
 
         let label = gtk::LabelBuilder::new().label(mixture.name()).build();

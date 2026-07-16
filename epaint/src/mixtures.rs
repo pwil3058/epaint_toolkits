@@ -23,9 +23,21 @@ use colour_math_derive::Colour;
 use crate::paint::Paint;
 use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
 use crate::series::PaintFinder;
-use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
+use crate::{AbbrevKey, GetSeriesId, LabelText, SeriesId, TooltipText};
 
-pub trait MixtureIfce: PaintEssence {
+pub trait MixtureIfce {
+    fn id(&self) -> &str;
+
+    fn name(&self) -> &str;
+
+    fn notes(&self) -> &str;
+
+    fn colour(&self) -> HCV;
+
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType>;
+
+    fn iter_properties(&self) -> impl Iterator<Item = Property>;
+
     #[cfg(feature = "targeted_mixtures")]
     fn targeted_colour(&self) -> Option<HCV>;
     fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)>;
@@ -53,7 +65,37 @@ pub struct Mixture {
     pub components: Vec<(Rc<Paint>, u64)>,
 }
 
+impl AbbrevKey for Mixture {
+    fn abbrev_key(&self) -> &str {
+        &self.id
+    }
+}
+
 impl MixtureIfce for Mixture {
+    fn id(&self) -> &str {
+        &self.id
+    }
+
+    fn name(&self) -> &str {
+        &self.name
+    }
+
+    fn notes(&self) -> &str {
+        &self.notes
+    }
+
+    fn colour(&self) -> HCV {
+        self.colour.clone()
+    }
+
+    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
+        self.properties.iter_property_types()
+    }
+
+    fn iter_properties(&self) -> impl Iterator<Item = Property> {
+        self.properties.properties()
+    }
+
     #[cfg(feature = "targeted_mixtures")]
     fn targeted_colour(&self) -> Option<HCV> {
         self.targeted_colour.into()
@@ -105,40 +147,6 @@ impl Mixture {
     }
 }
 
-impl PaintEssence for Mixture {
-    #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str {
-        &self.id
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn notes(&self) -> &str {
-        &self.notes
-    }
-
-    fn colour(&self) -> HCV {
-        self.colour.clone()
-    }
-
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.properties.iter_property_types()
-    }
-
-    fn iter_properties(&self) -> impl Iterator<Item = Property> {
-        self.properties.properties()
-    }
-}
-
-#[cfg(not(feature = "targeted_mixtures"))]
-impl Mixture {
-    pub fn id(&self) -> &str {
-        &self.id
-    }
-}
-
 impl GetSeriesId for Mixture {
     fn series_id(&self) -> Rc<SeriesId> {
         self.series_id.clone()
@@ -159,7 +167,7 @@ impl TooltipText for Mixture {
 
 impl LabelText for Mixture {
     fn label_text(&self) -> String {
-        format!("Mix {}", self.name)
+        format!("Mix {}: {}", self.id, self.name)
     }
 }
 
@@ -172,7 +180,7 @@ impl MakeColouredShape for Mixture {
 
 impl PartialEq for Mixture {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.id && self.series_id == other.series_id
+        self.id == other.id && self.series_id == other.series_id
     }
 }
 
@@ -229,9 +237,7 @@ impl MixingSession {
 
         for mixture in self.mixtures.iter() {
             for (paint, _parts) in mixture.components.iter() {
-                match v.binary_search_by_key(&(paint.name(), paint.series_id()), |p: &Rc<Paint>| {
-                    (p.name(), p.series_id())
-                }) {
+                match v.binary_search_by_key(&paint.key(), |p: &Rc<Paint>| p.key()) {
                     Ok(_) => (),
                     Err(index) => v.insert(index, Rc::clone(paint)),
                 }
@@ -245,7 +251,7 @@ impl MixingSession {
         debug_assert!(self.is_sorted_unique());
         match self
             .mixtures
-            .binary_search_by_key(&mixture.name(), |p| p.name())
+            .binary_search_by_key(&mixture.id(), |m| m.id())
         {
             Ok(index) => {
                 self.mixtures.push(Rc::clone(mixture));
@@ -260,9 +266,9 @@ impl MixingSession {
         }
     }
 
-    pub fn mixture(&self, name: &str) -> Option<&Rc<Mixture>> {
+    pub fn mixture(&self, id: &str) -> Option<&Rc<Mixture>> {
         debug_assert!(self.is_sorted_unique());
-        match self.mixtures.binary_search_by_key(&name, |p| p.name()) {
+        match self.mixtures.binary_search_by_key(&id, |p| p.id()) {
             Ok(index) => self.mixtures.get(index),
             Err(_) => None,
         }
@@ -456,9 +462,7 @@ impl SaveableMixingSession {
         let mut mixtures: Vec<Rc<Mixture>> = vec![];
         for saved_mixture in self.mixtures.iter() {
             let mut mixture_builder = MixtureBuilder::new(&saved_mixture.id);
-            #[cfg(feature = "paints_have_ids")]
             mixture_builder.id(&saved_mixture.id);
-            mixture_builder.name(&saved_mixture.name);
             mixture_builder.notes(&saved_mixture.notes);
             #[cfg(feature = "targeted_mixtures")]
             if let Some(targeted_colour) = saved_mixture.targeted_colour {
@@ -538,7 +542,7 @@ mod test {
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         });
         let series: PaintSeries = (&series_spec).into();
-        let mut session: MixingSession = MixingSession::new("test session");
+        let mut session: MixingSession = MixingSession::new();
         session.set_notes("a test mixing session");
         let yellow = series.find("yellow").unwrap();
         let red = series.find("red").unwrap();

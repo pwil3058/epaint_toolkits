@@ -4,6 +4,12 @@ version = "0.1.0"
 authors = ["Peter Williams <pwil3058@bigpond.net.au>  <pwil3058@gmail.com>"]
 edition = "2024"
 
+[features]
+default = []
+targeted_mixtures = []
+palette_samples = []
+paints_have_ids = []
+
 [dependencies]
 #pw_gix = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
 pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
