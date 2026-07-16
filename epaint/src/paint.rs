@@ -8,7 +8,7 @@ use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property, PropertyType};
-use crate::{GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
+use crate::{AbbrevKey, GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct SerializablePaintData {
@@ -21,11 +21,24 @@ pub struct SerializablePaintData {
     pub properties: Properties,
 }
 
+impl AbbrevKey for SerializablePaintData {
+    #[cfg(feature = "paints_have_ids")]
+    fn abbrev_key(&self) -> &str {
+        &self.id
+    }
+
+    #[cfg(not(feature = "paints_have_ids"))]
+    fn abbrev_key(&self) -> &str {
+        &self.name
+    }
+}
+
 impl PaintEssence for SerializablePaintData {
     #[cfg(feature = "paints_have_ids")]
     fn id(&self) -> &str {
         &self.id
     }
+
     fn name(&self) -> &str {
         &self.name
     }
@@ -67,7 +80,7 @@ impl TooltipText for SerializablePaintData {
 
 impl PartialEq for SerializablePaintData {
     fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+        self.abbrev_key() == other.abbrev_key()
     }
 }
 
@@ -75,7 +88,7 @@ impl Eq for SerializablePaintData {}
 
 impl PartialOrd for SerializablePaintData {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.name.cmp(&other.name).into()
+        self.abbrev_key().cmp(&other.abbrev_key()).into()
     }
 }
 
@@ -97,6 +110,7 @@ impl PaintEssence for Paint {
     fn id(&self) -> &str {
         &self.data.id
     }
+
     fn name(&self) -> &str {
         &self.data.name
     }
@@ -115,6 +129,12 @@ impl PaintEssence for Paint {
 
     fn iter_properties(&self) -> impl Iterator<Item = Property> {
         self.data.properties.properties()
+    }
+}
+
+impl AbbrevKey for Paint {
+    fn abbrev_key(&self) -> &str {
+        self.data.abbrev_key()
     }
 }
 

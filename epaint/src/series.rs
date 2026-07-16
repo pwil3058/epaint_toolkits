@@ -7,7 +7,7 @@ use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
 use crate::paint::{Paint, SerializablePaintData};
-use crate::{PaintEssence, SeriesId};
+use crate::{AbbrevKey, PaintEssence, SeriesId};
 
 #[derive(Debug)]
 pub struct PaintSeries {
@@ -77,7 +77,7 @@ impl PaintSeriesSpec {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
-            .binary_search_by_key(&paint.name, |p| p.name.clone())
+            .binary_search_by_key(&paint.abbrev_key(), |p| p.abbrev_key())
         {
             Ok(index) => {
                 self.paint_spec_list.push(paint.clone());
@@ -92,11 +92,14 @@ impl PaintSeriesSpec {
         }
     }
 
-    pub fn remove(&mut self, id: &str) -> Result<SerializablePaintData, crate::Error> {
+    pub fn remove(&mut self, key: &str) -> Result<SerializablePaintData, crate::Error> {
         debug_assert!(self.is_sorted_unique());
-        match self.paint_spec_list.binary_search_by_key(&id, |p| &p.name) {
+        match self
+            .paint_spec_list
+            .binary_search_by_key(&key, |p| &p.abbrev_key())
+        {
             Ok(index) => Ok(self.paint_spec_list.remove(index)),
-            Err(_) => Err(crate::Error::NotFound(id.to_string())),
+            Err(_) => Err(crate::Error::NotFound(key.to_string())),
         }
     }
 
@@ -104,9 +107,12 @@ impl PaintSeriesSpec {
         self.paint_spec_list.clear()
     }
 
-    pub fn find(&self, id: &str) -> Option<&SerializablePaintData> {
+    pub fn find(&self, key: &str) -> Option<&SerializablePaintData> {
         debug_assert!(self.is_sorted_unique());
-        match self.paint_spec_list.binary_search_by_key(&id, |p| &p.name) {
+        match self
+            .paint_spec_list
+            .binary_search_by_key(&key, |p| &p.abbrev_key())
+        {
             Ok(index) => self.paint_spec_list.get(index),
             Err(_) => None,
         }

@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{PaintEssence, paint::SerializablePaintData, series::PaintSeriesSpec};
+use epaint::{AbbrevKey, paint::SerializablePaintData, series::PaintSeriesSpec};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
@@ -118,6 +118,8 @@ impl BasicPaintFactory {
         let paint_series = self.paint_series.borrow();
         let paint = paint_series.find(id).expect("should be there");
         let spec = SerializablePaintData {
+            #[cfg(features = "paints_have_ids")]
+            id: paint.id.to_string(),
             name: paint.name.to_string(),
             notes: paint.notes.to_string(),
             properties: paint.properties.clone(),

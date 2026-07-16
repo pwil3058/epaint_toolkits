@@ -46,7 +46,7 @@ use colour_math_gtk::{
 use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use epaint::{
-    PaintEssence,
+    AbbrevKey, PaintEssence,
     mixtures::{MixingSession, MixtureBuilder},
     paint::Paint,
     properties::PropertyTypes,
@@ -55,7 +55,7 @@ use epaint::{
 
 use crate::{
     icons,
-    list::{BasicPaintListViewSpec, PaintListRow},
+    list::{MixtureListViewSpec, PaintListRow},
     mixer::{
         component::{PartsSpinButtonBox, RcPartsSpinButtonBox},
         display::{MixtureDisplayDialogManager, MixtureDisplayDialogManagerBuilder},
@@ -487,6 +487,7 @@ impl PalettePaintMixer {
         self.advance_mix_id();
         let mut mixed_paint_builder = MixtureBuilder::new(&mix_id);
         mixed_paint_builder
+            .id(&mix_id)
             .name(&self.mix_entry.name_entry.get_text())
             .notes(&self.mix_entry.notes_entry.get_text())
             .paint_components(self.series_paint_spinner_box.paint_contributions());
@@ -595,7 +596,7 @@ impl PalettePaintMixerBuilder {
                 SAV_HOVER_OK,
             )])
             .build();
-        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
+        let list_spec = MixtureListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(vec![(
                 "info",

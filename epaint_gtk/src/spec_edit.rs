@@ -75,12 +75,6 @@ impl BasicPaintSpecEditor {
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
 
-        let label = gtk::LabelBuilder::new()
-            .label("Name:")
-            .halign(gtk::Align::End)
-            .build();
-        grid.attach(&label, 0, 1, 1, 1);
-
         #[cfg(feature = "paints_have_ids")]
         let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
         #[cfg(feature = "paints_have_ids")]
@@ -92,6 +86,12 @@ impl BasicPaintSpecEditor {
                 .build();
             grid.attach(&label, 0, 2, 1, 1);
         }
+
+        let label = gtk::LabelBuilder::new()
+            .label("Name:")
+            .halign(gtk::Align::End)
+            .build();
+        grid.attach(&label, 0, 1, 1, 1);
 
         let name_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&name_entry, 1, 1, 1, 1);
