@@ -52,14 +52,12 @@ impl ListViewSpec for BasicPaintListViewSpec {
 
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
-        #[cfg(feature = "targeted_mixtures")]
-        {
-            #[cfg(feature = "paints_have_ids")]
-            let mut target_col = 7;
-            #[cfg(not(feature = "paints_have_ids"))]
-            let mut target_col = 6;
-            target_col += self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
-        }
+        #[cfg(all(feature = "targeted_mixtures", feature = "paints_have_ids"))]
+        let mut target_col =
+            7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
+        #[cfg(all(feature = "targeted_mixtures", not(feature = "paints_have_ids")))]
+        let mut target_col =
+            6 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
         let mut next_col = 2;
         #[cfg(feature = "paints_have_ids")]

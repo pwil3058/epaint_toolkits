@@ -117,7 +117,7 @@ impl BasicPaintFactory {
         let paint_series = self.paint_series.borrow();
         let paint = paint_series.find(id).expect("should be there");
         let spec = SerializablePaintData {
-            #[cfg(features = "paints_have_ids")]
+            #[cfg(feature = "paints_have_ids")]
             id: paint.id.to_string(),
             name: paint.name.to_string(),
             notes: paint.notes.to_string(),
