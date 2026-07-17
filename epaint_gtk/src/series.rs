@@ -110,6 +110,7 @@ impl SeriesPageBuilder {
         let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(self.menu_items.to_vec())
+            .id_field(2)
             .selection_mode(self.selection_mode)
             .build(&list_spec);
         for paint in paint_series.paints() {
