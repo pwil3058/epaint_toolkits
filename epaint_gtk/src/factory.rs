@@ -36,7 +36,6 @@ pub struct BasicPaintFactory {
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
-    // property_types: PropertyTypes,
     paint_series: RefCell<PaintSeriesSpec>,
     proprietor_entry: gtk::Entry,
     series_name_entry: gtk::Entry,
@@ -125,18 +124,6 @@ impl BasicPaintFactory {
             properties: paint.properties.clone(),
             colour: paint.colour.clone(),
         };
-        // let mut spec = SerializablePaintData::new(&paint.hcv(), paint.id());
-        // if let Some(name) = paint.name() {
-        //     spec.name = name.to_string();
-        // }
-        // if let Some(notes) = paint.notes() {
-        //     spec.notes = notes.to_string();
-        // }
-        // spec.finish = paint.finish();
-        // spec.permanence = paint.permanence();
-        // spec.transparency = paint.transparency();
-        // spec.fluorescence = paint.fluorescence();
-        // spec.metallicness = paint.metallicness();
         self.paint_editor.edit(&spec);
         self.update_editor_needs_saving();
     }
@@ -257,6 +244,7 @@ impl BasicPaintFactoryBuilder {
         let paint_list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(menu_items.to_vec())
+            .id_field(2)
             .build(&paint_list_spec);
         let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
         scrolled_window.add(list_view.pwo());
