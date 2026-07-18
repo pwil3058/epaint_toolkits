@@ -25,7 +25,7 @@ use crate::series::PaintActionCallback;
 #[derive(PWO)]
 pub struct PaintDisplay {
     vbox: gtk::Box,
-    paint: Rc<CollnPaint>,
+    colln_paint: CollnPaint,
     #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
     #[cfg(feature = "targeted_mixtures")]
@@ -41,13 +41,13 @@ impl PaintDisplay {
             self.cads.set_target_colour(Some(colour));
         } else {
             self.target_label.set_label("");
-            self.target_label.set_widget_colour(&self.paint.hcv());
+            self.target_label.set_widget_colour(&self.colln_paint.hcv());
             self.cads.set_target_colour(Option::<&HCV>::None);
         };
     }
 
-    pub fn paint(&self) -> &Rc<CollnPaint> {
-        &self.paint
+    pub fn paint(&self) -> &CollnPaint {
+        &self.colln_paint
     }
 }
 
@@ -84,7 +84,7 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn build(&self, paint: &Rc<CollnPaint>) -> PaintDisplay {
+    pub fn build(&self, paint: &CollnPaint) -> PaintDisplay {
         let hcv = paint.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
@@ -146,7 +146,7 @@ impl PaintDisplayBuilder {
 
         PaintDisplay {
             vbox,
-            paint: Rc::clone(paint),
+            colln_paint: paint.clone(),
             #[cfg(feature = "targeted_mixtures")]
             target_label,
             #[cfg(feature = "targeted_mixtures")]
@@ -167,7 +167,7 @@ pub struct PaintDisplayDialogManager<W: TopGtkWindow> {
     button_callbacks: RefCell<HashMap<u16, Vec<PaintActionCallback>>>,
     paint_display_builder: RefCell<PaintDisplayBuilder>,
     conditional_widgets_builder: ConditionalWidgetsBuilder,
-    dialogs: RefCell<BTreeMap<Rc<CollnPaint>, PaintDisplayDialog>>,
+    dialogs: RefCell<BTreeMap<CollnPaint, PaintDisplayDialog>>,
 }
 
 impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
@@ -194,18 +194,18 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    fn inform_button_action(&self, action: u16, paint: Rc<CollnPaint>) {
+    fn inform_button_action(&self, action: u16, paint: CollnPaint) {
         let button_callbacks = self.button_callbacks.borrow();
         for callback in button_callbacks
             .get(&action)
             .expect("programmer error")
             .iter()
         {
-            callback(Rc::clone(&paint))
+            callback(paint.clone())
         }
     }
 
-    pub fn connect_action_button<F: Fn(Rc<CollnPaint>) + 'static>(&self, action: u16, callback: F) {
+    pub fn connect_action_button<F: Fn(CollnPaint) + 'static>(&self, action: u16, callback: F) {
         self.button_callbacks
             .borrow_mut()
             .get_mut(&action)
@@ -215,14 +215,14 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
 }
 
 pub trait DisplayPaint {
-    fn display_paint(&self, paint: &Rc<CollnPaint>);
+    fn display_paint(&self, paint: &CollnPaint);
 }
 
 impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
-    fn display_paint(&self, paint: &Rc<CollnPaint>) {
-        if !self.dialogs.borrow().contains_key(paint) {
+    fn display_paint(&self, colln_paint: &CollnPaint) {
+        if !self.dialogs.borrow().contains_key(colln_paint) {
             let dialog = self.new_dialog();
-            let display = self.paint_display_builder.borrow().build(paint);
+            let display = self.paint_display_builder.borrow().build(colln_paint);
             let managed_buttons = self.conditional_widgets_builder.build::<u16, gtk::Widget>();
             for (response, label, tooltip_text, condns) in self.buttons.iter() {
                 let button = dialog.add_button(label, gtk::ResponseType::Other(*response));
@@ -234,21 +234,21 @@ impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>
             dialog
                 .get_content_area()
                 .pack_start(display.pwo(), true, true, 0);
-            let paint_c = Rc::clone(paint);
             let self_c = Rc::clone(self);
+            let colln_paint_clone = colln_paint.clone();
             dialog.connect_response(move |_, response| {
                 if let gtk::ResponseType::Other(code) = response {
-                    self_c.inform_button_action(code, Rc::clone(&paint_c));
+                    self_c.inform_button_action(code, colln_paint_clone.clone());
                 }
             });
             #[cfg(feature = "targeted_mixtures")]
             let pdd = PaintDisplayDialog { dialog, display };
             #[cfg(not(feature = "targeted_mixtures"))]
             let pdd = PaintDisplayDialog { dialog };
-            self.dialogs.borrow_mut().insert(Rc::clone(paint), pdd);
+            self.dialogs.borrow_mut().insert(colln_paint.clone(), pdd);
         };
         let dialogs = self.dialogs.borrow();
-        let pdd = dialogs.get(paint).expect("we just put it there");
+        let pdd = dialogs.get(colln_paint).expect("we just put it there");
         pdd.dialog.present();
     }
 }

@@ -98,7 +98,7 @@ impl Ord for Paint {
     }
 }
 
-#[derive(Debug, Colour, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Colour, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct CollnPaint {
     pub paint: Paint,
     pub series_id: SeriesId,

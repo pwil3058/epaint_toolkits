@@ -347,14 +347,14 @@ impl PalettePaintMixer {
         self.next_mix_id.set(self.next_mix_id.get() + 1);
     }
 
-    fn add_series_paint(&self, paint: &Rc<CollnPaint>) {
-        self.series_paint_spinner_box.add_paint(paint);
-        self.hue_wheel.add_item(paint.coloured_shape());
+    fn add_series_paint(&self, colln_paint: &CollnPaint) {
+        self.series_paint_spinner_box.add_paint(colln_paint);
+        self.hue_wheel.add_item(colln_paint.coloured_shape());
     }
 
-    fn remove_series_paint(&self, paint: &Rc<CollnPaint>) {
-        self.series_paint_spinner_box.remove_paint(paint);
-        self.hue_wheel.remove_item(paint.abbrev_key());
+    fn remove_series_paint(&self, colln_paint: &CollnPaint) {
+        self.series_paint_spinner_box.remove_paint(colln_paint);
+        self.hue_wheel.remove_item(colln_paint.abbrev_key());
     }
 
     fn contributions_changed(&self) {
@@ -429,8 +429,8 @@ impl PalettePaintMixer {
         // TODO: completely clear the mixer
         self.notes_entry.set_text(session.notes());
         for mixture in session.mixtures() {
-            for (paint, _) in mixture.components() {
-                self.add_series_paint(paint);
+            for (colln_paint, _) in mixture.components() {
+                self.add_series_paint(colln_paint);
             }
             self.hue_wheel.add_item(mixture.coloured_shape());
             self.list_view.add_row(&mixture.row(&self.attributes));

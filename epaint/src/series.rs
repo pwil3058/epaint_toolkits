@@ -12,7 +12,7 @@ use crate::{AbbrevKey, PaintEssence, SeriesId};
 #[derive(Debug)]
 pub struct PaintSeries {
     series_id: SeriesId,
-    paint_list: Vec<Rc<CollnPaint>>,
+    paint_list: Vec<Paint>,
 }
 
 impl PaintSeries {
@@ -27,8 +27,11 @@ impl PaintSeries {
         &self.series_id
     }
 
-    pub fn paints(&self) -> impl Iterator<Item = Rc<CollnPaint>> {
-        self.paint_list.iter().cloned()
+    pub fn colln_paints(&self) -> impl Iterator<Item = CollnPaint> {
+        self.paint_list.iter().cloned().map(|paint| CollnPaint {
+            paint,
+            series_id: self.series_id.clone(),
+        })
     }
 
     pub fn is_sorted_unique(&self) -> bool {
@@ -40,12 +43,17 @@ impl PaintSeries {
         true
     }
 
-    pub fn find(&self, name: &str) -> Option<&Rc<CollnPaint>> {
+    pub fn find_colln_paint(&self, key: &str) -> Option<CollnPaint> {
         debug_assert!(self.is_sorted_unique());
-        match self.paint_list.binary_search_by_key(&name, |p| p.name()) {
-            Ok(index) => self.paint_list.get(index),
-            Err(_) => None,
-        }
+        let index = self
+            .paint_list
+            .binary_search_by_key(&key, |p| p.abbrev_key())
+            .ok()?;
+        let paint = self.paint_list[index].clone();
+        Some(CollnPaint {
+            paint,
+            series_id: self.series_id.clone(),
+        })
     }
 }
 
@@ -130,11 +138,16 @@ impl PaintSeriesSpec {
 impl From<&PaintSeriesSpec> for PaintSeries {
     fn from(data: &PaintSeriesSpec) -> PaintSeries {
         let series_id = data.series_id().clone();
-        let mut paint_list = Vec::new();
-        for paint_spec in data.paint_spec_list.iter() {
-            let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
-            paint_list.push(Rc::new(paint));
-        }
+        let paint_list = data
+            .paint_spec_list
+            .iter()
+            .map(|paint| paint.clone())
+            .collect();
+        // let mut paint_list = Vec::new();
+        // for paint_spec in data.paint_spec_list.iter() {
+        //     let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
+        //     paint_list.push(Rc::new(paint));
+        // }
         PaintSeries {
             series_id,
             paint_list,
@@ -174,7 +187,7 @@ pub trait PaintFinder {
         &self,
         paint_name: &str,
         series_id: Option<&SeriesId>,
-    ) -> Result<Rc<CollnPaint>, crate::Error>;
+    ) -> Result<CollnPaint, crate::Error>;
 }
 
 #[cfg(test)]
@@ -216,7 +229,7 @@ mod test {
         }
         let series: PaintSeries = (&series_spec).into();
         assert_eq!(series.series_id, series_spec.series_id());
-        let found_red = series.find("red");
+        let found_red = series.find_colln_paint("red");
         assert_eq!(found_red.unwrap().paint.colour, HCV::RED);
         for (spec_paint, paint) in series_spec.paints().zip(read_spec.paints()) {
             assert_eq!(spec_paint.colour, paint.colour);

@@ -45,7 +45,7 @@ pub mod display;
 
 use crate::series::display::*;
 
-type PaintActionCallback = Box<dyn Fn(Rc<CollnPaint>)>;
+type PaintActionCallback = Box<dyn Fn(CollnPaint)>;
 
 #[derive(PWO, Wrapper)]
 struct SeriesPage {
@@ -113,7 +113,7 @@ impl SeriesPageBuilder {
             .id_field(2)
             .selection_mode(self.selection_mode)
             .build(&list_spec);
-        for paint in paint_series.paints() {
+        for paint in paint_series.colln_paints() {
             hue_wheel.add_item(paint.coloured_shape());
             let row = paint.row(&self.attributes);
             list_view.add_row(&row);
@@ -166,7 +166,7 @@ impl SeriesPage {
         self.list_view.update_popup_condns(changed_condns);
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<CollnPaint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(CollnPaint) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -175,7 +175,7 @@ impl SeriesPage {
     }
 
     fn invoke_named_callback(&self, item: &str, id: &str) {
-        if let Some(paint) = self.paint_series.find(id) {
+        if let Some(colln_paint) = self.paint_series.find_colln_paint(id) {
             for callback in self
                 .callbacks
                 .borrow()
@@ -183,7 +183,7 @@ impl SeriesPage {
                 .expect("invalid name")
                 .iter()
             {
-                callback(Rc::clone(paint))
+                callback(colln_paint.clone())
             }
         }
     }
@@ -267,7 +267,7 @@ impl SeriesBinder {
         }
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<CollnPaint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(CollnPaint) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -275,7 +275,7 @@ impl SeriesBinder {
             .push(Box::new(callback));
     }
 
-    fn invoke_named_callback(&self, item: &str, paint: Rc<CollnPaint>) {
+    fn invoke_named_callback(&self, item: &str, colln_paint: CollnPaint) {
         for callback in self
             .callbacks
             .borrow()
@@ -283,7 +283,7 @@ impl SeriesBinder {
             .expect("invalid name")
             .iter()
         {
-            callback(Rc::clone(&paint))
+            callback(colln_paint.clone())
         }
     }
 
@@ -425,7 +425,7 @@ impl PaintFinder for SeriesBinder {
         &self,
         paint_id: &str,
         series_id: Option<&SeriesId>,
-    ) -> epaint::Result<Rc<CollnPaint>> {
+    ) -> epaint::Result<CollnPaint> {
         if let Some(series_id) = series_id {
             let series_id_c = series_id.clone();
             let bsr = self
@@ -433,8 +433,12 @@ impl PaintFinder for SeriesBinder {
                 .borrow()
                 .binary_search_by_key(&series_id_c, |(page, _)| page.series_id().clone());
             match bsr {
-                Ok(index) => match self.pages.borrow()[index].0.paint_series.find(paint_id) {
-                    Some(paint) => Ok(Rc::clone(paint)),
+                Ok(index) => match self.pages.borrow()[index]
+                    .0
+                    .paint_series
+                    .find_colln_paint(paint_id)
+                {
+                    Some(colln_paint) => Ok(colln_paint),
                     None => Err(epaint::Error::UnknownPaint(
                         series_id.clone(),
                         paint_id.to_string(),
@@ -444,8 +448,8 @@ impl PaintFinder for SeriesBinder {
             }
         } else {
             for page in self.pages.borrow().iter() {
-                if let Some(paint) = page.0.paint_series.find(paint_id) {
-                    return Ok(Rc::clone(paint));
+                if let Some(colln_paint) = page.0.paint_series.find_colln_paint(paint_id) {
+                    return Ok(colln_paint);
                 }
             }
             Err(epaint::Error::NotFound(paint_id.to_string()))
@@ -475,17 +479,17 @@ impl PaintSeriesManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<CollnPaint>) {
+    fn display_paint_information(&self, paint: &CollnPaint) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_add_paint(&self, paint: &Rc<CollnPaint>) {
+    fn inform_add_paint(&self, paint: &CollnPaint) {
         for callback in self.add_paint_callbacks.borrow().iter() {
-            callback(Rc::clone(paint));
+            callback(paint.clone());
         }
     }
 
-    pub fn connect_add_paint<F: Fn(Rc<CollnPaint>) + 'static>(&self, callback: F) {
+    pub fn connect_add_paint<F: Fn(CollnPaint) + 'static>(&self, callback: F) {
         self.add_paint_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -507,7 +511,7 @@ impl PaintFinder for PaintSeriesManager {
         &self,
         paint_id: &str,
         series_id: Option<&SeriesId>,
-    ) -> epaint::Result<Rc<CollnPaint>> {
+    ) -> epaint::Result<CollnPaint> {
         self.binder.get_paint(paint_id, series_id)
     }
 }
@@ -645,17 +649,17 @@ impl PaintStandardsManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<CollnPaint>) {
+    fn display_paint_information(&self, paint: &CollnPaint) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_set_as_target(&self, paint: &Rc<CollnPaint>) {
+    fn inform_set_as_target(&self, paint: &CollnPaint) {
         for callback in self.set_as_target_callbacks.borrow().iter() {
-            callback(Rc::clone(paint));
+            callback(paint.clone());
         }
     }
 
-    pub fn connect_set_as_target<F: Fn(Rc<CollnPaint>) + 'static>(&self, callback: F) {
+    pub fn connect_set_as_target<F: Fn(CollnPaint) + 'static>(&self, callback: F) {
         self.set_as_target_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -671,7 +675,7 @@ impl PaintFinder for PaintStandardsManager {
         &self,
         paint_id: &str,
         series_id: Option<&SeriesId>,
-    ) -> epaint::Result<Rc<CollnPaint>> {
+    ) -> epaint::Result<CollnPaint> {
         self.binder.get_paint(paint_id, series_id)
     }
 }
