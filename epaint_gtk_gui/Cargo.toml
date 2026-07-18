@@ -6,6 +6,8 @@ edition = "2024"
 [features]
 default = []
 paints_have_ids = []
+taegeted_mixtures = []
+palette_samples = []
 
 [dependencies]
 

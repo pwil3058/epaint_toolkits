@@ -46,7 +46,7 @@ use colour_math_gtk::{
 use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use epaint::{
-    AbbrevKey, PaintEssence,
+    AbbrevKey,
     mixtures::{MixingSession, MixtureBuilder},
     paint::Paint,
     properties::PropertyTypes,
@@ -803,6 +803,7 @@ impl PalettePaintMixerBuilder {
         #[cfg(feature = "targeted_mixtures")]
         {
             use colour_math::ColourBasics;
+            use epaint::PaintEssence;
             let tpm_c = Rc::clone(&tpm);
             tpm.paint_standards_manager
                 .connect_set_as_target(move |paint| {

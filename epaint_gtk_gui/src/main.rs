@@ -69,7 +69,7 @@ fn main() {
     let mut paint_spec = SerializablePaintData {
         #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
-        name: "Paint Nama".to_string(),
+        name: "Paint Name".to_string(),
         colour: HCV::MAGENTA,
         notes: "Notes".to_string(),
         properties: Properties::from(&property_types),

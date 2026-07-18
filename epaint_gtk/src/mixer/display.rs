@@ -443,7 +443,6 @@ impl ListViewSpec for ComponentsListViewSpec {
             col.pack_start(&cell, false);
             col.add_attribute(&cell, "background", index);
             cols.push(col);
-            index += 1;
         }
 
         cols
