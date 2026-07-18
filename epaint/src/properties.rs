@@ -541,7 +541,12 @@ impl PropertiesMixer {
     pub fn add(&mut self, properties: &Properties, parts: u64) {
         if self.property_types.0.is_empty() {
             self.property_types = properties.property_types();
-            self.sums = properties.property_variants_u64();
+            self.sums = properties
+                .property_variants_u64()
+                .iter()
+                .copied()
+                .map(|u| u * parts)
+                .collect();
             self.total_parts = parts;
         } else {
             let variant_64s = properties.property_variants_u64();
