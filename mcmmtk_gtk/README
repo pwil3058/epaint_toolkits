@@ -1,0 +1,90 @@
+DESCRIPTION:
+
+This software is intended for use by modellers who wish to experiment
+with mixing paint (virtually) to match needed colours.  See section
+USAGE below for more details.
+
+STATUS:
+
+This software is still under development and is only Beta standard at
+this time.
+
+REQUIREMENTS:
+
+Requires rustc 1.26.2 or later.
+
+INSTALLATION:
+
+It is NOT necessary to install this software in order to use it.  All
+that is necessary  is for the ./.target/release and/or
+./.target/debug (as appropriate) to be in the user's PATH environment
+variable.
+
+USAGE:
+
+The software's GUI (mcmmtk_rs) has 2 selectable components:
+
+1. The Paint Mixer is the component that (once the user
+has specified a colour to be matched and selected some paints for use)
+enables the modeller to mix paints by specifying the number of "parts"
+of each paint to be used in mixing a colour to match the specified
+colour.  This mixed colour can then be saved to a list of mixed colours
+(along with notes about its intended use).  When the modeller has
+finished mixing the colours that they require they may print out a
+report to be used as a reference while painting the model for which the
+colours were mixed.
+
+2. The Paint Series/Standards Editor is the component that enables the
+modeller create/modify sets of paints for use in the mixer.
+The recommended method is to produce a "sampler" of the actual paints
+to be used on a suitable medium (preferably airbrushed), take a digital
+photograph (or scan) and then cut and paste from that photograph into
+the paint series editor where its buttons can be used to match the colour.
+A Colour Sample Viewer is included as part of the editor. An example
+colour sampler file has been added and should be loaded by the viewer
+the first time it is launched (and after that it should remember the
+last file used).
+NB although manufacturer's digital colour charts can be used for a
+sample source they are not necessarily accurate as they were NOT produced
+with this use in mind and colours are frequently modified to accentuate
+the difference between colours.
+NB the provided sample is hand painted and should make it clear why an
+air brushed version is preferred.
+
+PAINT SERIES:
+
+At this time, the only paint series data included in the distribution is
+for an imaginary set of paints known as the "Ideal Paint Colours Series"
+which features six colours equally spaced around the colour circle
+(at maximim chroma) together with black and white.
+This series should be
+automatically included in the mixer's "Paint Colour Series"->Open menu
+when it is run for the first time.  Although of no real use in practice
+this set of paints is useful for assessing the Mixer's potential and,
+more importantly, learning how to mix paints.
+If it existed it would be possible to match any colour with this set of
+paints (but unfortunately it's only imaginery).
+
+PAINT STANDARDS:
+
+At this time, the only paint standards data included in the distribution
+are for US Federal Standard 595C and British Standard 381C. Although
+all care has been taken in the preparation of this data, no guarantee as
+to its accuracy is made (caveat emptor).
+
+INTERNATIONALIZATION:
+
+None.
+
+BUGS:
+
+It would be greatly appreciated if any bugs encountered by users are
+reported by creating an issue at:
+
+<https://github.com/pwil3058/mcmmtk/issues>
+
+FEATURE REQUESTS:
+
+Feature requests can be made by creating an issue at:
+
+<https://github.com/pwil3058/mcmmtk/issues>.
