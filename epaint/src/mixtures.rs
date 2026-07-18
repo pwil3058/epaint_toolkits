@@ -174,7 +174,7 @@ impl LabelText for Mixture {
 impl MakeColouredShape for Mixture {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
-        ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Diamond)
+        ColouredShape::new(&self.colour, &self.id, &tooltip_text, Shape::Diamond)
     }
 }
 
