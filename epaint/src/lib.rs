@@ -39,12 +39,10 @@ pub trait AbbrevKey {
     fn abbrev_key(&self) -> &str;
 }
 
-pub trait GetSeriesId: AbbrevKey {
+pub trait GetSeriesId {
     fn series_id(&self) -> &SeriesId;
 
-    fn key(&self) -> (&str, SeriesId) {
-        (self.abbrev_key(), self.series_id().clone())
-    }
+    fn key(&self) -> (&str, &SeriesId);
 }
 
 pub trait PaintEssence:

@@ -141,6 +141,10 @@ impl GetSeriesId for CollnPaint {
     fn series_id(&self) -> &SeriesId {
         &self.series_id
     }
+
+    fn key(&self) -> (&str, &SeriesId) {
+        (self.paint.abbrev_key(), &self.series_id)
+    }
 }
 
 impl MakeColouredShape for CollnPaint {

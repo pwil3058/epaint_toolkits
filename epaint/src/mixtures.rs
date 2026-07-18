@@ -151,6 +151,10 @@ impl GetSeriesId for Mixture {
     fn series_id(&self) -> &SeriesId {
         &self.series_id
     }
+
+    fn key(&self) -> (&str, &SeriesId) {
+        (&self.id, &self.series_id)
+    }
 }
 
 impl TooltipText for Mixture {
