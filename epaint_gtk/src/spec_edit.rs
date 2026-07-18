@@ -75,41 +75,44 @@ impl BasicPaintSpecEditor {
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
 
+        let mut row = 1;
         #[cfg(feature = "paints_have_ids")]
         let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
         #[cfg(feature = "paints_have_ids")]
         {
-            grid.attach(&id_entry, 1, 1, 1, 1);
+            grid.attach(&id_entry, 1, row, 1, 1);
             let label = gtk::LabelBuilder::new()
                 .label("Id:")
                 .halign(gtk::Align::End)
                 .build();
-            grid.attach(&label, 0, 2, 1, 1);
+            grid.attach(&label, 0, row, 1, 1);
+            row += 1;
         }
 
         let label = gtk::LabelBuilder::new()
             .label("Name:")
             .halign(gtk::Align::End)
             .build();
-        grid.attach(&label, 0, 1, 1, 1);
-
+        grid.attach(&label, 0, row, 1, 1);
         let name_entry = gtk::EntryBuilder::new().hexpand(true).build();
-        grid.attach(&name_entry, 1, 1, 1, 1);
+        grid.attach(&name_entry, 1, row, 1, 1);
+        row += 1;
+
         let label = gtk::LabelBuilder::new()
             .label("Notes:")
             .halign(gtk::Align::End)
             .build();
-        grid.attach(&label, 0, 2, 1, 1);
-
+        grid.attach(&label, 0, row, 1, 1);
         let notes_entry = gtk::EntryBuilder::new().hexpand(true).build();
-        grid.attach(&notes_entry, 1, 2, 1, 1);
+        grid.attach(&notes_entry, 1, row, 1, 1);
+        row += 1;
 
         let mut property_entries: Vec<Rc<PropertyEntry>> = Vec::new();
         for property_type in property_types.iter() {
             property_entries.push(PropertyEntry::new(property_type));
         }
 
-        let mut row: i32 = 3;
+        // let mut row: i32 = 3;
         for property_entry in property_entries.iter() {
             grid.attach(&property_entry.prompt(gtk::Align::End), 0, row, 1, 1);
             grid.attach(property_entry.pwo(), 1, row, 1, 1);
@@ -163,6 +166,28 @@ impl BasicPaintSpecEditor {
 
         let bpe_c = Rc::clone(&bpe);
         reset_btn.connect_clicked(move |_| bpe_c.process_reset_action());
+
+        #[cfg(feature = "paints_have_ids")]
+        {
+            let bpe_c = Rc::clone(&bpe);
+            bpe.id_entry.connect_changed(move |entry| {
+                let mut masked_condns = MaskedCondns {
+                    condns: 0,
+                    mask: crate::sav_state::SAV_ID_READY + crate::sav_state::SAV_ID_CHANGED,
+                };
+                if entry.get_text_length() > 0 {
+                    masked_condns.condns += crate::sav_state::SAV_ID_READY;
+                };
+                if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+                    if spec.id != entry.get_text() {
+                        masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
+                    }
+                }
+                bpe_c.buttons.update_condns(masked_condns);
+                bpe_c.update_has_changes();
+                bpe_c.inform_changed();
+            });
+        }
 
         let bpe_c = Rc::clone(&bpe);
         bpe.name_entry.connect_changed(move |entry| {
