@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{AbbrevKey, paint::SerializablePaintData, series::PaintSeriesSpec};
+use epaint::{AbbrevKey, paint::Paint, series::PaintSeriesSpec};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
@@ -60,7 +60,7 @@ impl BasicPaintFactory {
             .update_tool_needs_saving(self.paint_editor.has_unsaved_changes());
     }
 
-    fn do_add_paint_work(&self, paint_spec: &SerializablePaintData) {
+    fn do_add_paint_work(&self, paint_spec: &Paint) {
         if let Some(old_paint) = self.paint_series.borrow_mut().add(paint_spec) {
             self.hue_wheel.remove_item(old_paint.abbrev_key());
             self.list_view.remove_row(old_paint.abbrev_key());
@@ -77,7 +77,7 @@ impl BasicPaintFactory {
         Ok(())
     }
 
-    fn add_paint(&self, paint_spec: &SerializablePaintData) {
+    fn add_paint(&self, paint_spec: &Paint) {
         self.do_add_paint_work(paint_spec);
         self.update_series_needs_saving();
         self.update_editor_needs_saving();
@@ -92,7 +92,7 @@ impl BasicPaintFactory {
         }
     }
 
-    fn replace_paint(&self, id: &str, paint_spec: &SerializablePaintData) {
+    fn replace_paint(&self, id: &str, paint_spec: &Paint) {
         // should not be called if paint has been removed after being chosen for edit
         self.do_remove_paint_work(id)
             .expect("should not be called if paint has been removed");
@@ -116,7 +116,7 @@ impl BasicPaintFactory {
         }
         let paint_series = self.paint_series.borrow();
         let paint = paint_series.find(id).expect("should be there");
-        let spec = SerializablePaintData {
+        let spec = Paint {
             #[cfg(feature = "paints_have_ids")]
             id: paint.id.to_string(),
             name: paint.name.to_string(),

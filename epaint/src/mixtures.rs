@@ -20,7 +20,7 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::Paint;
+use crate::paint::CollnPaint;
 use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
 use crate::series::PaintFinder;
 use crate::{AbbrevKey, GetSeriesId, LabelText, SeriesId, TooltipText};
@@ -40,7 +40,7 @@ pub trait MixtureIfce {
 
     #[cfg(feature = "targeted_mixtures")]
     fn targeted_colour(&self) -> Option<HCV>;
-    fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)>;
+    fn components(&self) -> impl Iterator<Item = (Rc<CollnPaint>, u64)>;
 
     #[cfg(feature = "targeted_mixtures")]
     fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
@@ -61,8 +61,8 @@ pub struct Mixture {
     pub name: String,
     pub notes: String,
     pub properties: Properties,
-    pub series_id: Rc<SeriesId>,
-    pub components: Vec<(Rc<Paint>, u64)>,
+    pub series_id: SeriesId,
+    pub components: Vec<(Rc<CollnPaint>, u64)>,
 }
 
 impl AbbrevKey for Mixture {
@@ -101,7 +101,7 @@ impl MixtureIfce for Mixture {
         self.targeted_colour.into()
     }
 
-    fn components(&self) -> impl Iterator<Item = (Rc<Paint>, u64)> {
+    fn components(&self) -> impl Iterator<Item = (Rc<CollnPaint>, u64)> {
         self.components.iter().map(|(rc, p)| (rc.clone(), *p))
     }
 }
@@ -142,14 +142,14 @@ impl Mixture {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &(Rc<Paint>, u64)> {
+    pub fn components(&self) -> impl Iterator<Item = &(Rc<CollnPaint>, u64)> {
         self.components.iter()
     }
 }
 
 impl GetSeriesId for Mixture {
-    fn series_id(&self) -> Rc<SeriesId> {
-        self.series_id.clone()
+    fn series_id(&self) -> &SeriesId {
+        &self.series_id
     }
 }
 
@@ -232,12 +232,12 @@ impl MixingSession {
         self.mixtures.iter()
     }
 
-    pub fn series_paints(&self) -> Vec<Rc<Paint>> {
-        let mut v: Vec<Rc<Paint>> = vec![];
+    pub fn series_paints(&self) -> Vec<Rc<CollnPaint>> {
+        let mut v: Vec<Rc<CollnPaint>> = vec![];
 
         for mixture in self.mixtures.iter() {
             for (paint, _parts) in mixture.components.iter() {
-                match v.binary_search_by_key(&paint.key(), |p: &Rc<Paint>| p.key()) {
+                match v.binary_search_by_key(&paint.key(), |p: &Rc<CollnPaint>| p.key()) {
                     Ok(_) => (),
                     Err(index) => v.insert(index, Rc::clone(paint)),
                 }
@@ -309,9 +309,9 @@ impl MixingSession {
 pub struct MixtureBuilder {
     id: String,
     name: String,
-    series_id: Rc<SeriesId>,
+    series_id: SeriesId,
     notes: String,
-    series_components: Vec<(Rc<Paint>, u64)>,
+    series_components: Vec<(Rc<CollnPaint>, u64)>,
     #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
@@ -321,7 +321,7 @@ impl MixtureBuilder {
         Self {
             id: id.to_string(),
             name: String::new(),
-            series_id: Rc::<SeriesId>::default(),
+            series_id: SeriesId::default(),
             notes: String::new(),
             series_components: vec![],
             #[cfg(feature = "targeted_mixtures")]
@@ -350,12 +350,12 @@ impl MixtureBuilder {
         self
     }
 
-    pub fn paint_components(&mut self, components: Vec<(Rc<Paint>, u64)>) -> &mut Self {
+    pub fn paint_components(&mut self, components: Vec<(Rc<CollnPaint>, u64)>) -> &mut Self {
         self.series_components = components;
         self
     }
 
-    pub fn paint_component(&mut self, component: (Rc<Paint>, u64)) -> &mut Self {
+    pub fn paint_component(&mut self, component: (Rc<CollnPaint>, u64)) -> &mut Self {
         self.series_components.push(component);
         self
     }
@@ -374,7 +374,7 @@ impl MixtureBuilder {
         for (paint, parts) in self.series_components.iter() {
             let adjusted_parts = *parts / gcd;
             colour_mix.add(&paint.hcv(), adjusted_parts);
-            properties_mixer.add(&paint.data.properties, adjusted_parts);
+            properties_mixer.add(&paint.paint.properties, adjusted_parts);
             components.push((Rc::clone(paint), adjusted_parts));
         }
         let mp = Mixture {
@@ -395,8 +395,8 @@ impl MixtureBuilder {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct SaveablePaint(SeriesId, String);
 
-impl From<&Rc<Paint>> for SaveablePaint {
-    fn from(paint: &Rc<Paint>) -> SaveablePaint {
+impl From<&Rc<CollnPaint>> for SaveablePaint {
+    fn from(paint: &Rc<CollnPaint>) -> SaveablePaint {
         SaveablePaint((*paint.series_id()).clone(), paint.abbrev_key().to_string())
     }
 }
@@ -517,7 +517,7 @@ mod test {
     use colour_math::HCV;
     use colour_math::HueConstants;
 
-    use crate::paint::SerializablePaintData;
+    use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
 
     use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
@@ -529,13 +529,13 @@ mod test {
         series_spec.set_proprietor("owner");
         series_spec.set_series_name("series name");
         assert!(series_spec.paints().next().is_none());
-        series_spec.add(&SerializablePaintData {
+        series_spec.add(&Paint {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         });
-        series_spec.add(&SerializablePaintData {
+        series_spec.add(&Paint {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),

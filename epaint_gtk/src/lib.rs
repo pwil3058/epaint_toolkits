@@ -21,9 +21,9 @@ pub mod colour {
     {
     }
 
-    use epaint::{LabelText, TooltipText, mixtures::Mixture, paint::Paint};
+    use epaint::{LabelText, TooltipText, mixtures::Mixture, paint::CollnPaint};
 
-    impl PartsColour for Paint {}
+    impl PartsColour for CollnPaint {}
     impl PartsColour for Mixture {}
 }
 

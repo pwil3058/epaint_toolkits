@@ -48,7 +48,7 @@ use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 use epaint::{
     AbbrevKey,
     mixtures::{MixingSession, MixtureBuilder},
-    paint::Paint,
+    paint::CollnPaint,
     properties::PropertyTypes,
     series::PaintFinder,
 };
@@ -321,7 +321,7 @@ pub struct PalettePaintMixer {
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
     mix_entry: Rc<PalettePaintEntry>,
-    series_paint_spinner_box: Rc<PartsSpinButtonBox<Paint>>,
+    series_paint_spinner_box: Rc<PartsSpinButtonBox<CollnPaint>>,
     change_notifier: ChangedCondnsNotifier,
     paint_series_manager: Rc<PaintSeriesManager>,
     #[cfg(feature = "targeted_mixtures")]
@@ -347,12 +347,12 @@ impl PalettePaintMixer {
         self.next_mix_id.set(self.next_mix_id.get() + 1);
     }
 
-    fn add_series_paint(&self, paint: &Rc<Paint>) {
+    fn add_series_paint(&self, paint: &Rc<CollnPaint>) {
         self.series_paint_spinner_box.add_paint(paint);
         self.hue_wheel.add_item(paint.coloured_shape());
     }
 
-    fn remove_series_paint(&self, paint: &Rc<Paint>) {
+    fn remove_series_paint(&self, paint: &Rc<CollnPaint>) {
         self.series_paint_spinner_box.remove_paint(paint);
         self.hue_wheel.remove_item(paint.abbrev_key());
     }
@@ -610,7 +610,7 @@ impl PalettePaintMixerBuilder {
             )])
             .build(&list_spec);
         let mix_entry = PalettePaintEntry::new(&self.attributes);
-        let series_paint_spinner_box = PartsSpinButtonBox::<Paint>::new("Paints", 4, true);
+        let series_paint_spinner_box = PartsSpinButtonBox::<CollnPaint>::new("Paints", 4, true);
 
         let mixture_display_dialog_manager = MixtureDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)

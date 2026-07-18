@@ -3,7 +3,6 @@
 use std::error;
 use std::fmt;
 use std::io;
-use std::rc::Rc;
 
 use serde::{Deserialize, Serialize};
 use serde_json;
@@ -41,10 +40,10 @@ pub trait AbbrevKey {
 }
 
 pub trait GetSeriesId: AbbrevKey {
-    fn series_id(&self) -> Rc<SeriesId>;
+    fn series_id(&self) -> &SeriesId;
 
-    fn key(&self) -> (&str, Rc<SeriesId>) {
-        (self.abbrev_key(), self.series_id())
+    fn key(&self) -> (&str, SeriesId) {
+        (self.abbrev_key(), self.series_id().clone())
     }
 }
 

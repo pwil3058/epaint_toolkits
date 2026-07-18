@@ -13,7 +13,7 @@ use colour_math::ScalarAttribute::*;
 use colour_math::{HCV, HueConstants};
 
 use epaint::SeriesId;
-use epaint::paint::{Paint, SerializablePaintData};
+use epaint::paint::{CollnPaint, Paint};
 use epaint::properties::{
     Properties,
     PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
@@ -66,7 +66,7 @@ fn main() {
     vbox.pack_start(mixer.pwo(), false, false, 0);
     let bpe = BasicPaintSpecEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
-    let mut paint_spec = SerializablePaintData {
+    let mut paint_spec = Paint {
         #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
         name: "Paint Name".to_string(),
@@ -77,7 +77,7 @@ fn main() {
     paint_spec.name = "name".to_string();
     paint_spec.notes = "notes".to_string();
     bpe.edit(&paint_spec);
-    let paint = Paint::from((
+    let paint = CollnPaint::from((
         paint_spec,
         Rc::new(SeriesId {
             series_name: "Series".to_string(),

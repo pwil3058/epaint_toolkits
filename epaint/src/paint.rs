@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use serde::{Deserialize, Serialize};
-use std::rc::Rc;
 
 use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 use colour_math::{HCV, LightLevel};
@@ -11,7 +10,7 @@ use crate::properties::{Properties, Property, PropertyType};
 use crate::{AbbrevKey, GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
-pub struct SerializablePaintData {
+pub struct Paint {
     #[cfg(feature = "paints_have_ids")]
     pub id: String,
     pub name: String,
@@ -21,7 +20,7 @@ pub struct SerializablePaintData {
     pub properties: Properties,
 }
 
-impl AbbrevKey for SerializablePaintData {
+impl AbbrevKey for Paint {
     #[cfg(feature = "paints_have_ids")]
     fn abbrev_key(&self) -> &str {
         &self.id
@@ -33,7 +32,7 @@ impl AbbrevKey for SerializablePaintData {
     }
 }
 
-impl PaintEssence for SerializablePaintData {
+impl PaintEssence for Paint {
     #[cfg(feature = "paints_have_ids")]
     fn id(&self) -> &str {
         &self.id
@@ -60,14 +59,14 @@ impl PaintEssence for SerializablePaintData {
     }
 }
 
-impl MakeColouredShape for SerializablePaintData {
+impl MakeColouredShape for Paint {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
     }
 }
 
-impl TooltipText for SerializablePaintData {
+impl TooltipText for Paint {
     fn tooltip_text(&self) -> String {
         let mut string = self.name.to_string();
         string.push('\n');
@@ -78,21 +77,21 @@ impl TooltipText for SerializablePaintData {
     }
 }
 
-impl PartialEq for SerializablePaintData {
+impl PartialEq for Paint {
     fn eq(&self, other: &Self) -> bool {
         self.abbrev_key() == other.abbrev_key()
     }
 }
 
-impl Eq for SerializablePaintData {}
+impl Eq for Paint {}
 
-impl PartialOrd for SerializablePaintData {
+impl PartialOrd for Paint {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         self.abbrev_key().cmp(&other.abbrev_key()).into()
     }
 }
 
-impl Ord for SerializablePaintData {
+impl Ord for Paint {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.partial_cmp(other)
             .expect("serializable paints are comparable")
@@ -100,67 +99,67 @@ impl Ord for SerializablePaintData {
 }
 
 #[derive(Debug, Colour, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct Paint {
-    pub data: SerializablePaintData,
-    pub series_id: Rc<SeriesId>,
+pub struct CollnPaint {
+    pub paint: Paint,
+    pub series_id: SeriesId,
 }
 
-impl PaintEssence for Paint {
+impl PaintEssence for CollnPaint {
     #[cfg(feature = "paints_have_ids")]
     fn id(&self) -> &str {
-        &self.data.id
+        &self.paint.id
     }
 
     fn name(&self) -> &str {
-        &self.data.name
+        &self.paint.name
     }
 
     fn notes(&self) -> &str {
-        &self.data.notes
+        &self.paint.notes
     }
 
     fn colour(&self) -> HCV {
-        self.data.colour.clone()
+        self.paint.colour.clone()
     }
 
     fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.data.iter_property_types()
+        self.paint.iter_property_types()
     }
 
     fn iter_properties(&self) -> impl Iterator<Item = Property> {
-        self.data.properties.properties()
+        self.paint.properties.properties()
     }
 }
 
-impl AbbrevKey for Paint {
+impl AbbrevKey for CollnPaint {
     fn abbrev_key(&self) -> &str {
-        self.data.abbrev_key()
+        self.paint.abbrev_key()
     }
 }
 
-impl GetSeriesId for Paint {
-    fn series_id(&self) -> Rc<SeriesId> {
-        self.series_id.clone()
+impl GetSeriesId for CollnPaint {
+    fn series_id(&self) -> &SeriesId {
+        &self.series_id
     }
 }
 
-impl MakeColouredShape for Paint {
+impl MakeColouredShape for CollnPaint {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(
-            &self.data.colour,
-            &self.data.name,
+            &self.paint.colour,
+            &self.paint.name,
             &tooltip_text,
             Shape::Square,
         )
     }
 }
 
-impl TooltipText for Paint {
+impl TooltipText for CollnPaint {
     fn tooltip_text(&self) -> String {
-        let mut string = self.data.name.to_string();
+        let mut string = self.paint.name.to_string();
         string.push('\n');
-        string.push_str(&self.data.notes);
+        string.push_str(&self.paint.notes);
         string.push('\n');
         string.push_str(&self.series_id.series_name);
         string.push('\n');
@@ -170,24 +169,24 @@ impl TooltipText for Paint {
     }
 }
 
-impl LabelText for Paint {
+impl LabelText for CollnPaint {
     fn label_text(&self) -> String {
-        format!("Mix {}", self.data.name)
+        format!("Mix {}", self.paint.name)
     }
 }
 
-impl From<(SerializablePaintData, Rc<SeriesId>)> for Paint {
-    fn from(arg: (SerializablePaintData, Rc<SeriesId>)) -> Self {
+impl From<(Paint, SeriesId)> for CollnPaint {
+    fn from(arg: (Paint, SeriesId)) -> Self {
         Self {
-            data: arg.0,
+            paint: arg.0,
             series_id: arg.1,
         }
     }
 }
 
-impl Into<SerializablePaintData> for Paint {
-    fn into(self) -> SerializablePaintData {
-        self.data.clone()
+impl Into<Paint> for CollnPaint {
+    fn into(self) -> Paint {
+        self.paint.clone()
     }
 }
 
@@ -201,7 +200,7 @@ mod paint_tests {
     use colour_math::HCV;
     use colour_math::HueConstants;
 
-    use crate::paint::SerializablePaintData;
+    use crate::paint::Paint;
     use crate::properties::PropertyType;
     use crate::properties::*;
     use crate::*;
@@ -212,8 +211,8 @@ mod paint_tests {
             series_name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
         });
-        let target_paint = Paint {
-            data: SerializablePaintData {
+        let target_paint = CollnPaint {
+            paint: Paint {
                 colour: HCV::RED_MAGENTA,
                 name: "Red".to_string(),
                 notes: "".to_string(),
@@ -221,19 +220,19 @@ mod paint_tests {
             },
             series_id: series_id.clone(),
         };
-        let paint_spec = SerializablePaintData {
+        let paint_spec = Paint {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: String::new(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         };
-        let paint: Paint = (paint_spec.clone(), series_id.clone()).into();
+        let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint, target_paint);
     }
 
     #[test]
     fn test_paint_to_from_paint_spec() {
-        let paint_spec = SerializablePaintData {
+        let paint_spec = Paint {
             colour: HCV::RED_MAGENTA,
             name: "Red".to_string(),
             notes: "".to_string(),
@@ -243,19 +242,19 @@ mod paint_tests {
             series_name: "DS".to_string(),
             proprietor: "WC".to_string(),
         });
-        let paint: Paint = (paint_spec.clone(), series_id.clone()).into();
+        let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
         assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(paint.name(), "Red");
         assert_eq!(paint.notes(), "");
         assert_eq!(paint.series_id, series_id.into());
         assert_eq!(
-            paint.data.properties,
+            paint.paint.properties,
             Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
         );
         for (target, actual) in paint_spec.iter_properties().zip(paint.iter_properties()) {
             assert_eq!(target, actual);
         }
-        let recovered_paint_spec: SerializablePaintData = paint.into();
+        let recovered_paint_spec: Paint = paint.into();
         assert_eq!(recovered_paint_spec, paint_spec);
     }
 }

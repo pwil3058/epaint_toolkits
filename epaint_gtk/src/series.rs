@@ -30,7 +30,7 @@ use pw_gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
 use epaint::{
     SeriesId,
-    paint::Paint,
+    paint::CollnPaint,
     properties::PropertyTypes,
     series::{PaintFinder, PaintSeries, PaintSeriesSpec},
 };
@@ -45,7 +45,7 @@ pub mod display;
 
 use crate::series::display::*;
 
-type PaintActionCallback = Box<dyn Fn(Rc<Paint>)>;
+type PaintActionCallback = Box<dyn Fn(Rc<CollnPaint>)>;
 
 #[derive(PWO, Wrapper)]
 struct SeriesPage {
@@ -157,8 +157,8 @@ impl SeriesPageBuilder {
 }
 
 impl SeriesPage {
-    fn series_id(&self) -> Rc<SeriesId> {
-        Rc::clone(&self.paint_series.series_id())
+    fn series_id(&self) -> &SeriesId {
+        self.paint_series.series_id()
     }
 
     fn update_popup_condns(&self, changed_condns: MaskedCondns) {
@@ -166,7 +166,7 @@ impl SeriesPage {
         self.list_view.update_popup_condns(changed_condns);
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<Paint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(Rc<CollnPaint>) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -246,10 +246,10 @@ impl SeriesBinder {
         binder
     }
 
-    fn binary_search_series_id(&self, sid: &Rc<SeriesId>) -> Result<usize, usize> {
+    fn binary_search_series_id(&self, sid: &SeriesId) -> Result<usize, usize> {
         self.pages
             .borrow()
-            .binary_search_by_key(sid, |(page, _)| page.series_id())
+            .binary_search_by_key(sid, |(page, _)| page.series_id().clone())
     }
 
     fn find_file_path(&self, path: &Path) -> Option<usize> {
@@ -267,7 +267,7 @@ impl SeriesBinder {
         }
     }
 
-    fn connect_popup_menu_item<F: Fn(Rc<Paint>) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(Rc<CollnPaint>) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -275,7 +275,7 @@ impl SeriesBinder {
             .push(Box::new(callback));
     }
 
-    fn invoke_named_callback(&self, item: &str, paint: Rc<Paint>) {
+    fn invoke_named_callback(&self, item: &str, paint: Rc<CollnPaint>) {
         for callback in self
             .callbacks
             .borrow()
@@ -308,7 +308,7 @@ impl SeriesBinder {
         self.notebook.remove_page(page_num);
     }
 
-    fn remove_series(&self, series_id: &Rc<SeriesId>) {
+    fn remove_series(&self, series_id: &SeriesId) {
         let question = format!("Confirm remove '{series_id}'?");
         if self.ask_confirm_action(&question, None) {
             if let Ok(index) = self.binary_search_series_id(series_id) {
@@ -421,13 +421,17 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
 }
 
 impl PaintFinder for SeriesBinder {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
+    fn get_paint(
+        &self,
+        paint_id: &str,
+        series_id: Option<&SeriesId>,
+    ) -> epaint::Result<Rc<CollnPaint>> {
         if let Some(series_id) = series_id {
-            let series_id_c = Rc::new(series_id.clone());
+            let series_id_c = series_id.clone();
             let bsr = self
                 .pages
                 .borrow()
-                .binary_search_by_key(&series_id_c, |(page, _)| page.series_id());
+                .binary_search_by_key(&series_id_c, |(page, _)| page.series_id().clone());
             match bsr {
                 Ok(index) => match self.pages.borrow()[index].0.paint_series.find(paint_id) {
                     Some(paint) => Ok(Rc::clone(paint)),
@@ -471,17 +475,17 @@ impl PaintSeriesManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<Paint>) {
+    fn display_paint_information(&self, paint: &Rc<CollnPaint>) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_add_paint(&self, paint: &Rc<Paint>) {
+    fn inform_add_paint(&self, paint: &Rc<CollnPaint>) {
         for callback in self.add_paint_callbacks.borrow().iter() {
             callback(Rc::clone(paint));
         }
     }
 
-    pub fn connect_add_paint<F: Fn(Rc<Paint>) + 'static>(&self, callback: F) {
+    pub fn connect_add_paint<F: Fn(Rc<CollnPaint>) + 'static>(&self, callback: F) {
         self.add_paint_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -499,7 +503,11 @@ impl PaintSeriesManager {
 }
 
 impl PaintFinder for PaintSeriesManager {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
+    fn get_paint(
+        &self,
+        paint_id: &str,
+        series_id: Option<&SeriesId>,
+    ) -> epaint::Result<Rc<CollnPaint>> {
         self.binder.get_paint(paint_id, series_id)
     }
 }
@@ -637,17 +645,17 @@ impl PaintStandardsManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &Rc<Paint>) {
+    fn display_paint_information(&self, paint: &Rc<CollnPaint>) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_set_as_target(&self, paint: &Rc<Paint>) {
+    fn inform_set_as_target(&self, paint: &Rc<CollnPaint>) {
         for callback in self.set_as_target_callbacks.borrow().iter() {
             callback(Rc::clone(paint));
         }
     }
 
-    pub fn connect_set_as_target<F: Fn(Rc<Paint>) + 'static>(&self, callback: F) {
+    pub fn connect_set_as_target<F: Fn(Rc<CollnPaint>) + 'static>(&self, callback: F) {
         self.set_as_target_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -659,7 +667,11 @@ impl PaintStandardsManager {
 }
 
 impl PaintFinder for PaintStandardsManager {
-    fn get_paint(&self, paint_id: &str, series_id: Option<&SeriesId>) -> epaint::Result<Rc<Paint>> {
+    fn get_paint(
+        &self,
+        paint_id: &str,
+        series_id: Option<&SeriesId>,
+    ) -> epaint::Result<Rc<CollnPaint>> {
         self.binder.get_paint(paint_id, series_id)
     }
 }

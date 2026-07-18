@@ -6,29 +6,28 @@ use std::rc::Rc;
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
-use crate::paint::{Paint, SerializablePaintData};
+use crate::paint::{CollnPaint, Paint};
 use crate::{AbbrevKey, PaintEssence, SeriesId};
 
 #[derive(Debug)]
 pub struct PaintSeries {
-    series_id: Rc<SeriesId>,
-    paint_list: Vec<Rc<Paint>>,
+    series_id: SeriesId,
+    paint_list: Vec<Rc<CollnPaint>>,
 }
 
 impl PaintSeries {
     pub fn new(series_id: &SeriesId) -> Self {
-        let series_id = Rc::new(series_id.clone());
         Self {
-            series_id,
+            series_id: series_id.clone(),
             paint_list: Vec::new(),
         }
     }
 
-    pub fn series_id(&self) -> Rc<SeriesId> {
-        self.series_id.clone()
+    pub fn series_id(&self) -> &SeriesId {
+        &self.series_id
     }
 
-    pub fn paints(&self) -> impl Iterator<Item = Rc<Paint>> {
+    pub fn paints(&self) -> impl Iterator<Item = Rc<CollnPaint>> {
         self.paint_list.iter().cloned()
     }
 
@@ -41,7 +40,7 @@ impl PaintSeries {
         true
     }
 
-    pub fn find(&self, name: &str) -> Option<&Rc<Paint>> {
+    pub fn find(&self, name: &str) -> Option<&Rc<CollnPaint>> {
         debug_assert!(self.is_sorted_unique());
         match self.paint_list.binary_search_by_key(&name, |p| p.name()) {
             Ok(index) => self.paint_list.get(index),
@@ -53,12 +52,12 @@ impl PaintSeries {
 #[derive(Serialize, Deserialize, Debug, Default)]
 pub struct PaintSeriesSpec {
     pub(crate) series_id: SeriesId,
-    pub(crate) paint_spec_list: Vec<SerializablePaintData>,
+    pub(crate) paint_spec_list: Vec<Paint>,
 }
 
 impl PaintSeriesSpec {
-    pub fn series_id(&self) -> Rc<SeriesId> {
-        Rc::new(self.series_id.clone())
+    pub fn series_id(&self) -> &SeriesId {
+        &self.series_id
     }
 
     pub fn set_proprietor(&mut self, proprietor: &str) {
@@ -69,11 +68,11 @@ impl PaintSeriesSpec {
         self.series_id.series_name = series_name.to_string()
     }
 
-    pub fn paints(&self) -> impl Iterator<Item = &SerializablePaintData> {
+    pub fn paints(&self) -> impl Iterator<Item = &Paint> {
         self.paint_spec_list.iter()
     }
 
-    pub fn add(&mut self, paint: &SerializablePaintData) -> Option<SerializablePaintData> {
+    pub fn add(&mut self, paint: &Paint) -> Option<Paint> {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
@@ -92,7 +91,7 @@ impl PaintSeriesSpec {
         }
     }
 
-    pub fn remove(&mut self, key: &str) -> Result<SerializablePaintData, crate::Error> {
+    pub fn remove(&mut self, key: &str) -> Result<Paint, crate::Error> {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
@@ -107,7 +106,7 @@ impl PaintSeriesSpec {
         self.paint_spec_list.clear()
     }
 
-    pub fn find(&self, key: &str) -> Option<&SerializablePaintData> {
+    pub fn find(&self, key: &str) -> Option<&Paint> {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
@@ -130,10 +129,10 @@ impl PaintSeriesSpec {
 
 impl From<&PaintSeriesSpec> for PaintSeries {
     fn from(data: &PaintSeriesSpec) -> PaintSeries {
-        let series_id = data.series_id();
+        let series_id = data.series_id().clone();
         let mut paint_list = Vec::new();
         for paint_spec in data.paint_spec_list.iter() {
-            let paint: Paint = (paint_spec.clone(), Rc::clone(&series_id)).into();
+            let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
             paint_list.push(Rc::new(paint));
         }
         PaintSeries {
@@ -175,14 +174,14 @@ pub trait PaintFinder {
         &self,
         paint_name: &str,
         series_id: Option<&SeriesId>,
-    ) -> Result<Rc<Paint>, crate::Error>;
+    ) -> Result<Rc<CollnPaint>, crate::Error>;
 }
 
 #[cfg(test)]
 mod test {
     use colour_math::{HCV, HueConstants};
 
-    use crate::paint::SerializablePaintData;
+    use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
     use crate::series::{PaintSeries, PaintSeriesSpec};
 
@@ -192,13 +191,13 @@ mod test {
         series_spec.set_proprietor("owner");
         series_spec.set_series_name("series name");
         assert!(series_spec.paints().next().is_none());
-        series_spec.add(&SerializablePaintData {
+        series_spec.add(&Paint {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
-        series_spec.add(&SerializablePaintData {
+        series_spec.add(&Paint {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
@@ -218,7 +217,7 @@ mod test {
         let series: PaintSeries = (&series_spec).into();
         assert_eq!(series.series_id, series_spec.series_id());
         let found_red = series.find("red");
-        assert_eq!(found_red.unwrap().data.colour, HCV::RED);
+        assert_eq!(found_red.unwrap().paint.colour, HCV::RED);
         for (spec_paint, paint) in series_spec.paints().zip(read_spec.paints()) {
             assert_eq!(spec_paint.colour, paint.colour);
         }

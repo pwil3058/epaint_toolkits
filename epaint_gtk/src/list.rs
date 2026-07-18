@@ -9,7 +9,7 @@ use pw_gtk_ext::{
 use epaint::{
     PaintEssence,
     mixtures::Mixture,
-    paint::{Paint, SerializablePaintData},
+    paint::{CollnPaint, Paint},
 };
 
 use colour_math::{HCV, ScalarAttribute};
@@ -167,7 +167,7 @@ pub trait PaintListRow {
     fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value>;
 }
 
-impl PaintListRow for SerializablePaintData {
+impl PaintListRow for Paint {
     fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
         use colour_math::{ColourAttributes, ColourBasics};
         let ha: f64 = if let Some(angle) = self.hue_angle() {
@@ -209,9 +209,9 @@ impl PaintListRow for SerializablePaintData {
     }
 }
 
-impl PaintListRow for Paint {
+impl PaintListRow for CollnPaint {
     fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
-        self.data.row(attributes)
+        self.paint.row(attributes)
     }
 }
 

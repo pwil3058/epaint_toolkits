@@ -13,14 +13,14 @@ use pw_gtk_ext::{
 };
 
 use epaint::PaintEssence;
-use epaint::paint::SerializablePaintData;
+use epaint::paint::Paint;
 use epaint::properties::{Properties, Property, PropertyType, PropertyTypes};
 
 use crate::properties::PropertyEntry;
 use crate::sav_state::*;
 
-type AddCallback = Box<dyn Fn(&SerializablePaintData)>;
-type AcceptCallback = Box<dyn Fn(&str, &SerializablePaintData)>;
+type AddCallback = Box<dyn Fn(&Paint)>;
+type AcceptCallback = Box<dyn Fn(&str, &Paint)>;
 type ChangeCallback = Box<dyn Fn(u64)>;
 
 const CHANGED_MASK: u64 = SAV_ID_CHANGED
@@ -63,7 +63,7 @@ pub struct BasicPaintSpecEditor {
     colour_editor: Rc<ColourEditor<u16>>,
     property_entries: Vec<Rc<PropertyEntry>>,
     buttons: ConditionalWidgetGroups<gtk::Button>,
-    current_spec: RefCell<Option<SerializablePaintData>>,
+    current_spec: RefCell<Option<Paint>>,
     add_callbacks: RefCell<Vec<AddCallback>>,
     accept_callbacks: RefCell<Vec<AcceptCallback>>,
     change_callbacks: RefCell<Vec<ChangeCallback>>,
@@ -305,7 +305,7 @@ impl BasicPaintSpecEditor {
         self.buttons.update_condns(masked_condns);
     }
 
-    fn spec_from_entries(&self) -> SerializablePaintData {
+    fn spec_from_entries(&self) -> Paint {
         let properties: Properties = Properties(
             self.property_entries
                 .iter()
@@ -313,7 +313,7 @@ impl BasicPaintSpecEditor {
                 // .map(|entry| entry.value().value)
                 .collect(),
         );
-        SerializablePaintData {
+        Paint {
             #[cfg(feature = "paints_have_ids")]
             id: self.id_entry.get_text().to_string(),
             colour: self.colour_editor.hcv(),
@@ -385,7 +385,7 @@ impl BasicPaintSpecEditor {
         self.update_has_changes();
     }
 
-    fn set_current_spec(&self, spec: Option<&SerializablePaintData>) {
+    fn set_current_spec(&self, spec: Option<&Paint>) {
         let mut masked_condns = MaskedCondns {
             condns: 0,
             mask: SAV_EDITING + SAV_NOT_EDITING + CHANGED_MASK,
@@ -400,7 +400,7 @@ impl BasicPaintSpecEditor {
         self.buttons.update_condns(masked_condns);
     }
 
-    pub fn edit(&self, spec: &SerializablePaintData) {
+    pub fn edit(&self, spec: &Paint) {
         self.set_current_spec(Some(spec));
         self.name_entry.set_text(&spec.name);
         self.notes_entry.set_text(&spec.notes);
@@ -431,14 +431,11 @@ impl BasicPaintSpecEditor {
         }
     }
 
-    pub fn connect_add_action<F: Fn(&SerializablePaintData) + 'static>(&self, callback: F) {
+    pub fn connect_add_action<F: Fn(&Paint) + 'static>(&self, callback: F) {
         self.add_callbacks.borrow_mut().push(Box::new(callback))
     }
 
-    pub fn connect_accept_action<F: Fn(&str, &SerializablePaintData) + 'static>(
-        &self,
-        callback: F,
-    ) {
+    pub fn connect_accept_action<F: Fn(&str, &Paint) + 'static>(&self, callback: F) {
         self.accept_callbacks.borrow_mut().push(Box::new(callback))
     }
 

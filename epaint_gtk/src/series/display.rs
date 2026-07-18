@@ -18,14 +18,14 @@ use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::{GetSeriesId, PaintEssence, paint::Paint, properties::PropertyTypes};
+use epaint::{GetSeriesId, PaintEssence, paint::CollnPaint, properties::PropertyTypes};
 
 use crate::series::PaintActionCallback;
 
 #[derive(PWO)]
 pub struct PaintDisplay {
     vbox: gtk::Box,
-    paint: Rc<Paint>,
+    paint: Rc<CollnPaint>,
     #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
     #[cfg(feature = "targeted_mixtures")]
@@ -46,7 +46,7 @@ impl PaintDisplay {
         };
     }
 
-    pub fn paint(&self) -> &Rc<Paint> {
+    pub fn paint(&self) -> &Rc<CollnPaint> {
         &self.paint
     }
 }
@@ -84,7 +84,7 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn build(&self, paint: &Rc<Paint>) -> PaintDisplay {
+    pub fn build(&self, paint: &Rc<CollnPaint>) -> PaintDisplay {
         let hcv = paint.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
@@ -167,7 +167,7 @@ pub struct PaintDisplayDialogManager<W: TopGtkWindow> {
     button_callbacks: RefCell<HashMap<u16, Vec<PaintActionCallback>>>,
     paint_display_builder: RefCell<PaintDisplayBuilder>,
     conditional_widgets_builder: ConditionalWidgetsBuilder,
-    dialogs: RefCell<BTreeMap<Rc<Paint>, PaintDisplayDialog>>,
+    dialogs: RefCell<BTreeMap<Rc<CollnPaint>, PaintDisplayDialog>>,
 }
 
 impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
@@ -194,7 +194,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    fn inform_button_action(&self, action: u16, paint: Rc<Paint>) {
+    fn inform_button_action(&self, action: u16, paint: Rc<CollnPaint>) {
         let button_callbacks = self.button_callbacks.borrow();
         for callback in button_callbacks
             .get(&action)
@@ -205,7 +205,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    pub fn connect_action_button<F: Fn(Rc<Paint>) + 'static>(&self, action: u16, callback: F) {
+    pub fn connect_action_button<F: Fn(Rc<CollnPaint>) + 'static>(&self, action: u16, callback: F) {
         self.button_callbacks
             .borrow_mut()
             .get_mut(&action)
@@ -215,11 +215,11 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
 }
 
 pub trait DisplayPaint {
-    fn display_paint(&self, paint: &Rc<Paint>);
+    fn display_paint(&self, paint: &Rc<CollnPaint>);
 }
 
 impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
-    fn display_paint(&self, paint: &Rc<Paint>) {
+    fn display_paint(&self, paint: &Rc<CollnPaint>) {
         if !self.dialogs.borrow().contains_key(paint) {
             let dialog = self.new_dialog();
             let display = self.paint_display_builder.borrow().build(paint);
