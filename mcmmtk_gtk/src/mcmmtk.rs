@@ -12,11 +12,10 @@ use pw_gtk_ext::{
 
 use colour_math::ScalarAttribute;
 
-use apaint_gtk::{
-    properties::PropertyType,
+use epaint::properties::{PropertyType, PropertyTypes};
+use epaint_gtk::{
     factory::{BasicPaintFactory, BasicPaintFactoryBuilder},
     mixer::palette::{PalettePaintMixer, PalettePaintMixerBuilder},
-    //mixer::targeted::{TargetedPaintMixer, TargetedPaintMixerBuilder},
 };
 
 use crate::config;
@@ -35,20 +34,20 @@ impl ModellersColourMixerMatcherTK {
             ScalarAttribute::Greyness,
             ScalarAttribute::Chroma,
         ];
-        let properties = vec![
+        let property_types = PropertyTypes(vec![
             PropertyType::Finish,
             PropertyType::Transparency,
             PropertyType::Fluorescence,
             PropertyType::Metallicness,
-        ];
+        ]);
         let mixer = PalettePaintMixerBuilder::new()
             .attributes(&attributes)
-            .properties(&properties)
+            .property_types(&property_types)
             .config_dir_path(&config::config_dir_path())
             .build();
         let factory = BasicPaintFactoryBuilder::new()
             .attributes(&attributes)
-            .properties(&properties)
+            .property_types(&property_types)
             .build();
         let mcmmtk = Rc::new(Self {
             vbox: gtk::Box::new(gtk::Orientation::Vertical, 0),
