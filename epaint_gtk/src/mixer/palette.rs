@@ -132,6 +132,9 @@ impl PalettePaintEntry {
         let drawing_area = gtk::DrawingAreaBuilder::new().height_request(100).build();
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&id_label, false, false, 0);
+        vbox.pack_start(&hbox, false, false, 0);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
+        hbox.pack_start(&gtk::Label::new(Some("Name: ")), false, false, 0);
         hbox.pack_start(&name_entry, true, true, 0);
         vbox.pack_start(&hbox, false, false, 0);
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
