@@ -15,7 +15,7 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use crate::colour::PartsColour;
+// use crate::colour::PartsColour;
 use colour_math::{ColourBasics, HCV, LightLevel, RGB};
 use colour_math_gtk::coloured::Colourable;
 

@@ -56,7 +56,6 @@ pub struct Mixture {
     pub name: String,
     pub notes: String,
     pub properties: Properties,
-    // pub series_id: SeriesId,
     pub components: Vec<(CollnPaint, u64)>,
 }
 

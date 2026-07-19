@@ -13,20 +13,6 @@ pub mod spec_edit;
 pub mod storage;
 pub mod window;
 
-pub mod colour {
-    pub use colour_math_gtk::{colour::*, coloured::*};
-
-    pub trait PartsColour:
-        colour_math::ColourIfce + Ord + 'static + TooltipText + LabelText
-    {
-    }
-
-    use epaint::{LabelText, TooltipText, mixtures::Mixture, paint::CollnPaint};
-
-    impl PartsColour for CollnPaint {}
-    impl PartsColour for Mixture {}
-}
-
 #[derive(Debug)]
 pub enum Error {
     APaintError(epaint::Error),
