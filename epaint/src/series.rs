@@ -1,18 +1,17 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::io::{Read, Write};
-use std::rc::Rc;
 
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
 use crate::paint::{CollnPaint, Paint};
-use crate::{AbbrevKey, PaintEssence, SeriesId};
+use crate::{PaintKey, SeriesId};
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct PaintSeries {
-    series_id: SeriesId,
-    paint_list: Vec<Paint>,
+    pub series_id: SeriesId,
+    pub paint_list: Vec<Paint>,
 }
 
 impl PaintSeries {
@@ -47,7 +46,7 @@ impl PaintSeries {
         debug_assert!(self.is_sorted_unique());
         let index = self
             .paint_list
-            .binary_search_by_key(&key, |p| p.abbrev_key())
+            .binary_search_by_key(&key, |p| p.key())
             .ok()?;
         let paint = self.paint_list[index].clone();
         Some(CollnPaint {
@@ -84,7 +83,7 @@ impl PaintSeriesSpec {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
-            .binary_search_by_key(&paint.abbrev_key(), |p| p.abbrev_key())
+            .binary_search_by_key(&paint.key(), |p| p.key())
         {
             Ok(index) => {
                 self.paint_spec_list.push(paint.clone());
@@ -103,7 +102,7 @@ impl PaintSeriesSpec {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
-            .binary_search_by_key(&key, |p| &p.abbrev_key())
+            .binary_search_by_key(&key, |p| &p.key())
         {
             Ok(index) => Ok(self.paint_spec_list.remove(index)),
             Err(_) => Err(crate::Error::NotFound(key.to_string())),
@@ -118,7 +117,7 @@ impl PaintSeriesSpec {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_spec_list
-            .binary_search_by_key(&key, |p| &p.abbrev_key())
+            .binary_search_by_key(&key, |p| &p.key())
         {
             Ok(index) => self.paint_spec_list.get(index),
             Err(_) => None,

@@ -23,7 +23,7 @@ use colour_math_derive::Colour;
 use crate::paint::CollnPaint;
 use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
 use crate::series::PaintFinder;
-use crate::{AbbrevKey, GetSeriesId, LabelText, SeriesId, TooltipText};
+use crate::{GetSeriesId, LabelText, PaintKey, SeriesId, TooltipText};
 
 pub trait MixtureIfce {
     fn id(&self) -> &str;
@@ -65,8 +65,8 @@ pub struct Mixture {
     pub components: Vec<(CollnPaint, u64)>,
 }
 
-impl AbbrevKey for Mixture {
-    fn abbrev_key(&self) -> &str {
+impl PaintKey for Mixture {
+    fn key(&self) -> &str {
         &self.id
     }
 }
@@ -403,7 +403,7 @@ impl From<&CollnPaint> for SaveablePaint {
     fn from(colln_paint: &CollnPaint) -> SaveablePaint {
         SaveablePaint(
             (colln_paint.series_id()).clone(),
-            colln_paint.abbrev_key().to_string(),
+            colln_paint.paint.key().to_string(),
         )
     }
 }

@@ -35,8 +35,8 @@ impl fmt::Display for SeriesId {
     }
 }
 
-pub trait AbbrevKey {
-    fn abbrev_key(&self) -> &str;
+pub trait PaintKey {
+    fn key(&self) -> &str;
 }
 
 pub trait GetSeriesId {
@@ -46,7 +46,7 @@ pub trait GetSeriesId {
 }
 
 pub trait PaintEssence:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone + AbbrevKey
+    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
 {
     #[cfg(feature = "paints_have_ids")]
     fn id(&self) -> &str;

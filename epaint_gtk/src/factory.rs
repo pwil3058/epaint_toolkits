@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{AbbrevKey, paint::Paint, series::PaintSeriesSpec};
+use epaint::{PaintKey, paint::Paint, series::PaintSeriesSpec};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
@@ -62,8 +62,8 @@ impl BasicPaintFactory {
 
     fn do_add_paint_work(&self, paint_spec: &Paint) {
         if let Some(old_paint) = self.paint_series.borrow_mut().add(paint_spec) {
-            self.hue_wheel.remove_item(old_paint.abbrev_key());
-            self.list_view.remove_row(old_paint.abbrev_key());
+            self.hue_wheel.remove_item(old_paint.key());
+            self.list_view.remove_row(old_paint.key());
         }
         self.hue_wheel.add_item(paint_spec.coloured_shape());
         let row = paint_spec.row(&self.attributes);

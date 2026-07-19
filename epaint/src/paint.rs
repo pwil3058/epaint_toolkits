@@ -7,7 +7,7 @@ use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property, PropertyType};
-use crate::{AbbrevKey, GetSeriesId, LabelText, PaintEssence, SeriesId, TooltipText};
+use crate::{GetSeriesId, LabelText, PaintEssence, PaintKey, SeriesId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct Paint {
@@ -20,14 +20,14 @@ pub struct Paint {
     pub properties: Properties,
 }
 
-impl AbbrevKey for Paint {
+impl PaintKey for Paint {
     #[cfg(feature = "paints_have_ids")]
-    fn abbrev_key(&self) -> &str {
+    fn key(&self) -> &str {
         &self.id
     }
 
     #[cfg(not(feature = "paints_have_ids"))]
-    fn abbrev_key(&self) -> &str {
+    fn key(&self) -> &str {
         &self.name
     }
 }
@@ -79,7 +79,7 @@ impl TooltipText for Paint {
 
 impl PartialEq for Paint {
     fn eq(&self, other: &Self) -> bool {
-        self.abbrev_key() == other.abbrev_key()
+        self.key() == other.key()
     }
 }
 
@@ -87,7 +87,7 @@ impl Eq for Paint {}
 
 impl PartialOrd for Paint {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.abbrev_key().cmp(&other.abbrev_key()).into()
+        self.key().cmp(&other.key()).into()
     }
 }
 
@@ -131,19 +131,13 @@ impl PaintEssence for CollnPaint {
     }
 }
 
-impl AbbrevKey for CollnPaint {
-    fn abbrev_key(&self) -> &str {
-        self.paint.abbrev_key()
-    }
-}
-
 impl GetSeriesId for CollnPaint {
     fn series_id(&self) -> &SeriesId {
         &self.series_id
     }
 
     fn key(&self) -> (&str, &SeriesId) {
-        (self.paint.abbrev_key(), &self.series_id)
+        (self.paint.key(), &self.series_id)
     }
 }
 
