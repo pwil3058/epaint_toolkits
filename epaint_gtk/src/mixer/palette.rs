@@ -117,7 +117,7 @@ pub struct PalettePaintEntry {
 impl PalettePaintEntry {
     pub fn new(attributes: &[ScalarAttribute]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let id_label = gtk::LabelBuilder::new().label("MIX#???").build();
+        let id_label = gtk::LabelBuilder::new().label("MIX#001").build();
         let name_entry = gtk::EntryBuilder::new().build();
         let notes_entry = gtk::EntryBuilder::new().build();
         let cads = ColourAttributeDisplayStackBuilder::new()
@@ -379,7 +379,7 @@ impl PalettePaintMixer {
     }
 
     #[cfg(feature = "targeted_mixtures")]
-    fn ask_start_new_mixture(&self) {
+    fn ask_start_new_targeted_mixture(&self) {
         let tpe = TargetPaintEntry::new(&self.attributes);
         let dialog = self
             .new_dialog_builder()
@@ -398,7 +398,7 @@ impl PalettePaintMixer {
             let name = tpe.name();
             let notes = tpe.notes();
             unsafe { dialog.destroy() };
-            self.start_new_mixture(&name, &notes, &rgb);
+            self.start_new_targeted_mixture(&name, &notes, &rgb);
         } else {
             unsafe { dialog.destroy() };
         }
@@ -437,7 +437,9 @@ impl PalettePaintMixer {
             }
             self.hue_wheel.add_item(mixture.coloured_shape());
             self.list_view.add_row(&mixture.row(&self.attributes));
+            self.advance_mix_id();
         }
+        self.mix_entry.id_label.set_label(&self.format_mix_id());
         let digest = session.digest().expect("should work");
         *self.mixing_session.borrow_mut() = session;
         Ok(digest)
@@ -452,7 +454,12 @@ impl PalettePaintMixer {
     }
 
     #[cfg(feature = "targeted_mixtures")]
-    pub fn start_new_mixture(&self, name: &str, notes: &str, target_colour: &impl GdkColour) {
+    pub fn start_new_targeted_mixture(
+        &self,
+        name: &str,
+        notes: &str,
+        target_colour: &impl GdkColour,
+    ) {
         self.mix_entry.id_label.set_label(&self.format_mix_id());
         self.mix_entry.name_entry.set_text(name);
         self.mix_entry.notes_entry.set_text(notes);
@@ -506,7 +513,7 @@ impl PalettePaintMixer {
         #[cfg(feature = "targeted_mixtures")]
         self.hue_wheel.add_item(mixed_paint.targeted_rgb_shape());
         self.list_view.add_row(&mixed_paint.row(&self.attributes));
-        self.mix_entry.id_label.set_label("MIX#???");
+        self.mix_entry.id_label.set_label(&self.format_mix_id());
         self.mix_entry.name_entry.set_text("");
         self.mix_entry.notes_entry.set_text("");
         self.series_paint_spinner_box.zero_all_parts();
@@ -813,7 +820,7 @@ impl PalettePaintMixerBuilder {
                     let name = paint.name();
                     let colour = paint.hcv();
                     let notes = paint.notes();
-                    tpm_c.start_new_mixture(name, notes, &colour);
+                    tpm_c.start_new_targeted_mixture(name, notes, &colour);
                 });
         }
 
@@ -829,7 +836,7 @@ impl PalettePaintMixerBuilder {
         #[cfg(not(feature = "targeted_mixtures"))]
         new_mix_btn.connect_clicked(move |_| tpm_c.start_new_mixture());
         #[cfg(feature = "targeted_mixtures")]
-        new_mix_btn.connect_clicked(move |_| tpm_c.ask_start_new_mixture());
+        new_mix_btn.connect_clicked(move |_| tpm_c.ask_start_new_targeted_mixture());
 
         let tpm_c = Rc::clone(&tpm);
         accept_btn.connect_clicked(move |_| tpm_c.accept_current_mixture());
