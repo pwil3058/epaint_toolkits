@@ -1,9 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::{
-    io::{Read, Write},
-    rc::Rc,
-};
+use std::io::{Read, Write};
 
 use crypto_hash::{Algorithm, Hasher};
 use gcd::Gcd;
@@ -21,8 +18,7 @@ use colour_math_derive::Colour;
 
 use crate::paint::CollnPaint;
 use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
-use crate::series::PaintFinder;
-use crate::{GetSeriesId, LabelText, PaintKey, SeriesId, TooltipText};
+use crate::{GetSeriesId, LabelText, PaintKey, TooltipText};
 
 pub trait MixtureIfce {
     fn id(&self) -> &str;

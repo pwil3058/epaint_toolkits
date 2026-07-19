@@ -1,6 +1,6 @@
 // Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
 
-use std::{collections::BTreeMap, rc::Rc};
+use std::collections::HashMap;
 
 use pw_gtk_ext::{
     glib,
@@ -179,7 +179,7 @@ pub struct MixtureDisplayDialogManager<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(&'static str, Option<&'static str>, u16)>,
     mixture_display_builder: MixtureDisplayBuilder,
-    dialogs: BTreeMap<Mixture, MixtureDisplayDialog>,
+    dialogs: HashMap<String, MixtureDisplayDialog>,
 }
 
 impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
@@ -202,7 +202,7 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
     }
 
     pub fn display_mixture(&mut self, mixture: &Mixture) {
-        if !self.dialogs.contains_key(mixture) {
+        if !self.dialogs.contains_key(&mixture.id) {
             let dialog = self.new_dialog();
             let display = self.mixture_display_builder.build(mixture);
             dialog
@@ -213,9 +213,9 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
                 #[cfg(feature = "targeted_mixtures")]
                 display,
             };
-            self.dialogs.insert(mixture.clone(), pdd);
+            self.dialogs.insert(mixture.id.to_string(), pdd);
         };
-        let pdd = self.dialogs.get(mixture).expect("we just put it there");
+        let pdd = self.dialogs.get(&mixture.id).expect("we just put it there");
         pdd.dialog.present();
     }
 
@@ -279,7 +279,7 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
             caller: self.caller.clone(),
             buttons: self.buttons.clone(),
             mixture_display_builder,
-            dialogs: BTreeMap::new(),
+            dialogs: HashMap::new(),
         }
     }
 }
