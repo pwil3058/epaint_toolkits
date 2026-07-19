@@ -150,10 +150,7 @@ impl MixtureDisplayBuilder {
         for (paint, parts) in mixture.components() {
             let mut row = paint.row(&self.attributes);
             let value: glib::Value = (*parts).to_value();
-            #[cfg(feature = "paints_have_ids")]
-            row.insert(7, value);
-            #[cfg(not(feature = "paints_have_ids"))]
-            row.insert(6, value);
+            row.insert(2, value);
             list_view.add_row(&row);
         }
 
@@ -302,89 +299,39 @@ impl ComponentsListViewSpec {
 
 impl ListViewSpec for ComponentsListViewSpec {
     fn column_types(&self) -> Vec<glib::Type> {
+        #[cfg(feature = "paints_have_ids")]
         let mut column_types = vec![
-            #[cfg(feature = "paints_have_ids")]
             glib::Type::String,
             glib::Type::String,
+            u64::static_type(),
             glib::Type::String,
             glib::Type::String,
             glib::Type::String,
             glib::Type::String,
             f64::static_type(),
-            u64::static_type(),
         ];
+        #[cfg(not(feature = "paints_have_ids"))]
+        let mut column_types = vec![
+            glib::Type::String,
+            glib::Type::String,
+            u64::static_type(),
+            glib::Type::String,
+            glib::Type::String,
+            glib::Type::String,
+            f64::static_type(),
+        ];
+
         for _ in 0..self.attributes.len() * 3 + self.property_types.len() {
             column_types.push(glib::Type::String);
         }
-        #[cfg(feature = "targeted_mixtures")]
-        column_types.push(glib::Type::String);
 
         column_types
     }
 
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
-        // #[cfg(all(feature = "targeted_mixtures", feature = "paints_have_ids"))]
-        // let target_col = 8 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
-        // #[cfg(all(feature = "targeted_mixtures", not(feature = "paints_have_ids")))]
-        // let target_col = 7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
         let mut index = 2;
-        #[cfg(feature = "paints_have_ids")]
-        {
-            let col = gtk::TreeViewColumnBuilder::new()
-                .title("Id")
-                .resizable(false)
-                .sort_column_id(index)
-                .sort_indicator(true)
-                .build();
-            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-            col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", 0);
-            col.add_attribute(&cell, "foreground", 1);
-            cols.push(col);
-            index += 1;
-        }
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Name")
-            .resizable(true)
-            .sort_column_id(index)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", index);
-        col.add_attribute(&cell, "background", 0);
-        col.add_attribute(&cell, "foreground", 1);
-        cols.push(col);
-        index += 1;
-
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Notes")
-            .resizable(true)
-            .sort_column_id(index)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", index);
-        col.add_attribute(&cell, "background", 0);
-        col.add_attribute(&cell, "foreground", 1);
-        cols.push(col);
-        index += 1;
-
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Hue")
-            .sort_column_id(index + 1)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "background", index);
-        cols.push(col);
-        index += 2;
-
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Parts")
             .resizable(false)
@@ -396,6 +343,38 @@ impl ListViewSpec for ComponentsListViewSpec {
         col.add_attribute(&cell, "text", index);
         cols.push(col);
         index += 1;
+
+        #[cfg(feature = "paints_have_ids")]
+        let headers = ["Id", "Name", "Notes"];
+        #[cfg(not(feature = "paints_have_ids"))]
+        let headers = ["Name", "Notes"];
+
+        for header in &headers {
+            let col = gtk::TreeViewColumnBuilder::new()
+                .title(header)
+                .resizable(true)
+                .sort_column_id(index)
+                .sort_indicator(true)
+                .build();
+            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
+            col.pack_start(&cell, false);
+            col.add_attribute(&cell, "text", index);
+            col.add_attribute(&cell, "background", 0);
+            col.add_attribute(&cell, "foreground", 1);
+            cols.push(col);
+            index += 1;
+        }
+
+        let col = gtk::TreeViewColumnBuilder::new()
+            .title("Hue")
+            .sort_column_id(index + 1)
+            .sort_indicator(true)
+            .build();
+        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
+        col.pack_start(&cell, false);
+        col.add_attribute(&cell, "background", index);
+        cols.push(col);
+        index += 2;
 
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
@@ -425,19 +404,6 @@ impl ListViewSpec for ComponentsListViewSpec {
             col.add_attribute(&cell, "foreground", 1);
             cols.push(col);
             index += 1;
-        }
-
-        #[cfg(feature = "targeted_mixtures")]
-        {
-            let col = gtk::TreeViewColumnBuilder::new()
-                .title("Target")
-                .sort_column_id(index)
-                .sort_indicator(true)
-                .build();
-            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-            col.pack_start(&cell, false);
-            col.add_attribute(&cell, "background", index);
-            cols.push(col);
         }
 
         cols
