@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
-    cmp::Ordering,
     io::{Read, Write},
     rc::Rc,
 };
@@ -51,7 +50,7 @@ pub trait MixtureIfce {
     }
 }
 
-#[derive(Debug, Colour, Clone)]
+#[derive(Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct Mixture {
     pub id: String,
     #[colour]
@@ -61,7 +60,7 @@ pub struct Mixture {
     pub name: String,
     pub notes: String,
     pub properties: Properties,
-    pub series_id: SeriesId,
+    // pub series_id: SeriesId,
     pub components: Vec<(CollnPaint, u64)>,
 }
 
@@ -147,16 +146,6 @@ impl Mixture {
     }
 }
 
-impl GetSeriesId for Mixture {
-    fn series_id(&self) -> &SeriesId {
-        &self.series_id
-    }
-
-    fn key(&self) -> (&str, &SeriesId) {
-        (&self.id, &self.series_id)
-    }
-}
-
 impl TooltipText for Mixture {
     fn tooltip_text(&self) -> String {
         let mut string = self.label_text();
@@ -179,34 +168,6 @@ impl MakeColouredShape for Mixture {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(&self.colour, &self.id, &tooltip_text, Shape::Diamond)
-    }
-}
-
-impl PartialEq for Mixture {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id && self.series_id == other.series_id
-    }
-}
-
-impl Eq for Mixture {}
-
-impl PartialOrd for Mixture {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self.id.cmp(&other.id) {
-            Ordering::Less => Some(Ordering::Less),
-            Ordering::Greater => Some(Ordering::Greater),
-            Ordering::Equal => match self.series_id.cmp(&other.series_id) {
-                Ordering::Less => Some(Ordering::Less),
-                Ordering::Greater => Some(Ordering::Greater),
-                Ordering::Equal => Some(Ordering::Equal),
-            },
-        }
-    }
-}
-
-impl Ord for Mixture {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -280,7 +241,7 @@ impl MixingSession {
 
     pub fn is_sorted_unique(&self) -> bool {
         while let Some(pair) = self.mixtures.windows(2).next() {
-            if pair[0] >= pair[1] {
+            if pair[0].id >= pair[1].id {
                 return false;
             }
         }
@@ -313,7 +274,6 @@ impl MixingSession {
 pub struct MixtureBuilder {
     id: String,
     name: String,
-    series_id: SeriesId,
     notes: String,
     series_components: Vec<(CollnPaint, u64)>,
     #[cfg(feature = "targeted_mixtures")]
@@ -325,7 +285,6 @@ impl MixtureBuilder {
         Self {
             id: id.to_string(),
             name: String::new(),
-            series_id: SeriesId::default(),
             notes: String::new(),
             series_components: vec![],
             #[cfg(feature = "targeted_mixtures")]
@@ -387,7 +346,7 @@ impl MixtureBuilder {
             #[cfg(feature = "targeted_mixtures")]
             targeted_colour: self.targeted_colour,
             name: self.name.clone(),
-            series_id: self.series_id.clone(),
+            // series_id: self.series_id.clone(),
             notes: self.notes.clone(),
             properties: properties_mixer.mixed_properties(),
             components,

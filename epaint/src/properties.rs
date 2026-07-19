@@ -459,7 +459,7 @@ impl From<(PropertyType, &str)> for Property {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Properties(pub Vec<Property>);
 
 impl Properties {
