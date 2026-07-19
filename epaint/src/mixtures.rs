@@ -270,27 +270,6 @@ impl MixingSession {
     }
 }
 
-// impl MixingSession {
-//     pub fn read<R: Read>(
-//         reader: &mut R,
-//         series_paint_finder: &Rc<impl PaintFinder>,
-//     ) -> Result<Self, crate::Error> {
-//         let saved_session = SaveableMixingSession::read(reader)?;
-//         let mixing_session = saved_session.mixing_session(series_paint_finder)?;
-//         Ok(mixing_session)
-//     }
-// }
-//
-// impl MixingSession {
-//     pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
-//         SaveableMixingSession::from(self).write(writer)
-//     }
-//
-//     pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
-//         SaveableMixingSession::from(self).digest()
-//     }
-// }
-
 #[derive(Debug)]
 pub struct MixtureBuilder {
     id: String,
@@ -385,53 +364,53 @@ mod test {
     use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
 
-    use crate::mixtures::{MixingSession, MixtureBuilder, SaveableMixingSession};
-    use crate::series::{PaintSeries, PaintSeriesSpec};
+    use crate::mixtures::{MixingSession, MixtureBuilder};
+    use crate::series::PaintSeries;
 
     #[test]
-    fn test_read_write_spec() {
-        let mut series_spec = PaintSeriesSpec::default();
-        series_spec.set_proprietor("owner");
-        series_spec.set_series_name("series name");
-        assert!(series_spec.paints().next().is_none());
-        series_spec.add(&Paint {
+    fn test_read_write_paint_series() {
+        let mut paint_series = PaintSeries::default();
+        paint_series.set_proprietor("owner");
+        paint_series.set_series_name("series name");
+        assert!(paint_series.colln_paints().next().is_none());
+        paint_series.add(&Paint {
+            id: "red".to_string(),
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         });
-        series_spec.add(&Paint {
+        paint_series.add(&Paint {
+            id: "yellow".to_string(),
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         });
-        let series: PaintSeries = (&series_spec).into();
         let mut session: MixingSession = MixingSession::new();
         session.set_notes("a test mixing session");
-        let yellow = series.find_colln_paint("yellow").unwrap();
-        let red = series.find_colln_paint("red").unwrap();
-        let mix = vec![(Rc::clone(&red), 1), (Rc::clone(&yellow), 1)];
+        let yellow = paint_series.find_colln_paint("yellow").unwrap();
+        let red = paint_series.find_colln_paint("red").unwrap();
+        let mix = vec![(red.clone(), 1), (yellow.clone(), 1)];
         let mixture = MixtureBuilder::new("#001")
             .paint_components(mix)
             .name("orange")
             .build();
         assert_eq!(mixture.colour, HCV::RED_YELLOW);
-        session.add_mixture(&mixture);
+        session.add_mixture(mixture);
         let mixture = MixtureBuilder::new("#002")
-            .paint_component((Rc::clone(&yellow), 1))
-            .paint_component((Rc::clone(&red), 2))
+            .paint_component((yellow.clone(), 1))
+            .paint_component((red.clone(), 2))
             .name("reddish_orange")
             .build();
-        session.add_mixture(&mixture);
-        let saveable_session = SaveableMixingSession::from(&session);
+        session.add_mixture(mixture);
         let mut buffer: Vec<u8> = vec![];
-        let digest = saveable_session.write(&mut buffer).unwrap();
-        let read_session = SaveableMixingSession::read(&mut &buffer[..]).unwrap();
+        let digest = session.write(&mut buffer).unwrap();
+        let read_session = MixingSession::read(&mut &buffer[..]).unwrap();
         assert_eq!(digest, read_session.digest().unwrap());
         assert_eq!(session.notes(), read_session.notes());
         assert_eq!(session.mixtures.len(), read_session.mixtures.len());
-        for (mix1, mix2) in saveable_session.mixtures().zip(read_session.mixtures()) {
+        for (mix1, mix2) in session.mixtures().zip(read_session.mixtures()) {
             assert_eq!(mix1.name, mix2.name);
         }
     }

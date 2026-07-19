@@ -132,43 +132,37 @@ mod test {
 
     use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
-    use crate::series::{PaintSeries, PaintSeriesSpec};
+    use crate::series::PaintSeries;
 
     #[test]
     fn save_and_recover() {
-        let mut series_spec = PaintSeriesSpec::default();
-        series_spec.set_proprietor("owner");
-        series_spec.set_series_name("series name");
-        assert!(series_spec.paints().next().is_none());
-        series_spec.add(&Paint {
+        let mut paint_series = PaintSeries::default();
+        paint_series.set_proprietor("owner");
+        paint_series.set_series_name("series name");
+        assert!(paint_series.colln_paints().next().is_none());
+        paint_series.add(&Paint {
+            id: "red".to_string(),
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
-        series_spec.add(&Paint {
+        paint_series.add(&Paint {
+            id: "yellow".to_string(),
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
         let mut buffer: Vec<u8> = vec![];
-        let _digest = series_spec.write(&mut buffer);
-        let read_spec = PaintSeriesSpec::read(&mut &buffer[..]).unwrap();
-        assert_eq!(series_spec.series_id(), read_spec.series_id());
-        assert_eq!(
-            series_spec.paint_spec_list.len(),
-            read_spec.paint_spec_list.len()
-        );
-        for (pspec1, pspec2) in series_spec.paints().zip(read_spec.paints()) {
-            assert_eq!(*pspec1, *pspec2);
-        }
-        let series: PaintSeries = (&series_spec).into();
-        assert_eq!(series.series_id, series_spec.series_id());
-        let found_red = series.find_colln_paint("red");
-        assert_eq!(found_red.unwrap().paint.colour, HCV::RED);
-        for (spec_paint, paint) in series_spec.paints().zip(read_spec.paints()) {
-            assert_eq!(spec_paint.colour, paint.colour);
+        let _digest = paint_series.write(&mut buffer);
+        let read_series = PaintSeries::read(&mut &buffer[..]).unwrap();
+        assert_eq!(paint_series.series_id(), read_series.series_id());
+        assert_eq!(paint_series.paint_list.len(), read_series.paint_list.len());
+        for (colln_paint1, colln_paint2) in
+            paint_series.colln_paints().zip(read_series.colln_paints())
+        {
+            assert_eq!(colln_paint1, colln_paint2);
         }
     }
 }

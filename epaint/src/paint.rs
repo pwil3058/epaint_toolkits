@@ -205,54 +205,57 @@ mod paint_tests {
 
     #[test]
     fn test_paint_spec_generate_paint() {
-        let series_id = Rc::new(SeriesId {
+        let series_id = SeriesId {
             series_name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
-        });
+        };
         let target_paint = CollnPaint {
             paint: Paint {
-                colour: HCV::RED_MAGENTA,
-                name: "Red".to_string(),
+                id: "magenta".to_string(),
+                colour: HCV::MAGENTA,
+                name: "Magenta".to_string(),
                 notes: "".to_string(),
                 properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
             },
             series_id: series_id.clone(),
         };
-        let paint_spec = Paint {
-            colour: HCV::RED_MAGENTA,
-            name: "Red".to_string(),
+        let paint = Paint {
+            id: "magenta".to_string(),
+            colour: HCV::MAGENTA,
+            name: "Magenta".to_string(),
             notes: String::new(),
-            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         };
-        let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
-        assert_eq!(paint, target_paint);
+        let colln_paint: CollnPaint = (paint, series_id).into();
+        assert_eq!(colln_paint, target_paint);
     }
 
     #[test]
     fn test_paint_to_from_paint_spec() {
-        let paint_spec = Paint {
+        let paint = Paint {
+            id: "red magenta".to_string(),
             colour: HCV::RED_MAGENTA,
-            name: "Red".to_string(),
+            name: "Red Magenta".to_string(),
             notes: "".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         };
-        let series_id = Rc::new(SeriesId {
+        let series_id = SeriesId {
             series_name: "DS".to_string(),
             proprietor: "WC".to_string(),
-        });
-        let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
-        assert_eq!(paint.hcv(), HCV::RED_MAGENTA);
-        assert_eq!(paint.name(), "Red");
-        assert_eq!(paint.notes(), "");
-        assert_eq!(paint.series_id, series_id.into());
+        };
+        let colln_paint: CollnPaint = (paint.clone(), series_id.clone()).into();
+        assert_eq!(colln_paint.hcv(), HCV::RED_MAGENTA);
+        assert_eq!(colln_paint.name(), "Red Magenta");
+        assert_eq!(colln_paint.notes(), "");
+        assert_eq!(colln_paint.series_id, series_id.into());
         assert_eq!(
-            paint.paint.properties,
+            colln_paint.paint.properties,
             Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
         );
-        for (target, actual) in paint_spec.iter_properties().zip(paint.iter_properties()) {
+        for (target, actual) in paint.iter_properties().zip(colln_paint.iter_properties()) {
             assert_eq!(target, actual);
         }
-        let recovered_paint_spec: Paint = paint.into();
-        assert_eq!(recovered_paint_spec, paint_spec);
+        let recovered_paint_spec: Paint = colln_paint.into();
+        assert_eq!(recovered_paint_spec, paint);
     }
 }
