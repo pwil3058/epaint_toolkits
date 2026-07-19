@@ -66,7 +66,7 @@ fn main() {
     vbox.pack_start(mixer.pwo(), false, false, 0);
     let bpe = BasicPaintSpecEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
-    let mut paint_spec = Paint {
+    let mut paint = Paint {
         #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
         name: "Paint Name".to_string(),
@@ -74,15 +74,15 @@ fn main() {
         notes: "Notes".to_string(),
         properties: Properties::from(&property_types),
     };
-    paint_spec.name = "name".to_string();
-    paint_spec.notes = "notes".to_string();
-    bpe.edit(&paint_spec);
-    let paint = CollnPaint::from((
-        paint_spec,
-        Rc::new(SeriesId {
+    paint.name = "name".to_string();
+    paint.notes = "notes".to_string();
+    bpe.edit(&paint);
+    let colln_paint = CollnPaint::from((
+        paint,
+        SeriesId {
             series_name: "Series".to_string(),
             proprietor: "Owner".to_string(),
-        }),
+        },
     ));
     let mut builder = PaintDisplayBuilder::new();
     builder
@@ -92,7 +92,7 @@ fn main() {
             ScalarAttribute::Chroma,
         ])
         .property_types(&property_types);
-    let display = builder.build(&Rc::new(paint));
+    let display = builder.build(&colln_paint);
     vbox.pack_start(display.pwo(), true, true, 0);
     let mut paint_series_manager_builder = PaintSeriesManagerBuilder::new();
     paint_series_manager_builder.property_types(&property_types);
