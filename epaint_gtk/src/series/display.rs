@@ -90,9 +90,12 @@ impl PaintDisplayBuilder {
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let label = gtk::LabelBuilder::new().label(paint.name()).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
+        #[cfg(feature = "paints_have_ids")]
+        {
+            let label = gtk::LabelBuilder::new().label(paint.id()).build();
+            label.set_widget_colour(&hcv);
+            vbox.pack_start(&label, false, false, 0);
+        }
 
         let label = gtk::LabelBuilder::new().label(paint.name()).build();
         label.set_widget_colour(&hcv);
