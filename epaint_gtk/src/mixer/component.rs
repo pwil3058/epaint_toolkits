@@ -16,27 +16,30 @@ use pw_gtk_ext::{
 };
 
 use crate::colour::PartsColour;
-use colour_math::{HCV, LightLevel, RGB};
+use colour_math::{ColourBasics, HCV, LightLevel, RGB};
 use colour_math_gtk::coloured::Colourable;
 
-type RemoveCallback<P> = Box<dyn Fn(&P)>;
+use epaint::paint::CollnPaint;
+use epaint::{LabelText, TooltipText};
+
+type RemoveCallback = Box<dyn Fn(&CollnPaint)>;
 
 const HAS_NO_PARTS: u64 = SAV_NEXT_CONDN;
 
 #[derive(PWO)]
-pub struct PartsSpinButton<P: PartsColour> {
+pub struct PartsSpinButton {
     event_box: gtk::EventBox,
     spin_button: gtk::SpinButton,
     popup_menu: ManagedMenu,
-    paint: P,
+    colln_paint: CollnPaint,
     changed_callbacks: RefCell<Vec<Box<dyn Fn() + 'static>>>,
-    remove_me_callbacks: RefCell<Vec<RemoveCallback<P>>>,
+    remove_me_callbacks: RefCell<Vec<RemoveCallback>>,
 }
 
-impl<P: PartsColour + Clone> PartsSpinButton<P> {
-    pub fn new(paint: &P, sensitive: bool) -> Rc<Self> {
+impl PartsSpinButton {
+    pub fn new(colln_paint: &CollnPaint, sensitive: bool) -> Rc<Self> {
         let event_box = gtk::EventBoxBuilder::new()
-            .tooltip_text(&paint.tooltip_text())
+            .tooltip_text(&colln_paint.tooltip_text())
             .events(gdk::EventMask::BUTTON_PRESS_MASK | gdk::EventMask::BUTTON_RELEASE_MASK)
             .build();
         let spin_button = gtk::SpinButtonBuilder::new()
@@ -46,8 +49,8 @@ impl<P: PartsColour + Clone> PartsSpinButton<P> {
             .sensitive(sensitive)
             .numeric(true)
             .build();
-        let label = gtk::Label::new(Some(&paint.label_text()));
-        label.set_widget_colour(&paint.hcv());
+        let label = gtk::Label::new(Some(&colln_paint.label_text()));
+        label.set_widget_colour(&colln_paint.hcv());
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&label, true, true, 0);
         hbox.pack_start(&spin_button, false, false, 0);
@@ -58,7 +61,7 @@ impl<P: PartsColour + Clone> PartsSpinButton<P> {
             event_box,
             spin_button,
             popup_menu: ManagedMenuBuilder::new().build(),
-            paint: (*paint).clone(),
+            colln_paint: (*colln_paint).clone(),
             changed_callbacks: RefCell::new(vec![]),
             remove_me_callbacks: RefCell::new(vec![]),
         });
@@ -114,15 +117,15 @@ impl<P: PartsColour + Clone> PartsSpinButton<P> {
     }
 
     pub fn colour_parts(&self) -> (HCV, u64) {
-        (self.paint.hcv(), self.parts())
+        (self.colln_paint.hcv(), self.parts())
     }
 
     pub fn rgb_parts<L: LightLevel>(&self) -> (RGB<L>, u64) {
-        (self.paint.rgb::<L>(), self.parts())
+        (self.colln_paint.rgb::<L>(), self.parts())
     }
 
-    pub fn paint_parts(&self) -> (&P, u64) {
-        (&self.paint, self.parts())
+    pub fn colln_paint_parts(&self) -> (&CollnPaint, u64) {
+        (&self.colln_paint, self.parts())
     }
 
     pub fn connect_changed<F: Fn() + 'static>(&self, callback: F) {
@@ -135,7 +138,7 @@ impl<P: PartsColour + Clone> PartsSpinButton<P> {
         }
     }
 
-    pub fn connect_remove_me<F: Fn(&P) + 'static>(&self, callback: F) {
+    pub fn connect_remove_me<F: Fn(&CollnPaint) + 'static>(&self, callback: F) {
         self.remove_me_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -143,23 +146,23 @@ impl<P: PartsColour + Clone> PartsSpinButton<P> {
 
     fn inform_remove_me(&self) {
         for callback in self.remove_me_callbacks.borrow().iter() {
-            callback(&self.paint)
+            callback(&self.colln_paint)
         }
     }
 }
 
 #[derive(PWO)]
-pub struct PartsSpinButtonBox<P: PartsColour> {
+pub struct PartsSpinButtonBox {
     frame: gtk::Frame,
     vbox: gtk::Box,
-    spinners: RefCell<Vec<Rc<PartsSpinButton<P>>>>,
+    spinners: RefCell<Vec<Rc<PartsSpinButton>>>,
     sensitive: Cell<bool>,
     n_cols: Cell<u32>,
     contributions_changed_callbacks: RefCell<Vec<Box<dyn Fn() + 'static>>>,
-    removal_requested_callbacks: RefCell<Vec<RemoveCallback<P>>>,
+    removal_requested_callbacks: RefCell<Vec<RemoveCallback>>,
 }
 
-impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
+impl PartsSpinButtonBox {
     pub fn new(title: &str, n_cols: u32, sensitive: bool) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let frame = gtk::FrameBuilder::new().label(title).build();
@@ -191,12 +194,12 @@ impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
             .collect()
     }
 
-    pub fn paint_contributions(&self) -> Vec<(P, u64)> {
+    pub fn paint_contributions(&self) -> Vec<(CollnPaint, u64)> {
         self.spinners
             .borrow()
             .iter()
             .filter_map(|s| {
-                let (paint, parts) = s.paint_parts();
+                let (paint, parts) = s.colln_paint_parts();
                 if parts > 0 {
                     Some((paint.clone(), parts))
                 } else {
@@ -206,10 +209,10 @@ impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
             .collect()
     }
 
-    fn binary_search_paint(&self, paint: &P) -> Result<usize, usize> {
+    fn binary_search_paint(&self, paint: &CollnPaint) -> Result<usize, usize> {
         self.spinners
             .borrow()
-            .binary_search_by_key(&paint, |s| &s.paint)
+            .binary_search_by_key(&paint, |s| &s.colln_paint)
     }
 
     fn repack_all(&self) {
@@ -234,7 +237,7 @@ impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
         self.frame.show_all()
     }
 
-    pub fn remove_paint(&self, paint: &P) {
+    pub fn remove_paint(&self, paint: &CollnPaint) {
         if let Ok(index) = self.binary_search_paint(paint) {
             let spinner = self.spinners.borrow_mut().remove(index);
             self.repack_all();
@@ -256,13 +259,13 @@ impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
         }
     }
 
-    pub fn connect_removal_requested<F: Fn(&P) + 'static>(&self, callback: F) {
+    pub fn connect_removal_requested<F: Fn(&CollnPaint) + 'static>(&self, callback: F) {
         self.removal_requested_callbacks
             .borrow_mut()
             .push(Box::new(callback));
     }
 
-    fn inform_removal_requested(&self, paint: &P) {
+    fn inform_removal_requested(&self, paint: &CollnPaint) {
         for callback in self.removal_requested_callbacks.borrow().iter() {
             callback(paint);
         }
@@ -295,14 +298,14 @@ impl<P: PartsColour + Clone> PartsSpinButtonBox<P> {
     }
 }
 
-pub trait RcPartsSpinButtonBox<P: PartsColour> {
-    fn add_paint(&self, paint: &P);
+pub trait RcPartsSpinButtonBox {
+    fn add_paint(&self, colln_paint: &CollnPaint);
 }
 
-impl<P: PartsColour + Clone> RcPartsSpinButtonBox<P> for Rc<PartsSpinButtonBox<P>> {
-    fn add_paint(&self, paint: &P) {
-        if let Err(index) = self.binary_search_paint(paint) {
-            let spinner = PartsSpinButton::new(paint, self.sensitive.get());
+impl RcPartsSpinButtonBox for Rc<PartsSpinButtonBox> {
+    fn add_paint(&self, colln_paint: &CollnPaint) {
+        if let Err(index) = self.binary_search_paint(colln_paint) {
+            let spinner = PartsSpinButton::new(colln_paint, self.sensitive.get());
             let self_c = Rc::clone(self);
             spinner.connect_changed(move || self_c.inform_contributions_changed());
             let self_c = Rc::clone(self);

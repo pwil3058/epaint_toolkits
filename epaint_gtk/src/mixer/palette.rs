@@ -321,7 +321,7 @@ pub struct PalettePaintMixer {
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
     mix_entry: Rc<PalettePaintEntry>,
-    series_paint_spinner_box: Rc<PartsSpinButtonBox<CollnPaint>>,
+    series_paint_spinner_box: Rc<PartsSpinButtonBox>,
     change_notifier: ChangedCondnsNotifier,
     paint_series_manager: Rc<PaintSeriesManager>,
     #[cfg(feature = "targeted_mixtures")]
@@ -610,7 +610,7 @@ impl PalettePaintMixerBuilder {
             )])
             .build(&list_spec);
         let mix_entry = PalettePaintEntry::new(&self.attributes);
-        let series_paint_spinner_box = PartsSpinButtonBox::<CollnPaint>::new("Paints", 4, true);
+        let series_paint_spinner_box = PartsSpinButtonBox::new("Paints", 4, true);
 
         let mixture_display_dialog_manager = MixtureDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
