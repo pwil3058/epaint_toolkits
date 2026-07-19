@@ -425,7 +425,7 @@ impl PalettePaintMixer {
     fn read_from_file<Q: AsRef<Path>>(&self, path: Q) -> epaint::Result<Vec<u8>> {
         let path: &Path = path.as_ref();
         let mut file = File::open(path)?;
-        let session = MixingSession::read(&mut file, &self.paint_series_manager)?;
+        let session = MixingSession::read(&mut file)?;
         // TODO: completely clear the mixer
         self.notes_entry.set_text(session.notes());
         for mixture in session.mixtures() {
@@ -508,7 +508,7 @@ impl PalettePaintMixer {
         self.mix_entry.notes_entry.set_text("");
         self.series_paint_spinner_box.zero_all_parts();
         // TODO: handle case of duplicate mixed paint
-        self.mixing_session.borrow_mut().add_mixture(&mixed_paint);
+        self.mixing_session.borrow_mut().add_mixture(mixed_paint);
         self.update_session_needs_saving();
     }
 

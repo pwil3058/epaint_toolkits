@@ -171,10 +171,10 @@ impl MakeColouredShape for Mixture {
     }
 }
 
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct MixingSession {
     notes: String,
-    mixtures: Vec<Rc<Mixture>>,
+    mixtures: Vec<Mixture>,
 }
 
 impl MixingSession {
@@ -193,7 +193,7 @@ impl MixingSession {
         self.notes = notes.to_string()
     }
 
-    pub fn mixtures(&self) -> impl Iterator<Item = &Rc<Mixture>> {
+    pub fn mixtures(&self) -> impl Iterator<Item = &Mixture> {
         self.mixtures.iter()
     }
 
@@ -212,31 +212,29 @@ impl MixingSession {
         v
     }
 
-    pub fn add_mixture(&mut self, mixture: &Rc<Mixture>) -> Option<Rc<Mixture>> {
+    pub fn add_mixture(&mut self, mixture: Mixture) -> Option<Mixture> {
         debug_assert!(self.is_sorted_unique());
         match self
             .mixtures
             .binary_search_by_key(&mixture.id(), |m| m.id())
         {
             Ok(index) => {
-                self.mixtures.push(Rc::clone(mixture));
+                self.mixtures.push(mixture);
                 let old = self.mixtures.swap_remove(index);
                 debug_assert!(self.is_sorted_unique());
                 Some(old)
             }
             Err(index) => {
-                self.mixtures.insert(index, Rc::clone(mixture));
+                self.mixtures.insert(index, mixture);
                 None
             }
         }
     }
 
-    pub fn mixture(&self, id: &str) -> Option<&Rc<Mixture>> {
+    pub fn mixture(&self, id: &str) -> Option<&Mixture> {
         debug_assert!(self.is_sorted_unique());
-        match self.mixtures.binary_search_by_key(&id, |p| p.id()) {
-            Ok(index) => self.mixtures.get(index),
-            Err(_) => None,
-        }
+        let index = self.mixtures.binary_search_by_key(&id, |p| p.id()).ok()?;
+        self.mixtures.get(index)
     }
 
     pub fn is_sorted_unique(&self) -> bool {
@@ -250,25 +248,52 @@ impl MixingSession {
 }
 
 impl MixingSession {
-    pub fn read<R: Read>(
-        reader: &mut R,
-        series_paint_finder: &Rc<impl PaintFinder>,
-    ) -> Result<Self, crate::Error> {
-        let saved_session = SaveableMixingSession::read(reader)?;
-        let mixing_session = saved_session.mixing_session(series_paint_finder)?;
-        Ok(mixing_session)
+    pub fn read<R: Read>(reader: &mut R) -> Result<Self, crate::Error> {
+        let mut string = String::new();
+        reader.read_to_string(&mut string)?;
+        let session: Self = serde_json::from_str(&string)?;
+        Ok(session)
     }
 }
 
 impl MixingSession {
     pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
-        SaveableMixingSession::from(self).write(writer)
+        let mut hasher = Hasher::new(Algorithm::SHA256);
+        let json_text = serde_json::to_string_pretty(self)?;
+        hasher.write_all(json_text.as_bytes())?;
+        let digest = hasher.finish();
+        writer.write_all(json_text.as_bytes())?;
+        Ok(digest)
     }
 
     pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
-        SaveableMixingSession::from(self).digest()
+        let mut hasher = Hasher::new(Algorithm::SHA256);
+        let json_text = serde_json::to_string_pretty(self)?;
+        hasher.write_all(json_text.as_bytes())?;
+        Ok(hasher.finish())
     }
 }
+
+// impl MixingSession {
+//     pub fn read<R: Read>(
+//         reader: &mut R,
+//         series_paint_finder: &Rc<impl PaintFinder>,
+//     ) -> Result<Self, crate::Error> {
+//         let saved_session = SaveableMixingSession::read(reader)?;
+//         let mixing_session = saved_session.mixing_session(series_paint_finder)?;
+//         Ok(mixing_session)
+//     }
+// }
+//
+// impl MixingSession {
+//     pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
+//         SaveableMixingSession::from(self).write(writer)
+//     }
+//
+//     pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
+//         SaveableMixingSession::from(self).digest()
+//     }
+// }
 
 #[derive(Debug)]
 pub struct MixtureBuilder {
@@ -323,7 +348,7 @@ impl MixtureBuilder {
         self
     }
 
-    pub fn build(&self) -> Rc<Mixture> {
+    pub fn build(&self) -> Mixture {
         debug_assert!(self.series_components.len() > 0);
         let mut gcd: u64 = 0;
         for (_, parts) in self.series_components.iter() {
@@ -340,7 +365,7 @@ impl MixtureBuilder {
             properties_mixer.add(&colln_paint.paint.properties, adjusted_parts);
             components.push((colln_paint.clone(), adjusted_parts));
         }
-        let mp = Mixture {
+        Mixture {
             id: self.id.to_string(),
             colour: colour_mix.mixed_colour().unwrap(),
             #[cfg(feature = "targeted_mixtures")]
@@ -350,129 +375,7 @@ impl MixtureBuilder {
             notes: self.notes.clone(),
             properties: properties_mixer.mixed_properties(),
             components,
-        };
-        Rc::new(mp)
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SaveablePaint(SeriesId, String);
-
-impl From<&CollnPaint> for SaveablePaint {
-    fn from(colln_paint: &CollnPaint) -> SaveablePaint {
-        SaveablePaint(
-            (colln_paint.series_id()).clone(),
-            colln_paint.paint.key().to_string(),
-        )
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SaveableMixture {
-    id: String,
-    #[cfg(feature = "targeted_mixtures")]
-    targeted_colour: Option<HCV>,
-    name: String,
-    notes: String,
-    components: Vec<(SaveablePaint, u64)>,
-}
-
-impl From<&Rc<Mixture>> for SaveableMixture {
-    fn from(rcmp: &Rc<Mixture>) -> Self {
-        let components = rcmp
-            .components
-            .iter()
-            .map(|(paint, parts)| (SaveablePaint::from(paint), *parts))
-            .collect();
-        Self {
-            id: rcmp.id.to_string(),
-            #[cfg(feature = "targeted_mixtures")]
-            targeted_colour: rcmp.targeted_colour,
-            name: rcmp.name.to_string(),
-            notes: rcmp.notes.to_string(),
-            components,
         }
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct SaveableMixingSession {
-    notes: String,
-    mixtures: Vec<SaveableMixture>,
-}
-
-impl From<&MixingSession> for SaveableMixingSession {
-    fn from(session: &MixingSession) -> Self {
-        let mixtures = session.mixtures.iter().map(SaveableMixture::from).collect();
-        Self {
-            notes: session.notes.to_string(),
-            mixtures,
-        }
-    }
-}
-
-impl SaveableMixingSession {
-    pub fn notes(&self) -> &str {
-        &self.notes
-    }
-
-    pub fn mixtures(&self) -> impl Iterator<Item = &SaveableMixture> {
-        self.mixtures.iter()
-    }
-
-    // TODO: implement From for mixing session instead of this
-    pub fn mixing_session(
-        &self,
-        series_paint_finder: &Rc<impl PaintFinder>,
-    ) -> Result<MixingSession, crate::Error> {
-        let mut mixtures: Vec<Rc<Mixture>> = vec![];
-        for saved_mixture in self.mixtures.iter() {
-            let mut mixture_builder = MixtureBuilder::new(&saved_mixture.id);
-            mixture_builder.id(&saved_mixture.id);
-            mixture_builder.notes(&saved_mixture.notes);
-            #[cfg(feature = "targeted_mixtures")]
-            if let Some(targeted_colour) = saved_mixture.targeted_colour {
-                mixture_builder.targeted_colour(&targeted_colour);
-            }
-            for saved_component in saved_mixture.components.iter() {
-                let paint = series_paint_finder
-                    .get_paint(&saved_component.0.1, Some(&saved_component.0.0))?;
-                mixture_builder.paint_component((paint, saved_component.1));
-            }
-            let mixture = mixture_builder.build();
-            mixtures.push(mixture);
-        }
-        Ok(MixingSession {
-            notes: self.notes.to_string(),
-            mixtures,
-        })
-    }
-}
-
-impl SaveableMixingSession {
-    pub fn read<R: Read>(reader: &mut R) -> Result<Self, crate::Error> {
-        let mut string = String::new();
-        reader.read_to_string(&mut string)?;
-        let session: Self = serde_json::from_str(&string)?;
-        Ok(session)
-    }
-}
-
-impl SaveableMixingSession {
-    pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
-        let mut hasher = Hasher::new(Algorithm::SHA256);
-        let json_text = serde_json::to_string_pretty(self)?;
-        hasher.write_all(json_text.as_bytes())?;
-        let digest = hasher.finish();
-        writer.write_all(json_text.as_bytes())?;
-        Ok(digest)
-    }
-
-    pub fn digest(&self) -> Result<Vec<u8>, crate::Error> {
-        let mut hasher = Hasher::new(Algorithm::SHA256);
-        let json_text = serde_json::to_string_pretty(self)?;
-        hasher.write_all(json_text.as_bytes())?;
-        Ok(hasher.finish())
     }
 }
 

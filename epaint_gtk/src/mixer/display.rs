@@ -29,7 +29,7 @@ use crate::list::PaintListRow;
 #[derive(PWO)]
 pub struct MixtureDisplay {
     vbox: gtk::Box,
-    mixture: Rc<Mixture>,
+    mixture: Mixture,
     #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
     #[cfg(feature = "targeted_mixtures")]
@@ -50,7 +50,7 @@ impl MixtureDisplay {
         };
     }
 
-    pub fn mixture(&self) -> &Rc<Mixture> {
+    pub fn mixture(&self) -> &Mixture {
         &self.mixture
     }
 }
@@ -91,7 +91,7 @@ impl MixtureDisplayBuilder {
         self
     }
 
-    pub fn build(&self, mixture: &Rc<Mixture>) -> MixtureDisplay {
+    pub fn build(&self, mixture: &Mixture) -> MixtureDisplay {
         let colour = mixture.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
@@ -137,12 +137,6 @@ impl MixtureDisplayBuilder {
 
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        // for property_type in self.properties.iter() {
-        //     let value = mixture.property(*property_type).full();
-        //     let label = gtk::LabelBuilder::new().label(value).build();
-        //     label.set_widget_colour(&colour);
-        //     vbox.pack_start(&label, false, false, 0);
-        // }
         for property in mixture.iter_properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
@@ -166,7 +160,7 @@ impl MixtureDisplayBuilder {
 
         MixtureDisplay {
             vbox,
-            mixture: Rc::clone(mixture),
+            mixture: mixture.clone(),
             #[cfg(feature = "targeted_mixtures")]
             target_label,
             #[cfg(feature = "targeted_mixtures")]
@@ -185,7 +179,7 @@ pub struct MixtureDisplayDialogManager<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(&'static str, Option<&'static str>, u16)>,
     mixture_display_builder: MixtureDisplayBuilder,
-    dialogs: BTreeMap<Rc<Mixture>, MixtureDisplayDialog>,
+    dialogs: BTreeMap<Mixture, MixtureDisplayDialog>,
 }
 
 impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
@@ -207,7 +201,7 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
         dialog
     }
 
-    pub fn display_mixture(&mut self, mixture: &Rc<Mixture>) {
+    pub fn display_mixture(&mut self, mixture: &Mixture) {
         if !self.dialogs.contains_key(mixture) {
             let dialog = self.new_dialog();
             let display = self.mixture_display_builder.build(mixture);
@@ -219,7 +213,7 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
                 #[cfg(feature = "targeted_mixtures")]
                 display,
             };
-            self.dialogs.insert(Rc::clone(mixture), pdd);
+            self.dialogs.insert(mixture.clone(), pdd);
         };
         let pdd = self.dialogs.get(mixture).expect("we just put it there");
         pdd.dialog.present();
