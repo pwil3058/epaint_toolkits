@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{PaintKey, paint::Paint, series::PaintSeriesSpec};
+use epaint::{PaintKey, paint::Paint, series::PaintSeries};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
@@ -36,7 +36,7 @@ pub struct BasicPaintFactory {
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
-    paint_series: RefCell<PaintSeriesSpec>,
+    paint_series: RefCell<PaintSeries>,
     proprietor_entry: gtk::Entry,
     series_name_entry: gtk::Entry,
 }
@@ -60,13 +60,13 @@ impl BasicPaintFactory {
             .update_tool_needs_saving(self.paint_editor.has_unsaved_changes());
     }
 
-    fn do_add_paint_work(&self, paint_spec: &Paint) {
-        if let Some(old_paint) = self.paint_series.borrow_mut().add(paint_spec) {
+    fn do_add_paint_work(&self, paint: &Paint) {
+        if let Some(old_paint) = self.paint_series.borrow_mut().add(paint) {
             self.hue_wheel.remove_item(old_paint.key());
             self.list_view.remove_row(old_paint.key());
         }
-        self.hue_wheel.add_item(paint_spec.coloured_shape());
-        let row = paint_spec.row(&self.attributes);
+        self.hue_wheel.add_item(paint.coloured_shape());
+        let row = paint.row(&self.attributes);
         self.list_view.add_row(&row);
     }
 
@@ -101,7 +101,7 @@ impl BasicPaintFactory {
         self.update_editor_needs_saving();
     }
 
-    fn edit_paint(&self, id: &str) {
+    fn edit_paint(&self, key: &str) {
         if self.paint_editor.has_unsaved_changes() {
             // NB: can't offer "save" as an option as it could change indicated paint
             let buttons = &[
@@ -115,16 +115,9 @@ impl BasicPaintFactory {
             }
         }
         let paint_series = self.paint_series.borrow();
-        let paint = paint_series.find(id).expect("should be there");
-        let spec = Paint {
-            #[cfg(feature = "paints_have_ids")]
-            id: paint.id.to_string(),
-            name: paint.name.to_string(),
-            notes: paint.notes.to_string(),
-            properties: paint.properties.clone(),
-            colour: paint.colour.clone(),
-        };
-        self.paint_editor.edit(&spec);
+        let colln_paint = paint_series.find_colln_paint(key).expect("should be there");
+        let paint: Paint = colln_paint.into();
+        self.paint_editor.edit(&paint);
         self.update_editor_needs_saving();
     }
 
@@ -154,17 +147,17 @@ impl BasicPaintFactory {
     fn load<Q: AsRef<Path>>(&self, path: Q) -> epaint::Result<Vec<u8>> {
         let path: &Path = path.as_ref();
         let mut file = File::open(path)?;
-        let new_series: PaintSeriesSpec = PaintSeriesSpec::read(&mut file)?;
+        let new_series: PaintSeries = PaintSeries::read(&mut file)?;
         self.unguarded_reset();
         let id = new_series.series_id();
         self.proprietor_entry.set_text(&id.proprietor);
         self.series_name_entry.set_text(&id.series_name);
         {
             let mut series = self.paint_series.borrow_mut();
-            for paint in new_series.paints() {
-                series.add(paint);
-                self.hue_wheel.add_item(paint.coloured_shape());
-                let row = paint.row(&self.attributes);
+            *series = new_series;
+            for colln_paint in series.colln_paints() {
+                self.hue_wheel.add_item(colln_paint.coloured_shape());
+                let row = colln_paint.row(&self.attributes);
                 self.list_view.add_row(&row);
             }
         }
@@ -277,7 +270,7 @@ impl BasicPaintFactoryBuilder {
             hue_wheel,
             list_view,
             attributes: self.attributes.to_vec(),
-            paint_series: RefCell::new(PaintSeriesSpec::default()),
+            paint_series: RefCell::new(PaintSeries::default()),
             proprietor_entry,
             series_name_entry,
         });

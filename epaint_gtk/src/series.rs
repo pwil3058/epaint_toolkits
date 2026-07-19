@@ -32,7 +32,7 @@ use epaint::{
     SeriesId,
     paint::CollnPaint,
     properties::PropertyTypes,
-    series::{PaintFinder, PaintSeries, PaintSeriesSpec},
+    series::{PaintFinder, PaintSeries},
 };
 
 use crate::{
@@ -411,11 +411,11 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
             return Err(crate::Error::DuplicateFile(msg));
         }
         let mut file = File::open(path)?;
-        let new_series_spec = match PaintSeriesSpec::read(&mut file) {
-            Ok(spec) => spec,
+        let new_series = match PaintSeries::read(&mut file) {
+            Ok(series) => series,
             Err(err) => return Err(crate::Error::APaintError(err)),
         };
-        self.add_series((&new_series_spec).into(), path)?;
+        self.add_series(new_series, path)?;
         Ok(())
     }
 }

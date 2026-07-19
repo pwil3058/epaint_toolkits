@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use crate::paint::{CollnPaint, Paint};
 use crate::{PaintKey, SeriesId};
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PaintSeries {
     pub series_id: SeriesId,
     pub paint_list: Vec<Paint>,
@@ -24,6 +24,45 @@ impl PaintSeries {
 
     pub fn series_id(&self) -> &SeriesId {
         &self.series_id
+    }
+
+    pub fn set_proprietor(&mut self, proprietor: &str) {
+        self.series_id.proprietor = proprietor.to_string()
+    }
+
+    pub fn set_series_name(&mut self, series_name: &str) {
+        self.series_id.series_name = series_name.to_string()
+    }
+
+    pub fn add(&mut self, paint: &Paint) -> Option<Paint> {
+        debug_assert!(self.is_sorted_unique());
+        match self
+            .paint_list
+            .binary_search_by_key(&paint.key(), |p| p.key())
+        {
+            Ok(index) => {
+                self.paint_list.push(paint.clone());
+                let old = self.paint_list.swap_remove(index);
+                debug_assert!(self.is_sorted_unique());
+                Some(old)
+            }
+            Err(index) => {
+                self.paint_list.insert(index, paint.clone());
+                None
+            }
+        }
+    }
+
+    pub fn remove(&mut self, key: &str) -> Result<Paint, crate::Error> {
+        debug_assert!(self.is_sorted_unique());
+        match self.paint_list.binary_search_by_key(&key, |p| &p.key()) {
+            Ok(index) => Ok(self.paint_list.remove(index)),
+            Err(_) => Err(crate::Error::NotFound(key.to_string())),
+        }
+    }
+
+    pub fn remove_all(&mut self) {
+        self.paint_list.clear()
     }
 
     pub fn colln_paints(&self) -> impl Iterator<Item = CollnPaint> {
@@ -54,116 +93,14 @@ impl PaintSeries {
             series_id: self.series_id.clone(),
         })
     }
-}
 
-#[derive(Serialize, Deserialize, Debug, Default)]
-pub struct PaintSeriesSpec {
-    pub(crate) series_id: SeriesId,
-    pub(crate) paint_spec_list: Vec<Paint>,
-}
-
-impl PaintSeriesSpec {
-    pub fn series_id(&self) -> &SeriesId {
-        &self.series_id
-    }
-
-    pub fn set_proprietor(&mut self, proprietor: &str) {
-        self.series_id.proprietor = proprietor.to_string()
-    }
-
-    pub fn set_series_name(&mut self, series_name: &str) {
-        self.series_id.series_name = series_name.to_string()
-    }
-
-    pub fn paints(&self) -> impl Iterator<Item = &Paint> {
-        self.paint_spec_list.iter()
-    }
-
-    pub fn add(&mut self, paint: &Paint) -> Option<Paint> {
-        debug_assert!(self.is_sorted_unique());
-        match self
-            .paint_spec_list
-            .binary_search_by_key(&paint.key(), |p| p.key())
-        {
-            Ok(index) => {
-                self.paint_spec_list.push(paint.clone());
-                let old = self.paint_spec_list.swap_remove(index);
-                debug_assert!(self.is_sorted_unique());
-                Some(old)
-            }
-            Err(index) => {
-                self.paint_spec_list.insert(index, paint.clone());
-                None
-            }
-        }
-    }
-
-    pub fn remove(&mut self, key: &str) -> Result<Paint, crate::Error> {
-        debug_assert!(self.is_sorted_unique());
-        match self
-            .paint_spec_list
-            .binary_search_by_key(&key, |p| &p.key())
-        {
-            Ok(index) => Ok(self.paint_spec_list.remove(index)),
-            Err(_) => Err(crate::Error::NotFound(key.to_string())),
-        }
-    }
-
-    pub fn remove_all(&mut self) {
-        self.paint_spec_list.clear()
-    }
-
-    pub fn find(&self, key: &str) -> Option<&Paint> {
-        debug_assert!(self.is_sorted_unique());
-        match self
-            .paint_spec_list
-            .binary_search_by_key(&key, |p| &p.key())
-        {
-            Ok(index) => self.paint_spec_list.get(index),
-            Err(_) => None,
-        }
-    }
-
-    pub fn is_sorted_unique(&self) -> bool {
-        for i in 1..self.paint_spec_list.len() {
-            if self.paint_spec_list[i] <= self.paint_spec_list[i - 1] {
-                return false;
-            }
-        }
-        true
-    }
-}
-
-impl From<&PaintSeriesSpec> for PaintSeries {
-    fn from(data: &PaintSeriesSpec) -> PaintSeries {
-        let series_id = data.series_id().clone();
-        let paint_list = data
-            .paint_spec_list
-            .iter()
-            .map(|paint| paint.clone())
-            .collect();
-        // let mut paint_list = Vec::new();
-        // for paint_spec in data.paint_spec_list.iter() {
-        //     let paint: CollnPaint = (paint_spec.clone(), series_id.clone()).into();
-        //     paint_list.push(Rc::new(paint));
-        // }
-        PaintSeries {
-            series_id,
-            paint_list,
-        }
-    }
-}
-
-impl PaintSeriesSpec {
     pub fn read<R: Read>(reader: &mut R) -> Result<Self, crate::Error> {
         let mut string = String::new();
         reader.read_to_string(&mut string)?;
         let series: Self = serde_json::from_str(&string)?;
         Ok(series)
     }
-}
 
-impl PaintSeriesSpec {
     pub fn write<W: Write>(&self, writer: &mut W) -> Result<Vec<u8>, crate::Error> {
         let mut hasher = Hasher::new(Algorithm::SHA256);
         let json_text = serde_json::to_string_pretty(self)?;
