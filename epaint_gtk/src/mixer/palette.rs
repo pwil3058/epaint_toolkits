@@ -807,8 +807,6 @@ impl PalettePaintMixerBuilder {
             let tpm_c = Rc::clone(&tpm);
             tpm.paint_standards_manager
                 .connect_set_as_target(move |paint| {
-                    #[cfg(feature = "paints_have_ids")]
-                    let id = paint.id();
                     let name = paint.name();
                     let colour = paint.hcv();
                     let notes = paint.notes();
