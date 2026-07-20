@@ -7,9 +7,6 @@ use std::io;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-use crate::properties::{Property, PropertyType, PropertyTypes};
-use colour_math::{ColourAttributes, ColourBasics, HCV};
-
 pub mod mixtures;
 pub mod paint;
 pub mod properties;
@@ -32,31 +29,6 @@ pub struct SeriesId {
 impl fmt::Display for SeriesId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:({})", self.series_name, self.proprietor)
-    }
-}
-
-pub trait PaintKey {
-    fn key(&self) -> &str;
-}
-
-pub trait GetSeriesId {
-    fn series_id(&self) -> &SeriesId;
-
-    fn key(&self) -> (&str, &SeriesId);
-}
-
-pub trait PaintEssence:
-    ColourBasics + ColourAttributes + ColourBasics + PartialEq + PartialOrd + Ord + Clone
-{
-    #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str;
-    fn name(&self) -> &str;
-    fn colour(&self) -> HCV;
-    fn notes(&self) -> &str;
-    fn iter_properties(&self) -> impl Iterator<Item = Property>;
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType>;
-    fn property_types(&self) -> PropertyTypes {
-        PropertyTypes(self.iter_property_types().collect())
     }
 }
 

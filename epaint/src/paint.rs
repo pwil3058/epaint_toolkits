@@ -6,8 +6,8 @@ use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
-use crate::properties::{Properties, Property, PropertyType};
-use crate::{GetSeriesId, LabelText, PaintEssence, PaintKey, SeriesId, TooltipText};
+use crate::properties::{Properties, Property};
+use crate::{LabelText, SeriesId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct Paint {
@@ -20,42 +20,15 @@ pub struct Paint {
     pub properties: Properties,
 }
 
-impl PaintKey for Paint {
+impl Paint {
     #[cfg(feature = "paints_have_ids")]
-    fn key(&self) -> &str {
+    pub fn key(&self) -> &str {
         &self.id
     }
 
     #[cfg(not(feature = "paints_have_ids"))]
-    fn key(&self) -> &str {
+    pub fn key(&self) -> &str {
         &self.name
-    }
-}
-
-impl PaintEssence for Paint {
-    #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str {
-        &self.id
-    }
-
-    fn name(&self) -> &str {
-        &self.name
-    }
-
-    fn colour(&self) -> HCV {
-        self.colour.clone()
-    }
-
-    fn notes(&self) -> &str {
-        &self.notes
-    }
-
-    fn iter_properties(&self) -> impl Iterator<Item = Property> {
-        self.properties.properties()
-    }
-
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.properties.iter_property_types()
     }
 }
 
@@ -104,40 +77,34 @@ pub struct CollnPaint {
     pub series_id: SeriesId,
 }
 
-impl PaintEssence for CollnPaint {
+impl CollnPaint {
+    pub fn key(&self) -> (&str, &SeriesId) {
+        (self.paint.key(), &self.series_id)
+    }
+
     #[cfg(feature = "paints_have_ids")]
-    fn id(&self) -> &str {
+    pub fn id(&self) -> &str {
         &self.paint.id
     }
 
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.paint.name
     }
 
-    fn notes(&self) -> &str {
+    pub fn notes(&self) -> &str {
         &self.paint.notes
     }
 
-    fn colour(&self) -> HCV {
+    pub fn colour(&self) -> HCV {
         self.paint.colour.clone()
     }
 
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.paint.iter_property_types()
+    pub fn properties(&self) -> impl Iterator<Item = Property> {
+        self.paint.properties.iter()
     }
 
-    fn iter_properties(&self) -> impl Iterator<Item = Property> {
-        self.paint.properties.properties()
-    }
-}
-
-impl GetSeriesId for CollnPaint {
-    fn series_id(&self) -> &SeriesId {
+    pub fn series_id(&self) -> &SeriesId {
         &self.series_id
-    }
-
-    fn key(&self) -> (&str, &SeriesId) {
-        (self.paint.key(), &self.series_id)
     }
 }
 
@@ -191,7 +158,6 @@ impl Into<Paint> for CollnPaint {
 #[cfg(test)]
 mod paint_tests {
     use std::convert::From;
-    use std::rc::Rc;
 
     use super::*;
     use colour_math::ColourBasics;
@@ -204,13 +170,14 @@ mod paint_tests {
     use crate::*;
 
     #[test]
-    fn test_paint_spec_generate_paint() {
+    fn test_paint_from() {
         let series_id = SeriesId {
             series_name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
         };
         let target_paint = CollnPaint {
             paint: Paint {
+                #[cfg(feature = "paints_have_ids")]
                 id: "magenta".to_string(),
                 colour: HCV::MAGENTA,
                 name: "Magenta".to_string(),
@@ -220,6 +187,7 @@ mod paint_tests {
             series_id: series_id.clone(),
         };
         let paint = Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "magenta".to_string(),
             colour: HCV::MAGENTA,
             name: "Magenta".to_string(),
@@ -231,8 +199,9 @@ mod paint_tests {
     }
 
     #[test]
-    fn test_paint_to_from_paint_spec() {
+    fn test_paint_to_from() {
         let paint = Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "red magenta".to_string(),
             colour: HCV::RED_MAGENTA,
             name: "Red Magenta".to_string(),
@@ -252,7 +221,7 @@ mod paint_tests {
             colln_paint.paint.properties,
             Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
         );
-        for (target, actual) in paint.iter_properties().zip(colln_paint.iter_properties()) {
+        for (target, actual) in paint.properties.iter().zip(colln_paint.properties()) {
             assert_eq!(target, actual);
         }
         let recovered_paint_spec: Paint = colln_paint.into();

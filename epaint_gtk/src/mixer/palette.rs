@@ -46,7 +46,6 @@ use colour_math_gtk::{
 use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use epaint::{
-    PaintKey,
     mixtures::{MixingSession, MixtureBuilder},
     paint::CollnPaint,
     properties::PropertyTypes,

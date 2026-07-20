@@ -17,34 +17,8 @@ use colour_math::{
 use colour_math_derive::Colour;
 
 use crate::paint::CollnPaint;
-use crate::properties::{Properties, PropertiesMixer, Property, PropertyType};
-use crate::{GetSeriesId, LabelText, PaintKey, TooltipText};
-
-pub trait MixtureIfce {
-    fn id(&self) -> &str;
-
-    fn name(&self) -> &str;
-
-    fn notes(&self) -> &str;
-
-    fn colour(&self) -> HCV;
-
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType>;
-
-    fn iter_properties(&self) -> impl Iterator<Item = Property>;
-
-    #[cfg(feature = "targeted_mixtures")]
-    fn targeted_colour(&self) -> Option<HCV>;
-    fn components(&self) -> impl Iterator<Item = (CollnPaint, u64)>;
-
-    #[cfg(feature = "targeted_mixtures")]
-    fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
-        if let Some(ref colour) = self.targeted_colour() {
-            return Some(colour.rgb::<L>());
-        }
-        None
-    }
-}
+use crate::properties::{Properties, PropertiesMixer, Property};
+use crate::{LabelText, TooltipText};
 
 #[derive(Serialize, Deserialize, Colour, Clone, PartialEq, PartialOrd, Eq, Ord, Debug)]
 pub struct Mixture {
@@ -59,44 +33,21 @@ pub struct Mixture {
     pub components: Vec<(CollnPaint, u64)>,
 }
 
-impl PaintKey for Mixture {
-    fn key(&self) -> &str {
-        &self.id
-    }
-}
-
-impl MixtureIfce for Mixture {
-    fn id(&self) -> &str {
+impl Mixture {
+    pub fn id(&self) -> &str {
         &self.id
     }
 
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.name
     }
 
-    fn notes(&self) -> &str {
+    pub fn notes(&self) -> &str {
         &self.notes
     }
 
-    fn colour(&self) -> HCV {
-        self.colour.clone()
-    }
-
-    fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
-        self.properties.iter_property_types()
-    }
-
-    fn iter_properties(&self) -> impl Iterator<Item = Property> {
-        self.properties.properties()
-    }
-
-    #[cfg(feature = "targeted_mixtures")]
-    fn targeted_colour(&self) -> Option<HCV> {
-        self.targeted_colour.into()
-    }
-
-    fn components(&self) -> impl Iterator<Item = (CollnPaint, u64)> {
-        self.components.iter().map(|(cp, p)| (cp.clone(), *p))
+    pub fn iter_properties(&self) -> impl Iterator<Item = Property> {
+        self.properties.iter()
     }
 }
 
@@ -355,8 +306,6 @@ impl MixtureBuilder {
 
 #[cfg(test)]
 mod test {
-    use std::rc::Rc;
-
     use colour_math::HCV;
     use colour_math::HueConstants;
 
@@ -373,6 +322,7 @@ mod test {
         paint_series.set_series_name("series name");
         assert!(paint_series.colln_paints().next().is_none());
         paint_series.add(&Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
             colour: HCV::RED,
             name: "red".to_string(),
@@ -380,6 +330,7 @@ mod test {
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         });
         paint_series.add(&Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
             colour: HCV::YELLOW,
             name: "yellow".to_string(),

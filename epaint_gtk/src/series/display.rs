@@ -18,7 +18,7 @@ use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::{GetSeriesId, PaintEssence, paint::CollnPaint, properties::PropertyTypes};
+use epaint::{paint::CollnPaint, properties::PropertyTypes};
 
 use crate::series::PaintActionCallback;
 
@@ -139,7 +139,7 @@ impl PaintDisplayBuilder {
         vbox.pack_start(&target_label, true, true, 0);
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        for property in paint.iter_properties() {
+        for property in paint.properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
             label.set_widget_colour(&hcv);

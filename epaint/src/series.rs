@@ -5,8 +5,8 @@ use std::io::{Read, Write};
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
 
+use crate::SeriesId;
 use crate::paint::{CollnPaint, Paint};
-use crate::{PaintKey, SeriesId};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 pub struct PaintSeries {
@@ -141,6 +141,7 @@ mod test {
         paint_series.set_series_name("series name");
         assert!(paint_series.colln_paints().next().is_none());
         paint_series.add(&Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
             colour: HCV::RED,
             name: "red".to_string(),
@@ -148,6 +149,7 @@ mod test {
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
         paint_series.add(&Paint {
+            #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
             colour: HCV::YELLOW,
             name: "yellow".to_string(),

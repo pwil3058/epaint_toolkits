@@ -466,9 +466,7 @@ impl Properties {
     pub fn iter(&self) -> impl Iterator<Item = Property> {
         self.0.iter().copied()
     }
-}
 
-impl Properties {
     pub fn new(vec: &[Property]) -> Self {
         Self(vec.to_vec())
     }
@@ -497,10 +495,6 @@ impl Properties {
 
     pub fn property_variants_u64(&self) -> Vec<u64> {
         self.0.iter().map(|p| p.value as u64).collect()
-    }
-
-    pub fn properties(&self) -> impl Iterator<Item = Property> {
-        self.0.iter().copied()
     }
 }
 
@@ -578,6 +572,7 @@ impl PropertiesMixer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::properties::{Lightfastness, Property, PropertyType, Transparency};
 
     #[test]
     fn test_property_type() {
@@ -673,5 +668,19 @@ mod tests {
     #[test]
     fn defaults() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
+    }
+
+    #[test]
+    fn test_properties_iter() {
+        let property_types = PropertyTypes(vec![
+            PropertyType::Transparency,
+            PropertyType::Lightfastness,
+            PropertyType::Staining,
+            PropertyType::Granulation,
+        ]);
+        let properties: Properties = (&property_types).into();
+        for (property, property_type) in properties.iter().zip(property_types.iter()) {
+            assert_eq!(property.property_type, property_type);
+        }
     }
 }

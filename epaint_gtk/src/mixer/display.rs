@@ -21,10 +21,7 @@ use colour_math_gtk::coloured::Colourable;
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};
 
-use epaint::{
-    mixtures::{Mixture, MixtureIfce},
-    properties::PropertyTypes,
-};
+use epaint::{mixtures::Mixture, properties::PropertyTypes};
 
 use crate::list::PaintListRow;
 

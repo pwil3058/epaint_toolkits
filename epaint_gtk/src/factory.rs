@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{PaintKey, paint::Paint, series::PaintSeries};
+use epaint::{paint::Paint, series::PaintSeries};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},

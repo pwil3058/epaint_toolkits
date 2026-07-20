@@ -12,7 +12,6 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use epaint::PaintEssence;
 use epaint::paint::Paint;
 use epaint::properties::{Properties, Property, PropertyType, PropertyTypes};
 
@@ -263,7 +262,8 @@ impl BasicPaintSpecEditor {
         // }
         if let Some(spec) = bpe.current_spec.borrow().as_ref() {
             for (property, property_entry) in spec
-                .iter_properties()
+                .properties
+                .iter()
                 .zip(bpe.property_entries.iter().map(Rc::clone))
             {
                 let bpe_c = Rc::clone(&bpe);
@@ -408,7 +408,7 @@ impl BasicPaintSpecEditor {
         for (property_entry, spec_value) in self
             .property_entries
             .iter()
-            .zip(spec.iter_properties().map(|p| p.value))
+            .zip(spec.properties.iter().map(|p| p.value))
         {
             let property = Property {
                 property_type: property_entry.property_type(),

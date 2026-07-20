@@ -7,7 +7,6 @@ use pw_gtk_ext::{
 };
 
 use epaint::{
-    PaintEssence,
     mixtures::Mixture,
     paint::{CollnPaint, Paint},
 };
@@ -140,9 +139,9 @@ impl PaintListRow for Paint {
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             #[cfg(feature = "paints_have_ids")]
-            self.id().to_value(),
-            self.name().to_value(),
-            self.notes().to_value(),
+            self.id.to_value(),
+            self.name.to_value(),
+            self.notes.to_value(),
             hcv_bg.pango_string().to_value(),
             ha.to_value(),
         ];
@@ -153,7 +152,7 @@ impl PaintListRow for Paint {
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());
         }
-        for property in self.iter_properties() {
+        for property in self.properties.iter() {
             let string = property.abbrev_value();
             row.push(string.to_value());
         }
