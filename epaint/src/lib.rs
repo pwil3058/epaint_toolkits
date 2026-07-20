@@ -3,7 +3,9 @@
 use std::error;
 use std::fmt;
 use std::io;
+use std::str::FromStr;
 
+use regex::Regex;
 use serde::{Deserialize, Serialize};
 use serde_json;
 
@@ -26,9 +28,36 @@ pub struct SeriesId {
     pub series_name: String,
 }
 
+impl SeriesId {
+    pub const REGEX: &'static str = r"(?P<series_name>[^:]+):\((?P<proprietor>[^)]+)\)";
+}
+
 impl fmt::Display for SeriesId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:({})", self.series_name, self.proprietor)
+    }
+}
+
+impl FromStr for SeriesId {
+    type Err = regex::Error;
+
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
+        let re = Regex::new(Self::REGEX)?;
+        let cap = re.captures(s).ok_or(regex::Error::Syntax(s.to_string()))?;
+        let series_name = cap
+            .name("series_name")
+            .ok_or(regex::Error::Syntax(s.to_string()))?
+            .as_str()
+            .to_string();
+        let proprietor = cap
+            .name("proprietor")
+            .ok_or(regex::Error::Syntax(s.to_string()))?
+            .as_str()
+            .to_string();
+        Ok(Self {
+            series_name,
+            proprietor,
+        })
     }
 }
 
@@ -82,3 +111,17 @@ impl From<serde_json::Error> for Error {
 }
 
 pub type Result<T> = std::result::Result<T, crate::Error>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use regex::Regex;
+
+    #[test]
+    fn test_reg_ex() {
+        let series_id: SeriesId =
+            SeriesId::from_str("Red Magenta:(Daniel Smith)").expect("valid series_id");
+        assert_eq!(series_id.proprietor, "Daniel Smith");
+        assert_eq!(series_id.series_name, "Red Magenta");
+    }
+}

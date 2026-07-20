@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::io::{Read, Write};
-
 use crypto_hash::{Algorithm, Hasher};
 use serde::{Deserialize, Serialize};
+use std::io::{Read, Write};
+use std::str::FromStr;
 
 use crate::SeriesId;
 use crate::paint::{CollnPaint, Paint};
@@ -66,10 +66,9 @@ impl PaintSeries {
     }
 
     pub fn colln_paints(&self) -> impl Iterator<Item = CollnPaint> {
-        self.paint_list.iter().cloned().map(|paint| CollnPaint {
-            paint,
-            series_id: self.series_id.clone(),
-        })
+        self.paint_list
+            .iter()
+            .map(|paint| CollnPaint::from((paint, &self.series_id)))
     }
 
     pub fn is_sorted_unique(&self) -> bool {
@@ -81,17 +80,29 @@ impl PaintSeries {
         true
     }
 
-    pub fn find_colln_paint(&self, key: &str) -> Option<CollnPaint> {
-        debug_assert!(self.is_sorted_unique());
+    fn find_paint(&self, key: &str) -> Option<&Paint> {
         let index = self
             .paint_list
             .binary_search_by_key(&key, |p| p.key())
             .ok()?;
-        let paint = self.paint_list[index].clone();
-        Some(CollnPaint {
-            paint,
-            series_id: self.series_id.clone(),
-        })
+        self.paint_list.get(index)
+    }
+
+    pub fn find_colln_paint(&self, key: &str) -> Option<CollnPaint> {
+        debug_assert!(self.is_sorted_unique());
+        if let Some(paint) = self.find_paint(key) {
+            Some(CollnPaint::from((paint, &self.series_id)))
+        } else {
+            let split = key.split("::").collect::<Vec<_>>();
+            debug_assert!(split.len() == 2);
+            let series_id = SeriesId::from_str(split[1]).expect("Programmer error");
+            if series_id == self.series_id {
+                let paint = self.find_paint(split[0])?;
+                Some(CollnPaint::from((paint, &self.series_id)))
+            } else {
+                None
+            }
+        }
     }
 
     pub fn read<R: Read>(reader: &mut R) -> Result<Self, crate::Error> {

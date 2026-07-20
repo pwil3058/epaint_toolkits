@@ -19,7 +19,7 @@ serde_json = "1.0.*"
 gcd = "2.3.*"
 lazy_static = "1.4.*"
 num-traits = "0.2.*"
-regex = "1.9.*"
+regex = "*"
 
 apaint_boilerplate = { path = "../apaint_boilerplate" }
 
