@@ -14,5 +14,7 @@ members = [
     "apaint_gtk",
     "apaint",
     "epaint_gtk_gui",
-    "wpca_gtk", "mcmmtk_gtk",
+    "wpca_gtk",
+    "mcmmtk_gtk",
+    #    "gtk_ext",
 ]

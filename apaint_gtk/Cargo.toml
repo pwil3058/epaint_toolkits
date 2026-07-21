@@ -19,8 +19,9 @@ serde_derive = "1.0"
 gcd = "2.0.1"
 
 #pw_gix = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
-pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+#pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
 #pw_gtk_ext = { path = "../../rs_pw_gix/pw_gtk_ext" }
+pw_gtk_ext = { path = "../pw_gtk_ext" }
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 pw_pathux = { git = "https://github.com/pwil3058/rs_pw_pathux.git" }
 

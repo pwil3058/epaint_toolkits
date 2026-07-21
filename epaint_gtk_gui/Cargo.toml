@@ -11,8 +11,8 @@ palette_samples = []
 
 [dependencies]
 
-pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
-
+#pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+pw_gtk_ext = { path = "../pw_gtk_ext" }
 colour_math = { path = "../colour_math" }
 colour_math_derive = { path = "../colour_math_derive" }
 

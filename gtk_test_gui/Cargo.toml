@@ -8,8 +8,8 @@ edition = "2021"
 
 [dependencies]
 #pw_gix = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
-#pw_gtk_ext = { path = "../../rs_pw_gix/pw_gtk_ext" }
-pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
+pw_gtk_ext = { path = "../pw_gtk_ext" }
+#pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
 
 colour_math = { git = "https://github.com/pwil3058/rs_colour_math.git" }
 #colour_math = { path = "../../rs_colour_math/colour_math" }
