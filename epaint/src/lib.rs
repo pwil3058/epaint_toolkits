@@ -28,10 +28,6 @@ pub struct SeriesId {
     pub series_name: String,
 }
 
-impl SeriesId {
-    pub const REGEX: &'static str = r"(?P<series_name>[^:]+):\((?P<proprietor>[^)]+)\)";
-}
-
 impl fmt::Display for SeriesId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}:({})", self.series_name, self.proprietor)
@@ -42,7 +38,7 @@ impl FromStr for SeriesId {
     type Err = regex::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        let re = Regex::new(Self::REGEX)?;
+        let re = Regex::new(r"(?P<series_name>[^:]+):\((?P<proprietor>[^)]+)\)")?;
         let cap = re.captures(s).ok_or(regex::Error::Syntax(s.to_string()))?;
         let series_name = cap
             .name("series_name")
@@ -115,7 +111,6 @@ pub type Result<T> = std::result::Result<T, crate::Error>;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use regex::Regex;
 
     #[test]
     fn test_reg_ex() {
