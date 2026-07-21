@@ -115,8 +115,7 @@ impl BasicPaintFactory {
             }
         }
         let paint_series = self.paint_series.borrow();
-        let colln_paint = paint_series.find_colln_paint(key).expect("should be there");
-        let paint: Paint = colln_paint.into();
+        let paint = paint_series.find_paint(key).expect("should be there");
         self.paint_editor.edit(&paint);
         self.update_editor_needs_saving();
     }
@@ -155,9 +154,9 @@ impl BasicPaintFactory {
         {
             let mut series = self.paint_series.borrow_mut();
             *series = new_series;
-            for colln_paint in series.colln_paints() {
-                self.hue_wheel.add_item(colln_paint.coloured_shape());
-                let row = colln_paint.row(&self.attributes);
+            for paint in series.paints() {
+                self.hue_wheel.add_item(paint.coloured_shape());
+                let row = paint.row(&self.attributes);
                 self.list_view.add_row(&row);
             }
         }

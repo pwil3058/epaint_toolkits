@@ -65,6 +65,10 @@ impl PaintSeries {
         self.paint_list.clear()
     }
 
+    pub fn paints(&self) -> impl Iterator<Item = &Paint> {
+        self.paint_list.iter()
+    }
+
     pub fn colln_paints(&self) -> impl Iterator<Item = CollnPaint> {
         self.paint_list
             .iter()
@@ -80,7 +84,7 @@ impl PaintSeries {
         true
     }
 
-    fn find_paint(&self, key: &str) -> Option<&Paint> {
+    pub fn find_paint(&self, key: &str) -> Option<&Paint> {
         let index = self
             .paint_list
             .binary_search_by_key(&key, |p| p.key())

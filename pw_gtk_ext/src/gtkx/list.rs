@@ -113,10 +113,9 @@ impl ListViewWithPopUpMenu {
     }
 
     pub fn remove_row(&self, id: &str) {
-        if let Some((_, iter)) = self
-            .list_store
-            .find_row_where(|list_store, iter| list_store.get_value(iter, 0).get_ok() == Some(id))
-        {
+        if let Some((_, iter)) = self.list_store.find_row_where(|list_store, iter| {
+            list_store.get_value(iter, self.id_field).get_ok() == Some(id)
+        }) {
             self.list_store.remove(&iter);
         } else {
             panic!("{}: id not found", id);
