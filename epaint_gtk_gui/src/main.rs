@@ -12,8 +12,8 @@ use colour_math::ScalarAttribute;
 use colour_math::ScalarAttribute::*;
 use colour_math::{HCV, HueConstants};
 
-use epaint::SeriesId;
-use epaint::paint::{CollnPaint, Paint};
+use epaint::PaintRangeId;
+use epaint::paint::{Paint, RangePaint};
 use epaint::properties::{
     Properties,
     PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
@@ -22,8 +22,8 @@ use epaint::properties::{
 
 use epaint_gtk::factory::BasicPaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PalettePaintMixerBuilder;
-use epaint_gtk::series::PaintSeriesManagerBuilder;
-use epaint_gtk::series::display::*;
+use epaint_gtk::range::PaintSeriesManagerBuilder;
+use epaint_gtk::range::display::*;
 use epaint_gtk::spec_edit::BasicPaintSpecEditor;
 
 fn main() {
@@ -77,10 +77,10 @@ fn main() {
     paint.name = "name".to_string();
     paint.notes = "notes".to_string();
     bpe.edit(&paint);
-    let colln_paint = CollnPaint::from((
+    let colln_paint = RangePaint::from((
         paint,
-        SeriesId {
-            series_name: "Series".to_string(),
+        PaintRangeId {
+            name: "Series".to_string(),
             proprietor: "Owner".to_string(),
         },
     ));

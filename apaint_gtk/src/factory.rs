@@ -239,7 +239,7 @@ impl BasicPaintFactoryBuilder {
                 (
                     "Remove",
                     None,
-                    Some("Remove the indicated paint from the series."),
+                    Some("Remove the indicated paint from the range."),
                 )
                     .into(),
                 SAV_HOVER_OK,

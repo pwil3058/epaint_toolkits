@@ -7,7 +7,7 @@ use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property};
-use crate::{LabelText, SeriesId, TooltipText};
+use crate::{LabelText, PaintRangeId, TooltipText};
 
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct Paint {
@@ -41,7 +41,13 @@ impl MakeColouredShape for Paint {
 
 impl TooltipText for Paint {
     fn tooltip_text(&self) -> String {
-        let mut string = self.name.to_string();
+        let mut string = String::new();
+        #[cfg(feature = "paints_have_ids")]
+        {
+            string.push_str(&self.id);
+            string.push('\n');
+        }
+        string.push_str(&self.name);
         string.push('\n');
         string.push_str(&self.notes);
         string.push('\n');
@@ -72,15 +78,15 @@ impl Ord for Paint {
 }
 
 #[derive(Serialize, Deserialize, Debug, Colour, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct CollnPaint {
+pub struct RangePaint {
     pub key: String,
     #[colour]
     pub paint: Paint,
-    pub series_id: SeriesId,
+    pub series_id: PaintRangeId,
 }
 
-impl From<(&Paint, &SeriesId)> for CollnPaint {
-    fn from((paint, series_id): (&Paint, &SeriesId)) -> Self {
+impl From<(&Paint, &PaintRangeId)> for RangePaint {
+    fn from((paint, series_id): (&Paint, &PaintRangeId)) -> Self {
         let key = format!("{}::{}", paint.key(), series_id);
         Self {
             key,
@@ -90,7 +96,7 @@ impl From<(&Paint, &SeriesId)> for CollnPaint {
     }
 }
 
-impl CollnPaint {
+impl RangePaint {
     pub fn key(&self) -> &str {
         &self.key
     }
@@ -116,29 +122,31 @@ impl CollnPaint {
         self.paint.properties.iter()
     }
 
-    pub fn series_id(&self) -> &SeriesId {
+    pub fn series_id(&self) -> &PaintRangeId {
         &self.series_id
     }
 }
 
-impl MakeColouredShape for CollnPaint {
+impl MakeColouredShape for RangePaint {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
         ColouredShape::new(&self.paint.colour, &self.key, &tooltip_text, Shape::Square)
     }
 }
 
-impl TooltipText for CollnPaint {
+impl TooltipText for RangePaint {
     fn tooltip_text(&self) -> String {
         let mut string = String::new();
         #[cfg(feature = "paints_have_ids")]
-        string.push_str(&self.paint.id);
-        string.push('\n');
+        {
+            string.push_str(&self.paint.id);
+            string.push('\n');
+        }
         string.push_str(&self.paint.name);
         string.push('\n');
         string.push_str(&self.paint.notes);
         string.push('\n');
-        string.push_str(&self.series_id.series_name);
+        string.push_str(&self.series_id.name);
         string.push('\n');
         string.push_str(&self.series_id.proprietor);
 
@@ -146,13 +154,13 @@ impl TooltipText for CollnPaint {
     }
 }
 
-impl LabelText for CollnPaint {
+impl LabelText for RangePaint {
     fn label_text(&self) -> String {
         format!("{}:{}", self.paint.name, self.series_id)
     }
 }
 
-impl Into<Paint> for CollnPaint {
+impl Into<Paint> for RangePaint {
     fn into(self) -> Paint {
         self.paint.clone()
     }
@@ -174,11 +182,11 @@ mod paint_tests {
 
     #[test]
     fn test_paint_from() {
-        let series_id = SeriesId {
-            series_name: "name".to_string(),
+        let series_id = PaintRangeId {
+            name: "name".to_string(),
             proprietor: "Proprieter".to_string(),
         };
-        let target_paint = CollnPaint {
+        let target_paint = RangePaint {
             key: "Magenta::name:(Proprieter)".to_string(),
             paint: Paint {
                 #[cfg(feature = "paints_have_ids")]
@@ -198,7 +206,7 @@ mod paint_tests {
             notes: String::new(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         };
-        let colln_paint: CollnPaint = (&paint, &series_id).into();
+        let colln_paint: RangePaint = (&paint, &series_id).into();
         assert_eq!(colln_paint, target_paint);
     }
 
@@ -212,11 +220,11 @@ mod paint_tests {
             notes: "".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
         };
-        let series_id = SeriesId {
-            series_name: "DS".to_string(),
+        let series_id = PaintRangeId {
+            name: "DS".to_string(),
             proprietor: "WC".to_string(),
         };
-        let colln_paint: CollnPaint = (&paint, &series_id).into();
+        let colln_paint: RangePaint = (&paint, &series_id).into();
         assert_eq!(colln_paint.hcv(), HCV::RED_MAGENTA);
         assert_eq!(colln_paint.name(), "Red Magenta");
         assert_eq!(colln_paint.notes(), "");

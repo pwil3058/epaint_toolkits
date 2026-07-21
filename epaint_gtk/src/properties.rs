@@ -9,7 +9,7 @@ use pw_gtk_ext::{
 };
 
 use epaint::mixtures::Mixture;
-use epaint::paint::CollnPaint;
+use epaint::paint::RangePaint;
 pub use epaint::properties::{
     Finish, Fluorescence, Granulation, Lightfastness, Metallicness, Opacity, Permanence,
     Properties, Property, PropertyIfce, PropertyType, Staining, Transparency, str_values,
@@ -93,7 +93,7 @@ impl PropertyEntries for Properties {
     }
 }
 
-impl PropertyEntries for CollnPaint {
+impl PropertyEntries for RangePaint {
     fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
         self.paint.properties.property_entries()
     }

@@ -151,7 +151,7 @@ impl fmt::Display for Error {
             Error::IOError(err) => write!(f, "IOError: {err}"),
             Error::SerdeJsonError(err) => write!(f, "Serde Json Error: {err}"),
             Error::NotFound(string) => write!(f, "{string}: Not found."),
-            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
+            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint range"),
             Error::UnknownSeriesPaint(series_id, id) => {
                 write!(f, "{id}:({series_id}): unknown paint")
             }

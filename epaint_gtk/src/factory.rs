@@ -20,7 +20,7 @@ use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
-use epaint::{paint::Paint, series::PaintSeries};
+use epaint::{paint::Paint, range::PaintRange};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
@@ -36,7 +36,7 @@ pub struct BasicPaintFactory {
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
-    paint_series: RefCell<PaintSeries>,
+    paint_series: RefCell<PaintRange>,
     proprietor_entry: gtk::Entry,
     series_name_entry: gtk::Entry,
 }
@@ -44,9 +44,9 @@ pub struct BasicPaintFactory {
 impl BasicPaintFactory {
     fn update_saveability(&self) {
         let series = self.paint_series.borrow();
-        let series_id = series.series_id();
+        let series_id = series.range_id();
         self.file_manager.update_session_is_saveable(
-            !series_id.proprietor.is_empty() && !series_id.series_name.is_empty(),
+            !series_id.proprietor.is_empty() && !series_id.name.is_empty(),
         );
     }
 
@@ -115,7 +115,7 @@ impl BasicPaintFactory {
             }
         }
         let paint_series = self.paint_series.borrow();
-        let paint = paint_series.find_paint(key).expect("should be there");
+        let paint = paint_series.get_paint(key).expect("should be there");
         self.paint_editor.edit(&paint);
         self.update_editor_needs_saving();
     }
@@ -146,11 +146,11 @@ impl BasicPaintFactory {
     fn load<Q: AsRef<Path>>(&self, path: Q) -> epaint::Result<Vec<u8>> {
         let path: &Path = path.as_ref();
         let mut file = File::open(path)?;
-        let new_series: PaintSeries = PaintSeries::read(&mut file)?;
+        let new_series: PaintRange = PaintRange::read(&mut file)?;
         self.unguarded_reset();
-        let id = new_series.series_id();
+        let id = new_series.range_id();
         self.proprietor_entry.set_text(&id.proprietor);
-        self.series_name_entry.set_text(&id.series_name);
+        self.series_name_entry.set_text(&id.name);
         {
             let mut series = self.paint_series.borrow_mut();
             *series = new_series;
@@ -204,7 +204,7 @@ impl BasicPaintFactoryBuilder {
                 (
                     "Remove",
                     None,
-                    Some("Remove the indicated paint from the series."),
+                    Some("Remove the indicated paint from the range."),
                 )
                     .into(),
                 SAV_HOVER_OK,
@@ -269,7 +269,7 @@ impl BasicPaintFactoryBuilder {
             hue_wheel,
             list_view,
             attributes: self.attributes.to_vec(),
-            paint_series: RefCell::new(PaintSeries::default()),
+            paint_series: RefCell::new(PaintRange::default()),
             proprietor_entry,
             series_name_entry,
         });
@@ -313,7 +313,7 @@ impl BasicPaintFactoryBuilder {
         let bpf_c = Rc::clone(&bpf);
         bpf.series_name_entry.connect_changed(move |entry| {
             let text = entry.get_text();
-            bpf_c.paint_series.borrow_mut().set_series_name(&text);
+            bpf_c.paint_series.borrow_mut().set_range_name(&text);
             bpf_c.update_saveability();
             bpf_c.update_series_needs_saving();
         });

@@ -18,14 +18,14 @@ use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::{paint::CollnPaint, properties::PropertyTypes};
+use epaint::{paint::RangePaint, properties::PropertyTypes};
 
-use crate::series::PaintActionCallback;
+use crate::range::PaintActionCallback;
 
 #[derive(PWO)]
 pub struct PaintDisplay {
     vbox: gtk::Box,
-    colln_paint: CollnPaint,
+    colln_paint: RangePaint,
     #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
     #[cfg(feature = "targeted_mixtures")]
@@ -46,7 +46,7 @@ impl PaintDisplay {
         };
     }
 
-    pub fn paint(&self) -> &CollnPaint {
+    pub fn paint(&self) -> &RangePaint {
         &self.colln_paint
     }
 }
@@ -84,7 +84,7 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn build(&self, paint: &CollnPaint) -> PaintDisplay {
+    pub fn build(&self, paint: &RangePaint) -> PaintDisplay {
         let hcv = paint.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
@@ -106,9 +106,7 @@ impl PaintDisplayBuilder {
         vbox.pack_start(&label, false, false, 0);
 
         let series_id = paint.series_id();
-        let label = gtk::LabelBuilder::new()
-            .label(&series_id.series_name)
-            .build();
+        let label = gtk::LabelBuilder::new().label(&series_id.name).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
@@ -170,7 +168,7 @@ pub struct PaintDisplayDialogManager<W: TopGtkWindow> {
     button_callbacks: RefCell<HashMap<u16, Vec<PaintActionCallback>>>,
     paint_display_builder: RefCell<PaintDisplayBuilder>,
     conditional_widgets_builder: ConditionalWidgetsBuilder,
-    dialogs: RefCell<BTreeMap<CollnPaint, PaintDisplayDialog>>,
+    dialogs: RefCell<BTreeMap<RangePaint, PaintDisplayDialog>>,
 }
 
 impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
@@ -197,7 +195,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    fn inform_button_action(&self, action: u16, paint: CollnPaint) {
+    fn inform_button_action(&self, action: u16, paint: RangePaint) {
         let button_callbacks = self.button_callbacks.borrow();
         for callback in button_callbacks
             .get(&action)
@@ -208,7 +206,7 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
         }
     }
 
-    pub fn connect_action_button<F: Fn(CollnPaint) + 'static>(&self, action: u16, callback: F) {
+    pub fn connect_action_button<F: Fn(RangePaint) + 'static>(&self, action: u16, callback: F) {
         self.button_callbacks
             .borrow_mut()
             .get_mut(&action)
@@ -218,11 +216,11 @@ impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
 }
 
 pub trait DisplayPaint {
-    fn display_paint(&self, paint: &CollnPaint);
+    fn display_paint(&self, paint: &RangePaint);
 }
 
 impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
-    fn display_paint(&self, colln_paint: &CollnPaint) {
+    fn display_paint(&self, colln_paint: &RangePaint) {
         if !self.dialogs.borrow().contains_key(colln_paint) {
             let dialog = self.new_dialog();
             let display = self.paint_display_builder.borrow().build(colln_paint);

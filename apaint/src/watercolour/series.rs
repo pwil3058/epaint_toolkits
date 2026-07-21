@@ -66,7 +66,7 @@ impl From<(&WatercolourSpec, &Rc<SeriesId>)> for WatercolourPaint {
     }
 }
 
-// TODO: think about not considering series id when testing equality and order
+// TODO: think about not considering range id when testing equality and order
 impl PartialEq for WatercolourPaint {
     fn eq(&self, other: &Self) -> bool {
         if self.id == other.id {
@@ -392,7 +392,7 @@ mod test {
     fn save_and_recover() {
         let mut series_spec = SeriesPaintSeriesSpec::default();
         series_spec.set_proprietor("owner");
-        series_spec.set_series_name("series name");
+        series_spec.set_series_name("range name");
         assert!(series_spec.paints().next().is_none());
         series_spec.add(&BasicPaintSpec::new(&RGB::<f64>::RED, "red"));
         series_spec.add(&BasicPaintSpec::new(&HCV::YELLOW, "yellow"));

@@ -311,7 +311,7 @@ impl SeriesBinder {
             if let Ok(index) = self.binary_search_series_id(series_id) {
                 self.remove_series_at_index(index)
             } else {
-                panic!("attempt to remove non existent series")
+                panic!("attempt to remove non existent range")
             }
         }
     }
@@ -589,7 +589,7 @@ impl PaintSeriesManagerBuilder {
         );
         let load_file_btn = gtk::ButtonBuilder::new()
             .image(&icons::series_paint_load::sized_image_or(24).upcast::<gtk::Widget>())
-            .tooltip_text("Load a paint series from a file.")
+            .tooltip_text("Load a paint range from a file.")
             .build();
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&load_file_btn, false, false, 0);
@@ -754,7 +754,7 @@ impl PaintStandardsManagerBuilder {
         );
         let load_file_btn = gtk::ButtonBuilder::new()
             .image(&icons::paint_standard_load::sized_image_or(24).upcast::<gtk::Widget>())
-            .tooltip_text("Load a paint standards series from a file.")
+            .tooltip_text("Load a paint standards range from a file.")
             .build();
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&load_file_btn, false, false, 0);

@@ -224,7 +224,7 @@ mod test {
     fn save_and_recover() {
         let mut series_spec = SeriesPaintSeriesSpec00::<f64>::default();
         series_spec.set_proprietor("owner");
-        series_spec.set_series_name("series name");
+        series_spec.set_series_name("range name");
         assert!(series_spec.paints().next().is_none());
         series_spec.add(&BasicPaintSpec00::new(RGB::<f64>::RED, "red"));
         series_spec.add(&BasicPaintSpec00::new(RGB::<f64>::YELLOW, "yellow"));

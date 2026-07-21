@@ -20,7 +20,7 @@ colour_math_derive = { path = "../colour_math_derive" }
 path = "../epaint"
 features = ["targeted_mixtures"]
 
-epaint_derive = { path = "../epaint_derive" }
+#epaint_derive = { path = "../epaint_derive" }
 
 [dependencies.epaint_gtk]
 path = "../epaint_gtk"

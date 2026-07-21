@@ -47,9 +47,9 @@ use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use epaint::{
     mixtures::{MixingSession, MixtureBuilder},
-    paint::CollnPaint,
+    paint::RangePaint,
     properties::PropertyTypes,
-    series::PaintFinder,
+    range::PaintFinder,
 };
 
 use crate::{
@@ -59,16 +59,16 @@ use crate::{
         component::{PartsSpinButtonBox, RcPartsSpinButtonBox},
         display::{MixtureDisplayDialogManager, MixtureDisplayDialogManagerBuilder},
     },
-    series::{PaintSeriesManager, PaintSeriesManagerBuilder},
+    range::{PaintSeriesManager, PaintSeriesManagerBuilder},
     storage::{StorageManager, StorageManagerBuilder},
     window::PersistentWindowButtonBuilder,
 };
 
-use crate::series::display::{
+use crate::range::display::{
     DisplayPaint, PaintDisplayDialogManager, PaintDisplayDialogManagerBuilder,
 };
 #[cfg(feature = "targeted_mixtures")]
-use crate::series::{PaintStandardsManager, PaintStandardsManagerBuilder};
+use crate::range::{PaintStandardsManager, PaintStandardsManagerBuilder};
 
 pub const IMAGE_AVAILABLE: u64 = SAV_NEXT_CONDN;
 pub const HAS_SAMPLES: u64 = SAV_NEXT_CONDN << 1;
@@ -349,12 +349,12 @@ impl PalettePaintMixer {
         self.next_mix_id.set(self.next_mix_id.get() + 1);
     }
 
-    fn add_series_paint(&self, colln_paint: &CollnPaint) {
+    fn add_series_paint(&self, colln_paint: &RangePaint) {
         self.series_paint_spinner_box.add_paint(colln_paint);
         self.hue_wheel.add_item(colln_paint.coloured_shape());
     }
 
-    fn remove_series_paint(&self, colln_paint: &CollnPaint) {
+    fn remove_series_paint(&self, colln_paint: &RangePaint) {
         self.series_paint_spinner_box.remove_paint(colln_paint);
         self.hue_wheel.remove_item(colln_paint.key());
     }
@@ -812,7 +812,6 @@ impl PalettePaintMixerBuilder {
         #[cfg(feature = "targeted_mixtures")]
         {
             use colour_math::ColourBasics;
-            use epaint::PaintEssence;
             let tpm_c = Rc::clone(&tpm);
             tpm.paint_standards_manager
                 .connect_set_as_target(move |paint| {

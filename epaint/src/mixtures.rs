@@ -16,7 +16,7 @@ use colour_math::{
 
 use colour_math_derive::Colour;
 
-use crate::paint::CollnPaint;
+use crate::paint::RangePaint;
 use crate::properties::{Properties, PropertiesMixer, Property};
 use crate::{LabelText, TooltipText};
 
@@ -30,7 +30,7 @@ pub struct Mixture {
     pub name: String,
     pub notes: String,
     pub properties: Properties,
-    pub components: Vec<(CollnPaint, u64)>,
+    pub components: Vec<(RangePaint, u64)>,
 }
 
 impl Mixture {
@@ -87,7 +87,7 @@ impl Mixture {
         format!("TARGET({})", self.name)
     }
 
-    pub fn components(&self) -> impl Iterator<Item = &(CollnPaint, u64)> {
+    pub fn components(&self) -> impl Iterator<Item = &(RangePaint, u64)> {
         self.components.iter()
     }
 }
@@ -143,8 +143,8 @@ impl MixingSession {
         self.mixtures.iter()
     }
 
-    pub fn series_paints(&self) -> Vec<CollnPaint> {
-        let mut v: Vec<CollnPaint> = vec![];
+    pub fn series_paints(&self) -> Vec<RangePaint> {
+        let mut v: Vec<RangePaint> = vec![];
 
         for mixture in self.mixtures.iter() {
             for (colln_paint, _parts) in mixture.components.iter() {
@@ -225,7 +225,7 @@ pub struct MixtureBuilder {
     id: String,
     name: String,
     notes: String,
-    series_components: Vec<(CollnPaint, u64)>,
+    series_components: Vec<(RangePaint, u64)>,
     #[cfg(feature = "targeted_mixtures")]
     targeted_colour: Option<HCV>,
 }
@@ -263,12 +263,12 @@ impl MixtureBuilder {
         self
     }
 
-    pub fn paint_components(&mut self, components: Vec<(CollnPaint, u64)>) -> &mut Self {
+    pub fn paint_components(&mut self, components: Vec<(RangePaint, u64)>) -> &mut Self {
         self.series_components = components;
         self
     }
 
-    pub fn paint_component(&mut self, component: (CollnPaint, u64)) -> &mut Self {
+    pub fn paint_component(&mut self, component: (RangePaint, u64)) -> &mut Self {
         self.series_components.push(component);
         self
     }
@@ -313,14 +313,14 @@ mod test {
     use crate::properties::{Properties, Property, PropertyType};
 
     use crate::mixtures::{MixingSession, MixtureBuilder};
-    use crate::series::PaintSeries;
+    use crate::range::PaintRange;
 
     #[test]
     fn test_read_write_paint_series() {
-        let mut paint_series = PaintSeries::default();
+        let mut paint_series = PaintRange::default();
         paint_series.set_proprietor("owner");
-        paint_series.set_series_name("series name");
-        assert!(paint_series.colln_paints().next().is_none());
+        paint_series.set_range_name("range name");
+        assert!(paint_series.range_paints().next().is_none());
         paint_series.add(&Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
@@ -339,8 +339,8 @@ mod test {
         });
         let mut session: MixingSession = MixingSession::new();
         session.set_notes("a test mixing session");
-        let yellow = paint_series.find_colln_paint("yellow").unwrap();
-        let red = paint_series.find_colln_paint("red").unwrap();
+        let yellow = paint_series.get_range_paint("yellow").unwrap();
+        let red = paint_series.get_range_paint("red").unwrap();
         let mix = vec![(red.clone(), 1), (yellow.clone(), 1)];
         let mixture = MixtureBuilder::new("#001")
             .paint_components(mix)

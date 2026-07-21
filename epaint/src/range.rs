@@ -5,33 +5,33 @@ use serde::{Deserialize, Serialize};
 use std::io::{Read, Write};
 use std::str::FromStr;
 
-use crate::SeriesId;
-use crate::paint::{CollnPaint, Paint};
+use crate::PaintRangeId;
+use crate::paint::{Paint, RangePaint};
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
-pub struct PaintSeries {
-    pub series_id: SeriesId,
+pub struct PaintRange {
+    pub range_id: PaintRangeId,
     pub paint_list: Vec<Paint>,
 }
 
-impl PaintSeries {
-    pub fn new(series_id: &SeriesId) -> Self {
+impl PaintRange {
+    pub fn new(range_id: &PaintRangeId) -> Self {
         Self {
-            series_id: series_id.clone(),
+            range_id: range_id.clone(),
             paint_list: Vec::new(),
         }
     }
 
-    pub fn series_id(&self) -> &SeriesId {
-        &self.series_id
+    pub fn range_id(&self) -> &PaintRangeId {
+        &self.range_id
     }
 
     pub fn set_proprietor(&mut self, proprietor: &str) {
-        self.series_id.proprietor = proprietor.to_string()
+        self.range_id.proprietor = proprietor.to_string()
     }
 
-    pub fn set_series_name(&mut self, series_name: &str) {
-        self.series_id.series_name = series_name.to_string()
+    pub fn set_range_name(&mut self, name: &str) {
+        self.range_id.name = name.to_string()
     }
 
     pub fn add(&mut self, paint: &Paint) -> Option<Paint> {
@@ -69,10 +69,10 @@ impl PaintSeries {
         self.paint_list.iter()
     }
 
-    pub fn colln_paints(&self) -> impl Iterator<Item = CollnPaint> {
+    pub fn range_paints(&self) -> impl Iterator<Item = RangePaint> {
         self.paint_list
             .iter()
-            .map(|paint| CollnPaint::from((paint, &self.series_id)))
+            .map(|paint| RangePaint::from((paint, &self.range_id)))
     }
 
     pub fn is_sorted_unique(&self) -> bool {
@@ -84,7 +84,7 @@ impl PaintSeries {
         true
     }
 
-    pub fn find_paint(&self, key: &str) -> Option<&Paint> {
+    pub fn get_paint(&self, key: &str) -> Option<&Paint> {
         let index = self
             .paint_list
             .binary_search_by_key(&key, |p| p.key())
@@ -92,17 +92,17 @@ impl PaintSeries {
         self.paint_list.get(index)
     }
 
-    pub fn find_colln_paint(&self, key: &str) -> Option<CollnPaint> {
+    pub fn get_range_paint(&self, key: &str) -> Option<RangePaint> {
         debug_assert!(self.is_sorted_unique());
-        if let Some(paint) = self.find_paint(key) {
-            Some(CollnPaint::from((paint, &self.series_id)))
+        if let Some(paint) = self.get_paint(key) {
+            Some(RangePaint::from((paint, &self.range_id)))
         } else {
             let split = key.split("::").collect::<Vec<_>>();
             debug_assert!(split.len() == 2);
-            let series_id = SeriesId::from_str(split[1]).expect("Programmer error");
-            if series_id == self.series_id {
-                let paint = self.find_paint(split[0])?;
-                Some(CollnPaint::from((paint, &self.series_id)))
+            let range_id = PaintRangeId::from_str(split[1]).expect("Programmer error");
+            if range_id == self.range_id {
+                let paint = self.get_paint(split[0])?;
+                Some(RangePaint::from((paint, &self.range_id)))
             } else {
                 None
             }
@@ -137,8 +137,8 @@ pub trait PaintFinder {
     fn get_paint(
         &self,
         paint_name: &str,
-        series_id: Option<&SeriesId>,
-    ) -> Result<CollnPaint, crate::Error>;
+        series_id: Option<&PaintRangeId>,
+    ) -> Result<RangePaint, crate::Error>;
 }
 
 #[cfg(test)]
@@ -147,14 +147,14 @@ mod test {
 
     use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
-    use crate::series::PaintSeries;
+    use crate::range::PaintRange;
 
     #[test]
     fn save_and_recover() {
-        let mut paint_series = PaintSeries::default();
+        let mut paint_series = PaintRange::default();
         paint_series.set_proprietor("owner");
-        paint_series.set_series_name("series name");
-        assert!(paint_series.colln_paints().next().is_none());
+        paint_series.set_range_name("range name");
+        assert!(paint_series.range_paints().next().is_none());
         paint_series.add(&Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
@@ -173,11 +173,11 @@ mod test {
         });
         let mut buffer: Vec<u8> = vec![];
         let _digest = paint_series.write(&mut buffer);
-        let read_series = PaintSeries::read(&mut &buffer[..]).unwrap();
-        assert_eq!(paint_series.series_id(), read_series.series_id());
+        let read_series = PaintRange::read(&mut &buffer[..]).unwrap();
+        assert_eq!(paint_series.range_id(), read_series.range_id());
         assert_eq!(paint_series.paint_list.len(), read_series.paint_list.len());
         for (colln_paint1, colln_paint2) in
-            paint_series.colln_paints().zip(read_series.colln_paints())
+            paint_series.range_paints().zip(read_series.range_paints())
         {
             assert_eq!(colln_paint1, colln_paint2);
         }

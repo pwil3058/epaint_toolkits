@@ -29,10 +29,10 @@ use colour_math_gtk::{
 use pw_gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
 use epaint::{
-    SeriesId,
-    paint::CollnPaint,
+    PaintRangeId,
+    paint::RangePaint,
     properties::PropertyTypes,
-    series::{PaintFinder, PaintSeries},
+    range::{PaintFinder, PaintRange},
 };
 
 use crate::{
@@ -43,14 +43,14 @@ use crate::{
 
 pub mod display;
 
-use crate::series::display::*;
+use crate::range::display::*;
 
-type PaintActionCallback = Box<dyn Fn(CollnPaint)>;
+type PaintActionCallback = Box<dyn Fn(RangePaint)>;
 
 #[derive(PWO, Wrapper)]
 struct SeriesPage {
     paned: gtk::Paned,
-    paint_series: PaintSeries,
+    paint_series: PaintRange,
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     callbacks: RefCell<HashMap<String, Vec<PaintActionCallback>>>,
@@ -100,7 +100,7 @@ impl SeriesPageBuilder {
         self
     }
 
-    fn build(&self, paint_series: PaintSeries) -> Rc<SeriesPage> {
+    fn build(&self, paint_series: PaintRange) -> Rc<SeriesPage> {
         let paned = gtk::PanedBuilder::new().build();
         paned.set_position_from_recollections("SeriesPage:paned_position", 200);
         let hue_wheel = GtkHueWheelBuilder::new()
@@ -113,7 +113,7 @@ impl SeriesPageBuilder {
             .id_field(2)
             .selection_mode(self.selection_mode)
             .build(&list_spec);
-        for paint in paint_series.colln_paints() {
+        for paint in paint_series.range_paints() {
             hue_wheel.add_item(paint.coloured_shape());
             let row = paint.row(&self.attributes);
             list_view.add_row(&row);
@@ -157,8 +157,8 @@ impl SeriesPageBuilder {
 }
 
 impl SeriesPage {
-    fn series_id(&self) -> &SeriesId {
-        self.paint_series.series_id()
+    fn series_id(&self) -> &PaintRangeId {
+        self.paint_series.range_id()
     }
 
     fn update_popup_condns(&self, changed_condns: MaskedCondns) {
@@ -166,7 +166,7 @@ impl SeriesPage {
         self.list_view.update_popup_condns(changed_condns);
     }
 
-    fn connect_popup_menu_item<F: Fn(CollnPaint) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(RangePaint) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -175,7 +175,7 @@ impl SeriesPage {
     }
 
     fn invoke_named_callback(&self, item: &str, id: &str) {
-        if let Some(colln_paint) = self.paint_series.find_colln_paint(id) {
+        if let Some(colln_paint) = self.paint_series.get_range_paint(id) {
             for callback in self
                 .callbacks
                 .borrow()
@@ -246,7 +246,7 @@ impl SeriesBinder {
         binder
     }
 
-    fn binary_search_series_id(&self, sid: &SeriesId) -> Result<usize, usize> {
+    fn binary_search_series_id(&self, sid: &PaintRangeId) -> Result<usize, usize> {
         self.pages
             .borrow()
             .binary_search_by_key(sid, |(page, _)| page.series_id().clone())
@@ -267,7 +267,7 @@ impl SeriesBinder {
         }
     }
 
-    fn connect_popup_menu_item<F: Fn(CollnPaint) + 'static>(&self, name: &str, callback: F) {
+    fn connect_popup_menu_item<F: Fn(RangePaint) + 'static>(&self, name: &str, callback: F) {
         self.callbacks
             .borrow_mut()
             .get_mut(name)
@@ -275,7 +275,7 @@ impl SeriesBinder {
             .push(Box::new(callback));
     }
 
-    fn invoke_named_callback(&self, item: &str, colln_paint: CollnPaint) {
+    fn invoke_named_callback(&self, item: &str, colln_paint: RangePaint) {
         for callback in self
             .callbacks
             .borrow()
@@ -308,13 +308,13 @@ impl SeriesBinder {
         self.notebook.remove_page(page_num);
     }
 
-    fn remove_series(&self, series_id: &SeriesId) {
+    fn remove_series(&self, series_id: &PaintRangeId) {
         let question = format!("Confirm remove '{series_id}'?");
         if self.ask_confirm_action(&question, None) {
             if let Ok(index) = self.binary_search_series_id(series_id) {
                 self.remove_series_at_index(index)
             } else {
-                panic!("attempt to remove non existent series")
+                panic!("attempt to remove non existent range")
             }
         }
     }
@@ -344,39 +344,39 @@ impl SeriesBinder {
 }
 
 trait RcSeriesBinder {
-    fn add_series(&self, new_series: PaintSeries, path: &Path) -> Result<(), crate::Error>;
+    fn add_series(&self, new_series: PaintRange, path: &Path) -> Result<(), crate::Error>;
     fn add_series_from_file(&self, path: &Path) -> Result<(), crate::Error>;
 }
 
 impl RcSeriesBinder for Rc<SeriesBinder> {
-    fn add_series(&self, new_series: PaintSeries, path: &Path) -> Result<(), crate::Error> {
-        match self.binary_search_series_id(&new_series.series_id()) {
+    fn add_series(&self, new_series: PaintRange, path: &Path) -> Result<(), crate::Error> {
+        match self.binary_search_series_id(&new_series.range_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
                 "{}: Series already in binder",
-                &new_series.series_id()
+                &new_series.range_id()
             ))),
             Err(index) => {
                 let l_text = format!(
                     "{}\n{}",
-                    new_series.series_id().series_name,
-                    new_series.series_id().proprietor,
+                    new_series.range_id().name,
+                    new_series.range_id().proprietor,
                 );
                 let tt_text = format!(
                     "Remove {} ({}) from the tool kit",
-                    new_series.series_id().series_name,
-                    new_series.series_id().proprietor,
+                    new_series.range_id().name,
+                    new_series.range_id().proprietor,
                 );
                 let label = TabRemoveLabelBuilder::new()
                     .label_text(l_text.as_str())
                     .tooltip_text(tt_text.as_str())
                     .build();
                 let self_c = Rc::clone(self);
-                let sid = new_series.series_id().clone();
+                let sid = new_series.range_id().clone();
                 label.connect_remove_page(move || self_c.remove_series(&sid));
                 let l_text = format!(
                     "{} ({})",
-                    new_series.series_id().series_name,
-                    new_series.series_id().proprietor,
+                    new_series.range_id().name,
+                    new_series.range_id().proprietor,
                 );
                 let menu_label = gtk::Label::new(Some(l_text.as_str()));
                 let new_page = self.series_page_builder.build(new_series);
@@ -411,7 +411,7 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
             return Err(crate::Error::DuplicateFile(msg));
         }
         let mut file = File::open(path)?;
-        let new_series = match PaintSeries::read(&mut file) {
+        let new_series = match PaintRange::read(&mut file) {
             Ok(series) => series,
             Err(err) => return Err(crate::Error::APaintError(err)),
         };
@@ -424,8 +424,8 @@ impl PaintFinder for SeriesBinder {
     fn get_paint(
         &self,
         paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> epaint::Result<CollnPaint> {
+        series_id: Option<&PaintRangeId>,
+    ) -> epaint::Result<RangePaint> {
         if let Some(series_id) = series_id {
             let series_id_c = series_id.clone();
             let bsr = self
@@ -436,7 +436,7 @@ impl PaintFinder for SeriesBinder {
                 Ok(index) => match self.pages.borrow()[index]
                     .0
                     .paint_series
-                    .find_colln_paint(paint_id)
+                    .get_range_paint(paint_id)
                 {
                     Some(colln_paint) => Ok(colln_paint),
                     None => Err(epaint::Error::UnknownPaint(
@@ -448,7 +448,7 @@ impl PaintFinder for SeriesBinder {
             }
         } else {
             for page in self.pages.borrow().iter() {
-                if let Some(colln_paint) = page.0.paint_series.find_colln_paint(paint_id) {
+                if let Some(colln_paint) = page.0.paint_series.get_range_paint(paint_id) {
                     return Ok(colln_paint);
                 }
             }
@@ -479,17 +479,17 @@ impl PaintSeriesManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &CollnPaint) {
+    fn display_paint_information(&self, paint: &RangePaint) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_add_paint(&self, paint: &CollnPaint) {
+    fn inform_add_paint(&self, paint: &RangePaint) {
         for callback in self.add_paint_callbacks.borrow().iter() {
             callback(paint.clone());
         }
     }
 
-    pub fn connect_add_paint<F: Fn(CollnPaint) + 'static>(&self, callback: F) {
+    pub fn connect_add_paint<F: Fn(RangePaint) + 'static>(&self, callback: F) {
         self.add_paint_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -510,8 +510,8 @@ impl PaintFinder for PaintSeriesManager {
     fn get_paint(
         &self,
         paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> epaint::Result<CollnPaint> {
+        series_id: Option<&PaintRangeId>,
+    ) -> epaint::Result<RangePaint> {
         self.binder.get_paint(paint_id, series_id)
     }
 }
@@ -581,7 +581,7 @@ impl PaintSeriesManagerBuilder {
         );
         let load_file_btn = gtk::ButtonBuilder::new()
             .image(&icons::series_paint_load::sized_image_or(24).upcast::<gtk::Widget>())
-            .tooltip_text("Load a paint series from a file.")
+            .tooltip_text("Load a paint range from a file.")
             .build();
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&load_file_btn, false, false, 0);
@@ -649,17 +649,17 @@ impl PaintStandardsManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &CollnPaint) {
+    fn display_paint_information(&self, paint: &RangePaint) {
         self.display_dialog_manager.display_paint(paint);
     }
 
-    fn inform_set_as_target(&self, paint: &CollnPaint) {
+    fn inform_set_as_target(&self, paint: &RangePaint) {
         for callback in self.set_as_target_callbacks.borrow().iter() {
             callback(paint.clone());
         }
     }
 
-    pub fn connect_set_as_target<F: Fn(CollnPaint) + 'static>(&self, callback: F) {
+    pub fn connect_set_as_target<F: Fn(RangePaint) + 'static>(&self, callback: F) {
         self.set_as_target_callbacks
             .borrow_mut()
             .push(Box::new(callback));
@@ -674,8 +674,8 @@ impl PaintFinder for PaintStandardsManager {
     fn get_paint(
         &self,
         paint_id: &str,
-        series_id: Option<&SeriesId>,
-    ) -> epaint::Result<CollnPaint> {
+        series_id: Option<&PaintRangeId>,
+    ) -> epaint::Result<RangePaint> {
         self.binder.get_paint(paint_id, series_id)
     }
 }
@@ -746,7 +746,7 @@ impl PaintStandardsManagerBuilder {
         );
         let load_file_btn = gtk::ButtonBuilder::new()
             .image(&icons::paint_standard_load::sized_image_or(24).upcast::<gtk::Widget>())
-            .tooltip_text("Load a paint standards series from a file.")
+            .tooltip_text("Load a paint standards range from a file.")
             .build();
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&load_file_btn, false, false, 0);

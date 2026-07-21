@@ -9,15 +9,18 @@ use std::{
 use crypto_hash::{Algorithm, Hasher};
 use gcd::Gcd;
 
-use colour_math::{beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape}, mixing::SubtractiveMixer, Angle, Chroma, ColourAttributes, ColourBasics, Family, Greyness, Hue, LightLevel, Prop, Value, Warmth, HCV, RGB};
+use colour_math::{
+    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
+    mixing::SubtractiveMixer,
+    Angle, Chroma, ColourAttributes, ColourBasics, Family, Greyness, Hue, LightLevel, Prop, Value,
+    Warmth, HCV, RGB,
+};
 
 use colour_math_derive::Colour;
 
-use crate::properties::{PropertyMixer};
+use crate::properties::PropertyMixer;
 use crate::{
-    properties::{
-        Finish, Fluorescence, FuzzyProperty, Metallicness, Permanence, Transparency,
-    },
+    properties::{Finish, Fluorescence, FuzzyProperty, Metallicness, Permanence, Transparency},
     series::{SeriesId, SeriesPaint, SeriesPaintFinder},
     BasicPaintIfce, LabelText, TooltipText,
 };
@@ -101,7 +104,9 @@ impl BasicPaintIfce for Mixture {
         }
     }
 
-    fn finish(&self) -> Finish { self.finish.property() }
+    fn finish(&self) -> Finish {
+        self.finish.property()
+    }
 
     fn transparency(&self) -> Transparency {
         self.transparency.property()
@@ -383,18 +388,10 @@ impl MixtureBuilder {
             name: self.name.clone(),
             notes: self.notes.clone(),
             finish: finish_mix.property_value().expect("programmer error"),
-            transparency: transparency_mix
-                .property_value()
-                .expect("programmer error"),
-            permanence: permanence_mix
-                .property_value()
-                .expect("programmer error"),
-            fluorescence: fluorescence_mix
-                .property_value()
-                .expect("programmer error"),
-            metallicness: metallicness_mix
-                .property_value()
-                .expect("programmer error"),
+            transparency: transparency_mix.property_value().expect("programmer error"),
+            permanence: permanence_mix.property_value().expect("programmer error"),
+            fluorescence: fluorescence_mix.property_value().expect("programmer error"),
+            metallicness: metallicness_mix.property_value().expect("programmer error"),
             components,
         };
         Rc::new(mp)
@@ -742,7 +739,7 @@ mod test {
     fn save_and_recover() {
         let mut series_spec = SeriesPaintSeriesSpec::default();
         series_spec.set_proprietor("owner");
-        series_spec.set_series_name("series name");
+        series_spec.set_series_name("range name");
         assert!(series_spec.paints().next().is_none());
         series_spec.add(&BasicPaintSpec::new(&RGB::<f64>::RED, "red"));
         series_spec.add(&BasicPaintSpec::new(&HCV::YELLOW, "yellow"));

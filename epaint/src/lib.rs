@@ -12,7 +12,7 @@ use serde_json;
 pub mod mixtures;
 pub mod paint;
 pub mod properties;
-pub mod series;
+pub mod range;
 
 pub trait TooltipText {
     fn tooltip_text(&self) -> String;
@@ -23,18 +23,18 @@ pub trait LabelText {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, PartialOrd, Ord, PartialEq, Eq, Clone)]
-pub struct SeriesId {
+pub struct PaintRangeId {
     pub proprietor: String,
-    pub series_name: String,
+    pub name: String,
 }
 
-impl fmt::Display for SeriesId {
+impl fmt::Display for PaintRangeId {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:({})", self.series_name, self.proprietor)
+        write!(f, "{}:({})", self.name, self.proprietor)
     }
 }
 
-impl FromStr for SeriesId {
+impl FromStr for PaintRangeId {
     type Err = regex::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
@@ -51,7 +51,7 @@ impl FromStr for SeriesId {
             .as_str()
             .to_string();
         Ok(Self {
-            series_name,
+            name: series_name,
             proprietor,
         })
     }
@@ -62,8 +62,8 @@ pub enum Error {
     IOError(io::Error),
     SerdeJsonError(serde_json::Error),
     NotFound(String),
-    UnknownSeries(SeriesId),
-    UnknownPaint(SeriesId, String),
+    UnknownSeries(PaintRangeId),
+    UnknownPaint(PaintRangeId, String),
     NotAValidLegacySpec,
     NotImplemented,
 }
@@ -74,7 +74,7 @@ impl fmt::Display for Error {
             Error::IOError(err) => write!(f, "IOError: {err}"),
             Error::SerdeJsonError(err) => write!(f, "Serde Json Error: {err}"),
             Error::NotFound(string) => write!(f, "{string}: Not found."),
-            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint series"),
+            Error::UnknownSeries(series_id) => write!(f, "{series_id}: unknown paint range"),
             Error::UnknownPaint(series_id, id) => {
                 write!(f, "{id}:({series_id}): unknown paint")
             }
@@ -114,9 +114,9 @@ mod tests {
 
     #[test]
     fn test_reg_ex() {
-        let series_id: SeriesId =
-            SeriesId::from_str("Red Magenta:(Daniel Smith)").expect("valid series_id");
+        let series_id: PaintRangeId =
+            PaintRangeId::from_str("Red Magenta:(Daniel Smith)").expect("valid series_id");
         assert_eq!(series_id.proprietor, "Daniel Smith");
-        assert_eq!(series_id.series_name, "Red Magenta");
+        assert_eq!(series_id.name, "Red Magenta");
     }
 }

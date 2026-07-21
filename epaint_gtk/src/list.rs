@@ -8,7 +8,7 @@ use pw_gtk_ext::{
 
 use epaint::{
     mixtures::Mixture,
-    paint::{CollnPaint, Paint},
+    paint::{Paint, RangePaint},
 };
 
 use colour_math::{HCV, ScalarAttribute};
@@ -164,7 +164,7 @@ impl PaintListRow for Paint {
     }
 }
 
-impl PaintListRow for CollnPaint {
+impl PaintListRow for RangePaint {
     fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
         self.paint.row(attributes)
     }
