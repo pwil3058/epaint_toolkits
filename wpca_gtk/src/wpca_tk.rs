@@ -39,6 +39,7 @@ impl PaintersColourAssistantTK {
         let property_types = PropertyTypes(vec![
             PropertyType::Transparency,
             PropertyType::Lightfastness,
+            PropertyType::Permanence,
             PropertyType::Staining,
             PropertyType::Granulation,
         ]);

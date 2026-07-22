@@ -70,7 +70,6 @@ pub enum Permanence {
     #[default]
     Permanent,
     ModeratelyDurable,
-    Fugitive,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
