@@ -187,8 +187,8 @@ impl PaintEditor {
                 if entry.get_text_length() > 0 {
                     masked_condns.condns += crate::sav_state::SAV_ID_READY;
                 };
-                if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
-                    if spec.id != entry.get_text() {
+                if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
+                    if paint.id != entry.get_text() {
                         masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
                     }
                 }
@@ -207,8 +207,8 @@ impl PaintEditor {
             if entry.get_text_length() > 0 {
                 masked_condns.condns += SAV_NAME_READY;
             };
-            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
-                if spec.name != entry.get_text() {
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
+                if paint.name != entry.get_text() {
                     masked_condns.condns += SAV_NAME_CHANGED;
                 }
             }
@@ -226,8 +226,8 @@ impl PaintEditor {
             if entry.get_text_length() > 0 {
                 masked_condns.condns += SAV_NOTES_READY;
             };
-            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
-                if spec.notes != entry.get_text() {
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
+                if paint.notes != entry.get_text() {
                     masked_condns.condns += SAV_NOTES_CHANGED;
                 }
             }
@@ -242,8 +242,8 @@ impl PaintEditor {
                 condns: 0,
                 mask: SAV_RGB_CHANGED,
             };
-            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
-                if &spec.colour != hcv {
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
+                if &paint.colour != hcv {
                     masked_condns.condns += SAV_RGB_CHANGED;
                 }
             }
@@ -252,8 +252,8 @@ impl PaintEditor {
             bpe_c.inform_changed();
         });
 
-        if let Some(spec) = bpe.current_paint.borrow().as_ref() {
-            for (property, property_entry) in spec
+        if let Some(paint) = bpe.current_paint.borrow().as_ref() {
+            for (property, property_entry) in paint
                 .properties
                 .iter()
                 .zip(bpe.property_entries.iter().map(Rc::clone))
@@ -276,7 +276,7 @@ impl PaintEditor {
         }
 
         // NB: needed to correctly set the current state
-        bpe.set_current_spec(None);
+        bpe.set_current_paint(None);
         bpe.update_has_changes();
 
         bpe
@@ -297,7 +297,7 @@ impl PaintEditor {
         self.buttons.update_condns(masked_condns);
     }
 
-    fn spec_from_entries(&self) -> Paint {
+    fn paint_from_entries(&self) -> Paint {
         let properties: Properties = Properties(
             self.property_entries
                 .iter()
@@ -316,25 +316,25 @@ impl PaintEditor {
     }
 
     fn process_add_action(&self) {
-        let paint_spec = self.spec_from_entries();
-        self.set_current_spec(Some(&paint_spec));
+        let paint = self.paint_from_entries();
+        self.set_current_paint(Some(&paint));
         self.update_has_changes();
         for callback in self.add_callbacks.borrow().iter() {
-            callback(&paint_spec);
+            callback(&paint);
         }
     }
 
     fn process_accept_action(&self) {
-        let edited_spec = self
+        let edited_paint = self
             .current_paint
             .borrow()
             .clone()
             .expect("programming error");
-        let paint_spec = self.spec_from_entries();
-        self.set_current_spec(Some(&paint_spec));
+        let paint = self.paint_from_entries();
+        self.set_current_paint(Some(&paint));
         self.update_has_changes();
         for callback in self.accept_callbacks.borrow().iter() {
-            callback(&edited_spec.name, &paint_spec);
+            callback(&edited_paint.name, &paint);
         }
     }
 
@@ -369,7 +369,7 @@ impl PaintEditor {
                 }
             }
         }
-        self.set_current_spec(None);
+        self.set_current_paint(None);
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         // NB: do not reset properties
@@ -377,13 +377,13 @@ impl PaintEditor {
         self.update_has_changes();
     }
 
-    fn set_current_spec(&self, spec: Option<&Paint>) {
+    fn set_current_paint(&self, paint: Option<&Paint>) {
         let mut masked_condns = MaskedCondns {
             condns: 0,
             mask: SAV_EDITING + SAV_NOT_EDITING + CHANGED_MASK,
         };
-        if let Some(spec) = spec {
-            *self.current_paint.borrow_mut() = Some(spec.clone());
+        if let Some(paint) = paint {
+            *self.current_paint.borrow_mut() = Some(paint.clone());
             masked_condns.condns = SAV_EDITING;
         } else {
             *self.current_paint.borrow_mut() = None;
@@ -392,19 +392,19 @@ impl PaintEditor {
         self.buttons.update_condns(masked_condns);
     }
 
-    pub fn edit(&self, spec: &Paint) {
-        self.set_current_spec(Some(spec));
-        self.name_entry.set_text(&spec.name);
-        self.notes_entry.set_text(&spec.notes);
-        self.colour_editor.set_colour(&spec.colour);
-        for (property_entry, spec_value) in self
+    pub fn edit(&self, paint: &Paint) {
+        self.set_current_paint(Some(paint));
+        self.name_entry.set_text(&paint.name);
+        self.notes_entry.set_text(&paint.notes);
+        self.colour_editor.set_colour(&paint.colour);
+        for (property_entry, value) in self
             .property_entries
             .iter()
-            .zip(spec.properties.iter().map(|p| p.value))
+            .zip(paint.properties.iter().map(|p| p.value))
         {
             let property = Property {
                 property_type: property_entry.property_type(),
-                value: spec_value,
+                value,
             };
             property_entry.set_value(Some(property))
         }
@@ -412,13 +412,13 @@ impl PaintEditor {
     }
 
     pub fn un_edit(&self, name: &str) {
-        let is_being_edited = if let Some(spec) = self.current_paint.borrow().as_ref() {
-            name == spec.name
+        let is_being_edited = if let Some(paint) = self.current_paint.borrow().as_ref() {
+            name == paint.name
         } else {
             false
         };
         if is_being_edited {
-            self.set_current_spec(None);
+            self.set_current_paint(None);
             self.update_has_changes();
         }
     }
@@ -443,7 +443,7 @@ impl PaintEditor {
     }
 
     pub fn hard_reset(&self) {
-        self.set_current_spec(None);
+        self.set_current_paint(None);
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         for property_entry in self.property_entries.iter() {
