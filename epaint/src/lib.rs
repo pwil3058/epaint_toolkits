@@ -38,10 +38,10 @@ impl FromStr for PaintRangeId {
     type Err = regex::Error;
 
     fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
-        let re = Regex::new(r"(?P<series_name>[^:]+):\((?P<proprietor>[^)]+)\)")?;
+        let re = Regex::new(r"(?P<name>[^:]+):\((?P<proprietor>[^)]+)\)")?;
         let cap = re.captures(s).ok_or(regex::Error::Syntax(s.to_string()))?;
-        let series_name = cap
-            .name("series_name")
+        let name = cap
+            .name("name")
             .ok_or(regex::Error::Syntax(s.to_string()))?
             .as_str()
             .to_string();
@@ -50,10 +50,7 @@ impl FromStr for PaintRangeId {
             .ok_or(regex::Error::Syntax(s.to_string()))?
             .as_str()
             .to_string();
-        Ok(Self {
-            name: series_name,
-            proprietor,
-        })
+        Ok(Self { name, proprietor })
     }
 }
 
@@ -114,9 +111,9 @@ mod tests {
 
     #[test]
     fn test_reg_ex() {
-        let series_id: PaintRangeId =
+        let paint_range_id: PaintRangeId =
             PaintRangeId::from_str("Red Magenta:(Daniel Smith)").expect("valid series_id");
-        assert_eq!(series_id.proprietor, "Daniel Smith");
-        assert_eq!(series_id.name, "Red Magenta");
+        assert_eq!(paint_range_id.proprietor, "Daniel Smith");
+        assert_eq!(paint_range_id.name, "Red Magenta");
     }
 }

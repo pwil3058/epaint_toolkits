@@ -61,7 +61,7 @@ impl BasicPaintFactory {
     }
 
     fn do_add_paint_work(&self, paint: &Paint) {
-        if let Some(old_paint) = self.paint_series.borrow_mut().add(paint) {
+        if let Some(old_paint) = self.paint_series.borrow_mut().add(paint.clone()) {
             self.hue_wheel.remove_item(old_paint.key());
             self.list_view.remove_row(old_paint.key());
         }

@@ -12,7 +12,7 @@ use epaint::mixtures::Mixture;
 use epaint::paint::RangePaint;
 pub use epaint::properties::{
     Finish, Fluorescence, Granulation, Lightfastness, Metallicness, Opacity, Permanence,
-    Properties, Property, PropertyIfce, PropertyType, Staining, Transparency, str_values,
+    Properties, Property, PropertyIfce, PropertyType, Staining, Transparency,
 };
 
 type ChangeCallback<T> = Box<dyn Fn(&T)>;
@@ -27,7 +27,7 @@ pub struct PropertyEntry {
 impl PropertyEntry {
     pub fn new(property_type: PropertyType) -> Rc<Self> {
         let combo_box_text = gtk::ComboBoxText::new();
-        for str_value in str_values(&property_type).iter() {
+        for str_value in property_type.variant_strings() {
             combo_box_text.append_text(str_value);
         }
         combo_box_text.set_id_column(0);

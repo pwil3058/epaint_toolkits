@@ -6,28 +6,17 @@ use epaint_derive::Property;
 use serde::{Deserialize, Serialize};
 use std::{fmt, str::FromStr};
 
-pub trait PropertyConsts:
-    FromStr<Err = String> + PartialEq + PartialOrd + Default + fmt::Debug
+pub trait PropertyIfce:
+    FromStr<Err = String> + PartialEq + Eq + PartialOrd + Ord + fmt::Debug
 {
     const NAME: &'static str;
     const PROMPT: &'static str;
     const LIST_HEADER: &'static str;
     const VARIANT_STRS: &'static [&'static str];
     const ABBREV_VARIANT_STRS: &'static [&'static str];
-}
 
-pub trait PropertyFns: FromStr<Err = String> + PartialEq + PartialOrd + fmt::Debug {
-    fn name(&self) -> &'static str;
-    fn prompt(&self) -> &'static str;
-    fn list_header() -> &'static str;
-    fn str_values() -> Vec<&'static str>;
     fn abbrev_value(&self) -> &'static str;
     fn value(&self) -> &'static str;
-}
-
-pub trait PropertyIfce:
-    PropertyConsts + PropertyFns + Clone + Copy + FromStr + From<f64> + Default
-{
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
@@ -132,21 +121,6 @@ pub enum PropertyType {
     Granulation,
 }
 
-pub fn str_values(property: &PropertyType) -> Vec<&'static str> {
-    match property {
-        PropertyType::Transparency => Transparency::str_values(),
-        PropertyType::Lightfastness => Lightfastness::str_values(),
-        PropertyType::Staining => Staining::str_values(),
-        PropertyType::Finish => Finish::str_values(),
-        PropertyType::Opacity => Opacity::str_values(),
-        PropertyType::Permanence => Permanence::str_values(),
-        PropertyType::Luminescence => Luminescence::str_values(),
-        PropertyType::Fluorescence => Fluorescence::str_values(),
-        PropertyType::Metallicness => Metallicness::str_values(),
-        PropertyType::Granulation => Granulation::str_values(),
-    }
-}
-
 impl PropertyType {
     pub fn name(&self) -> &'static str {
         match self {
@@ -180,46 +154,31 @@ impl PropertyType {
 
     pub fn list_header(&self) -> &'static str {
         match self {
-            Self::Transparency => Transparency::list_header(),
-            Self::Lightfastness => Lightfastness::list_header(),
-            Self::Staining => Staining::list_header(),
-            Self::Finish => Finish::list_header(),
-            Self::Opacity => Opacity::list_header(),
-            Self::Permanence => Permanence::list_header(),
-            Self::Luminescence => Luminescence::list_header(),
-            Self::Fluorescence => Fluorescence::list_header(),
-            Self::Metallicness => Metallicness::list_header(),
-            Self::Granulation => Granulation::list_header(),
+            Self::Transparency => Transparency::LIST_HEADER,
+            Self::Lightfastness => Lightfastness::LIST_HEADER,
+            Self::Staining => Staining::LIST_HEADER,
+            Self::Finish => Finish::LIST_HEADER,
+            Self::Opacity => Opacity::LIST_HEADER,
+            Self::Permanence => Permanence::LIST_HEADER,
+            Self::Luminescence => Luminescence::LIST_HEADER,
+            Self::Fluorescence => Fluorescence::LIST_HEADER,
+            Self::Metallicness => Metallicness::LIST_HEADER,
+            Self::Granulation => Granulation::LIST_HEADER,
         }
     }
 
-    pub fn value(&self, arg: f64) -> &'static str {
+    pub fn variant_strings(&self) -> impl Iterator<Item = &'static str> {
         match self {
-            Self::Transparency => Transparency::from(arg).value(),
-            Self::Lightfastness => Lightfastness::from(arg).value(),
-            Self::Staining => Staining::from(arg).value(),
-            Self::Finish => Finish::from(arg).value(),
-            Self::Opacity => Opacity::from(arg).value(),
-            Self::Permanence => Permanence::from(arg).value(),
-            Self::Luminescence => Luminescence::from(arg).value(),
-            Self::Fluorescence => Fluorescence::from(arg).value(),
-            Self::Metallicness => Metallicness::from(arg).value(),
-            Self::Granulation => Granulation::from(arg).value(),
-        }
-    }
-
-    pub fn default_f64(&self) -> f64 {
-        match self {
-            Self::Transparency => Transparency::default().into(),
-            Self::Lightfastness => Lightfastness::default().into(),
-            Self::Staining => Staining::default().into(),
-            Self::Finish => Finish::default().into(),
-            Self::Opacity => Opacity::default().into(),
-            Self::Permanence => Permanence::default().into(),
-            Self::Luminescence => Luminescence::default().into(),
-            Self::Fluorescence => Fluorescence::default().into(),
-            Self::Metallicness => Metallicness::default().into(),
-            Self::Granulation => Granulation::default().into(),
+            Self::Transparency => Transparency::VARIANT_STRS.iter().copied(),
+            Self::Lightfastness => Lightfastness::VARIANT_STRS.iter().copied(),
+            Self::Staining => Staining::VARIANT_STRS.iter().copied(),
+            Self::Finish => Finish::VARIANT_STRS.iter().copied(),
+            Self::Opacity => Opacity::VARIANT_STRS.iter().copied(),
+            Self::Permanence => Permanence::VARIANT_STRS.iter().copied(),
+            Self::Luminescence => Luminescence::VARIANT_STRS.iter().copied(),
+            Self::Fluorescence => Fluorescence::VARIANT_STRS.iter().copied(),
+            Self::Metallicness => Metallicness::VARIANT_STRS.iter().copied(),
+            Self::Granulation => Granulation::VARIANT_STRS.iter().copied(),
         }
     }
 
@@ -346,23 +305,7 @@ impl Property {
     pub fn property_type(&self) -> PropertyType {
         self.property_type
     }
-
-    pub fn default_f64(&self) -> f64 {
-        self.property_type.default_f64()
-    }
 }
-
-// impl PartialEq for Property {
-//     fn eq(&self, other: &Self) -> bool {
-//         if self.property_type == other.property_type {
-//             self.value == other.value
-//         } else {
-//             false
-//         }
-//     }
-// }
-//
-// impl Eq for Property {}
 
 impl PartialOrd for Property {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -584,18 +527,6 @@ mod tests {
             PropertyType::Lightfastness,
             PropertyType::from_str("Lightfastness").unwrap()
         )
-    }
-
-    #[test]
-    fn test_property_type_real() {
-        assert_eq!(
-            PropertyType::Transparency.value(1.0),
-            Transparency::Clear.value()
-        );
-        assert_eq!(
-            PropertyType::Lightfastness.value(1.0),
-            Lightfastness::ExcellentLightfastness.value()
-        );
     }
 
     #[test]

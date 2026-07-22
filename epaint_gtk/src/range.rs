@@ -32,7 +32,7 @@ use epaint::{
     PaintRangeId,
     paint::RangePaint,
     properties::PropertyTypes,
-    range::{PaintFinder, PaintRange},
+    range::{PaintRange, RangePaintFinder},
 };
 
 use crate::{
@@ -420,8 +420,8 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
     }
 }
 
-impl PaintFinder for SeriesBinder {
-    fn get_paint(
+impl RangePaintFinder for SeriesBinder {
+    fn find_range_paint(
         &self,
         paint_id: &str,
         series_id: Option<&PaintRangeId>,
@@ -506,13 +506,13 @@ impl PaintSeriesManager {
     }
 }
 
-impl PaintFinder for PaintSeriesManager {
-    fn get_paint(
+impl RangePaintFinder for PaintSeriesManager {
+    fn find_range_paint(
         &self,
         paint_id: &str,
         series_id: Option<&PaintRangeId>,
     ) -> epaint::Result<RangePaint> {
-        self.binder.get_paint(paint_id, series_id)
+        self.binder.find_range_paint(paint_id, series_id)
     }
 }
 
@@ -670,13 +670,13 @@ impl PaintStandardsManager {
     }
 }
 
-impl PaintFinder for PaintStandardsManager {
-    fn get_paint(
+impl RangePaintFinder for PaintStandardsManager {
+    fn find_range_paint(
         &self,
         paint_id: &str,
         series_id: Option<&PaintRangeId>,
     ) -> epaint::Result<RangePaint> {
-        self.binder.get_paint(paint_id, series_id)
+        self.binder.find_range_paint(paint_id, series_id)
     }
 }
 

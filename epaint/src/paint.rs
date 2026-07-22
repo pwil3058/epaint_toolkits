@@ -35,7 +35,7 @@ impl Paint {
 impl MakeColouredShape for Paint {
     fn coloured_shape(&self) -> ColouredShape {
         let tooltip_text = self.tooltip_text();
-        ColouredShape::new(&self.colour, &self.name, &tooltip_text, Shape::Square)
+        ColouredShape::new(&self.colour, self.key(), &tooltip_text, Shape::Square)
     }
 }
 

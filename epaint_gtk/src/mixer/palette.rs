@@ -49,7 +49,7 @@ use epaint::{
     mixtures::{MixingSession, MixtureBuilder},
     paint::RangePaint,
     properties::PropertyTypes,
-    range::PaintFinder,
+    range::RangePaintFinder,
 };
 
 use crate::{
@@ -880,14 +880,14 @@ impl PalettePaintMixerBuilder {
                     .mixture_display_dialog_manager
                     .borrow_mut()
                     .display_mixture(mixture);
-            } else if let Ok(paint) = tpm_c.paint_series_manager.get_paint(id, None) {
+            } else if let Ok(paint) = tpm_c.paint_series_manager.find_range_paint(id, None) {
                 tpm_c
                     .paint_display_dialog_manager
                     .borrow_mut()
                     .display_paint(&paint);
             } else {
                 #[cfg(feature = "targeted_mixtures")]
-                if let Ok(standard) = tpm_c.paint_standards_manager.get_paint(id, None) {
+                if let Ok(standard) = tpm_c.paint_standards_manager.find_range_paint(id, None) {
                     tpm_c
                         .paint_display_dialog_manager
                         .borrow_mut()

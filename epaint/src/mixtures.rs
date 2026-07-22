@@ -184,12 +184,9 @@ impl MixingSession {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        while let Some(pair) = self.mixtures.windows(2).next() {
-            if pair[0].id >= pair[1].id {
-                return false;
-            }
-        }
-        true
+        self.mixtures
+            .windows(2)
+            .all(|pair| pair[0].id <= pair[1].id)
     }
 }
 
@@ -321,7 +318,7 @@ mod test {
         paint_series.set_proprietor("owner");
         paint_series.set_range_name("range name");
         assert!(paint_series.range_paints().next().is_none());
-        paint_series.add(&Paint {
+        paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
             colour: HCV::RED,
@@ -329,7 +326,7 @@ mod test {
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
         });
-        paint_series.add(&Paint {
+        paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
             colour: HCV::YELLOW,

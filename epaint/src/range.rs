@@ -34,20 +34,20 @@ impl PaintRange {
         self.range_id.name = name.to_string()
     }
 
-    pub fn add(&mut self, paint: &Paint) -> Option<Paint> {
+    pub fn add(&mut self, paint: Paint) -> Option<Paint> {
         debug_assert!(self.is_sorted_unique());
         match self
             .paint_list
             .binary_search_by_key(&paint.key(), |p| p.key())
         {
             Ok(index) => {
-                self.paint_list.push(paint.clone());
+                self.paint_list.push(paint);
                 let old = self.paint_list.swap_remove(index);
                 debug_assert!(self.is_sorted_unique());
                 Some(old)
             }
             Err(index) => {
-                self.paint_list.insert(index, paint.clone());
+                self.paint_list.insert(index, paint);
                 None
             }
         }
@@ -76,12 +76,9 @@ impl PaintRange {
     }
 
     pub fn is_sorted_unique(&self) -> bool {
-        for i in 1..self.paint_list.len() {
-            if self.paint_list[i] <= self.paint_list[i - 1] {
-                return false;
-            }
-        }
-        true
+        self.paint_list
+            .windows(2)
+            .all(|pair| pair[0].key() <= pair[1].key())
     }
 
     pub fn get_paint(&self, key: &str) -> Option<&Paint> {
@@ -133,10 +130,10 @@ impl PaintRange {
     }
 }
 
-pub trait PaintFinder {
-    fn get_paint(
+pub trait RangePaintFinder {
+    fn find_range_paint(
         &self,
-        paint_name: &str,
+        paint_key: &str,
         series_id: Option<&PaintRangeId>,
     ) -> Result<RangePaint, crate::Error>;
 }
@@ -155,7 +152,7 @@ mod test {
         paint_series.set_proprietor("owner");
         paint_series.set_range_name("range name");
         assert!(paint_series.range_paints().next().is_none());
-        paint_series.add(&Paint {
+        paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
             colour: HCV::RED,
@@ -163,7 +160,7 @@ mod test {
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
-        paint_series.add(&Paint {
+        paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
             colour: HCV::YELLOW,
