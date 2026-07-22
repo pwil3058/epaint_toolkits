@@ -24,7 +24,7 @@ use epaint::{paint::Paint, range::PaintRange};
 
 use crate::{
     list::{BasicPaintListViewSpec, PaintListRow},
-    spec_edit::BasicPaintSpecEditor,
+    paint_edit::PaintEditor,
     storage::{StorageManager, StorageManagerBuilder},
 };
 
@@ -32,7 +32,7 @@ use crate::{
 pub struct BasicPaintFactory {
     vbox: gtk::Box,
     file_manager: Rc<StorageManager>,
-    paint_editor: Rc<BasicPaintSpecEditor>,
+    paint_editor: Rc<PaintEditor>,
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
     attributes: Vec<ScalarAttribute>,
@@ -228,7 +228,7 @@ impl BasicPaintFactoryBuilder {
         let proprietor_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&proprietor_entry, 1, 1, 1, 1);
         let paned = gtk::Paned::new(gtk::Orientation::Horizontal);
-        let paint_editor = BasicPaintSpecEditor::new(&self.attributes, &self.property_types);
+        let paint_editor = PaintEditor::new(&self.attributes, &self.property_types);
         let hue_wheel = GtkHueWheelBuilder::new()
             .menu_item_specs(menu_items)
             .attributes(&self.attributes)

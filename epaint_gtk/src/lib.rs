@@ -6,10 +6,10 @@ pub mod factory;
 pub mod icons;
 pub mod list;
 pub mod mixer;
+pub mod paint_edit;
 pub mod properties;
 pub mod range;
 pub mod sav_state;
-pub mod spec_edit;
 pub mod storage;
 pub mod window;
 

@@ -30,30 +30,40 @@ const CHANGED_MASK: u64 = SAV_ID_CHANGED
     + SAV_PERMANENCE_CHANGED
     + SAV_TRANSPARENCY_CHANGED
     + SAV_FLUORESCENCE_CHANGED
-    + SAV_METALLICNESS_CHANGED;
+    + SAV_METALLICNESS_CHANGED
+    + SAV_OPACITY_CHANGED
+    + SAV_LIGHTFASTNESS_CHANGED
+    + SAV_GRANULATION_CHANGED
+    + SAV_STAINING_CHANGED;
 
 #[cfg(feature = "paints_have_ids")]
 const SAV_KEY_READY: u64 = SAV_ID_READY + SAV_NAME_READY;
 #[cfg(not(feature = "paints_have_ids"))]
 const SAV_KEY_READY: u64 = SAV_NAME_READY;
 
-pub fn property_sav_changed(property_type: PropertyType) -> u64 {
-    match property_type {
-        PropertyType::Finish => SAV_FINISH_CHANGED,
-        PropertyType::Transparency => SAV_TRANSPARENCY_CHANGED,
-        PropertyType::Metallicness => SAV_METALLICNESS_CHANGED,
-        PropertyType::Opacity => SAV_OPACITY_CHANGED,
-        PropertyType::Permanence => SAV_PERMANENCE_CHANGED,
-        PropertyType::Luminescence => SAV_LIGHTFASTNESS_CHANGED,
-        PropertyType::Granulation => SAV_GRANULATION_CHANGED,
-        PropertyType::Staining => SAV_STAINING_CHANGED,
-        PropertyType::Lightfastness => SAV_GRANULATION_CHANGED,
-        PropertyType::Fluorescence => SAV_FLUORESCENCE_CHANGED,
+pub trait PropertySavFlag {
+    fn sav_flag(&self) -> u64;
+}
+
+impl PropertySavFlag for PropertyType {
+    fn sav_flag(&self) -> u64 {
+        match self {
+            PropertyType::Finish => SAV_FINISH_CHANGED,
+            PropertyType::Transparency => SAV_TRANSPARENCY_CHANGED,
+            PropertyType::Metallicness => SAV_METALLICNESS_CHANGED,
+            PropertyType::Opacity => SAV_OPACITY_CHANGED,
+            PropertyType::Permanence => SAV_PERMANENCE_CHANGED,
+            PropertyType::Luminescence => SAV_LIGHTFASTNESS_CHANGED,
+            PropertyType::Granulation => SAV_GRANULATION_CHANGED,
+            PropertyType::Staining => SAV_STAINING_CHANGED,
+            PropertyType::Lightfastness => SAV_GRANULATION_CHANGED,
+            PropertyType::Fluorescence => SAV_FLUORESCENCE_CHANGED,
+        }
     }
 }
 
 #[derive(PWO, Wrapper)]
-pub struct BasicPaintSpecEditor {
+pub struct PaintEditor {
     vbox: gtk::Box,
     #[cfg(feature = "paints_have_ids")]
     id_entry: gtk::Entry,
@@ -62,13 +72,13 @@ pub struct BasicPaintSpecEditor {
     colour_editor: Rc<ColourEditor<u16>>,
     property_entries: Vec<Rc<PropertyEntry>>,
     buttons: ConditionalWidgetGroups<gtk::Button>,
-    current_spec: RefCell<Option<Paint>>,
+    current_paint: RefCell<Option<Paint>>,
     add_callbacks: RefCell<Vec<AddCallback>>,
     accept_callbacks: RefCell<Vec<AcceptCallback>>,
     change_callbacks: RefCell<Vec<ChangeCallback>>,
 }
 
-impl BasicPaintSpecEditor {
+impl PaintEditor {
     pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let grid = gtk::GridBuilder::new().hexpand(true).build();
@@ -79,12 +89,12 @@ impl BasicPaintSpecEditor {
         let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
         #[cfg(feature = "paints_have_ids")]
         {
-            grid.attach(&id_entry, 1, row, 1, 1);
             let label = gtk::LabelBuilder::new()
                 .label("Id:")
                 .halign(gtk::Align::End)
                 .build();
             grid.attach(&label, 0, row, 1, 1);
+            grid.attach(&id_entry, 1, row, 1, 1);
             row += 1;
         }
 
@@ -151,7 +161,7 @@ impl BasicPaintSpecEditor {
             colour_editor,
             property_entries,
             buttons,
-            current_spec: RefCell::new(None),
+            current_paint: RefCell::new(None),
             add_callbacks: RefCell::new(Vec::new()),
             accept_callbacks: RefCell::new(Vec::new()),
             change_callbacks: RefCell::new(Vec::new()),
@@ -177,7 +187,7 @@ impl BasicPaintSpecEditor {
                 if entry.get_text_length() > 0 {
                     masked_condns.condns += crate::sav_state::SAV_ID_READY;
                 };
-                if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+                if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
                     if spec.id != entry.get_text() {
                         masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
                     }
@@ -197,7 +207,7 @@ impl BasicPaintSpecEditor {
             if entry.get_text_length() > 0 {
                 masked_condns.condns += SAV_NAME_READY;
             };
-            if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
                 if spec.name != entry.get_text() {
                     masked_condns.condns += SAV_NAME_CHANGED;
                 }
@@ -216,7 +226,7 @@ impl BasicPaintSpecEditor {
             if entry.get_text_length() > 0 {
                 masked_condns.condns += SAV_NOTES_READY;
             };
-            if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
                 if spec.notes != entry.get_text() {
                     masked_condns.condns += SAV_NOTES_CHANGED;
                 }
@@ -232,7 +242,7 @@ impl BasicPaintSpecEditor {
                 condns: 0,
                 mask: SAV_RGB_CHANGED,
             };
-            if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
+            if let Some(spec) = bpe_c.current_paint.borrow().as_ref() {
                 if &spec.colour != hcv {
                     masked_condns.condns += SAV_RGB_CHANGED;
                 }
@@ -242,25 +252,7 @@ impl BasicPaintSpecEditor {
             bpe_c.inform_changed();
         });
 
-        // for (index, property_entry) in bpe.property_entries.iter().map(Rc::clone).enumerate() {
-        //     let bpe_c = Rc::clone(&bpe);
-        //     property_entry.connect_changed(move |entry| {
-        //         let sav_condn = property_sav_changed(entry.property_type());
-        //         let mut masked_condns = MaskedCondns {
-        //             condns: 0,
-        //             mask: sav_condn,
-        //         };
-        //         if let Some(spec) = bpe_c.current_spec.borrow().as_ref() {
-        //             if spec.property_variants_f64[index] != entry.value().value {
-        //                 masked_condns.condns += sav_condn;
-        //             }
-        //         }
-        //         bpe_c.buttons.update_condns(masked_condns);
-        //         bpe_c.update_has_changes();
-        //         bpe_c.inform_changed();
-        //     })
-        // }
-        if let Some(spec) = bpe.current_spec.borrow().as_ref() {
+        if let Some(spec) = bpe.current_paint.borrow().as_ref() {
             for (property, property_entry) in spec
                 .properties
                 .iter()
@@ -268,7 +260,7 @@ impl BasicPaintSpecEditor {
             {
                 let bpe_c = Rc::clone(&bpe);
                 property_entry.connect_changed(move |property_entry| {
-                    let sav_condn = property_sav_changed(property_entry.property_type());
+                    let sav_condn = property_entry.property_type().sav_flag();
                     let mut masked_condns = MaskedCondns {
                         condns: 0,
                         mask: sav_condn,
@@ -295,7 +287,7 @@ impl BasicPaintSpecEditor {
             condns: 0,
             mask: SAV_HAS_CHANGES,
         };
-        if self.current_spec.borrow().is_some() {
+        if self.current_paint.borrow().is_some() {
             if self.buttons.current_condns() & CHANGED_MASK != 0 {
                 masked_condns.condns = SAV_HAS_CHANGES;
             }
@@ -334,7 +326,7 @@ impl BasicPaintSpecEditor {
 
     fn process_accept_action(&self) {
         let edited_spec = self
-            .current_spec
+            .current_paint
             .borrow()
             .clone()
             .expect("programming error");
@@ -391,10 +383,10 @@ impl BasicPaintSpecEditor {
             mask: SAV_EDITING + SAV_NOT_EDITING + CHANGED_MASK,
         };
         if let Some(spec) = spec {
-            *self.current_spec.borrow_mut() = Some(spec.clone());
+            *self.current_paint.borrow_mut() = Some(spec.clone());
             masked_condns.condns = SAV_EDITING;
         } else {
-            *self.current_spec.borrow_mut() = None;
+            *self.current_paint.borrow_mut() = None;
             masked_condns.condns = SAV_NOT_EDITING;
         };
         self.buttons.update_condns(masked_condns);
@@ -420,7 +412,7 @@ impl BasicPaintSpecEditor {
     }
 
     pub fn un_edit(&self, name: &str) {
-        let is_being_edited = if let Some(spec) = self.current_spec.borrow().as_ref() {
+        let is_being_edited = if let Some(spec) = self.current_paint.borrow().as_ref() {
             name == spec.name
         } else {
             false

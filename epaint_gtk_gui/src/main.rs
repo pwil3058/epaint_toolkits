@@ -22,9 +22,9 @@ use epaint::properties::{
 
 use epaint_gtk::factory::BasicPaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PalettePaintMixerBuilder;
+use epaint_gtk::paint_edit::PaintEditor;
 use epaint_gtk::range::PaintSeriesManagerBuilder;
 use epaint_gtk::range::display::*;
-use epaint_gtk::spec_edit::BasicPaintSpecEditor;
 
 fn main() {
     recollections::init("./.recollections");
@@ -64,7 +64,7 @@ fn main() {
         .property_types(&property_types)
         .build();
     vbox.pack_start(mixer.pwo(), false, false, 0);
-    let bpe = BasicPaintSpecEditor::new(&[Warmth], &property_types);
+    let bpe = PaintEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
     let mut paint = Paint {
         #[cfg(feature = "paints_have_ids")]
