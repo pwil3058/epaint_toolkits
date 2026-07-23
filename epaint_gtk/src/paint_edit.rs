@@ -34,7 +34,8 @@ const CHANGED_MASK: u64 = SAV_ID_CHANGED
     + SAV_OPACITY_CHANGED
     + SAV_LIGHTFASTNESS_CHANGED
     + SAV_GRANULATION_CHANGED
-    + SAV_STAINING_CHANGED;
+    + SAV_STAINING_CHANGED
+    + SAV_LUMINESCENCE_CHANGED;
 
 #[cfg(feature = "paints_have_ids")]
 const SAV_KEY_READY: u64 = SAV_ID_READY + SAV_NAME_READY;
@@ -298,13 +299,8 @@ impl PaintEditor {
     }
 
     fn paint_from_entries(&self) -> Paint {
-        let properties: Properties = Properties(
-            self.property_entries
-                .iter()
-                .map(|e| e.value())
-                // .map(|entry| entry.value().value)
-                .collect(),
-        );
+        let properties: Properties =
+            Properties(self.property_entries.iter().map(|e| e.value()).collect());
         Paint {
             #[cfg(feature = "paints_have_ids")]
             id: self.id_entry.get_text().to_string(),
