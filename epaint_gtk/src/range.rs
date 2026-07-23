@@ -48,7 +48,7 @@ use crate::range::display::*;
 type PaintActionCallback = Box<dyn Fn(RangePaint)>;
 
 #[derive(PWO, Wrapper)]
-struct SeriesPage {
+struct RangePage {
     paned: gtk::Paned,
     paint_series: PaintRange,
     hue_wheel: Rc<GtkHueWheel>,
@@ -57,14 +57,14 @@ struct SeriesPage {
 }
 
 #[derive(Clone)]
-struct SeriesPageBuilder {
+struct RangePageBuilder {
     attributes: Vec<ScalarAttribute>,
     property_types: PropertyTypes,
     menu_items: Vec<(&'static str, MenuItemSpec, u64)>,
     selection_mode: gtk::SelectionMode,
 }
 
-impl Default for SeriesPageBuilder {
+impl Default for RangePageBuilder {
     fn default() -> Self {
         Self {
             attributes: vec![],
@@ -75,7 +75,7 @@ impl Default for SeriesPageBuilder {
     }
 }
 
-impl SeriesPageBuilder {
+impl RangePageBuilder {
     fn new() -> Self {
         Self::default()
     }
@@ -100,13 +100,15 @@ impl SeriesPageBuilder {
         self
     }
 
-    fn build(&self, paint_series: PaintRange) -> Rc<SeriesPage> {
+    fn build(&self, paint_series: PaintRange) -> Rc<RangePage> {
         let paned = gtk::PanedBuilder::new().build();
         paned.set_position_from_recollections("SeriesPage:paned_position", 200);
+
         let hue_wheel = GtkHueWheelBuilder::new()
             .menu_item_specs(&self.menu_items)
             .attributes(&self.attributes)
             .build();
+
         let list_spec = PaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(self.menu_items.to_vec())
@@ -120,43 +122,50 @@ impl SeriesPageBuilder {
         }
         let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
         scrolled_window.add(list_view.pwo());
+
         paned.add1(hue_wheel.pwo());
         paned.add2(&scrolled_window);
-        let sp = Rc::new(SeriesPage {
+
+        let range_page = Rc::new(RangePage {
             paned,
             paint_series,
             hue_wheel,
             list_view,
             callbacks: RefCell::new(HashMap::new()),
         });
+
         for (name, _, _) in self.menu_items.iter() {
-            let sp_c = Rc::clone(&sp);
+            let rp_c = Rc::clone(&range_page);
             let item_name_c = (*name).to_string();
-            sp.hue_wheel.connect_popup_menu_item(name, move |id| {
-                sp_c.invoke_named_callback(&item_name_c, id)
-            });
-            let sp_c = Rc::clone(&sp);
+            range_page
+                .hue_wheel
+                .connect_popup_menu_item(name, move |id| {
+                    rp_c.invoke_named_callback(&item_name_c, id)
+                });
+            let rp_c = Rc::clone(&range_page);
             let item_name_c = (*name).to_string();
-            sp.list_view
+            range_page
+                .list_view
                 .connect_popup_menu_item(name, move |id, selected_ids| {
                     if let Some(selected_ids) = selected_ids {
                         for selected_id in &selected_ids {
-                            sp_c.invoke_named_callback(&item_name_c, selected_id)
+                            rp_c.invoke_named_callback(&item_name_c, selected_id)
                         }
                     } else if let Some(id) = &id {
-                        sp_c.invoke_named_callback(&item_name_c, id)
+                        rp_c.invoke_named_callback(&item_name_c, id)
                     }
                 });
-            sp.callbacks
+            range_page
+                .callbacks
                 .borrow_mut()
                 .insert((*name).to_string(), vec![]);
         }
 
-        sp
+        range_page
     }
 }
 
-impl SeriesPage {
+impl RangePage {
     fn series_id(&self) -> &PaintRangeId {
         self.paint_series.range_id()
     }
@@ -194,17 +203,17 @@ impl SeriesPage {
 }
 
 #[derive(PWO, Wrapper)]
-struct SeriesBinder {
+struct RangeBinder {
     notebook: gtk::Notebook,
-    pages: RefCell<Vec<(Rc<SeriesPage>, PathBuf)>>,
-    series_page_builder: SeriesPageBuilder,
+    pages: RefCell<Vec<(Rc<RangePage>, PathBuf)>>,
+    range_page_builder: RangePageBuilder,
     menu_items: Vec<(&'static str, MenuItemSpec, u64)>,
     target_colour: RefCell<Option<HCV>>,
     callbacks: RefCell<HashMap<String, Vec<PaintActionCallback>>>,
     loaded_files_data_path: Option<PathBuf>,
 }
 
-impl SeriesBinder {
+impl RangeBinder {
     fn new(
         menu_items: &[(&'static str, MenuItemSpec, u64)],
         attributes: &[ScalarAttribute],
@@ -214,22 +223,25 @@ impl SeriesBinder {
     ) -> Rc<Self> {
         let notebook = gtk::NotebookBuilder::new().enable_popup(true).build();
         let pages = RefCell::new(vec![]);
+
         let mut hash_map: HashMap<String, Vec<PaintActionCallback>> = HashMap::new();
         for menu_item in menu_items.iter() {
             let item_name = menu_item.0;
             hash_map.insert(item_name.to_string(), vec![]);
         }
         let callbacks = RefCell::new(hash_map);
-        let mut series_page_builder = SeriesPageBuilder::new();
-        series_page_builder
+
+        let mut range_page_builder = RangePageBuilder::new();
+        range_page_builder
             .attributes(attributes)
             .property_types(property_types)
             .menu_items(menu_items)
             .selection_mode(selection_mode);
+
         let binder = Rc::new(Self {
             notebook,
             pages,
-            series_page_builder,
+            range_page_builder,
             menu_items: menu_items.to_vec(),
             target_colour: RefCell::new(None),
             callbacks,
@@ -237,7 +249,7 @@ impl SeriesBinder {
         });
 
         for path_buf in &binder.read_loaded_file_paths() {
-            if let Err(err) = binder.add_series_from_file(path_buf) {
+            if let Err(err) = binder.add_range_from_file(path_buf) {
                 binder.report_error("Error preloading:", &err);
             }
         }
@@ -246,7 +258,7 @@ impl SeriesBinder {
         binder
     }
 
-    fn binary_search_series_id(&self, sid: &PaintRangeId) -> Result<usize, usize> {
+    fn binary_search_range_id(&self, sid: &PaintRangeId) -> Result<usize, usize> {
         self.pages
             .borrow()
             .binary_search_by_key(sid, |(page, _)| page.series_id().clone())
@@ -302,17 +314,17 @@ impl SeriesBinder {
         }
     }
 
-    fn remove_series_at_index(&self, index: usize) {
+    fn remove_range_at_index(&self, index: usize) {
         let page = self.pages.borrow_mut().remove(index);
         let page_num = self.notebook.page_num(page.0.pwo());
         self.notebook.remove_page(page_num);
     }
 
-    fn remove_series(&self, series_id: &PaintRangeId) {
+    fn remove_range(&self, series_id: &PaintRangeId) {
         let question = format!("Confirm remove '{series_id}'?");
         if self.ask_confirm_action(&question, None) {
-            if let Ok(index) = self.binary_search_series_id(series_id) {
-                self.remove_series_at_index(index)
+            if let Ok(index) = self.binary_search_range_id(series_id) {
+                self.remove_range_at_index(index)
             } else {
                 panic!("attempt to remove non existent range")
             }
@@ -343,43 +355,43 @@ impl SeriesBinder {
     }
 }
 
-trait RcSeriesBinder {
-    fn add_series(&self, new_series: PaintRange, path: &Path) -> Result<(), crate::Error>;
-    fn add_series_from_file(&self, path: &Path) -> Result<(), crate::Error>;
+trait RcRangeBinder {
+    fn add_range(&self, new_series: PaintRange, path: &Path) -> Result<(), crate::Error>;
+    fn add_range_from_file(&self, path: &Path) -> Result<(), crate::Error>;
 }
 
-impl RcSeriesBinder for Rc<SeriesBinder> {
-    fn add_series(&self, new_series: PaintRange, path: &Path) -> Result<(), crate::Error> {
-        match self.binary_search_series_id(&new_series.range_id()) {
+impl RcRangeBinder for Rc<RangeBinder> {
+    fn add_range(&self, new_range: PaintRange, path: &Path) -> Result<(), crate::Error> {
+        match self.binary_search_range_id(&new_range.range_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
-                "{}: Series already in binder",
-                &new_series.range_id()
+                "{}: Range already in binder",
+                &new_range.range_id()
             ))),
             Err(index) => {
                 let l_text = format!(
                     "{}\n{}",
-                    new_series.range_id().name,
-                    new_series.range_id().proprietor,
+                    new_range.range_id().name,
+                    new_range.range_id().proprietor,
                 );
                 let tt_text = format!(
                     "Remove {} ({}) from the tool kit",
-                    new_series.range_id().name,
-                    new_series.range_id().proprietor,
+                    new_range.range_id().name,
+                    new_range.range_id().proprietor,
                 );
                 let label = TabRemoveLabelBuilder::new()
                     .label_text(l_text.as_str())
                     .tooltip_text(tt_text.as_str())
                     .build();
                 let self_c = Rc::clone(self);
-                let sid = new_series.range_id().clone();
-                label.connect_remove_page(move || self_c.remove_series(&sid));
+                let sid = new_range.range_id().clone();
+                label.connect_remove_page(move || self_c.remove_range(&sid));
                 let l_text = format!(
                     "{} ({})",
-                    new_series.range_id().name,
-                    new_series.range_id().proprietor,
+                    new_range.range_id().name,
+                    new_range.range_id().proprietor,
                 );
                 let menu_label = gtk::Label::new(Some(l_text.as_str()));
-                let new_page = self.series_page_builder.build(new_series);
+                let new_page = self.range_page_builder.build(new_range);
                 if let Some(colour) = self.target_colour.borrow().as_ref() {
                     new_page.set_target_colour(Some(colour));
                 };
@@ -405,7 +417,7 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
         }
     }
 
-    fn add_series_from_file(&self, path: &Path) -> Result<(), crate::Error> {
+    fn add_range_from_file(&self, path: &Path) -> Result<(), crate::Error> {
         if self.find_file_path(path).is_some() {
             let msg = format!("{}: is already loaded", path.to_string_lossy());
             return Err(crate::Error::DuplicateFile(msg));
@@ -415,15 +427,15 @@ impl RcSeriesBinder for Rc<SeriesBinder> {
             Ok(series) => series,
             Err(err) => return Err(crate::Error::APaintError(err)),
         };
-        self.add_series(new_series, path)?;
+        self.add_range(new_series, path)?;
         Ok(())
     }
 }
 
-impl RangePaintFinder for SeriesBinder {
+impl RangePaintFinder for RangeBinder {
     fn find_range_paint(
         &self,
-        paint_id: &str,
+        paint_key: &str,
         series_id: Option<&PaintRangeId>,
     ) -> epaint::Result<RangePaint> {
         if let Some(series_id) = series_id {
@@ -436,56 +448,56 @@ impl RangePaintFinder for SeriesBinder {
                 Ok(index) => match self.pages.borrow()[index]
                     .0
                     .paint_series
-                    .get_range_paint(paint_id)
+                    .get_range_paint(paint_key)
                 {
                     Some(colln_paint) => Ok(colln_paint),
                     None => Err(epaint::Error::UnknownPaint(
                         series_id.clone(),
-                        paint_id.to_string(),
+                        paint_key.to_string(),
                     )),
                 },
                 Err(_) => Err(epaint::Error::UnknownSeries(series_id.clone())),
             }
         } else {
             for page in self.pages.borrow().iter() {
-                if let Some(colln_paint) = page.0.paint_series.get_range_paint(paint_id) {
+                if let Some(colln_paint) = page.0.paint_series.get_range_paint(paint_key) {
                     return Ok(colln_paint);
                 }
             }
-            Err(epaint::Error::NotFound(paint_id.to_string()))
+            Err(epaint::Error::NotFound(paint_key.to_string()))
         }
     }
 }
 
 #[derive(PWO, Wrapper)]
-pub struct PaintSeriesManager {
+pub struct PaintRangeManager {
     vbox: gtk::Box,
-    binder: Rc<SeriesBinder>,
+    binder: Rc<RangeBinder>,
     display_dialog_manager: Rc<PaintDisplayDialogManager<gtk::Box>>,
     add_paint_callbacks: RefCell<Vec<PaintActionCallback>>,
 }
 
-impl PaintSeriesManager {
-    fn load_series_from_file(&self) -> Result<(), crate::Error> {
-        let last_file = recall("PaintSeriesManager::last_loaded_file");
+impl PaintRangeManager {
+    fn load_range_from_file(&self) -> Result<(), crate::Error> {
+        let last_file = recall("PaintRangeManager::last_loaded_file");
         let last_file = last_file.as_deref();
-        if let Some(path) = self.ask_file_path(Some("Collection File Name:"), last_file, true) {
+        if let Some(path) = self.ask_file_path(Some("Paint Range File Name:"), last_file, true) {
             let abs_path = pw_pathux::expand_home_dir_or_mine(&path).canonicalize()?;
-            self.binder.add_series_from_file(&abs_path)?;
+            self.binder.add_range_from_file(&abs_path)?;
             let path_text = pw_pathux::path_to_string(&abs_path);
-            remember("PaintSeriesManager::last_loaded_file", &path_text);
+            remember("PaintRangeManager::last_loaded_file", &path_text);
             self.binder.write_loaded_file_paths();
         };
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &RangePaint) {
-        self.display_dialog_manager.display_paint(paint);
+    fn display_paint_information(&self, range_paint: &RangePaint) {
+        self.display_dialog_manager.display_paint(range_paint);
     }
 
-    fn inform_add_paint(&self, paint: &RangePaint) {
+    fn inform_add_paint(&self, range_paint: &RangePaint) {
         for callback in self.add_paint_callbacks.borrow().iter() {
-            callback(paint.clone());
+            callback(range_paint.clone());
         }
     }
 
@@ -506,25 +518,25 @@ impl PaintSeriesManager {
     }
 }
 
-impl RangePaintFinder for PaintSeriesManager {
+impl RangePaintFinder for PaintRangeManager {
     fn find_range_paint(
         &self,
-        paint_id: &str,
+        paint_key: &str,
         series_id: Option<&PaintRangeId>,
     ) -> epaint::Result<RangePaint> {
-        self.binder.find_range_paint(paint_id, series_id)
+        self.binder.find_range_paint(paint_key, series_id)
     }
 }
 
 #[derive(Default)]
-pub struct PaintSeriesManagerBuilder {
+pub struct PaintRangeManagerBuilder {
     attributes: Vec<ScalarAttribute>,
     property_types: PropertyTypes,
     loaded_files_data_path: Option<PathBuf>,
     change_notifier: ChangedCondnsNotifier,
 }
 
-impl PaintSeriesManagerBuilder {
+impl PaintRangeManagerBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -549,7 +561,7 @@ impl PaintSeriesManagerBuilder {
         self
     }
 
-    pub fn build(&self) -> Rc<PaintSeriesManager> {
+    pub fn build(&self) -> Rc<PaintRangeManager> {
         let menu_items = &[
             (
                 "info",
@@ -572,7 +584,7 @@ impl PaintSeriesManagerBuilder {
                 SAV_HOVER_OK,
             ),
         ];
-        let binder = SeriesBinder::new(
+        let binder = RangeBinder::new(
             menu_items,
             &self.attributes,
             &self.property_types,
@@ -596,7 +608,7 @@ impl PaintSeriesManagerBuilder {
             .buttons(&[(0, "Add", Some("Add this paint to the mixer/palette"), 0)])
             .build();
 
-        let psm = Rc::new(PaintSeriesManager {
+        let psm = Rc::new(PaintRangeManager {
             vbox,
             binder,
             display_dialog_manager,
@@ -617,7 +629,7 @@ impl PaintSeriesManagerBuilder {
 
         let psm_c = Rc::clone(&psm);
         load_file_btn.connect_clicked(move |_| {
-            if let Err(err) = psm_c.load_series_from_file() {
+            if let Err(err) = psm_c.load_range_from_file() {
                 psm_c.report_error("Load file failed.", &err);
             }
         });
@@ -629,7 +641,7 @@ impl PaintSeriesManagerBuilder {
 #[derive(PWO, Wrapper)]
 pub struct PaintStandardsManager {
     vbox: gtk::Box,
-    binder: Rc<SeriesBinder>,
+    binder: Rc<RangeBinder>,
     display_dialog_manager: Rc<PaintDisplayDialogManager<gtk::Box>>,
     set_as_target_callbacks: RefCell<Vec<PaintActionCallback>>,
 }
@@ -641,7 +653,7 @@ impl PaintStandardsManager {
         if let Some(path) = self.ask_file_path(Some("Paint Standard's File Name:"), last_file, true)
         {
             let abs_path = pw_pathux::expand_home_dir_or_mine(&path).canonicalize()?;
-            self.binder.add_series_from_file(&abs_path)?;
+            self.binder.add_range_from_file(&abs_path)?;
             let path_text = pw_pathux::path_to_string(&abs_path);
             remember("PaintStandardsManager::last_loaded_file", &path_text);
             self.binder.write_loaded_file_paths();
@@ -649,13 +661,13 @@ impl PaintStandardsManager {
         Ok(())
     }
 
-    fn display_paint_information(&self, paint: &RangePaint) {
-        self.display_dialog_manager.display_paint(paint);
+    fn display_paint_information(&self, range_paint: &RangePaint) {
+        self.display_dialog_manager.display_paint(range_paint);
     }
 
-    fn inform_set_as_target(&self, paint: &RangePaint) {
+    fn inform_set_as_target(&self, range_paint: &RangePaint) {
         for callback in self.set_as_target_callbacks.borrow().iter() {
-            callback(paint.clone());
+            callback(range_paint.clone());
         }
     }
 
@@ -673,10 +685,10 @@ impl PaintStandardsManager {
 impl RangePaintFinder for PaintStandardsManager {
     fn find_range_paint(
         &self,
-        paint_id: &str,
+        paint_key: &str,
         series_id: Option<&PaintRangeId>,
     ) -> epaint::Result<RangePaint> {
-        self.binder.find_range_paint(paint_id, series_id)
+        self.binder.find_range_paint(paint_key, series_id)
     }
 }
 
@@ -737,7 +749,7 @@ impl PaintStandardsManagerBuilder {
                 SAV_HOVER_OK + SAV_NOT_HAS_TARGET,
             ),
         ];
-        let binder = SeriesBinder::new(
+        let binder = RangeBinder::new(
             menu_items,
             &self.attributes,
             &self.property_types,

@@ -59,7 +59,7 @@ use crate::{
         component::{PartsSpinButtonBox, RcPartsSpinButtonBox},
         display::{MixtureDisplayDialogManager, MixtureDisplayDialogManagerBuilder},
     },
-    range::{PaintSeriesManager, PaintSeriesManagerBuilder},
+    range::{PaintRangeManager, PaintRangeManagerBuilder},
     storage::{StorageManager, StorageManagerBuilder},
     window::PersistentWindowButtonBuilder,
 };
@@ -325,7 +325,7 @@ pub struct PalettePaintMixer {
     mix_entry: Rc<PalettePaintEntry>,
     series_paint_spinner_box: Rc<PartsSpinButtonBox>,
     change_notifier: ChangedCondnsNotifier,
-    paint_series_manager: Rc<PaintSeriesManager>,
+    paint_series_manager: Rc<PaintRangeManager>,
     #[cfg(feature = "targeted_mixtures")]
     paint_standards_manager: Rc<PaintStandardsManager>,
     next_mix_id: Cell<u64>,
@@ -631,7 +631,7 @@ impl PalettePaintMixerBuilder {
             .property_types(&self.property_types)
             .build();
 
-        let mut builder = PaintSeriesManagerBuilder::new();
+        let mut builder = PaintRangeManagerBuilder::new();
         builder
             .attributes(&self.attributes)
             .property_types(&self.property_types)

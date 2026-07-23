@@ -23,7 +23,7 @@ use epaint::properties::{
 use epaint_gtk::factory::PaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PalettePaintMixerBuilder;
 use epaint_gtk::paint_edit::PaintEditor;
-use epaint_gtk::range::PaintSeriesManagerBuilder;
+use epaint_gtk::range::PaintRangeManagerBuilder;
 use epaint_gtk::range::display::*;
 
 fn main() {
@@ -94,7 +94,7 @@ fn main() {
         .property_types(&property_types);
     let display = builder.build(&colln_paint);
     vbox.pack_start(display.pwo(), true, true, 0);
-    let mut paint_series_manager_builder = PaintSeriesManagerBuilder::new();
+    let mut paint_series_manager_builder = PaintRangeManagerBuilder::new();
     paint_series_manager_builder.property_types(&property_types);
     paint_series_manager_builder.attributes(&[
         ScalarAttribute::Value,

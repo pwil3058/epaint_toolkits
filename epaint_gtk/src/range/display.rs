@@ -25,7 +25,7 @@ use crate::range::PaintActionCallback;
 #[derive(PWO)]
 pub struct PaintDisplay {
     vbox: gtk::Box,
-    colln_paint: RangePaint,
+    range_paint: RangePaint,
     #[cfg(feature = "targeted_mixtures")]
     target_label: gtk::Label,
     #[cfg(feature = "targeted_mixtures")]
@@ -41,13 +41,13 @@ impl PaintDisplay {
             self.cads.set_target_colour(Some(colour));
         } else {
             self.target_label.set_label("");
-            self.target_label.set_widget_colour(&self.colln_paint.hcv());
+            self.target_label.set_widget_colour(&self.range_paint.hcv());
             self.cads.set_target_colour(Option::<&HCV>::None);
         };
     }
 
     pub fn paint(&self) -> &RangePaint {
-        &self.colln_paint
+        &self.range_paint
     }
 }
 
@@ -84,33 +84,33 @@ impl PaintDisplayBuilder {
         self
     }
 
-    pub fn build(&self, paint: &RangePaint) -> PaintDisplay {
-        let hcv = paint.hcv();
+    pub fn build(&self, range_paint: &RangePaint) -> PaintDisplay {
+        let hcv = range_paint.hcv();
         let vbox = gtk::BoxBuilder::new()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
         #[cfg(feature = "paints_have_ids")]
         {
-            let label = gtk::LabelBuilder::new().label(paint.id()).build();
+            let label = gtk::LabelBuilder::new().label(range_paint.id()).build();
             label.set_widget_colour(&hcv);
             vbox.pack_start(&label, false, false, 0);
         }
 
-        let label = gtk::LabelBuilder::new().label(paint.name()).build();
+        let label = gtk::LabelBuilder::new().label(range_paint.name()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new().label(paint.notes()).build();
+        let label = gtk::LabelBuilder::new().label(range_paint.notes()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
-        let series_id = paint.series_id();
+        let series_id = range_paint.series_id();
         let label = gtk::LabelBuilder::new().label(&series_id.name).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
-        let series_id = paint.series_id();
+        let series_id = range_paint.series_id();
         let label = gtk::LabelBuilder::new()
             .label(&series_id.proprietor)
             .build();
@@ -137,7 +137,7 @@ impl PaintDisplayBuilder {
         vbox.pack_start(&target_label, true, true, 0);
         vbox.pack_start(cads.pwo(), true, true, 0);
 
-        for property in paint.properties() {
+        for property in range_paint.properties() {
             let value = property.value();
             let label = gtk::LabelBuilder::new().label(value).build();
             label.set_widget_colour(&hcv);
@@ -147,7 +147,7 @@ impl PaintDisplayBuilder {
 
         PaintDisplay {
             vbox,
-            colln_paint: paint.clone(),
+            range_paint: range_paint.clone(),
             #[cfg(feature = "targeted_mixtures")]
             target_label,
             #[cfg(feature = "targeted_mixtures")]
