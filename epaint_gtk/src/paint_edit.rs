@@ -15,7 +15,7 @@ use pw_gtk_ext::{
 use epaint::paint::Paint;
 use epaint::properties::{Properties, Property, PropertyType, PropertyTypes};
 
-use crate::properties::PropertyEntry;
+use crate::properties::{PropertyEntries, PropertyEntry};
 use crate::sav_state::*;
 
 type AddCallback = Box<dyn Fn(&Paint)>;
@@ -117,10 +117,7 @@ impl PaintEditor {
         grid.attach(&notes_entry, 1, row, 1, 1);
         row += 1;
 
-        let mut property_entries: Vec<Rc<PropertyEntry>> = Vec::new();
-        for property_type in property_types.iter() {
-            property_entries.push(PropertyEntry::new(property_type));
-        }
+        let property_entries: Vec<Rc<PropertyEntry>> = property_types.property_entries().collect();
 
         // let mut row: i32 = 3;
         for property_entry in property_entries.iter() {

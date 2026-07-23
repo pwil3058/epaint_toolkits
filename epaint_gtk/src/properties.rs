@@ -8,11 +8,9 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use epaint::mixtures::Mixture;
-use epaint::paint::RangePaint;
 pub use epaint::properties::{
     Finish, Fluorescence, Granulation, Lightfastness, Metallicness, Opacity, Permanence,
-    Properties, Property, PropertyIfce, PropertyType, Staining, Transparency,
+    Properties, Property, PropertyIfce, PropertyType, PropertyTypes, Staining, Transparency,
 };
 
 type ChangeCallback<T> = Box<dyn Fn(&T)>;
@@ -87,20 +85,8 @@ pub trait PropertyEntries {
     fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>>;
 }
 
-impl PropertyEntries for Properties {
+impl PropertyEntries for PropertyTypes {
     fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
-        self.iter_property_types().map(|p| PropertyEntry::new(p))
-    }
-}
-
-impl PropertyEntries for RangePaint {
-    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
-        self.paint.properties.property_entries()
-    }
-}
-
-impl PropertyEntries for Mixture {
-    fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
-        self.properties.property_entries()
+        self.iter().map(|p| PropertyEntry::new(p))
     }
 }
