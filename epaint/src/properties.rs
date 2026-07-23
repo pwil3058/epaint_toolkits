@@ -103,7 +103,7 @@ pub enum Luminescence {
     Luminescent,
     SemiLuminescent,
     #[default]
-    None,
+    NonLuminescent,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy, PartialOrd, Ord)]
@@ -429,6 +429,15 @@ impl Properties {
 
     pub fn property_types(&self) -> PropertyTypes {
         PropertyTypes(self.0.iter().map(|p| p.property_type()).collect())
+    }
+
+    pub fn get_property(&self, property_type: PropertyType) -> Option<Property> {
+        for property in self.0.iter().copied() {
+            if property.property_type == property_type {
+                return Some(property);
+            }
+        }
+        None
     }
 
     pub fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {

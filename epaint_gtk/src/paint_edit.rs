@@ -252,27 +252,27 @@ impl PaintEditor {
             bpe_c.inform_changed();
         });
 
-        if let Some(paint) = bpe.current_paint.borrow().as_ref() {
-            for (property, property_entry) in paint
-                .properties
-                .iter()
-                .zip(bpe.property_entries.iter().map(Rc::clone))
-            {
-                let bpe_c = Rc::clone(&bpe);
-                property_entry.connect_changed(move |property_entry| {
-                    let sav_condn = property_entry.property_type().sav_flag();
+        for property_entry in bpe.property_entries.iter() {
+            let sav_condn = property_entry.property_type().sav_flag();
+            let bpe_c = Rc::clone(&bpe);
+            property_entry.connect_changed(move |property_entry| {
+                if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
                     let mut masked_condns = MaskedCondns {
                         condns: 0,
                         mask: sav_condn,
                     };
+                    let property = paint
+                        .properties
+                        .get_property(property_entry.property_type())
+                        .expect("programmer error");
                     if property != property_entry.value() {
                         masked_condns.condns += sav_condn;
                     }
                     bpe_c.buttons.update_condns(masked_condns);
                     bpe_c.update_has_changes();
                     bpe_c.inform_changed();
-                })
-            }
+                }
+            })
         }
 
         // NB: needed to correctly set the current state

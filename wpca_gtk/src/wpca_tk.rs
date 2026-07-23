@@ -42,6 +42,7 @@ impl PaintersColourAssistantTK {
             PropertyType::Permanence,
             PropertyType::Staining,
             PropertyType::Granulation,
+            PropertyType::Luminescence,
         ]);
         let palette = PalettePaintMixerBuilder::new()
             .attributes(&attributes)
