@@ -37,7 +37,7 @@ use epaint::{
 
 use crate::{
     icons,
-    list::{BasicPaintListViewSpec, PaintListRow},
+    list::{PaintListRow, PaintListViewSpec},
     sav_state::SAV_NOT_HAS_TARGET,
 };
 
@@ -107,7 +107,7 @@ impl SeriesPageBuilder {
             .menu_item_specs(&self.menu_items)
             .attributes(&self.attributes)
             .build();
-        let list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
+        let list_spec = PaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(self.menu_items.to_vec())
             .id_field(2)

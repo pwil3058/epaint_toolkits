@@ -23,7 +23,7 @@ use epaint::properties::PropertyTypes;
 use epaint::{paint::Paint, range::PaintRange};
 
 use crate::{
-    list::{BasicPaintListViewSpec, PaintListRow},
+    list::{PaintListRow, PaintListViewSpec},
     paint_edit::PaintEditor,
     storage::{StorageManager, StorageManagerBuilder},
 };
@@ -233,7 +233,7 @@ impl BasicPaintFactoryBuilder {
             .menu_item_specs(menu_items)
             .attributes(&self.attributes)
             .build();
-        let paint_list_spec = BasicPaintListViewSpec::new(&self.attributes, &self.property_types);
+        let paint_list_spec = PaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(menu_items.to_vec())
             .id_field(2)

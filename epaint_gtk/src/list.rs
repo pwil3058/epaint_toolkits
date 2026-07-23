@@ -14,12 +14,12 @@ use epaint::{
 use colour_math::{HCV, ScalarAttribute};
 use epaint::properties::PropertyTypes;
 
-pub struct BasicPaintListViewSpec {
+pub struct PaintListViewSpec {
     attributes: Vec<ScalarAttribute>,
     property_types: PropertyTypes,
 }
 
-impl BasicPaintListViewSpec {
+impl PaintListViewSpec {
     pub fn new(attributes: &[ScalarAttribute], propery_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
@@ -28,7 +28,7 @@ impl BasicPaintListViewSpec {
     }
 }
 
-impl ListViewSpec for BasicPaintListViewSpec {
+impl ListViewSpec for PaintListViewSpec {
     fn column_types(&self) -> Vec<glib::Type> {
         let mut column_types = vec![
             #[cfg(feature = "paints_have_ids")]
@@ -206,8 +206,6 @@ impl ListViewSpec for MixtureListViewSpec {
 
     fn columns(&self) -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
-        #[cfg(feature = "targeted_mixtures")]
-        let target_col = 7 + self.attributes.len() as i32 * 3 + self.property_types.len() as i32;
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Id")
@@ -222,84 +220,76 @@ impl ListViewSpec for MixtureListViewSpec {
         col.add_attribute(&cell, "foreground", 2);
         cols.push(col);
 
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Name")
-            .resizable(true)
-            .sort_column_id(3)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 3);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
-        cols.push(col);
-
-        let col = gtk::TreeViewColumnBuilder::new()
-            .title("Notes")
-            .resizable(true)
-            .sort_column_id(4)
-            .sort_indicator(true)
-            .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 4);
-        col.add_attribute(&cell, "background", 1);
-        col.add_attribute(&cell, "foreground", 2);
-        cols.push(col);
+        let mut next_col = 3;
+        for header in ["Name", "Notes"] {
+            let col = gtk::TreeViewColumnBuilder::new()
+                .title(header)
+                .resizable(true)
+                .sort_column_id(next_col)
+                .sort_indicator(true)
+                .build();
+            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
+            col.pack_start(&cell, false);
+            col.add_attribute(&cell, "text", next_col);
+            col.add_attribute(&cell, "background", 1);
+            col.add_attribute(&cell, "foreground", 2);
+            cols.push(col);
+            next_col += 1;
+        }
 
         #[cfg(feature = "targeted_mixtures")]
         {
             let col = gtk::TreeViewColumnBuilder::new()
                 .title("Target")
-                .sort_column_id(target_col)
+                .sort_column_id(next_col)
                 .sort_indicator(true)
                 .build();
             let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
             col.pack_start(&cell, false);
-            col.add_attribute(&cell, "background", target_col);
+            col.add_attribute(&cell, "background", next_col);
             cols.push(col);
+            next_col += 1;
         }
 
         let col = gtk::TreeViewColumnBuilder::new()
             .title("Hue")
-            .sort_column_id(6)
+            .sort_column_id(next_col + 1)
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
         col.pack_start(&cell, false);
-        col.add_attribute(&cell, "background", 5);
+        col.add_attribute(&cell, "background", next_col);
         cols.push(col);
+        next_col += 2;
 
-        let mut index = 7;
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
                 .title(&attr.to_string())
-                .sort_column_id(index)
+                .sort_column_id(next_col)
                 .sort_indicator(true)
                 .build();
             let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
             col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", index + 1);
-            col.add_attribute(&cell, "foreground", index + 2);
+            col.add_attribute(&cell, "text", next_col);
+            col.add_attribute(&cell, "background", next_col + 1);
+            col.add_attribute(&cell, "foreground", next_col + 2);
             cols.push(col);
-            index += 3;
+            next_col += 3;
         }
 
         for property_types in self.property_types.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
                 .title(property_types.list_header())
-                .sort_column_id(index)
+                .sort_column_id(next_col)
                 .sort_indicator(true)
                 .build();
             let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
             col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
+            col.add_attribute(&cell, "text", next_col);
             col.add_attribute(&cell, "background", 1);
             col.add_attribute(&cell, "foreground", 2);
             cols.push(col);
-            index += 1;
+            next_col += 1;
         }
 
         cols
@@ -320,12 +310,20 @@ impl PaintListRow for Mixture {
         } else {
             HCV::new_grey(self.value())
         };
+        #[cfg(feature = "targeted_mixtures")]
+        let targeted_colour = if let Some(targeted_colour) = self.targeted_colour() {
+            targeted_colour.pango_string().to_value()
+        } else {
+            self.colour.pango_string().to_value()
+        };
         let mut row: Vec<glib::Value> = vec![
             self.id.to_value(),
             self.hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             self.name.to_value(),
             self.notes.to_value(),
+            #[cfg(feature = "targeted_mixtures")]
+            targeted_colour,
             hcv_bg.pango_string().to_value(),
             ha.to_value(),
         ];
@@ -339,12 +337,6 @@ impl PaintListRow for Mixture {
         for property in self.properties.iter() {
             let string = property.abbrev_value();
             row.push(string.to_value());
-        }
-        #[cfg(feature = "targeted_mixtures")]
-        if let Some(target_colour) = self.targeted_colour {
-            row.push(target_colour.pango_string().to_value());
-        } else {
-            row.push(self.colour.pango_string().to_value());
         }
         row
     }
