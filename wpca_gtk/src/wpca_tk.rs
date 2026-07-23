@@ -16,7 +16,7 @@ use epaint::properties::PropertyTypes;
 
 use epaint_gtk::{
     factory::{PaintFactory, PaintFactoryBuilder},
-    mixer::palette::{PalettePaintMixer, PalettePaintMixerBuilder},
+    mixer::palette::{MixtureMixer, PixtureMixerBuilder},
     properties::PropertyType,
 };
 
@@ -25,7 +25,7 @@ use crate::config;
 #[derive(PWO, Wrapper)]
 pub struct PaintersColourAssistantTK {
     vbox: gtk::Box,
-    palette: Rc<PalettePaintMixer>,
+    palette: Rc<MixtureMixer>,
     factory: Rc<PaintFactory>,
 }
 
@@ -44,7 +44,7 @@ impl PaintersColourAssistantTK {
             PropertyType::Granulation,
             PropertyType::Luminescence,
         ]);
-        let palette = PalettePaintMixerBuilder::new()
+        let palette = PixtureMixerBuilder::new()
             .attributes(&attributes)
             .property_types(&property_types)
             .config_dir_path(&config::config_dir_path())

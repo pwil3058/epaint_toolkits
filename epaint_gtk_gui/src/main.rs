@@ -21,7 +21,7 @@ use epaint::properties::{
 };
 
 use epaint_gtk::factory::PaintFactoryBuilder;
-use epaint_gtk::mixer::palette::PalettePaintMixerBuilder;
+use epaint_gtk::mixer::palette::PixtureMixerBuilder;
 use epaint_gtk::paint_edit::PaintEditor;
 use epaint_gtk::range::PaintRangeManagerBuilder;
 use epaint_gtk::range::display::*;
@@ -55,7 +55,7 @@ fn main() {
         false,
         0,
     );
-    let mixer = PalettePaintMixerBuilder::new()
+    let mixer = PixtureMixerBuilder::new()
         .attributes(&[
             ScalarAttribute::Value,
             ScalarAttribute::Greyness,

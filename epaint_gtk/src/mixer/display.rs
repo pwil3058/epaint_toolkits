@@ -389,9 +389,9 @@ impl ListViewSpec for ComponentsListViewSpec {
             index += 3;
         }
 
-        for characteristic in self.property_types.iter() {
+        for property_type in self.property_types.iter() {
             let col = gtk::TreeViewColumnBuilder::new()
-                .title(characteristic.list_header())
+                .title(property_type.list_header())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
