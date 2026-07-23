@@ -20,7 +20,7 @@ use epaint::properties::{
     PropertyTypes,
 };
 
-use epaint_gtk::factory::BasicPaintFactoryBuilder;
+use epaint_gtk::factory::PaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PalettePaintMixerBuilder;
 use epaint_gtk::paint_edit::PaintEditor;
 use epaint_gtk::range::PaintSeriesManagerBuilder;
@@ -42,7 +42,7 @@ fn main() {
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
     vbox.pack_start(
-        BasicPaintFactoryBuilder::new()
+        PaintFactoryBuilder::new()
             .attributes(&[
                 ScalarAttribute::Value,
                 ScalarAttribute::Greyness,

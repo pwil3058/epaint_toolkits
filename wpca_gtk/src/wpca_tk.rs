@@ -15,7 +15,7 @@ use colour_math::ScalarAttribute;
 use epaint::properties::PropertyTypes;
 
 use epaint_gtk::{
-    factory::{BasicPaintFactory, BasicPaintFactoryBuilder},
+    factory::{PaintFactory, PaintFactoryBuilder},
     mixer::palette::{PalettePaintMixer, PalettePaintMixerBuilder},
     properties::PropertyType,
 };
@@ -26,7 +26,7 @@ use crate::config;
 pub struct PaintersColourAssistantTK {
     vbox: gtk::Box,
     palette: Rc<PalettePaintMixer>,
-    factory: Rc<BasicPaintFactory>,
+    factory: Rc<PaintFactory>,
 }
 
 impl PaintersColourAssistantTK {
@@ -49,7 +49,7 @@ impl PaintersColourAssistantTK {
             .property_types(&property_types)
             .config_dir_path(&config::config_dir_path())
             .build();
-        let factory = BasicPaintFactoryBuilder::new()
+        let factory = PaintFactoryBuilder::new()
             .attributes(&attributes)
             .property_types(&property_types)
             .build();

@@ -14,7 +14,7 @@ use colour_math::ScalarAttribute;
 
 use epaint::properties::{PropertyType, PropertyTypes};
 use epaint_gtk::{
-    factory::{BasicPaintFactory, BasicPaintFactoryBuilder},
+    factory::{PaintFactory, PaintFactoryBuilder},
     mixer::palette::{PalettePaintMixer, PalettePaintMixerBuilder},
 };
 
@@ -24,7 +24,7 @@ use crate::config;
 pub struct ModellersColourMixerMatcherTK {
     vbox: gtk::Box,
     mixer: Rc<PalettePaintMixer>,
-    factory: Rc<BasicPaintFactory>,
+    factory: Rc<PaintFactory>,
 }
 
 impl ModellersColourMixerMatcherTK {
@@ -45,7 +45,7 @@ impl ModellersColourMixerMatcherTK {
             .property_types(&property_types)
             .config_dir_path(&config::config_dir_path())
             .build();
-        let factory = BasicPaintFactoryBuilder::new()
+        let factory = PaintFactoryBuilder::new()
             .attributes(&attributes)
             .property_types(&property_types)
             .build();

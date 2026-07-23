@@ -29,7 +29,7 @@ use crate::{
 };
 
 #[derive(PWO, Wrapper)]
-pub struct BasicPaintFactory {
+pub struct PaintFactory {
     vbox: gtk::Box,
     file_manager: Rc<StorageManager>,
     paint_editor: Rc<PaintEditor>,
@@ -41,7 +41,7 @@ pub struct BasicPaintFactory {
     series_name_entry: gtk::Entry,
 }
 
-impl BasicPaintFactory {
+impl PaintFactory {
     fn update_saveability(&self) {
         let series = self.paint_series.borrow();
         let series_id = series.range_id();
@@ -172,12 +172,12 @@ impl BasicPaintFactory {
 }
 
 #[derive(Default)]
-pub struct BasicPaintFactoryBuilder {
+pub struct PaintFactoryBuilder {
     attributes: Vec<ScalarAttribute>,
     property_types: PropertyTypes,
 }
 
-impl BasicPaintFactoryBuilder {
+impl PaintFactoryBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -192,7 +192,7 @@ impl BasicPaintFactoryBuilder {
         self
     }
 
-    pub fn build(&self) -> Rc<BasicPaintFactory> {
+    pub fn build(&self) -> Rc<PaintFactory> {
         let menu_items: &[(&'static str, MenuItemSpec, u64)] = &[
             (
                 "edit",
@@ -213,6 +213,7 @@ impl BasicPaintFactoryBuilder {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let grid = gtk::GridBuilder::new().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
+
         let label = gtk::LabelBuilder::new()
             .label("Series Name:")
             .halign(gtk::Align::End)
@@ -220,6 +221,7 @@ impl BasicPaintFactoryBuilder {
         grid.attach(&label, 0, 0, 1, 1);
         let series_name_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&series_name_entry, 1, 0, 1, 1);
+
         let label = gtk::LabelBuilder::new()
             .label("Proprietor:")
             .halign(gtk::Align::End)
@@ -227,12 +229,14 @@ impl BasicPaintFactoryBuilder {
         grid.attach(&label, 0, 1, 1, 1);
         let proprietor_entry = gtk::EntryBuilder::new().hexpand(true).build();
         grid.attach(&proprietor_entry, 1, 1, 1, 1);
-        let paned = gtk::Paned::new(gtk::Orientation::Horizontal);
+
         let paint_editor = PaintEditor::new(&self.attributes, &self.property_types);
+
         let hue_wheel = GtkHueWheelBuilder::new()
             .menu_item_specs(menu_items)
             .attributes(&self.attributes)
             .build();
+
         let paint_list_spec = PaintListViewSpec::new(&self.attributes, &self.property_types);
         let list_view = ListViewWithPopUpMenuBuilder::new()
             .menu_items(menu_items.to_vec())
@@ -240,16 +244,19 @@ impl BasicPaintFactoryBuilder {
             .build(&paint_list_spec);
         let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
         scrolled_window.add(list_view.pwo());
+
         let notebook = gtk::NotebookBuilder::new().build();
         notebook.add(&scrolled_window);
         notebook.set_tab_label_text(&scrolled_window, "Paint List");
         notebook.add(hue_wheel.pwo());
         notebook.set_tab_label_text(hue_wheel.pwo(), "Hue/Attribute Wheel");
         vbox.pack_start(&notebook, true, true, 0);
+
+        let paned = gtk::Paned::new(gtk::Orientation::Horizontal);
         paned.add1(&vbox);
         paned.add2(paint_editor.pwo());
         paned.set_position_from_recollections("basic paint factory h paned position", 200);
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
+
         let file_manager = StorageManagerBuilder::new()
             .last_file_key("factory::series_paints")
             .tooltip_text(
@@ -260,9 +267,12 @@ impl BasicPaintFactoryBuilder {
             .tooltip_text("save", "Save the current editor content to the current file (or to a nominated file if there's no current file).")
             .tooltip_text("save as", "Save the current editor content to a nominated file which will become the current file.")
             .build();
+
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         vbox.pack_start(file_manager.pwo(), false, false, 0);
         vbox.pack_start(&paned, true, true, 0);
-        let bpf = Rc::new(BasicPaintFactory {
+
+        let bpf = Rc::new(PaintFactory {
             vbox,
             file_manager,
             paint_editor,
