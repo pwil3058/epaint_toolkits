@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::{
     attributes::{Chroma, Greyness, Value, Warmth},
@@ -11,6 +11,10 @@ use crate::{
 
 pub trait ColourAttributeDisplayIfce {
     const LABEL: &'static str;
+
+    fn label() -> &'static str {
+        Self::LABEL
+    }
 
     fn new() -> Self;
 
@@ -98,6 +102,7 @@ pub trait ColourAttributeDisplayIfce {
 }
 
 // HUE
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct HueCAD {
     hue: Option<Hue>,
     target_hue: Option<Hue>,
@@ -108,6 +113,8 @@ pub struct HueCAD {
 }
 
 impl HueCAD {
+    const LABEL: &'static str = "Hue";
+
     const DEFAULT_COLOUR_STOPS: [(HCV, Prop); 13] = [
         (HCV::CYAN, Prop::ONE),
         (HCV::BLUE_CYAN, Prop(u64::MAX / 12 * 11)),
@@ -246,6 +253,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
 }
 
 // Chroma
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ChromaCAD {
     chroma: Option<Chroma>,
     target_chroma: Option<Chroma>,
@@ -356,6 +364,7 @@ impl ColourAttributeDisplayIfce for ChromaCAD {
 }
 
 // VALUE
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct ValueCAD {
     value: Option<Value>,
     target_value: Option<Value>,
@@ -417,6 +426,7 @@ impl ColourAttributeDisplayIfce for ValueCAD {
 }
 
 // Greyness
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct GreynessCAD {
     greyness: Option<Greyness>,
     target_greyness: Option<Greyness>,
@@ -527,6 +537,7 @@ impl ColourAttributeDisplayIfce for GreynessCAD {
 }
 
 // Warmth
+#[derive(Debug, PartialEq, Eq, Clone)]
 pub struct WarmthCAD {
     warmth: Option<Warmth>,
     target_warmth: Option<Warmth>,
@@ -593,5 +604,86 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
             (HCV::new_grey(Value::ONE / 2), Prop::HALF),
             (HCV::RED, Prop::ONE),
         ]
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Clone)]
+pub enum ColourAttributeDisplay {
+    Hue(HueCAD),
+    Chroma(ChromaCAD),
+    Value(ValueCAD),
+    Warmth(WarmthCAD),
+    Greyness(GreynessCAD),
+}
+
+impl ColourAttributeDisplay {
+    pub fn label(&self) -> &'static str {
+        match self {
+            ColourAttributeDisplay::Hue(_) => HueCAD::LABEL,
+            ColourAttributeDisplay::Chroma(_) => ChromaCAD::LABEL,
+            ColourAttributeDisplay::Value(_) => ValueCAD::LABEL,
+            ColourAttributeDisplay::Warmth(_) => WarmthCAD::LABEL,
+            ColourAttributeDisplay::Greyness(_) => GreynessCAD::LABEL,
+        }
+    }
+
+    pub fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.set_colour(colour),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.set_colour(colour),
+            ColourAttributeDisplay::Value(value) => value.set_colour(colour),
+            ColourAttributeDisplay::Warmth(wmth) => wmth.set_colour(colour),
+            ColourAttributeDisplay::Greyness(gre) => gre.set_colour(colour),
+        }
+    }
+
+    pub fn attr_value(&self) -> Option<Prop> {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.attr_value(),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value(),
+            ColourAttributeDisplay::Value(value) => value.attr_value(),
+            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_value(),
+            ColourAttributeDisplay::Greyness(gre) => gre.attr_value(),
+        }
+    }
+
+    pub fn attr_value_fg_colour(&self) -> HCV {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.attr_value_fg_colour(),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value_fg_colour(),
+            ColourAttributeDisplay::Value(value) => value.attr_value_fg_colour(),
+            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_value_fg_colour(),
+            ColourAttributeDisplay::Greyness(gre) => gre.attr_value_fg_colour(),
+        }
+    }
+
+    pub fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.set_target_colour(colour),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.set_target_colour(colour),
+            ColourAttributeDisplay::Value(value) => value.set_target_colour(colour),
+            ColourAttributeDisplay::Warmth(wmth) => wmth.set_target_colour(colour),
+            ColourAttributeDisplay::Greyness(gre) => gre.set_target_colour(colour),
+        }
+    }
+
+    pub fn attr_target_value(&self) -> Option<Prop> {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.attr_target_value(),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value(),
+            ColourAttributeDisplay::Value(value) => value.attr_target_value(),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_target_value(),
+            ColourAttributeDisplay::Greyness(grey) => grey.attr_target_value(),
+        }
+    }
+
+    pub fn attr_target_value_fg_colour(&self) -> HCV {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Value(value) => value.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Greyness(gre) => gre.attr_target_value_fg_colour(),
+        }
     }
 }
