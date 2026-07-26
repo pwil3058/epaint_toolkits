@@ -1,0 +1,10 @@
+[package]
+name = "colour_math_gtk4_gui"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gtk = "0.18.2"
+glib = "0.22.8"
+
+colour_math_gtk4 = { path = "../colour_math_gtk4" }
