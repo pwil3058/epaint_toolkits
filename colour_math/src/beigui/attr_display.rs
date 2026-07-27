@@ -616,7 +616,30 @@ pub enum ColourAttributeDisplay {
     Greyness(GreynessCAD),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum ColourAttributeType {
+    Hue,
+    Chroma,
+    Value,
+    Warmth,
+    Greyness,
+}
+
 impl ColourAttributeDisplay {
+    pub fn new(cat: &ColourAttributeType) -> Self {
+        match cat {
+            ColourAttributeType::Hue => ColourAttributeDisplay::Hue(HueCAD::new()),
+            ColourAttributeType::Chroma => ColourAttributeDisplay::Chroma(ChromaCAD::new()),
+            ColourAttributeType::Value => ColourAttributeDisplay::Value(ValueCAD::new()),
+            ColourAttributeType::Warmth => ColourAttributeDisplay::Warmth(WarmthCAD::new()),
+            ColourAttributeType::Greyness => ColourAttributeDisplay::Greyness(GreynessCAD::new()),
+        }
+    }
+
+    pub fn set_cat(&mut self, cat: &ColourAttributeType) {
+        *self = Self::new(cat);
+    }
+
     pub fn label(&self) -> &'static str {
         match self {
             ColourAttributeDisplay::Hue(_) => HueCAD::LABEL,
@@ -632,8 +655,8 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Hue(hue) => hue.set_colour(colour),
             ColourAttributeDisplay::Chroma(chroma) => chroma.set_colour(colour),
             ColourAttributeDisplay::Value(value) => value.set_colour(colour),
-            ColourAttributeDisplay::Warmth(wmth) => wmth.set_colour(colour),
-            ColourAttributeDisplay::Greyness(gre) => gre.set_colour(colour),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.set_colour(colour),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.set_colour(colour),
         }
     }
 
@@ -642,8 +665,8 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Hue(hue) => hue.attr_value(),
             ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value(),
             ColourAttributeDisplay::Value(value) => value.attr_value(),
-            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_value(),
-            ColourAttributeDisplay::Greyness(gre) => gre.attr_value(),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_value(),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_value(),
         }
     }
 
@@ -652,8 +675,8 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Hue(hue) => hue.attr_value_fg_colour(),
             ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value_fg_colour(),
             ColourAttributeDisplay::Value(value) => value.attr_value_fg_colour(),
-            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_value_fg_colour(),
-            ColourAttributeDisplay::Greyness(gre) => gre.attr_value_fg_colour(),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_value_fg_colour(),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_value_fg_colour(),
         }
     }
 
@@ -662,8 +685,8 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Hue(hue) => hue.set_target_colour(colour),
             ColourAttributeDisplay::Chroma(chroma) => chroma.set_target_colour(colour),
             ColourAttributeDisplay::Value(value) => value.set_target_colour(colour),
-            ColourAttributeDisplay::Warmth(wmth) => wmth.set_target_colour(colour),
-            ColourAttributeDisplay::Greyness(gre) => gre.set_target_colour(colour),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.set_target_colour(colour),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.set_target_colour(colour),
         }
     }
 
@@ -673,7 +696,7 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value(),
             ColourAttributeDisplay::Value(value) => value.attr_target_value(),
             ColourAttributeDisplay::Warmth(warmth) => warmth.attr_target_value(),
-            ColourAttributeDisplay::Greyness(grey) => grey.attr_target_value(),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_target_value(),
         }
     }
 
@@ -682,8 +705,24 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Hue(hue) => hue.attr_target_value_fg_colour(),
             ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value_fg_colour(),
             ColourAttributeDisplay::Value(value) => value.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Warmth(wmth) => wmth.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Greyness(gre) => gre.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_target_value_fg_colour(),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_target_value_fg_colour(),
         }
+    }
+
+    pub fn draw_all(&self, drawer: &impl DrawIsosceles) {
+        match self {
+            ColourAttributeDisplay::Hue(hue) => hue.draw_all(drawer),
+            ColourAttributeDisplay::Chroma(chroma) => chroma.draw_all(drawer),
+            ColourAttributeDisplay::Value(value) => value.draw_all(drawer),
+            ColourAttributeDisplay::Warmth(warmth) => warmth.draw_all(drawer),
+            ColourAttributeDisplay::Greyness(greyness) => greyness.draw_all(drawer),
+        }
+    }
+}
+
+impl Default for ColourAttributeDisplay {
+    fn default() -> Self {
+        Self::new(&ColourAttributeType::Hue)
     }
 }

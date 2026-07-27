@@ -1,4 +1,4 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     cell::{Cell, RefCell},
@@ -21,7 +21,7 @@ use colour_math::{
 use colour_math_cairo::*;
 
 use crate::{
-    attributes::{AttributeSelector, AttributeSelectorBuilder},
+    attributes::{AttributeSelectorBuilder, ScalarAttributeSelector},
     colour::GdkColour,
 };
 
@@ -33,7 +33,7 @@ pub struct GtkHueWheel {
     drawing_area: gtk::DrawingArea,
     hue_wheel: RefCell<HueWheel>,
     chosen_item: RefCell<Option<String>>,
-    attribute_selector: Rc<AttributeSelector>,
+    attribute_selector: Rc<ScalarAttributeSelector>,
     popup_menu: ManagedMenu,
     callbacks: RefCell<HashMap<String, Vec<PopupCallback>>>,
     origin_offset: Cell<Point>,

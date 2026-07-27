@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 pub mod colour_edit;
 pub mod hue_wheel;
@@ -223,13 +223,13 @@ pub mod attributes {
     type SelectionCallback = Box<dyn Fn(ScalarAttribute)>;
 
     #[derive(PWO)]
-    pub struct AttributeSelector {
+    pub struct ScalarAttributeSelector {
         gtk_box: gtk::Box,
         attribute: Cell<ScalarAttribute>,
         callbacks: RefCell<Vec<SelectionCallback>>,
     }
 
-    impl AttributeSelector {
+    impl ScalarAttributeSelector {
         pub fn attribute(&self) -> ScalarAttribute {
             self.attribute.get()
         }
@@ -275,8 +275,8 @@ pub mod attributes {
             self
         }
 
-        pub fn build(&self) -> Rc<AttributeSelector> {
-            let asrb = Rc::new(AttributeSelector {
+        pub fn build(&self) -> Rc<ScalarAttributeSelector> {
+            let asrb = Rc::new(ScalarAttributeSelector {
                 gtk_box: gtk::Box::new(self.orientation, 0),
                 attribute: Cell::new(*self.attributes.first().expect("programmer error")),
                 callbacks: RefCell::new(vec![]),

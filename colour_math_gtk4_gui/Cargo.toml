@@ -4,7 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-gtk = "0.18.2"
-glib = "0.22.8"
+gtk = { version = "*", package = "gtk4", features = ["v4_14"] }
+glib = "*"
 
 colour_math_gtk4 = { path = "../colour_math_gtk4" }
+colour_math = { path = "../colour_math" }
