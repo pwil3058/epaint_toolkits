@@ -10,7 +10,7 @@ edition = "2024"
 glib = "*"
 gtk = { version = "*", package = "gtk4", features = ["v4_14"] }
 gdk = "*"
-cairo-rs = "*"
+cairo-rs = { version = "*", features = ["png"] }
 
 num-traits = "0.2.14"
 

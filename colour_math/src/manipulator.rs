@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use crate::{
     fdrn::{Prop, UFDRNumber},
     hcv::HCV,
@@ -31,7 +31,7 @@ pub enum Outcome {
     Rejected,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct ColourManipulator {
     hcv: HCV,
     clamped: bool,
