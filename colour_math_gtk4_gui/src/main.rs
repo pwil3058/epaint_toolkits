@@ -5,7 +5,7 @@ use gtk::{Application, ApplicationWindow, glib};
 use colour_math::HueConstants;
 use colour_math::beigui::attr_display::ColourAttributeType;
 use colour_math::hcv::HCV;
-use colour_math_gtk4::cads::GtkColourAttributeDisplay;
+use colour_math_gtk4::cads::ColourAttributeDisplayBox;
 
 const APP_ID: &str = "ColourMathGTK4GUI";
 
@@ -21,12 +21,14 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_ui(app: &Application) {
-    let gcad = GtkColourAttributeDisplay::new(&ColourAttributeType::Warmth);
-    gcad.set_colour(Some(&HCV::YELLOW));
+    use ColourAttributeType::*;
+    let cads = ColourAttributeDisplayBox::new(&[Hue, Warmth]);
+    cads.set_colour(Some(&HCV::YELLOW));
+    cads.set_target_colour(Some(&HCV::RED_YELLOW));
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Colour Math GTK4 GUI")
-        .child(&gcad)
+        .child(&cads)
         .build();
 
     // Present window
