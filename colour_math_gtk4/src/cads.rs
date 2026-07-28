@@ -99,6 +99,7 @@ impl ColourAttributeDisplayBox {
     pub fn new(cats: &[ColourAttributeType]) -> Self {
         let obj: ColourAttributeDisplayBox = glib::Object::builder()
             .property("orientation", Orientation::Vertical)
+            .property("spacing", 1)
             .build();
         for cat in cats {
             let cad = ColourAttributeDisplay::new(cat);
