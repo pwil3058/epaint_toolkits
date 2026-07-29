@@ -133,31 +133,47 @@ impl ColourManipulator {
             }
         });
 
-        let incr_value_btn = gtk::Button::with_label("Value++");
-        incr_value_btn.connect_clicked(glib::clone!(
-            #[strong]
-            obj,
-            move |button| {
-                let delta = obj.imp().delta_size.get().for_value();
-                let changed = obj.imp().colour_manipulator.borrow_mut().incr_value(delta);
-                if changed {
-                    let new_hcv = obj.imp().colour_manipulator.borrow().hcv();
-                    obj.set_colour_and_inform(&new_hcv);
-                } else {
-                    button.error_bell();
-                }
-            }
-        ));
+        macro_rules! connect_clicked {
+            ($obj:ident, $button:ident, $for:ident, $action:ident) => {
+                let obj_c = $obj.clone();
+                $button.connect_clicked(move |button| {
+                    let delta = obj_c.imp().delta_size.get().$for();
+                    let changed = obj_c.imp().colour_manipulator.borrow_mut().$action(delta);
+                    if changed {
+                        let new_hcv = obj_c.imp().colour_manipulator.borrow().hcv();
+                        obj_c.set_colour_and_inform(&new_hcv);
+                    } else {
+                        button.error_bell();
+                    }
+                });
+            };
+        }
 
-        let _decr_value_btn = gtk::Button::with_label("Value--");
-        let _hue_left_btn = gtk::Button::with_label("<");
-        let _hue_right_btn = gtk::Button::with_label(">");
-        let _decr_chroma_btn = match chroma_label {
+        let incr_value_btn = gtk::Button::with_label("Value++");
+        connect_clicked!(obj, incr_value_btn, for_value, incr_value);
+
+        let decr_value_btn = gtk::Button::with_label("Value--");
+        connect_clicked!(obj, decr_value_btn, for_value, decr_value);
+
+        let hue_left_btn = gtk::Button::with_label("<");
+        connect_clicked!(obj, hue_left_btn, for_hue_anticlockwise, rotate);
+
+        let hue_right_btn = gtk::Button::with_label(">");
+        connect_clicked!(obj, hue_right_btn, for_hue_clockwise, rotate);
+
+        let incr_chroma_bth = match chroma_label {
+            ChromaLabel::Chroma => Button::with_label("Chroma++"),
+            ChromaLabel::Greyness => Button::with_label("Greyness--"),
+            ChromaLabel::Both => Button::with_label("Chroma++/Greyness--"),
+        };
+        connect_clicked!(obj, incr_chroma_bth, for_chroma, incr_chroma);
+
+        let decr_chroma_btn = match chroma_label {
             ChromaLabel::Chroma => Button::with_label("Chroma--"),
             ChromaLabel::Greyness => Button::with_label("Greyness++"),
             ChromaLabel::Both => Button::with_label("Chroma--/Greyness++"),
         };
-        let _incr_chroma_btn = gtk::Button::with_label("Chroma++");
+        connect_clicked!(obj, decr_chroma_btn, for_chroma, decr_chroma);
 
         obj
     }
