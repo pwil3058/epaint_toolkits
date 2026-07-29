@@ -5,13 +5,13 @@ pub mod cm_cairo;
 pub mod manipulator;
 
 pub mod colour {
-    use gdk;
+    use gtk::gdk;
 
     use colour_math::{HCV, LightLevel, ManipulatedColour, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
-            let rgb = self.rgb::<f64>();
+            let rgb = self.rgb::<f32>();
             gdk::RGBA::new(rgb[0], rgb[1], rgb[2], 1.0)
         }
     }
