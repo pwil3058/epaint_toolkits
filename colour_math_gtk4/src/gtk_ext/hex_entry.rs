@@ -10,6 +10,10 @@ use num_traits_plus::NumberConstants;
 
 use colour_math::UnsignedLightLevel;
 
+use crate::gtk_ext;
+use gtk_ext::PackableWidgetObject;
+use gtk4_ext_derive::PWO;
+
 pub trait Hexable:
     UnsignedLightLevel + NumberConstants + Num + std::ops::Shr<u8, Output = Self> + 'static
 {
@@ -22,6 +26,7 @@ impl Hexable for u64 {}
 
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
+#[derive(PWO)]
 pub struct HexEntry<U: Hexable> {
     entry: Entry,
     value: Cell<U>,

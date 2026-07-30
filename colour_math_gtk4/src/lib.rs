@@ -4,6 +4,7 @@ pub mod cads;
 pub mod cm_cairo;
 pub mod gtk_ext;
 pub mod manipulator;
+pub mod rgb_entry;
 
 pub mod colour {
     use gtk::gdk;

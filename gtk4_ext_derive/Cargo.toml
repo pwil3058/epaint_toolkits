@@ -1,0 +1,13 @@
+[package]
+name = "gtk4_ext_derive"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = "*"
+quote = "*"
+
+gtk = { version = "*", package = "gtk4", features = ["v4_14"] }

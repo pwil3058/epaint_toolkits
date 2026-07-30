@@ -16,5 +16,6 @@ members = [
     "mcmmtk_gtk",
     "pw_gtk_ext",
     "colour_math_gtk4_gui",
-    "colour_math_gtk4"
+    "colour_math_gtk4",
+    "gtk4_ext_derive"
 ]

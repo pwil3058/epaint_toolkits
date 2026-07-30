@@ -17,7 +17,7 @@ pub fn pwo2_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(fields) => match fields.named.first() {
                 Some(field) => match &field.ident {
                     Some(ff_id) => match &field.ty {
-                        syn::Type::Path(ref ff_ty) => {
+                        syn::Type::Path(ff_ty) => {
                             let (impl_generics, ty_generics, where_clause) =
                                 parsed_input.generics.split_for_impl();
                             let tokens = quote! {
@@ -93,48 +93,4 @@ fn segments_match_tail(
     } else {
         false
     }
-}
-
-#[proc_macro_derive(Wrapper)]
-pub fn wrapper_derive(input: TokenStream) -> TokenStream {
-    let parsed_input: syn::DeriveInput = syn::parse_macro_input!(input);
-    let struct_name = parsed_input.ident;
-    let (impl_generics, ty_generics, where_clause) = parsed_input.generics.split_for_impl();
-
-    let tokens = quote! {
-        impl #impl_generics TopGtkWindow for #struct_name #ty_generics #where_clause {
-            fn get_toplevel_gtk_window(&self) -> Option<gtk::Window> {
-                if let Some(widget) = self.pwo().get_toplevel() {
-                    if widget.is_toplevel() {
-                        if let Ok(window) = widget.dynamic_cast::<gtk::Window>() {
-                            return Some(window)
-                        }
-                    }
-                };
-                None
-            }
-        }
-
-        impl #impl_generics DialogUser for #struct_name #ty_generics #where_clause {}
-
-        impl #impl_generics WidgetWrapper for #struct_name #ty_generics #where_clause {}
-    };
-    proc_macro::TokenStream::from(tokens)
-}
-
-#[proc_macro_derive(WClone)]
-pub fn wclone_derive(input: TokenStream) -> TokenStream {
-    let parsed_input: syn::DeriveInput = syn::parse_macro_input!(input);
-    let struct_name = parsed_input.ident;
-    let (impl_generics, ty_generics, where_clause) = parsed_input.generics.split_for_impl();
-
-    let tokens = quote! {
-        impl #impl_generics Clone for #struct_name #ty_generics #where_clause {
-            fn clone(&self) -> Self {
-                Self(std::rc::Rc::clone(&self.0))
-            }
-        }
-    };
-
-    proc_macro::TokenStream::from(tokens)
 }
