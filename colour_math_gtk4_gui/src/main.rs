@@ -6,6 +6,7 @@ use colour_math::HueConstants;
 use colour_math::beigui::attr_display::ColourAttributeType;
 use colour_math::hcv::HCV;
 use colour_math_gtk4::cads::ColourAttributeDisplayBox;
+use colour_math_gtk4::manipulator::{ChromaLabel, ColourManipulator};
 
 const APP_ID: &str = "ColourMathGTK4GUI";
 
@@ -25,10 +26,14 @@ fn build_ui(app: &Application) {
     let cads = ColourAttributeDisplayBox::new(&[Hue, Warmth]);
     cads.set_colour(Some(&HCV::YELLOW));
     cads.set_target_colour(Some(&HCV::RED_YELLOW));
+    let colour_manipulator = ColourManipulator::new(true, ChromaLabel::Both, &[]);
+    let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
+    vbox.append(&cads);
+    vbox.append(&colour_manipulator);
     let window = ApplicationWindow::builder()
         .application(app)
         .title("Colour Math GTK4 GUI")
-        .child(&cads)
+        .child(&vbox)
         .build();
 
     // Present window

@@ -70,7 +70,7 @@ glib::wrapper! {
 }
 
 impl ColourManipulator {
-    pub fn new(clamped: bool, chroma_label: ChromaLabel) -> Self {
+    pub fn new(clamped: bool, chroma_label: ChromaLabel, extra_btns: &[gtk::Button]) -> Self {
         let obj: ColourManipulator = glib::Object::builder()
             .property("orientation", Orientation::Vertical)
             .property("receives_default", true)
@@ -175,6 +175,27 @@ impl ColourManipulator {
         };
         connect_clicked!(obj, decr_chroma_btn, for_chroma, decr_chroma);
 
+        let auto_match_btn = gtk::Button::with_label("Auto Match");
+        let obj_c = obj.clone();
+        auto_match_btn.connect_clicked(move |_| obj_c.auto_match_samples());
+
+        let auto_match_on_paste_btn = gtk::CheckButton::with_label("On Paste?");
+
+        obj.append(&incr_value_btn);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        hbox.append(&hue_left_btn);
+        hbox.append(&drawing_area);
+        hbox.append(&hue_right_btn);
+        obj.append(&hbox);
+        obj.append(&decr_chroma_btn);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        for button in extra_btns {
+            hbox.append(button);
+        }
+        hbox.append(&auto_match_btn);
+        hbox.append(&auto_match_on_paste_btn);
+        obj.append(&hbox);
+
         obj
     }
 
@@ -192,24 +213,6 @@ impl ColourManipulator {
             callback(colour.hcv())
         }
     }
-
-    // pub fn draw(&self, cairo_context: &cairo::Context) {
-    //     let rgb = self.imp().colour_manipulator.borrow().rgb();
-    //     cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
-    //     cairo_context.paint().expect("manipultor failed to paint");
-    //     for sample in self.imp().samples.borrow().iter() {
-    //         let buffer = sample
-    //             .pixbuf
-    //             .save_to_bufferv("png", &[])
-    //             .expect("pixbuf to png error");
-    //         let mut reader = std::io::Cursor::new(buffer);
-    //         let surface = cairo::ImageSurface::create_from_png(&mut reader).unwrap();
-    //         cairo_context
-    //             .set_source_surface(&surface, sample.position.x, sample.position.y)
-    //             .expect("mainpualor failed to construct source surface");
-    //         cairo_context.paint().expect("manipultor failed to paint");
-    //     }
-    // }
 
     pub fn auto_match_samples(&self) {
         let mut red: u64 = 0;
