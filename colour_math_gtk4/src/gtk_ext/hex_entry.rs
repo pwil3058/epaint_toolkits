@@ -1,13 +1,14 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
-
-use colour_math::UnsignedLightLevel;
-use gdk::glib::Properties;
-use gtk;
-use gtk::prelude::*;
-use num_traits::Num;
-use num_traits_plus::NumberConstants;
 use std::cell::{Cell, RefCell};
 use std::cmp;
+
+use gtk::Entry;
+use gtk::prelude::*;
+
+use num_traits::Num;
+use num_traits_plus::NumberConstants;
+
+use colour_math::UnsignedLightLevel;
 
 pub trait Hexable:
     UnsignedLightLevel + NumberConstants + Num + std::ops::Shr<u8, Output = Self> + 'static
@@ -21,25 +22,13 @@ impl Hexable for u64 {}
 
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
-// glib::wrapper! {
-//     pub struct HexEntry(ObjectSubclass<imp::HexEntry>)
-//     @extends Entry, Widget,
-//     @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
-// }
-//
-// mod imp {
-// use glib::Properties;
-
-// #[derive(Properties, Debug)]
-// #[properties(wrapper_type = super::ColourAttributeDisplay)]
 pub struct HexEntry<U: Hexable> {
-    entry: gtk::Entry,
+    entry: Entry,
     value: Cell<U>,
     current_step: Cell<U>,
     max_step: U,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
 }
-// }
 
 impl<U: Hexable> HexEntry<U> {
     pub fn value(&self) -> U {
