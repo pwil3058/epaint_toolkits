@@ -2,6 +2,7 @@
 
 pub mod cads;
 pub mod cm_cairo;
+pub mod gtk_ext;
 pub mod manipulator;
 
 pub mod colour {
