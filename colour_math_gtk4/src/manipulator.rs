@@ -3,12 +3,8 @@
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
 
-use cairo::glib::Properties;
 use gtk::prelude::*;
-// use gtk::subclass::prelude::*;
-use gtk::{
-    Box, Button, DrawingArea, EventControllerKey, Orientation, Widget, gdk, gdk::gdk_pixbuf, glib,
-};
+use gtk::{Button, DrawingArea, EventControllerKey, gdk, gdk::gdk_pixbuf, glib};
 
 use gtk4_ext::PackableWidgetObject;
 use gtk4_ext_derive::PWO;
@@ -113,7 +109,9 @@ impl ColourManipulator {
         vbox.add_controller(key_controller);
 
         let colour_manipulator = Rc::new(RefCell::new(
-            manipulator::ColourManipulatorBuilder::new().build(),
+            manipulator::ColourManipulatorBuilder::new()
+                .clamped(clamped)
+                .build(),
         ));
 
         let drawing_area = DrawingArea::builder()

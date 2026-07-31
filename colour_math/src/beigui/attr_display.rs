@@ -636,10 +636,6 @@ impl ColourAttributeDisplay {
         }
     }
 
-    pub fn set_cat(&mut self, cat: &ColourAttributeType) {
-        *self = Self::new(cat);
-    }
-
     pub fn label(&self) -> &'static str {
         match self {
             ColourAttributeDisplay::Hue(_) => HueCAD::LABEL,
@@ -660,26 +656,6 @@ impl ColourAttributeDisplay {
         }
     }
 
-    pub fn attr_value(&self) -> Option<Prop> {
-        match self {
-            ColourAttributeDisplay::Hue(hue) => hue.attr_value(),
-            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value(),
-            ColourAttributeDisplay::Value(value) => value.attr_value(),
-            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_value(),
-            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_value(),
-        }
-    }
-
-    pub fn attr_value_fg_colour(&self) -> HCV {
-        match self {
-            ColourAttributeDisplay::Hue(hue) => hue.attr_value_fg_colour(),
-            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_value_fg_colour(),
-            ColourAttributeDisplay::Value(value) => value.attr_value_fg_colour(),
-            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_value_fg_colour(),
-            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_value_fg_colour(),
-        }
-    }
-
     pub fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
         match self {
             ColourAttributeDisplay::Hue(hue) => hue.set_target_colour(colour),
@@ -687,26 +663,6 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Value(value) => value.set_target_colour(colour),
             ColourAttributeDisplay::Warmth(warmth) => warmth.set_target_colour(colour),
             ColourAttributeDisplay::Greyness(greyness) => greyness.set_target_colour(colour),
-        }
-    }
-
-    pub fn attr_target_value(&self) -> Option<Prop> {
-        match self {
-            ColourAttributeDisplay::Hue(hue) => hue.attr_target_value(),
-            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value(),
-            ColourAttributeDisplay::Value(value) => value.attr_target_value(),
-            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_target_value(),
-            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_target_value(),
-        }
-    }
-
-    pub fn attr_target_value_fg_colour(&self) -> HCV {
-        match self {
-            ColourAttributeDisplay::Hue(hue) => hue.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Chroma(chroma) => chroma.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Value(value) => value.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Warmth(warmth) => warmth.attr_target_value_fg_colour(),
-            ColourAttributeDisplay::Greyness(greyness) => greyness.attr_target_value_fg_colour(),
         }
     }
 
@@ -718,11 +674,5 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Warmth(warmth) => warmth.draw_all(drawer),
             ColourAttributeDisplay::Greyness(greyness) => greyness.draw_all(drawer),
         }
-    }
-}
-
-impl Default for ColourAttributeDisplay {
-    fn default() -> Self {
-        Self::new(&ColourAttributeType::Hue)
     }
 }

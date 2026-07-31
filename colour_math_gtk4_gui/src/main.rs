@@ -3,7 +3,6 @@ use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow, glib};
 
 use gtk4_ext::PackableWidgetObject;
-use gtk4_ext_derive::PWO;
 
 use colour_math::HueConstants;
 use colour_math::beigui::attr_display::ColourAttributeType;
@@ -31,7 +30,7 @@ fn build_ui(app: &Application) {
     cads.set_target_colour(Some(&HCV::RED_YELLOW));
     let colour_manipulator = ColourManipulator::new(true, ChromaLabel::Both, &[]);
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-    vbox.append(&cads);
+    vbox.append(cads.pwo());
     vbox.append(colour_manipulator.pwo());
     let window = ApplicationWindow::builder()
         .application(app)
