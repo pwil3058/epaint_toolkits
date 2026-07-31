@@ -1,16 +1,22 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use std::cell::{Cell, RefCell};
+use std::rc::Rc;
+
+use cairo::glib::Properties;
 use gtk::prelude::*;
-use gtk::subclass::prelude::*;
+// use gtk::subclass::prelude::*;
 use gtk::{
     Box, Button, DrawingArea, EventControllerKey, Orientation, Widget, gdk, gdk::gdk_pixbuf, glib,
 };
-use std::rc::Rc;
 
-use colour_math::{Angle, HCV, LightLevel, Prop, RGB, Value};
+use gtk4_ext::PackableWidgetObject;
+use gtk4_ext_derive::PWO;
+
+use colour_math::{Angle, HCV, LightLevel, Prop, RGB, Value, manipulator};
 
 use crate::cm_cairo::Point;
-use crate::colour::ManipGdkColour;
+use crate::{colour::ManipGdkColour, coloured::Colourable};
 
 #[derive(Clone, Copy, Default)]
 pub enum ChromaLabel {
@@ -63,46 +69,58 @@ pub struct Sample {
     pub position: Point,
 }
 
-glib::wrapper! {
-    pub struct ColourManipulator(ObjectSubclass<imp::ColourManipulator>)
-    @extends Box, Widget,
-    @implements gtk::Accessible, gtk::Buildable, gtk::ConstraintTarget, gtk::Orientable;
+type ChangeCallback = std::boxed::Box<dyn Fn(HCV)>;
+
+#[derive(PWO)]
+pub struct ColourManipulator {
+    pub vbox: gtk::Box,
+    pub colour_manipulator: Rc<RefCell<manipulator::ColourManipulator>>,
+    pub change_callbacks: RefCell<Vec<ChangeCallback>>,
+    pub samples: Rc<RefCell<Vec<Sample>>>,
+    pub delta_size: Rc<Cell<DeltaSize>>,
+    pub popup_menu_posn: Rc<Cell<Point>>,
+    drawing_area: gtk::DrawingArea,
+
+    incr_value_btn: gtk::Button,
+    decr_value_btn: gtk::Button,
+    hue_left_btn: gtk::Button,
+    hue_right_btn: gtk::Button,
+    incr_chroma_btn: gtk::Button,
+    decr_chroma_btn: gtk::Button,
 }
 
 impl ColourManipulator {
-    pub fn new(clamped: bool, chroma_label: ChromaLabel, extra_btns: &[gtk::Button]) -> Self {
-        let obj: ColourManipulator = glib::Object::builder()
-            .property("orientation", Orientation::Vertical)
-            .property("receives_default", true)
-            .build();
-
+    pub fn new(clamped: bool, chroma_label: ChromaLabel, extra_btns: &[gtk::Button]) -> Rc<Self> {
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let key_controller = EventControllerKey::new();
-        let delta_size = Rc::clone(&obj.imp().delta_size);
+        let delta_size = Rc::new(Cell::new(DeltaSize::default()));
+        let delta_size_c = Rc::clone(&delta_size);
         key_controller.connect_key_pressed(move |_, key, _, _| {
             match key {
-                gdk::Key::Shift_L => delta_size.set(DeltaSize::Large),
-                gdk::Key::Shift_R => delta_size.set(DeltaSize::Small),
+                gdk::Key::Shift_L => delta_size_c.set(DeltaSize::Large),
+                gdk::Key::Shift_R => delta_size_c.set(DeltaSize::Small),
                 _ => {}
             };
             glib::Propagation::Proceed
         });
-        let delta_size = Rc::clone(&obj.imp().delta_size);
+        let delta_size_c = Rc::clone(&delta_size);
         key_controller.connect_key_released(move |_, key, _, _| {
             match key {
-                gdk::Key::Shift_L | gdk::Key::Shift_R => delta_size.set(DeltaSize::Normal),
+                gdk::Key::Shift_L | gdk::Key::Shift_R => delta_size_c.set(DeltaSize::Normal),
                 _ => {}
             };
         });
-        obj.add_controller(key_controller);
+        vbox.add_controller(key_controller);
 
-        obj.imp()
-            .colour_manipulator
-            .borrow_mut()
-            .set_clamped(clamped);
+        let colour_manipulator = Rc::new(RefCell::new(
+            manipulator::ColourManipulatorBuilder::new().build(),
+        ));
 
         let drawing_area = DrawingArea::builder()
             .height_request(150)
             .width_request(150)
+            .vexpand(true)
+            .hexpand(true)
             .build();
         let gesture = gtk::GestureClick::new();
         gesture.connect_pressed(|gesture, n_press, x, y| {
@@ -113,13 +131,14 @@ impl ColourManipulator {
             }
         });
         drawing_area.add_controller(gesture);
-        let colour_manipulator = Rc::clone(&obj.imp().colour_manipulator);
-        let samples = Rc::clone(&obj.imp().samples);
+        let colour_manipulator_c = Rc::clone(&colour_manipulator);
+        let samples = Rc::new(RefCell::new(Vec::<Sample>::new()));
+        let samples_c = Rc::clone(&samples);
         drawing_area.set_draw_func(move |_, cairo_context, _, _| {
-            let rgb = colour_manipulator.borrow().rgb();
+            let rgb = colour_manipulator_c.borrow().rgb();
             cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
             cairo_context.paint().expect("manipultor failed to paint");
-            for sample in samples.borrow().iter() {
+            for sample in samples_c.borrow().iter() {
                 let buffer = sample
                     .pixbuf
                     .save_to_bufferv("png", &[])
@@ -133,15 +152,46 @@ impl ColourManipulator {
             }
         });
 
+        let incr_value_btn = gtk::Button::with_label("Value++");
+        let decr_value_btn = gtk::Button::with_label("Value--");
+        let hue_left_btn = gtk::Button::with_label("<");
+        let hue_right_btn = gtk::Button::with_label(">");
+        let incr_chroma_btn = match chroma_label {
+            ChromaLabel::Chroma => Button::with_label("Chroma++"),
+            ChromaLabel::Greyness => Button::with_label("Greyness--"),
+            ChromaLabel::Both => Button::with_label("Chroma++/Greyness--"),
+        };
+        let decr_chroma_btn = match chroma_label {
+            ChromaLabel::Chroma => Button::with_label("Chroma--"),
+            ChromaLabel::Greyness => Button::with_label("Greyness++"),
+            ChromaLabel::Both => Button::with_label("Chroma--/Greyness++"),
+        };
+
+        let cm = Rc::new(Self {
+            vbox,
+            colour_manipulator: Rc::clone(&colour_manipulator),
+            change_callbacks: RefCell::new(Vec::new()),
+            samples: Rc::clone(&samples),
+            delta_size: Rc::clone(&delta_size),
+            popup_menu_posn: Rc::new(Cell::new(crate::cm_cairo::Point::default())),
+            drawing_area,
+            incr_value_btn,
+            decr_value_btn,
+            incr_chroma_btn,
+            decr_chroma_btn,
+            hue_left_btn,
+            hue_right_btn,
+        });
+
         macro_rules! connect_clicked {
-            ($obj:ident, $button:ident, $for:ident, $action:ident) => {
-                let obj_c = $obj.clone();
-                $button.connect_clicked(move |button| {
-                    let delta = obj_c.imp().delta_size.get().$for();
-                    let changed = obj_c.imp().colour_manipulator.borrow_mut().$action(delta);
+            ($cm:ident, $button:ident, $for:ident, $action:ident) => {
+                let cm_c = Rc::clone(&$cm);
+                $cm.$button.connect_clicked(move |button| {
+                    let delta = cm_c.delta_size.get().$for();
+                    let changed = cm_c.colour_manipulator.borrow_mut().$action(delta);
                     if changed {
-                        let new_hcv = obj_c.imp().colour_manipulator.borrow().hcv();
-                        obj_c.set_colour_and_inform(&new_hcv);
+                        let new_hcv = cm_c.colour_manipulator.borrow().hcv();
+                        cm_c.set_colour_and_inform(&new_hcv);
                     } else {
                         button.error_bell();
                     }
@@ -149,67 +199,63 @@ impl ColourManipulator {
             };
         }
 
-        let incr_value_btn = gtk::Button::with_label("Value++");
-        connect_clicked!(obj, incr_value_btn, for_value, incr_value);
-
-        let decr_value_btn = gtk::Button::with_label("Value--");
-        connect_clicked!(obj, decr_value_btn, for_value, decr_value);
-
-        let hue_left_btn = gtk::Button::with_label("<");
-        connect_clicked!(obj, hue_left_btn, for_hue_anticlockwise, rotate);
-
-        let hue_right_btn = gtk::Button::with_label(">");
-        connect_clicked!(obj, hue_right_btn, for_hue_clockwise, rotate);
-
-        let incr_chroma_bth = match chroma_label {
-            ChromaLabel::Chroma => Button::with_label("Chroma++"),
-            ChromaLabel::Greyness => Button::with_label("Greyness--"),
-            ChromaLabel::Both => Button::with_label("Chroma++/Greyness--"),
-        };
-        connect_clicked!(obj, incr_chroma_bth, for_chroma, incr_chroma);
-
-        let decr_chroma_btn = match chroma_label {
-            ChromaLabel::Chroma => Button::with_label("Chroma--"),
-            ChromaLabel::Greyness => Button::with_label("Greyness++"),
-            ChromaLabel::Both => Button::with_label("Chroma--/Greyness++"),
-        };
-        connect_clicked!(obj, decr_chroma_btn, for_chroma, decr_chroma);
+        connect_clicked!(cm, incr_value_btn, for_value, incr_value);
+        connect_clicked!(cm, decr_value_btn, for_value, decr_value);
+        connect_clicked!(cm, hue_left_btn, for_hue_anticlockwise, rotate);
+        connect_clicked!(cm, hue_right_btn, for_hue_clockwise, rotate);
+        connect_clicked!(cm, incr_chroma_btn, for_chroma, incr_chroma);
+        connect_clicked!(cm, decr_chroma_btn, for_chroma, decr_chroma);
 
         let auto_match_btn = gtk::Button::with_label("Auto Match");
-        let obj_c = obj.clone();
-        auto_match_btn.connect_clicked(move |_| obj_c.auto_match_samples());
+        let cm_c = cm.clone();
+        auto_match_btn.connect_clicked(move |_| cm_c.auto_match_samples());
 
         let auto_match_on_paste_btn = gtk::CheckButton::with_label("On Paste?");
 
-        obj.append(&incr_value_btn);
-        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 8);
-        hbox.append(&hue_left_btn);
-        hbox.append(&drawing_area);
-        hbox.append(&hue_right_btn);
-        obj.append(&hbox);
-        obj.append(&decr_chroma_btn);
-        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 8);
+        cm.vbox.append(&cm.incr_value_btn);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 1);
+        hbox.append(&cm.hue_left_btn);
+        hbox.append(&cm.drawing_area);
+        hbox.append(&cm.hue_right_btn);
+        cm.vbox.append(&hbox);
+        cm.vbox.append(&cm.decr_value_btn);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 1);
+        hbox.append(&cm.decr_chroma_btn);
+        hbox.append(&cm.incr_chroma_btn);
+        cm.vbox.append(&hbox);
+        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 1);
         for button in extra_btns {
             hbox.append(button);
         }
         hbox.append(&auto_match_btn);
         hbox.append(&auto_match_on_paste_btn);
-        obj.append(&hbox);
+        cm.vbox.append(&hbox);
 
-        obj
+        cm
     }
 
     pub fn set_colour(&self, colour: &impl ManipGdkColour) {
-        self.imp()
-            .colour_manipulator
-            .borrow_mut()
-            .set_colour(colour);
-        // TODO: add button colour changes
+        self.colour_manipulator.borrow_mut().set_colour(colour);
+        let offset: Prop = (Prop::ONE / 10 * 2).into();
+        self.incr_value_btn
+            .set_widget_colour(&colour.lightened(offset));
+        self.decr_value_btn
+            .set_widget_colour(&colour.darkened(offset));
+        self.decr_chroma_btn
+            .set_widget_colour(&colour.greyed(offset));
+        self.incr_chroma_btn
+            .set_widget_colour(&colour.saturated(offset));
+        let angle_offset = Angle::from(45);
+        self.hue_left_btn
+            .set_widget_colour(&colour.rotated(angle_offset));
+        self.hue_right_btn
+            .set_widget_colour(&colour.rotated(-angle_offset));
+        self.drawing_area.queue_draw();
     }
 
     pub fn set_colour_and_inform(&self, colour: &impl ManipGdkColour) {
         self.set_colour(colour);
-        for callback in self.imp().change_callbacks.borrow().iter() {
+        for callback in self.change_callbacks.borrow().iter() {
             callback(colour.hcv())
         }
     }
@@ -219,7 +265,7 @@ impl ColourManipulator {
         let mut green: u64 = 0;
         let mut blue: u64 = 0;
         let mut npixels: u64 = 0;
-        for sample in self.imp().samples.borrow().iter() {
+        for sample in self.samples.borrow().iter() {
             assert_eq!(sample.pixbuf.bits_per_sample(), 8);
             let nc = sample.pixbuf.n_channels() as usize;
             let rs = sample.pixbuf.rowstride() as usize;
@@ -257,62 +303,20 @@ impl ColourManipulator {
     }
 
     pub fn delete_samples(&self) {
-        self.imp().samples.borrow_mut().clear();
+        self.samples.borrow_mut().clear();
     }
 
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.imp().colour_manipulator.borrow().rgb::<L>()
+        self.colour_manipulator.borrow().rgb::<L>()
     }
 
     pub fn hcv(&self) -> HCV {
-        self.imp().colour_manipulator.borrow().hcv()
+        self.colour_manipulator.borrow().hcv()
     }
 
     pub fn connect_changed<F: Fn(HCV) + 'static>(&self, callback: F) {
-        self.imp()
-            .change_callbacks
+        self.change_callbacks
             .borrow_mut()
             .push(std::boxed::Box::new(callback))
     }
-}
-
-mod imp {
-    use std::cell::{Cell, RefCell};
-    use std::rc::Rc;
-
-    use glib::Properties;
-    use gtk::subclass::prelude::*;
-    use gtk::{Box, glib};
-
-    use colour_math::hcv::HCV;
-    use colour_math::manipulator;
-
-    use crate::cm_cairo::Point;
-    use crate::manipulator::DeltaSize;
-
-    type ChangeCallback = std::boxed::Box<dyn Fn(HCV)>;
-
-    #[derive(Properties, Default)]
-    #[properties(wrapper_type = super::ColourManipulator)]
-    pub struct ColourManipulator {
-        pub colour_manipulator: Rc<RefCell<manipulator::ColourManipulator>>,
-        pub change_callbacks: RefCell<Vec<ChangeCallback>>,
-        pub samples: Rc<RefCell<Vec<super::Sample>>>,
-        pub delta_size: Rc<Cell<DeltaSize>>,
-        pub popup_menu_posn: Rc<Cell<Point>>,
-    }
-
-    #[glib::object_subclass]
-    impl ObjectSubclass for ColourManipulator {
-        const NAME: &'static str = "colourManipulator";
-        type Type = super::ColourManipulator;
-        type ParentType = Box;
-    }
-
-    #[glib::derived_properties]
-    impl ObjectImpl for ColourManipulator {}
-
-    impl WidgetImpl for ColourManipulator {}
-
-    impl BoxImpl for ColourManipulator {}
 }
