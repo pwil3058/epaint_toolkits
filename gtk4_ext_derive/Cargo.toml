@@ -7,7 +7,6 @@ edition = "2024"
 proc-macro = true
 
 [dependencies]
-syn = "*"
-quote = "*"
+syn = "1.0"
+quote = "1.0"
 
-gtk = { version = "*", package = "gtk4", features = ["v4_14"] }

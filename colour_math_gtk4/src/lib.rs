@@ -25,3 +25,55 @@ pub mod colour {
     impl<L: LightLevel> ManipGdkColour for RGB<L> {}
     impl ManipGdkColour for HCV {}
 }
+
+pub mod coloured {
+    use gtk::{self, prelude::*};
+
+    use crate::colour::*;
+
+    #[allow(deprecated)]
+    pub trait Colourable: WidgetExt {
+        fn set_widget_colour(&self, colour: &impl GdkColour) {
+            let _bg_gdk_rgba = colour.gdk_rgba();
+            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
+            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
+            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
+        }
+    }
+
+    #[allow(deprecated)]
+    impl Colourable for gtk::Button {
+        fn set_widget_colour(&self, colour: &impl GdkColour) {
+            let _bg_gdk_rgba = colour.gdk_rgba();
+            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
+            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
+            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
+            // for child in self.get_children().iter() {
+            //     child.set_widget_colour(colour);
+            // }
+        }
+    }
+
+    // impl Colourable for gtk::Bin {}
+    impl Colourable for gtk::Box {}
+    // impl Colourable for gtk::Button {}
+    impl Colourable for gtk::CheckButton {}
+    // impl Colourable for gtk::ComboBox {}
+    // impl Colourable for gtk::ComboBoxText {}
+    // impl Colourable for gtk::Container {}
+    impl Colourable for gtk::Entry {}
+    // impl Colourable for gtk::EventBox {}
+    impl Colourable for gtk::FlowBox {}
+    impl Colourable for gtk::Frame {}
+    impl Colourable for gtk::Grid {}
+    impl Colourable for gtk::Label {}
+    impl Colourable for gtk::LinkButton {}
+    // impl Colourable for gtk::MenuBar {}
+    // impl Colourable for gtk::RadioButton {}
+    impl Colourable for gtk::Scrollbar {}
+    impl Colourable for gtk::SpinButton {}
+    impl Colourable for gtk::ToggleButton {}
+    // impl Colourable for gtk::ToolButton {}
+    // impl Colourable for gtk::Toolbar {}
+    impl Colourable for gtk::Widget {}
+}
