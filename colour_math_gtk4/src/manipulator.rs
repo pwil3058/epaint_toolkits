@@ -6,8 +6,8 @@ use std::rc::Rc;
 use gtk::prelude::*;
 use gtk::{Button, DrawingArea, EventControllerKey, gdk, gdk::gdk_pixbuf, glib};
 
-use gtk4_ext::PackableWidgetObject;
-use gtk4_ext_derive::PWO;
+use gtk_ext::pwo::PackableWidgetObject;
+use gtk_ext_derive::PWO;
 
 use colour_math::{Angle, HCV, LightLevel, Prop, RGB, Value, manipulator};
 

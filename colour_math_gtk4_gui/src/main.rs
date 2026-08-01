@@ -2,7 +2,7 @@
 use gtk::prelude::*;
 use gtk::{Application, ApplicationWindow, glib};
 
-use gtk4_ext::PackableWidgetObject;
+use gtk_ext::pwo::PackableWidgetObject;
 
 use colour_math::HueConstants;
 use colour_math::beigui::attr_display::ColourAttributeType;

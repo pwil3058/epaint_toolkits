@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 //! Assist in simplifying GUI programming using the crates
 //! included in the **gtk-rs** project <http://gtk-rs.org/> by providing

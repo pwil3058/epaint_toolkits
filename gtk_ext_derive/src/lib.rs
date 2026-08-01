@@ -6,7 +6,7 @@ use proc_macro::TokenStream;
 use quote::{quote, quote_spanned};
 
 #[proc_macro_derive(PWO)]
-pub fn pwo2_derive(input: TokenStream) -> TokenStream {
+pub fn pwo_derive(input: TokenStream) -> TokenStream {
     let parsed_input: syn::DeriveInput = syn::parse_macro_input!(input);
     let struct_name = parsed_input.ident;
     let error_tokens = quote_spanned! {
@@ -17,7 +17,7 @@ pub fn pwo2_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(fields) => match fields.named.first() {
                 Some(field) => match &field.ident {
                     Some(ff_id) => match &field.ty {
-                        syn::Type::Path(ref ff_ty) => {
+                        syn::Type::Path(ff_ty) => {
                             let (impl_generics, ty_generics, where_clause) =
                                 parsed_input.generics.split_for_impl();
                             let tokens = quote! {
@@ -80,7 +80,7 @@ pub fn pwo2_derive(input: TokenStream) -> TokenStream {
 }
 
 fn segments_match_tail(
-    segments: &syn::punctuated::Punctuated<syn::PathSegment, syn::token::Colon2>,
+    segments: &syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>,
     names: &[&str],
 ) -> bool {
     if !segments.is_empty() && segments.len() <= names.len() {

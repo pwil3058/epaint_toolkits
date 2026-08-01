@@ -6,8 +6,8 @@ use std::rc::Rc;
 use gtk::DrawingArea;
 use gtk::prelude::*;
 
-use gtk4_ext::PackableWidgetObject;
-use gtk4_ext_derive::PWO;
+use gtk_ext::pwo::PackableWidgetObject;
+use gtk_ext_derive::PWO;
 
 use colour_math::ColourBasics;
 use colour_math::attr_display::ColourAttributeType;

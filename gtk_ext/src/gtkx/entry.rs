@@ -1,18 +1,22 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::cell::{Cell, RefCell};
 use std::cmp;
-use std::path::{PathBuf, MAIN_SEPARATOR};
+// use std::path::{MAIN_SEPARATOR, PathBuf};
 use std::rc::Rc;
 
-use gdk;
-use gtk;
+use gtk::Entry;
+use gtk::gdk::Key;
+use gtk::glib::Propagation;
 use gtk::prelude::*;
 
-use path_utilities;
+// use path_utilities;
 //use pw_pathux;
 
-use crate::{gtkx::list_store::*, wrapper::*};
+use gtk_ext_derive::*;
+
+// use crate::gtkx::list_store::*;
+use crate::pwo::*;
 
 // Labelled Text Entry
 
@@ -30,8 +34,8 @@ impl LabelledTextEntry {
         });
 
         let label = gtk::Label::new(Some(label));
-        lte.h_box.pack_start(&label, false, false, 0);
-        lte.h_box.pack_start(&lte.entry, true, true, 0);
+        lte.h_box.append(&label);
+        lte.h_box.append(&lte.entry);
 
         lte
     }
@@ -45,36 +49,33 @@ impl LabelledTextEntry {
 
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
-#[derive(PWO)]
-pub struct HexEntry<U>
-where
-    U: Default
-        + Ord
-        + Copy
-        + num_traits_plus::NumberConstants
-        + num_traits::Num
-        + std::fmt::UpperHex
-        + std::ops::Shr<u8, Output = U>
-        + 'static,
+pub trait Hexable:
+    Default
+    + Ord
+    + Copy
+    + num_traits_plus::NumberConstants
+    + num_traits::Num
+    + std::fmt::UpperHex
+    + std::ops::Shr<u8, Output = Self>
+    + 'static
 {
-    entry: gtk::Entry,
+}
+
+impl Hexable for u8 {}
+impl Hexable for u16 {}
+impl Hexable for u32 {}
+impl Hexable for u64 {}
+
+#[derive(PWO)]
+pub struct HexEntry<U: Hexable> {
+    entry: Entry,
     value: Cell<U>,
     current_step: Cell<U>,
     max_step: U,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
 }
 
-impl<U> HexEntry<U>
-where
-    U: Default
-        + Ord
-        + Copy
-        + num_traits_plus::NumberConstants
-        + num_traits::Num
-        + std::fmt::UpperHex
-        + std::ops::Shr<u8, Output = U>
-        + 'static,
-{
+impl<U: Hexable> HexEntry<U> {
     pub fn value(&self) -> U {
         self.value.get()
     }
@@ -148,38 +149,18 @@ where
         self.current_step.set(new_step);
     }
 
-    fn reset_current_step(&self) {
+    fn _reset_current_step(&self) {
         self.current_step.set(U::one());
     }
 }
 
 #[derive(Default)]
-pub struct HexEntryBuilder<U>
-where
-    U: Default
-        + Ord
-        + Copy
-        + num_traits_plus::NumberConstants
-        + num_traits::Num
-        + std::fmt::UpperHex
-        + std::ops::Shr<u8, Output = U>
-        + 'static,
-{
+pub struct HexEntryBuilder<U: Hexable> {
     initial_value: U,
     editable: bool,
 }
 
-impl<U> HexEntryBuilder<U>
-where
-    U: Default
-        + Ord
-        + Copy
-        + num_traits_plus::NumberConstants
-        + num_traits::Num
-        + std::fmt::UpperHex
-        + std::ops::Shr<u8, Output = U>
-        + 'static,
-{
+impl<U: Hexable> HexEntryBuilder<U> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -196,7 +177,7 @@ where
 
     #[allow(non_upper_case_globals)]
     pub fn build(&self) -> Rc<HexEntry<U>> {
-        let entry = gtk::EntryBuilder::new()
+        let entry = Entry::builder()
             .width_chars(U::BYTES as i32 * 2 + 2)
             .editable(self.editable)
             .build();
@@ -214,60 +195,72 @@ where
         hex_entry.reset_entry_text();
 
         let hex_entry_c = Rc::clone(&hex_entry);
-        hex_entry
-            .entry
-            .connect_key_press_event(move |entry, event| {
-                use gdk::keys::constants::*;
-
-                const KEY_0: gdk::keys::Key = _0;
-                const KEY_1: gdk::keys::Key = _1;
-                const KEY_2: gdk::keys::Key = _2;
-                const KEY_3: gdk::keys::Key = _3;
-                const KEY_4: gdk::keys::Key = _4;
-                const KEY_5: gdk::keys::Key = _5;
-                const KEY_6: gdk::keys::Key = _6;
-                const KEY_7: gdk::keys::Key = _7;
-                const KEY_8: gdk::keys::Key = _8;
-                const KEY_9: gdk::keys::Key = _9;
-                let key = event.get_keyval();
-                match key {
-                    Return | Tab | ISO_Left_Tab => {
-                        let text = entry.get_text();
-                        if text.is_empty() {
-                            hex_entry_c.reset_entry_text();
-                        } else {
-                            hex_entry_c.set_value_from_text(&text);
-                        }
-                        // NB: this will nobble the "activate" signal
-                        // but let the Tab key move the focus
-                        Inhibit(key == Return)
-                    }
-                    Up => {
-                        hex_entry_c.incr_value();
-                        Inhibit(true)
-                    }
-                    Down => {
-                        hex_entry_c.decr_value();
-                        Inhibit(true)
-                    }
-                    KEY_0 | KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8
-                    | KEY_9 | A | B | C | D | E | F | BackSpace | Delete | Copy | Paste | x | a
-                    | b | c | d | e | f | Left | Right => Inhibit(false),
-                    _ => Inhibit(true),
+        let key_controller = gtk::EventControllerKey::new();
+        // key_controller.set_propagation_phase(gtk::PropagationPhase::Capture);
+        key_controller.connect_key_pressed(move |_, key, _, _| match key {
+            Key::Return | Key::Tab | Key::ISO_Left_Tab => {
+                let text = hex_entry_c.entry.text();
+                if text.is_empty() {
+                    hex_entry_c.reset_entry_text();
+                } else {
+                    hex_entry_c.set_value_from_text(&text);
                 }
-            });
-
-        let hex_entry_c = Rc::clone(&hex_entry);
-        hex_entry.entry.connect_key_release_event(move |_, event| {
-            use gdk::keys::constants::*;
-            match event.get_keyval() {
-                Up | Down => {
-                    hex_entry_c.reset_current_step();
-                    Inhibit(true)
+                // NB: this will nobble the "activate" signal
+                // but let the Tab key move the focus
+                if key == Key::Return {
+                    Propagation::Stop
+                } else {
+                    Propagation::Proceed
                 }
-                _ => Inhibit(false),
             }
+            Key::Up => {
+                hex_entry_c.incr_value();
+                Propagation::Stop
+            }
+            Key::Down => {
+                hex_entry_c.decr_value();
+                Propagation::Stop
+            }
+            Key::_0
+            | Key::_1
+            | Key::_2
+            | Key::_3
+            | Key::_4
+            | Key::_5
+            | Key::_6
+            | Key::_7
+            | Key::_8
+            | Key::_9
+            | Key::A
+            | Key::B
+            | Key::C
+            | Key::D
+            | Key::E
+            | Key::F
+            | Key::BackSpace
+            | Key::Delete
+            | Key::Copy
+            | Key::Paste
+            | Key::x
+            | Key::a
+            | Key::b
+            | Key::c
+            | Key::d
+            | Key::e
+            | Key::f
+            | Key::Left
+            | Key::Right => Propagation::Proceed,
+            _ => Propagation::Stop,
         });
+        let hex_entry_c = Rc::clone(&hex_entry);
+        key_controller.connect_key_released(move |_, key, _, _| match key {
+            Key::Up | Key::Down => {
+                hex_entry_c.reset_entry_text();
+                // Propagation::Stop
+            }
+            _ => (), //Propagation::Proceed,
+        });
+        hex_entry.entry.add_controller(key_controller);
 
         hex_entry
     }
@@ -275,64 +268,65 @@ where
 
 // FILEPATH COMPLETION
 
-pub trait PathCompletion: EntryExt + EditableSignals {
-    fn _enable_path_completion(&self, dirs_only: bool) {
-        let entry_completion = gtk::EntryCompletion::new();
-        entry_completion.pack_start(&gtk::CellRendererText::new(), true);
-        entry_completion.set_text_column(0);
-        entry_completion.set_inline_completion(true);
-        entry_completion.set_inline_selection(true);
-        entry_completion.set_minimum_key_length(0);
-        let list_store = gtk::ListStore::new(&[glib::Type::String]);
-        entry_completion.set_model(Some(&list_store));
-
-        self.set_completion(Some(&entry_completion));
-        self.connect_changed(move |editable| {
-            list_store.clear();
-            let dir_pathbuf = match PathBuf::from(editable.get_text().as_str()).parent() {
-                Some(path) => path.to_path_buf(),
-                None => PathBuf::new(),
-            };
-            let dir_path = match path_utilities::absolute_pathbuf(&dir_pathbuf) {
-                Some(abs_pathbuf) => abs_pathbuf,
-                None => dir_pathbuf.clone(),
-            };
-            if let Ok(entries) = path_utilities::usable_dir_entries(&dir_path) {
-                if dirs_only {
-                    for entry in entries {
-                        if !entry.is_dir() {
-                            continue;
-                        };
-                        let mut path = dir_pathbuf.clone();
-                        path.push(&entry.file_name());
-                        if let Some(string) = path.to_str() {
-                            list_store.append_row(&[string.to_value()]);
-                        }
-                    }
-                } else {
-                    let msep = format!("{}", MAIN_SEPARATOR);
-                    for entry in entries {
-                        let mut path = dir_pathbuf.clone();
-                        path.push(&entry.file_name());
-                        if entry.is_dir() {
-                            path.push(&msep);
-                        };
-                        if let Some(string) = path.to_str() {
-                            list_store.append_row(&[string.to_value()]);
-                        }
-                    }
-                }
-            };
-        });
-    }
-
-    fn enable_dir_path_completion(&self) {
-        self._enable_path_completion(true)
-    }
-
-    fn enable_file_path_completion(&self) {
-        self._enable_path_completion(false)
-    }
-}
-
-impl PathCompletion for gtk::Entry {}
+// pub trait PathCompletion: EntryExt {
+//     fn _enable_path_completion(&self, dirs_only: bool) {
+//         let entry_completion = gtk::EntryCompletion::new();
+//         entry_completion.pack_start(&gtk::CellRendererText::new(), true);
+//         entry_completion.set_text_column(0);
+//         entry_completion.set_inline_completion(true);
+//         entry_completion.set_inline_selection(true);
+//         entry_completion.set_minimum_key_length(0);
+//         let list_store = gtk::ListStore::new(&[gtk::glib::Type::STRING]);
+//         entry_completion.set_model(Some(&list_store));
+//
+//         self.set_completion(Some(&entry_completion));
+//         self.connect_changed(move |editable| {
+//             list_store.clear();
+//             let dir_pathbuf = match PathBuf::from(editable.get_text().as_str()).parent() {
+//                 Some(path) => path.to_path_buf(),
+//                 None => PathBuf::new(),
+//             };
+//             let dir_path = match path_utilities::absolute_pathbuf(&dir_pathbuf) {
+//                 Some(abs_pathbuf) => abs_pathbuf,
+//                 None => dir_pathbuf.clone(),
+//             };
+//             if let Ok(entries) = path_utilities::usable_dir_entries(&dir_path) {
+//                 if dirs_only {
+//                     for entry in entries {
+//                         if !entry.is_dir() {
+//                             continue;
+//                         };
+//                         let mut path = dir_pathbuf.clone();
+//                         path.push(&entry.file_name());
+//                         if let Some(string) = path.to_str() {
+//                             list_store.append_row(&[string.to_value()]);
+//                         }
+//                     }
+//                 } else {
+//                     let msep = format!("{}", MAIN_SEPARATOR);
+//                     for entry in entries {
+//                         let mut path = dir_pathbuf.clone();
+//                         path.push(&entry.file_name());
+//                         if entry.is_dir() {
+//                             path.push(&msep);
+//                         };
+//                         if let Some(string) = path.to_str() {
+//                             list_store.append_row(&[string.to_value()]);
+//                         }
+//                     }
+//                 }
+//             };
+//         });
+//     }
+//
+//     fn enable_dir_path_completion(&self) {
+//         self._enable_path_completion(true)
+//     }
+//
+//     fn enable_file_path_completion(&self) {
+//         self._enable_path_completion(false)
+//     }
+// }
+//
+// impl PathCompletion for gtk::Entry {}
+//

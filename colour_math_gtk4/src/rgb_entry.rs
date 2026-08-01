@@ -7,16 +7,17 @@ use colour_math::{HCV, HueConstants, RGB, UnsignedLightLevel};
 
 use gtk::prelude::*;
 
-use gtk4_ext::{
-    PackableWidgetObject,
-    hex_entry::{self, HexEntry, HexEntryBuilder},
+use gtk_ext::{
+    gtkx,
+    gtkx::entry::{HexEntry, HexEntryBuilder},
+    pwo::PackableWidgetObject,
 };
-use gtk4_ext_derive::PWO;
+use gtk_ext_derive::PWO;
 
 use crate::colour::GdkColour;
 use crate::coloured::Colourable;
 
-pub trait Hexable: UnsignedLightLevel + hex_entry::Hexable {}
+pub trait Hexable: UnsignedLightLevel + gtkx::entry::Hexable {}
 
 impl Hexable for u8 {}
 impl Hexable for u16 {}
