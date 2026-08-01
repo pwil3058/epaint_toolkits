@@ -17,7 +17,7 @@ pub fn pwo2_derive(input: TokenStream) -> TokenStream {
             syn::Fields::Named(fields) => match fields.named.first() {
                 Some(field) => match &field.ident {
                     Some(ff_id) => match &field.ty {
-                        syn::Type::Path(ref ff_ty) => {
+                        syn::Type::Path(ff_ty) => {
                             let (impl_generics, ty_generics, where_clause) =
                                 parsed_input.generics.split_for_impl();
                             let tokens = quote! {
