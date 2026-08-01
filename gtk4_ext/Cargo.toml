@@ -17,4 +17,4 @@ lazy_static = "*"
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 
 path_utilities = { path = "../path_utilities" }
-gtk_ext_derive = { path = "../gtk_ext_derive" }
+gtk_ext_derive = { path = "../gtk4_ext_derive" }
