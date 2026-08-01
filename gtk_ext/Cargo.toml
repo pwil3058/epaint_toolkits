@@ -1,0 +1,12 @@
+[package]
+name = "gtk_ext"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+gtk = { version = "*", package = "gtk4", features = ["v4_14"] }
+
+num-traits = "0.2.19"
+num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+
+gtk4_ext_derive = { path = "../gtk4_ext_derive" }
