@@ -6,8 +6,8 @@ edition = "2024"
 [dependencies]
 gtk = { version = "*", package = "gtk4", features = ["v4_14"] }
 
-gtk4_ext = { path = "../gtk4_ext" }
-gtk4_ext_derive = { path = "../gtk4_ext_derive" }
+gtk4_ext = { path = "../gtk_ext" }
+gtk4_ext_derive = { path = "../gtk_ext_derive" }
 
 colour_math_gtk4 = { path = "../colour_math_gtk4" }
 colour_math = { path = "../colour_math" }
