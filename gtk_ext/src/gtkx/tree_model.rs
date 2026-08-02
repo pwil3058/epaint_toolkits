@@ -1,7 +1,8 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use gtk;
-use gtk::prelude::*;
+use crate::glib;
+use crate::gtk;
+use crate::gtk::prelude::*;
 
 use crate::{are_eq_values, are_equal_as, UNEXPECTED};
 
@@ -10,9 +11,9 @@ use crate::{are_eq_values, are_equal_as, UNEXPECTED};
 macro_rules! get_row_values_from {
     ( $store:expr, $iter:expr ) => {{
         let mut row = vec![];
-        let n = $store.get_n_columns();
+        let n = $store.n_columns();
         for index in 0..n {
-            row.push($store.get_value($iter, index))
+            row.push($store.value($iter, index))
         }
         row
     }};
@@ -32,10 +33,10 @@ macro_rules! get_row_values_from_at {
 #[macro_export]
 macro_rules! matches_list_row {
     ( $row:expr, $store:expr, $iter:expr ) => {{
-        debug_assert_eq!($store.get_n_columns(), $row.len() as i32);
+        debug_assert_eq!($store.n_columns(), $row.len() as i32);
         let mut result = true;
         for (index, item) in $row.iter().enumerate() {
-            let value = $store.get_value($iter, index as i32);
+            let value = $store.value($iter, index as i32);
             if !are_eq_values!(item, value) {
                 result = false;
                 break;
@@ -71,7 +72,7 @@ pub trait TreeModelRowOps: TreeModelExt {
         F: Fn(&Self, &gtk::TreeIter) -> bool,
     {
         let mut index: i32 = 0;
-        if let Some(iter) = self.get_iter_first() {
+        if let Some(iter) = self.iter_first() {
             loop {
                 if this_is_the_row(self, &iter) {
                     return Some((index, iter));

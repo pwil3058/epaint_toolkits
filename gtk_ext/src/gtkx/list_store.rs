@@ -1,17 +1,19 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::glib;
-pub use crate::gtkx::tree_model::*;
-use crate::UNEXPECTED;
 use std::marker::PhantomData;
 use std::ops::Deref;
+
+use crate::glib;
+
+pub use crate::gtkx::tree_model::*;
+use crate::UNEXPECTED;
 
 // NB: when done with the returned rows their items need to be unset?
 #[macro_export]
 macro_rules! get_rows_values_from_list {
     ( $list_store:expr ) => {{
         let mut rows = vec![];
-        if let Some(iter) = $list_store.get_iter_first() {
+        if let Some(iter) = $list_store.iter_first() {
             while $list_store.iter_is_valid(&iter) {
                 rows.push(get_row_values_from!($list_store, &iter));
                 $list_store.iter_next(&iter);
@@ -24,7 +26,7 @@ macro_rules! get_rows_values_from_list {
 #[macro_export]
 macro_rules! set_list_row_values {
     ( $list_store:expr, $iter:expr, $row:expr ) => {{
-        debug_assert_eq!($list_store.get_n_columns(), $row.len() as i32);
+        debug_assert_eq!($list_store.n_columns(), $row.len() as i32);
         for (index, item) in $row.iter().enumerate() {
             $list_store.set_value($iter, index as u32, &item);
         }
@@ -77,7 +79,7 @@ macro_rules! prepend_row_to_list {
 }
 
 pub trait ListRowOps:
-    TreeModelRowOps + gtk::GtkListStoreExt + gtk::prelude::GtkListStoreExtManual
+    TreeModelRowOps + gtk::prelude::GtkListStoreExt + gtk::prelude::GtkListStoreExtManual
 {
     fn append_row(&self, row: &[glib::Value]) -> gtk::TreeIter {
         append_row_to_list!(row, self)
@@ -135,7 +137,7 @@ pub trait ListRowOps:
     // NB: this function assumes that all rows are unique and that order isn't important
     fn update_with(&self, rows: &[Vec<glib::Value>]) {
         // First remove the rows that have gone away
-        if let Some(iter) = self.get_iter_first() {
+        if let Some(iter) = self.iter_first() {
             while self.iter_is_valid(&iter) {
                 let mut found = false;
                 for row in rows.iter() {

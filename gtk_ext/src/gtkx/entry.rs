@@ -1,13 +1,15 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::cell::{Cell, RefCell};
 use std::cmp;
 use std::path::{PathBuf, MAIN_SEPARATOR};
 use std::rc::Rc;
 
-use gdk;
-use gtk;
-use gtk::prelude::*;
+use crate::gdk;
+use crate::glib;
+use crate::glib::Propagation;
+use crate::gtk;
+use crate::gtk::prelude::*;
 
 use path_utilities;
 //use pw_pathux;
@@ -196,7 +198,7 @@ where
 
     #[allow(non_upper_case_globals)]
     pub fn build(&self) -> Rc<HexEntry<U>> {
-        let entry = gtk::EntryBuilder::new()
+        let entry = gtk::Entry::builder()
             .width_chars(U::BYTES as i32 * 2 + 2)
             .editable(self.editable)
             .build();
@@ -229,10 +231,10 @@ where
                 const KEY_7: gdk::keys::Key = _7;
                 const KEY_8: gdk::keys::Key = _8;
                 const KEY_9: gdk::keys::Key = _9;
-                let key = event.get_keyval();
+                let key = event.keyval();
                 match key {
                     Return | Tab | ISO_Left_Tab => {
-                        let text = entry.get_text();
+                        let text = entry.text();
                         if text.is_empty() {
                             hex_entry_c.reset_entry_text();
                         } else {
@@ -240,32 +242,42 @@ where
                         }
                         // NB: this will nobble the "activate" signal
                         // but let the Tab key move the focus
-                        Inhibit(key == Return)
+                        if key == Return {
+                            Propagation::Stop
+                        } else {
+                            Propagation::Proceed
+                        }
+                        // Inhibit(key == Return)
                     }
                     Up => {
                         hex_entry_c.incr_value();
-                        Inhibit(true)
+                        Propagation::Stop
+                        // Inhibit(true)
                     }
                     Down => {
                         hex_entry_c.decr_value();
-                        Inhibit(true)
+                        Propagation::Stop
+                        // Inhibit(true)
                     }
                     KEY_0 | KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8
                     | KEY_9 | A | B | C | D | E | F | BackSpace | Delete | Copy | Paste | x | a
-                    | b | c | d | e | f | Left | Right => Inhibit(false),
-                    _ => Inhibit(true),
+                    | b | c | d | e | f | Left | Right => Propagation::Proceed, //Inhibit(false),
+                    _ => Propagation::Stop,
+                    // _ => Inhibit(true),
                 }
             });
 
         let hex_entry_c = Rc::clone(&hex_entry);
         hex_entry.entry.connect_key_release_event(move |_, event| {
             use gdk::keys::constants::*;
-            match event.get_keyval() {
+            match event.keyval() {
                 Up | Down => {
                     hex_entry_c.reset_current_step();
-                    Inhibit(true)
+                    Propagation::Stop
+                    // Inhibit(true)
                 }
-                _ => Inhibit(false),
+                _ => Propagation::Proceed,
+                // _ => Inhibit(false),
             }
         });
 
@@ -283,13 +295,13 @@ pub trait PathCompletion: EntryExt + EditableSignals {
         entry_completion.set_inline_completion(true);
         entry_completion.set_inline_selection(true);
         entry_completion.set_minimum_key_length(0);
-        let list_store = gtk::ListStore::new(&[glib::Type::String]);
+        let list_store = gtk::ListStore::new(&[glib::Type::STRING]);
         entry_completion.set_model(Some(&list_store));
 
         self.set_completion(Some(&entry_completion));
         self.connect_changed(move |editable| {
             list_store.clear();
-            let dir_pathbuf = match PathBuf::from(editable.get_text().as_str()).parent() {
+            let dir_pathbuf = match PathBuf::from(editable.text().as_str()).parent() {
                 Some(path) => path.to_path_buf(),
                 None => PathBuf::new(),
             };

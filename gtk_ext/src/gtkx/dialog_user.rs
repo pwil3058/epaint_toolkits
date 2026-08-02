@@ -1,15 +1,16 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use glib::Cast;
-use gtk::prelude::WidgetExtManual;
-use gtk::{ButtonExt, EntryExt, FileChooserExt, WidgetExt};
 use std::error::Error;
 use std::path::PathBuf;
 
 use crate::gdk::prelude::IsA;
-use crate::gtk::{BoxExt, MessageDialogExt};
+use crate::glib::Cast;
+use crate::gtk::prelude::{
+    BoxExt, ButtonExt, DialogExt, EntryExt, FileChooserExt, GtkWindowExt, MessageDialogExt,
+    WidgetExt, WidgetExtManual,
+};
+
 use crate::gtkx::entry::PathCompletion;
-use crate::sourceview::prelude::{DialogExt, GtkWindowExt};
 
 pub trait TopGtkWindow {
     fn get_toplevel_gtk_window(&self) -> Option<gtk::Window>;
@@ -19,7 +20,7 @@ macro_rules! implement_tgw_for_widget {
     ( $f:ident ) => {
         impl TopGtkWindow for gtk::$f {
             fn get_toplevel_gtk_window(&self) -> Option<gtk::Window> {
-                if let Some(widget) = self.get_toplevel() {
+                if let Some(widget) = self.toplevel() {
                     if widget.is_toplevel() {
                         if let Ok(window) = widget.dynamic_cast::<gtk::Window>() {
                             return Some(window);
@@ -32,7 +33,7 @@ macro_rules! implement_tgw_for_widget {
     };
 }
 
-implement_tgw_for_widget!(Bin);
+// implement_tgw_for_widget!(Bin);
 implement_tgw_for_widget!(Box);
 implement_tgw_for_widget!(Container);
 implement_tgw_for_widget!(DrawingArea);
@@ -69,10 +70,10 @@ pub trait DialogUser: TopGtkWindow {
         ("Ok", gtk::ResponseType::Ok),
     ];
 
-    fn new_colour_chooser_dialog_builder(&self) -> gtk::ColorChooserDialogBuilder {
-        let mut dialog_builder = gtk::ColorChooserDialogBuilder::new();
+    fn new_colour_chooser_dialog_builder(&self) -> gtk::builders::ColorChooserDialogBuilder {
+        let mut dialog_builder = gtk::ColorChooserDialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -81,10 +82,10 @@ pub trait DialogUser: TopGtkWindow {
         dialog_builder
     }
 
-    fn new_dialog_builder(&self) -> gtk::DialogBuilder {
-        let mut dialog_builder = gtk::DialogBuilder::new();
+    fn new_dialog_builder(&self) -> gtk::builders::DialogBuilder {
+        let mut dialog_builder = gtk::Dialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -93,10 +94,10 @@ pub trait DialogUser: TopGtkWindow {
         dialog_builder
     }
 
-    fn new_file_chooser_dialog_builder(&self) -> gtk::FileChooserDialogBuilder {
-        let mut dialog_builder = gtk::FileChooserDialogBuilder::new();
+    fn new_file_chooser_dialog_builder(&self) -> gtk::builders::FileChooserDialogBuilder {
+        let mut dialog_builder = gtk::FileChooserDialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -105,10 +106,10 @@ pub trait DialogUser: TopGtkWindow {
         dialog_builder
     }
 
-    fn new_font_chooser_dialog_builder(&self) -> gtk::FontChooserDialogBuilder {
-        let mut dialog_builder = gtk::FontChooserDialogBuilder::new();
+    fn new_font_chooser_dialog_builder(&self) -> gtk::builders::FontChooserDialogBuilder {
+        let mut dialog_builder = gtk::FontChooserDialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -117,10 +118,10 @@ pub trait DialogUser: TopGtkWindow {
         dialog_builder
     }
 
-    fn new_message_dialog_builder(&self) -> gtk::MessageDialogBuilder {
-        let mut dialog_builder = gtk::MessageDialogBuilder::new();
+    fn new_message_dialog_builder(&self) -> gtk::builders::MessageDialogBuilder {
+        let mut dialog_builder = gtk::MessageDialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -129,10 +130,10 @@ pub trait DialogUser: TopGtkWindow {
         dialog_builder
     }
 
-    fn new_recent_chooser_dialog_builder(&self) -> gtk::RecentChooserDialogBuilder {
-        let mut dialog_builder = gtk::RecentChooserDialogBuilder::new();
+    fn new_recent_chooser_dialog_builder(&self) -> gtk::builders::RecentChooserDialogBuilder {
+        let mut dialog_builder = gtk::RecentChooserDialog::builder();
         if let Some(tlw) = self.get_toplevel_gtk_window() {
-            if let Some(icon) = tlw.get_icon() {
+            if let Some(icon) = tlw.icon() {
                 dialog_builder = dialog_builder.icon(&icon);
             }
             dialog_builder = dialog_builder.parent(&tlw);
@@ -149,7 +150,7 @@ pub trait DialogUser: TopGtkWindow {
             .buttons(gtk::ButtonsType::Close)
             .window_position(gtk::WindowPosition::Mouse)
             .build();
-        dialog.set_property_secondary_text(expln);
+        dialog.set_secondary_text(expln);
         dialog.run();
         dialog.close()
     }
@@ -162,7 +163,7 @@ pub trait DialogUser: TopGtkWindow {
             .buttons(gtk::ButtonsType::Close)
             .window_position(gtk::WindowPosition::Mouse)
             .build();
-        dialog.set_property_secondary_text(expln);
+        dialog.set_secondary_text(expln);
         dialog.run();
         dialog.close()
     }
@@ -215,9 +216,7 @@ pub trait DialogUser: TopGtkWindow {
             .new_dialog_builder()
             .window_position(gtk::WindowPosition::Mouse)
             .build();
-        dialog
-            .get_content_area()
-            .pack_start(widget, false, false, 0);
+        dialog.content_area().pack_start(widget, false, false, 0);
         for button in &Self::CANCEL_OK_BUTTONS {
             dialog.add_button(button.0, button.1);
         }
@@ -248,7 +247,7 @@ pub trait DialogUser: TopGtkWindow {
             dialog.set_filename(suggestion);
         };
         if dialog.run() == gtk::ResponseType::Ok {
-            if let Some(file_path) = dialog.get_filename() {
+            if let Some(file_path) = dialog.filename() {
                 dialog.hide();
                 if absolute {
                     match path_utilities::absolute_pathbuf(&file_path) {
@@ -280,7 +279,7 @@ pub trait DialogUser: TopGtkWindow {
         }
         dialog.connect_close(|d| unsafe { d.destroy() });
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 1);
-        dialog.get_content_area().pack_start(&hbox, false, false, 0);
+        dialog.content_area().pack_start(&hbox, false, false, 0);
 
         let prompt_label = if prompt.is_some() {
             gtk::Label::new(prompt)
@@ -320,7 +319,7 @@ pub trait DialogUser: TopGtkWindow {
             // NB: following gymnastics need to satisfy lifetime  checks
             //let text = &entry_c.get_text().unwrap_or("".to_string());
             //let suggestion: Option<&str> = if text.len() > 0 { Some(text) } else { None };
-            let suggestion_str = String::from(entry_c.get_text());
+            let suggestion_str = String::from(entry_c.text());
             let suggestion: Option<&str> = Some(&suggestion_str);
             if let Some(path) =
                 //browse_path(Some(&dialog_c), Some(&b_prompt), suggestion, action, false)
@@ -333,7 +332,7 @@ pub trait DialogUser: TopGtkWindow {
 
         dialog.set_default_response(gtk::ResponseType::Ok);
         if dialog.run() == gtk::ResponseType::Ok {
-            let text = String::from(entry.get_text());
+            let text = String::from(entry.text());
             unsafe { dialog.destroy() };
             Some(PathBuf::from(&text))
         } else {
@@ -379,7 +378,7 @@ pub trait DialogUser: TopGtkWindow {
     }
 }
 
-impl DialogUser for gtk::Bin {}
+// impl DialogUser for gtk::Bin {}
 impl DialogUser for gtk::DrawingArea {}
 impl DialogUser for gtk::EventBox {}
 impl DialogUser for gtk::Frame {}

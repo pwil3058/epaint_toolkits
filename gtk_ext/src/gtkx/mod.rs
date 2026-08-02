@@ -2,6 +2,9 @@
 
 pub mod dialog_user;
 pub mod entry;
-pub mod list_store;
+#[macro_use]
 pub mod tree_model;
+#[macro_use]
 pub mod value;
+#[macro_use]
+pub mod list_store;

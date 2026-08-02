@@ -1,4 +1,4 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::cell::{Cell, RefCell};
 use std::error::Error;
@@ -11,13 +11,14 @@ use std::result;
 use lazy_static::*;
 use mut_static::*;
 
-use gdk::prelude::GdkContextExt;
-use gdk_pixbuf;
-use glib;
-use gtk;
-use gtk::prelude::{IsA, PrintOperationExt};
-use pango;
-use pangocairo;
+use crate::gdk::prelude::GdkContextExt;
+use crate::gdk_pixbuf;
+use crate::glib;
+use crate::gtk;
+use crate::gtk::prelude::{IsA, PrintOperationExt};
+
+use crate::pango;
+use crate::pangocairo;
 
 struct RememberedPrinterSettings {
     pub o_file_path: Option<path::PathBuf>,
@@ -111,7 +112,7 @@ fn do_print_operation<P: IsA<gtk::Window>>(
     if result == gtk::PrintOperationResult::Error {
         return Err(PrintError(None));
     } else if result == gtk::PrintOperationResult::Apply {
-        if let Some(settings) = print_operation.get_print_settings() {
+        if let Some(settings) = print_operation.print_settings() {
             save_printer_settings(&settings);
         }
     };
@@ -143,15 +144,15 @@ impl MarkupPrinterInterface for Rc<MarkupPrinterCore> {
         let mp_c = mp.clone();
         mp.print_operation
             .connect_begin_print(move |pr_op, pr_ctxt| {
-                let pheight = pr_ctxt.get_height() as i32;
-                let spwidth = (pr_ctxt.get_width() * pango::SCALE as f64) as i32;
+                let pheight = pr_ctxt.height() as i32;
+                let spwidth = (pr_ctxt.width() * pango::SCALE as f64) as i32;
                 let mut total_height: i32 = 0;
                 let mut page: Vec<pango::Layout> = Vec::new();
                 for chunk in mp_c.chunks.iter() {
                     if let Some(layout) = pr_ctxt.create_pango_layout() {
                         layout.set_width(spwidth);
                         layout.set_markup(chunk);
-                        let (_, c_height) = layout.get_pixel_size();
+                        let (_, c_height) = layout.pixel_size();
                         if (total_height + c_height) < pheight {
                             page.push(layout);
                             total_height += c_height;
@@ -177,10 +178,10 @@ impl MarkupPrinterInterface for Rc<MarkupPrinterCore> {
                 let layouts = &mp_c.pages.borrow()[page_num as usize];
                 let mut y: f64 = 0.0;
                 for layout in layouts.iter() {
-                    if let Some(cairo_context) = pr_ctxt.get_cairo_context() {
+                    if let Some(cairo_context) = pr_ctxt.cairo_context() {
                         cairo_context.move_to(0.0, y);
                         pangocairo::functions::show_layout(&cairo_context, layout);
-                        let (_, h) = layout.get_pixel_size();
+                        let (_, h) = layout.pixel_size();
                         y += h as f64;
                     } else {
                         panic!("File: {} Line: {}", file!(), line!());
@@ -226,8 +227,8 @@ impl PixbufPrinterInterface for Rc<PixbufPrinterCore> {
         mp.print_operation
             .connect_begin_print(move |pr_op, pr_ctxt| {
                 let pixbuf = mp_c.pixbuf.borrow().clone();
-                let pheight = pixbuf.get_height();
-                let pwidth = pixbuf.get_width();
+                let pheight = pixbuf.height();
+                let pwidth = pixbuf.width();
                 // TODO: use this code when pixbuf rotation available
                 //let mut pixbuf = mp_c.pixbuf.borrow().clone();
                 //let mut pheight = pixbuf.get_height();
@@ -237,8 +238,8 @@ impl PixbufPrinterInterface for Rc<PixbufPrinterCore> {
                 //pheight = pixbuf.get_height();
                 //pwidth = pixbuf.get_width();
                 //};
-                let hscale = pr_ctxt.get_height() / pheight as f64;
-                let wscale = pr_ctxt.get_width() / pwidth as f64;
+                let hscale = pr_ctxt.height() / pheight as f64;
+                let wscale = pr_ctxt.width() / pwidth as f64;
                 let scale = hscale.min(wscale);
                 let new_width = (pwidth as f64 * scale).round() as i32;
                 let new_height = (pheight as f64 * scale).round() as i32;
@@ -255,9 +256,9 @@ impl PixbufPrinterInterface for Rc<PixbufPrinterCore> {
         let mp_c = mp.clone();
         mp.print_operation.connect_draw_page(move |_, pr_ctxt, _| {
             let pixbuf = mp_c.pixbuf.borrow();
-            if let Some(cairo_context) = pr_ctxt.get_cairo_context() {
+            if let Some(cairo_context) = pr_ctxt.cairo_context() {
                 cairo_context.set_source_pixbuf(&pixbuf, 0.0, 0.0);
-                cairo_context.paint();
+                cairo_context.paint().expect("Pixbuf paint failed");
             } else {
                 panic!("File: {} Line: {}", file!(), line!());
             }
@@ -304,13 +305,13 @@ impl TextPrinterInterface for Rc<TextPrinterCore> {
         mp.print_operation
             .connect_begin_print(move |pr_op, pr_ctxt| {
                 if let Some(layout) = pr_ctxt.create_pango_layout() {
-                    let spwidth = (pr_ctxt.get_width() * pango::SCALE as f64) as i32;
+                    let spwidth = (pr_ctxt.width() * pango::SCALE as f64) as i32;
                     layout.set_width(spwidth);
                     layout.set_text(&text_c);
-                    let (_, t_height) = layout.get_pixel_size();
-                    let l_height = t_height as f64 / layout.get_line_count() as f64;
-                    let lpp = (pr_ctxt.get_height() / l_height).floor();
-                    let np = layout.get_line_count() as f64 / lpp;
+                    let (_, t_height) = layout.pixel_size();
+                    let l_height = t_height as f64 / layout.line_count() as f64;
+                    let lpp = (pr_ctxt.height() / l_height).floor();
+                    let np = layout.line_count() as f64 / lpp;
                     pr_op.set_n_pages((np + 1.0) as i32);
                     *mp_c.layout.borrow_mut() = Some(layout);
                 } else {
@@ -321,17 +322,17 @@ impl TextPrinterInterface for Rc<TextPrinterCore> {
         let mp_c = mp.clone();
         mp.print_operation.connect_draw_page(move |_, pr_ctxt, _| {
             if let Some(ref layout) = *mp_c.layout.borrow_mut() {
-                if let Some(cairo_context) = pr_ctxt.get_cairo_context() {
-                    let page_height = pr_ctxt.get_height();
+                if let Some(cairo_context) = pr_ctxt.cairo_context() {
+                    let page_height = pr_ctxt.height();
                     let mut y: f64 = 0.0;
                     let mut index = mp_c.next_line_index.get();
                     while y < page_height {
                         cairo_context.move_to(0.0, y);
-                        if let Some(layout_line) = layout.get_line(index) {
+                        if let Some(layout_line) = layout.line(index) {
                             cairo_context.move_to(0.0, y);
                             pangocairo::functions::show_layout_line(&cairo_context, &layout_line);
-                            let (_, logical_extent) = layout_line.get_pixel_extents();
-                            y += logical_extent.height as f64;
+                            let (_, logical_extent) = layout_line.pixel_extents();
+                            y += logical_extent.height() as f64;
                             index += 1;
                         } else {
                             break;

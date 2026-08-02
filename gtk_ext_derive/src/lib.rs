@@ -80,7 +80,7 @@ pub fn pwo2_derive(input: TokenStream) -> TokenStream {
 }
 
 fn segments_match_tail(
-    segments: &syn::punctuated::Punctuated<syn::PathSegment, syn::token::Colon2>,
+    segments: &syn::punctuated::Punctuated<syn::PathSegment, syn::token::PathSep>,
     names: &[&str],
 ) -> bool {
     if !segments.is_empty() && segments.len() <= names.len() {
