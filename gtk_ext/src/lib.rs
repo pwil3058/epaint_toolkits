@@ -19,6 +19,7 @@ pub use sourceview;
 pub mod gtkx;
 
 pub mod printer;
+pub mod sample;
 #[macro_use]
 pub mod wrapper;
 
