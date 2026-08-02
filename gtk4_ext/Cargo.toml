@@ -1,5 +1,5 @@
 [package]
-name = "gtk_ext"
+name = "gtk4_ext"
 version = "0.1.0"
 edition = "2024"
 
@@ -17,4 +17,4 @@ lazy_static = "*"
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 
 path_utilities = { path = "../path_utilities" }
-gtk_ext_derive = { path = "../gtk4_ext_derive" }
+gtk4_ext_derive = { path = "../gtk4_ext_derive" }
