@@ -264,8 +264,8 @@ pub trait SizeExt {
 impl SizeExt for gdk_pixbuf::Pixbuf {
     fn size(&self) -> Size<i32> {
         Size::<i32> {
-            width: self.get_width(),
-            height: self.get_height(),
+            width: self.width(),
+            height: self.height(),
         }
     }
 }
@@ -273,8 +273,8 @@ impl SizeExt for gdk_pixbuf::Pixbuf {
 impl SizeExt for gtk::Rectangle {
     fn size(&self) -> Size<i32> {
         Size::<i32> {
-            width: self.width,
-            height: self.height,
+            width: self.width(),
+            height: self.height(),
         }
     }
 }
@@ -298,13 +298,13 @@ pub trait AspectRatio {
 
 impl AspectRatio for gdk_pixbuf::Pixbuf {
     fn aspect_ratio(&self) -> f64 {
-        self.get_width() as f64 / self.get_height() as f64
+        self.width() as f64 / self.height() as f64
     }
 }
 
 impl AspectRatio for gtk::Rectangle {
     fn aspect_ratio(&self) -> f64 {
-        self.width as f64 / self.height as f64
+        self.width() as f64 / self.height() as f64
     }
 }
 
@@ -354,22 +354,22 @@ impl From<Rectangle<f64>> for Rectangle<i32> {
 impl From<gtk::Rectangle> for Rectangle<f64> {
     fn from(rectangle: gtk::Rectangle) -> Rectangle<f64> {
         Rectangle::<f64> {
-            x: rectangle.x as f64,
-            y: rectangle.y as f64,
-            width: rectangle.width as f64,
-            height: rectangle.height as f64,
+            x: rectangle.x() as f64,
+            y: rectangle.y() as f64,
+            width: rectangle.width() as f64,
+            height: rectangle.height() as f64,
         }
     }
 }
 
 impl From<Rectangle<f64>> for gtk::Rectangle {
     fn from(rectangle: Rectangle<f64>) -> gtk::Rectangle {
-        gtk::Rectangle {
-            x: rectangle.x.round() as i32,
-            y: rectangle.y.round() as i32,
-            width: rectangle.width.round() as i32,
-            height: rectangle.height.round() as i32,
-        }
+        gtk::Rectangle::new(
+            rectangle.x.round() as i32,
+            rectangle.y.round() as i32,
+            rectangle.width.round() as i32,
+            rectangle.height.round() as i32,
+        )
     }
 }
 

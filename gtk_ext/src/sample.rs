@@ -7,6 +7,7 @@ use std::process::Command;
 
 use crate::gdk::{self, prelude::WindowExtManual};
 use crate::gdk_pixbuf::Pixbuf;
+use crate::glib;
 use crate::gtk;
 
 use which::which;
@@ -137,9 +138,11 @@ pub mod area_selection {
     use std::convert::From;
     use std::rc::Rc;
 
-    use cairo;
-    use gdk::{self, prelude::WindowExtManual, WindowExt};
-    use gtk::{self, prelude::WidgetExtManual, GtkWindowExt, WidgetExt};
+    use crate::cairo;
+    use crate::gdk::{self, prelude::WindowExtManual};
+    use crate::glib;
+    use crate::gtk::prelude::*;
+    use crate::gtk::{self, prelude::WidgetExtManual, Widget};
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct IntPoint {
@@ -289,7 +292,8 @@ pub mod area_selection {
                         cairo_context.stroke();
                     }
                 };
-                gtk::Inhibit(false)
+                glib::Propagation::Proceed
+                // gtk::Inhibit(false)
             });
 
             let sad_c = sad.clone();
@@ -303,7 +307,8 @@ pub mod area_selection {
                     gtk::main_quit();
                 }
 
-                gtk::Inhibit(true)
+                glib::Propagation::Stop;
+                // gtk::Inhibit(true)
             });
 
             let sad_c = sad.clone();
@@ -313,7 +318,8 @@ pub mod area_selection {
                     sad_c.start_position.set(Some(event.get_position()));
                 }
 
-                gtk::Inhibit(true)
+                glib::Propagation::Stop
+                // gtk::Inhibit(true)
             });
 
             let sad_c = sad.clone();
@@ -328,7 +334,8 @@ pub mod area_selection {
                         gtk::main_quit();
                     }
 
-                    gtk::Inhibit(true)
+                    glib::Propagation::Stop
+                    // gtk::Inhibit(true)
                 });
 
             let sad_c = sad.clone();
@@ -339,7 +346,8 @@ pub mod area_selection {
                         window.queue_draw();
                     }
 
-                    gtk::Inhibit(true)
+                    glib::Propagation::Stop
+                    // gtk::Inhibit(true)
                 });
 
             let root_window = gdk::Window::get_default_root_window();

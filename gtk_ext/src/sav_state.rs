@@ -11,7 +11,8 @@ use std::collections::HashMap;
 use std::ops::BitOr;
 use std::rc::Rc;
 
-use crate::gtk::{TreeSelection, TreeSelectionExt, WidgetExt};
+use crate::glib::IsA;
+use crate::gtk::{TreeSelection, Widget};
 
 pub use gtk_ext_derive::*;
 
@@ -203,7 +204,7 @@ use self::WidgetStatesControlled::*;
 #[derive(Debug, Default)]
 struct ConditionalWidgetGroup<W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
 {
     widget_states_controlled: WidgetStatesControlled,
     widgets: HashMap<String, W>,
@@ -212,7 +213,7 @@ where
 
 impl<W> ConditionalWidgetGroup<W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
 {
     fn len(&self) -> usize {
         self.widgets.len()
@@ -277,7 +278,7 @@ impl ConditionalWidgetGroupBuilder {
 
     fn build<W>(&self) -> ConditionalWidgetGroup<W>
     where
-        W: WidgetExt + Clone + PartialEq,
+        W: IsA<Widget> + Clone + PartialEq,
     {
         ConditionalWidgetGroup::<W> {
             widget_states_controlled: self.widget_states_controlled,
@@ -293,7 +294,7 @@ impl ConditionalWidgetGroupBuilder {
 #[derive(Default)]
 pub struct ConditionalWidgetGroupsCore<W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
 {
     conditional_widget_group_builder: ConditionalWidgetGroupBuilder,
     groups: RefCell<HashMap<u64, ConditionalWidgetGroup<W>>>,
@@ -305,7 +306,7 @@ where
 #[derive(Default, WClone)]
 pub struct ConditionalWidgetGroups<W>(Rc<ConditionalWidgetGroupsCore<W>>)
 where
-    W: WidgetExt + Clone + PartialEq;
+    W: IsA<Widget> + Clone + PartialEq;
 
 #[derive(Default)]
 pub struct ConditionalWidgetGroupsBuilder {
@@ -336,7 +337,7 @@ impl ConditionalWidgetGroupsBuilder {
 
     pub fn build<W>(&self) -> ConditionalWidgetGroups<W>
     where
-        W: WidgetExt + Clone + PartialEq,
+        W: IsA<Widget> + Clone + PartialEq,
     {
         let change_notifier = if let Some(change_notifier) = &self.change_notifier {
             change_notifier.clone()
@@ -370,7 +371,7 @@ impl ConditionalWidgetGroupsBuilder {
 
 impl<W> ConditionalWidgetGroups<W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
 {
     pub fn is_empty(&self) -> bool {
         self.len() == 0
@@ -440,7 +441,7 @@ where
 #[derive(Debug)]
 struct ConditionalWidgetHashMap<K, W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug,
 {
     widget_states_controlled: WidgetStatesControlled,
@@ -450,7 +451,7 @@ where
 
 impl<K, W> Default for ConditionalWidgetHashMap<K, W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug,
 {
     fn default() -> Self {
@@ -464,7 +465,7 @@ where
 
 impl<K, W> ConditionalWidgetHashMap<K, W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug,
 {
     fn new(widget_states_controlled: WidgetStatesControlled) -> Self {
@@ -529,7 +530,7 @@ where
 #[derive(Default)]
 pub struct ConditionalWidgetsCore<K, W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug,
 {
     widget_states_controlled: WidgetStatesControlled,
@@ -542,12 +543,12 @@ where
 #[derive(Default, WClone)]
 pub struct ConditionalWidgets<K, W>(Rc<ConditionalWidgetsCore<K, W>>)
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug;
 
 impl<K, W> ConditionalWidgets<K, W>
 where
-    W: WidgetExt + Clone + PartialEq,
+    W: IsA<Widget> + Clone + PartialEq,
     K: Eq + std::hash::Hash + std::fmt::Debug,
 {
     pub fn is_empty(&self) -> bool {
@@ -652,7 +653,7 @@ impl ConditionalWidgetsBuilder {
 
     pub fn build<K, W>(&self) -> ConditionalWidgets<K, W>
     where
-        W: WidgetExt + Clone + PartialEq,
+        W: IsA<Widget> + Clone + PartialEq,
         K: Eq + std::hash::Hash + std::fmt::Debug + 'static,
     {
         let change_notifier = self.change_notifier.clone();

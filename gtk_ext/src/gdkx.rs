@@ -1,22 +1,22 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::num::ParseIntError;
 
-use gdk;
+use crate::gdk;
 
 pub fn format_geometry(event: &gdk::EventConfigure) -> String {
-    let (x, y) = event.get_position();
-    let (w, h) = event.get_size();
+    let (x, y) = event.position();
+    let (w, h) = event.size();
     format!("{}x{}+{}+{}", w, h, x, y)
 }
 
 pub fn format_geometry_size(event: &gdk::EventConfigure) -> String {
-    let (w, h) = event.get_size();
+    let (w, h) = event.size();
     format!("{}x{}", w, h)
 }
 
 pub fn format_geometry_position(event: &gdk::EventConfigure) -> String {
-    let (x, y) = event.get_position();
+    let (x, y) = event.position();
     format!("{}+{}", x, y)
 }
 

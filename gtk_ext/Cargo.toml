@@ -16,9 +16,11 @@ sourceview = "0.9.0"
 
 lazy_static = "1.5.0"
 mut_static = "5.0.0"
-
 num = "0.4"
 num-traits = "0.2.19"
+which = "6"
+
+normalised_angles = { git = "https://github.com/pwil3058/rs_normalised_angles.git" }
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 
 gtk_ext_derive = { path = "../gtk_ext_derive" }
