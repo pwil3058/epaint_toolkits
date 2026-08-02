@@ -26,6 +26,51 @@ pub trait DynColourAttributeDisplay: PackableWidgetObject<PWT = gtk::DrawingArea
 }
 
 #[derive(PWO, Wrapper)]
+pub struct ColourAttributeDisplay<A: attr_display::ColourAttributeDisplayIfce> {
+    drawing_area: gtk::DrawingArea,
+    attribute: RefCell<A>,
+}
+
+impl<A> ColourAttributeDisplay<A>
+where
+    A: attr_display::ColourAttributeDisplayIfce + 'static,
+{
+    pub fn new() -> Rc<Self> {
+        let cad = Rc::new(Self {
+            drawing_area: gtk::DrawingArea::new(),
+            attribute: RefCell::new(A::new()),
+        });
+        cad.drawing_area.set_size_request(90, 30);
+        let cad_c = Rc::clone(&cad);
+        cad.drawing_area.connect_draw(move |da, cairo_context| {
+            let size = Size {
+                width: da.get_allocated_width() as f64,
+                height: da.get_allocated_height() as f64,
+            };
+            let drawer = Drawer::new(cairo_context, size);
+            cad_c.attribute.borrow().draw_all(&drawer);
+            gtk::Inhibit(false)
+        });
+        cad
+    }
+}
+
+impl<A> DynColourAttributeDisplay for ColourAttributeDisplay<A>
+where
+    A: attr_display::ColourAttributeDisplayIfce + 'static,
+{
+    fn set_rgb(&self, rgb: Option<&RGB<f64>>) {
+        self.attribute.borrow_mut().set_colour(rgb);
+        self.drawing_area.queue_draw();
+    }
+
+    fn set_target_rgb(&self, rgb: Option<&RGB<f64>>) {
+        self.attribute.borrow_mut().set_target_colour(rgb);
+        self.drawing_area.queue_draw();
+    }
+}
+
+#[derive(PWO, Wrapper)]
 pub struct ColourAttributeDisplayStack {
     vbox: gtk::Box,
     cads: Vec<Rc<dyn DynColourAttributeDisplay<PWT = gtk::DrawingArea>>>,
@@ -87,51 +132,6 @@ impl ColourAttributeDisplayStackBuilder {
             cads.push(cad);
         }
         Rc::new(ColourAttributeDisplayStack { vbox, cads })
-    }
-}
-
-#[derive(PWO, Wrapper)]
-pub struct ColourAttributeDisplay<A: attr_display::ColourAttributeDisplayIfce> {
-    drawing_area: gtk::DrawingArea,
-    attribute: RefCell<A>,
-}
-
-impl<A> ColourAttributeDisplay<A>
-where
-    A: attr_display::ColourAttributeDisplayIfce + 'static,
-{
-    pub fn new() -> Rc<Self> {
-        let cad = Rc::new(Self {
-            drawing_area: gtk::DrawingArea::new(),
-            attribute: RefCell::new(A::new()),
-        });
-        cad.drawing_area.set_size_request(90, 30);
-        let cad_c = Rc::clone(&cad);
-        cad.drawing_area.connect_draw(move |da, cairo_context| {
-            let size = Size {
-                width: da.get_allocated_width() as f64,
-                height: da.get_allocated_height() as f64,
-            };
-            let drawer = Drawer::new(cairo_context, size);
-            cad_c.attribute.borrow().draw_all(&drawer);
-            gtk::Inhibit(false)
-        });
-        cad
-    }
-}
-
-impl<A> DynColourAttributeDisplay for ColourAttributeDisplay<A>
-where
-    A: attr_display::ColourAttributeDisplayIfce + 'static,
-{
-    fn set_rgb(&self, rgb: Option<&RGB<f64>>) {
-        self.attribute.borrow_mut().set_colour(rgb);
-        self.drawing_area.queue_draw();
-    }
-
-    fn set_target_rgb(&self, rgb: Option<&RGB<f64>>) {
-        self.attribute.borrow_mut().set_target_colour(rgb);
-        self.drawing_area.queue_draw();
     }
 }
 
