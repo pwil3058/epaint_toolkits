@@ -18,6 +18,9 @@ pub use sourceview;
 #[macro_use]
 pub mod gtkx;
 
+pub mod gdkx;
+pub mod geometry;
+pub mod glibx;
 pub mod printer;
 pub mod sample;
 pub mod sav_state;

@@ -1,4 +1,4 @@
-// Copyright 2019 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 //! Provide mechanisms to control the sensitivity and/or visibility
 //! of groups of widgets dependent on a widget and/or an application's
@@ -11,9 +11,9 @@ use std::collections::HashMap;
 use std::ops::BitOr;
 use std::rc::Rc;
 
-use gtk::{TreeSelection, TreeSelectionExt, WidgetExt};
+use crate::gtk::{TreeSelection, TreeSelectionExt, WidgetExt};
 
-pub use pw_gtk_ext_derive::*;
+pub use gtk_ext_derive::*;
 
 #[derive(Debug)]
 pub enum Error {

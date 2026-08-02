@@ -1,13 +1,13 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::error;
 use std::fmt;
 use std::io;
 use std::process::Command;
 
-use gdk::{self, prelude::WindowExtManual};
-use gdk_pixbuf::Pixbuf;
-use gtk;
+use crate::gdk::{self, prelude::WindowExtManual};
+use crate::gdk_pixbuf::Pixbuf;
+use crate::gtk;
 
 use which::which;
 
