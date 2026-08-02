@@ -21,4 +21,4 @@ members = [
     "gtk4_ext_derive",
     "gtk_ext",
     "gtk_ext_derive"
-]
+, "gtk_ext_test_gui"]
