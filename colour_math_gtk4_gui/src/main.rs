@@ -5,7 +5,7 @@ use gtk::{Application, ApplicationWindow, glib};
 use gtk_ext::pwo::PackableWidgetObject;
 
 use colour_math::HueConstants;
-use colour_math::beigui::attr_display::ColourAttributeType;
+use colour_math::beigui::attr_display::ScalarAttribute;
 use colour_math::hcv::HCV;
 use colour_math_gtk4::cads::ColourAttributeDisplayBox;
 use colour_math_gtk4::manipulator::{ChromaLabel, ColourManipulator};
@@ -24,7 +24,7 @@ fn main() -> glib::ExitCode {
 }
 
 fn build_ui(app: &Application) {
-    use ColourAttributeType::*;
+    use ScalarAttribute::*;
     let cads = ColourAttributeDisplayBox::new(&[Hue, Warmth]);
     cads.set_colour(Some(&HCV::YELLOW));
     cads.set_target_colour(Some(&HCV::RED_YELLOW));

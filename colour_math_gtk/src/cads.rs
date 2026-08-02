@@ -7,8 +7,8 @@ use pw_gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::attr_display::ColourAttributeType;
 use colour_math::ColourBasics;
+use colour_math::{attr_display::ColourAttributeType, ScalarAttribute};
 
 use colour_math::beigui::attr_display;
 
@@ -46,15 +46,6 @@ impl ColourAttributeDisplay {
                 cad_c.colout_attr_display.borrow().draw_all(&drawer);
                 gtk::Inhibit(false)
             });
-        // cad.drawing_area
-        //     .set_draw_func(move |_drawing_area, cairo_context, width, height| {
-        //         let size = Size {
-        //             width: width.into(),
-        //             height: height.into(),
-        //         };
-        //         let drawer = Drawer::new(cairo_context, size);
-        //         cad_c.colout_attr_display.borrow().draw_all(&drawer);
-        //     });
 
         cad
     }
@@ -77,11 +68,14 @@ pub struct ColourAttributeDisplayBox {
 }
 
 impl ColourAttributeDisplayBox {
-    pub fn new(cats: &[ColourAttributeType]) -> Rc<Self> {
+    pub fn new(cats: &[ScalarAttribute]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let cads = RefCell::new(Vec::with_capacity(cats.len()));
+        let huecad = ColourAttributeDisplay::new(&ColourAttributeType::Hue);
+        vbox.pack_start(huecad.pwo(), false, false, 0);
+        cads.borrow_mut().push(huecad);
         for cat in cats {
-            let cad = ColourAttributeDisplay::new(cat);
+            let cad = ColourAttributeDisplay::new(&cat.into());
             vbox.pack_start(cad.pwo(), false, false, 0);
             cads.borrow_mut().push(cad);
         }

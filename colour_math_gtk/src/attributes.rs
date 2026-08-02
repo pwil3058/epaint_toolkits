@@ -1,98 +1,107 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
+
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
 };
 
 use pw_gtk_ext::{
-    gtk::{self, BoxExt, RadioButtonExt, ToggleButtonExt, WidgetExt},
+    gtk::{self, BoxExt, DrawingArea, RadioButtonExt, ToggleButtonExt, WidgetExt},
     wrapper::*,
 };
 
-use colour_math::{attr_display, ScalarAttribute, RGB};
+use colour_math::{
+    attr_display, attr_display::ColourAttributeType, ColourBasics, ScalarAttribute, HCV,
+};
 use colour_math_cairo::{Drawer, Size};
+
+use pw_gtk_ext::gtk::DrawingAreaBuilder;
 
 use crate::colour::GdkColour;
 
-pub type ChromaCAD = ColourAttributeDisplay<attr_display::ChromaCAD>;
-pub type GreynessCAD = ColourAttributeDisplay<attr_display::GreynessCAD>;
-pub type HueCAD = ColourAttributeDisplay<attr_display::HueCAD>;
-pub type ValueCAD = ColourAttributeDisplay<attr_display::ValueCAD>;
-pub type WarmthCAD = ColourAttributeDisplay<attr_display::WarmthCAD>;
-
-pub trait DynColourAttributeDisplay: PackableWidgetObject<PWT = gtk::DrawingArea> {
-    fn set_rgb(&self, rgb: Option<&RGB<f64>>);
-    fn set_target_rgb(&self, rgb: Option<&RGB<f64>>);
-}
-
 #[derive(PWO, Wrapper)]
-pub struct ColourAttributeDisplay<A: attr_display::ColourAttributeDisplayIfce> {
-    drawing_area: gtk::DrawingArea,
-    attribute: RefCell<A>,
+pub struct ColourAttributeDisplay {
+    pub drawing_area: DrawingArea,
+    pub colout_attr_display: RefCell<attr_display::ColourAttributeDisplay>,
 }
 
-impl<A> ColourAttributeDisplay<A>
-where
-    A: attr_display::ColourAttributeDisplayIfce + 'static,
-{
-    pub fn new() -> Rc<Self> {
+impl ColourAttributeDisplay {
+    pub fn new(colour_attr_type: &ColourAttributeType) -> Rc<Self> {
+        let drawing_area = DrawingAreaBuilder::new()
+            .hexpand(true)
+            .height_request(30)
+            .width_request(90)
+            .build();
+        let colour_attr_display =
+            RefCell::new(attr_display::ColourAttributeDisplay::new(colour_attr_type));
         let cad = Rc::new(Self {
-            drawing_area: gtk::DrawingArea::new(),
-            attribute: RefCell::new(A::new()),
+            drawing_area,
+            colout_attr_display: colour_attr_display,
         });
         cad.drawing_area.set_size_request(90, 30);
         let cad_c = Rc::clone(&cad);
-        cad.drawing_area.connect_draw(move |da, cairo_context| {
-            let size = Size {
-                width: da.get_allocated_width() as f64,
-                height: da.get_allocated_height() as f64,
-            };
-            let drawer = Drawer::new(cairo_context, size);
-            cad_c.attribute.borrow().draw_all(&drawer);
-            gtk::Inhibit(false)
-        });
+        cad.drawing_area
+            .connect_draw(move |drawing_area, cairo_context| {
+                let size = Size {
+                    width: drawing_area.get_allocated_width() as f64,
+                    height: drawing_area.get_allocated_height() as f64,
+                };
+                let drawer = Drawer::new(cairo_context, size);
+                cad_c.colout_attr_display.borrow().draw_all(&drawer);
+                gtk::Inhibit(false)
+            });
+
         cad
     }
-}
 
-impl<A> DynColourAttributeDisplay for ColourAttributeDisplay<A>
-where
-    A: attr_display::ColourAttributeDisplayIfce + 'static,
-{
-    fn set_rgb(&self, rgb: Option<&RGB<f64>>) {
-        self.attribute.borrow_mut().set_colour(rgb);
-        self.drawing_area.queue_draw();
+    pub fn set_colour(&self, colour: Option<&impl ColourBasics>) {
+        self.colout_attr_display.borrow_mut().set_colour(colour)
     }
 
-    fn set_target_rgb(&self, rgb: Option<&RGB<f64>>) {
-        self.attribute.borrow_mut().set_target_colour(rgb);
-        self.drawing_area.queue_draw();
+    pub fn set_target_colour(&self, colour: Option<&impl ColourBasics>) {
+        self.colout_attr_display
+            .borrow_mut()
+            .set_target_colour(colour)
     }
 }
 
 #[derive(PWO, Wrapper)]
 pub struct ColourAttributeDisplayStack {
     vbox: gtk::Box,
-    cads: Vec<Rc<dyn DynColourAttributeDisplay<PWT = gtk::DrawingArea>>>,
+    cads: RefCell<Vec<Rc<ColourAttributeDisplay>>>,
 }
 
 impl ColourAttributeDisplayStack {
+    pub fn new(scalar_attributes: &[ScalarAttribute]) -> Rc<Self> {
+        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
+        let cads = RefCell::new(Vec::with_capacity(scalar_attributes.len() + 1));
+        let huecad = ColourAttributeDisplay::new(&ColourAttributeType::Hue);
+        vbox.pack_start(huecad.pwo(), false, false, 0);
+        cads.borrow_mut().push(huecad);
+        for scalar_attribute in scalar_attributes {
+            let cad = ColourAttributeDisplay::new(&scalar_attribute.into());
+            vbox.pack_start(cad.pwo(), false, false, 0);
+            cads.borrow_mut().push(cad);
+        }
+
+        Rc::new(Self { vbox, cads })
+    }
     pub fn set_colour(&self, colour: Option<&impl GdkColour>) {
-        for cad in self.cads.iter() {
+        for cad in self.cads.borrow().iter() {
             if let Some(colour) = colour {
-                cad.set_rgb(Some(&colour.rgb()));
+                cad.set_colour(Some(&colour.hcv()));
             } else {
-                cad.set_rgb(None);
+                cad.set_colour(None::<&HCV>);
             }
         }
     }
 
     pub fn set_target_colour(&self, colour: Option<&impl GdkColour>) {
-        for cad in self.cads.iter() {
+        for cad in self.cads.borrow().iter() {
             if let Some(colour) = colour {
-                cad.set_target_rgb(Some(&colour.rgb()));
+                cad.set_target_colour(Some(&colour.hcv()));
             } else {
-                cad.set_target_rgb(None);
+                cad.set_target_colour(None::<&HCV>);
             }
         }
     }
@@ -109,29 +118,13 @@ impl ColourAttributeDisplayStackBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
-        self.attributes = attributes.to_vec();
+    pub fn scalar_attributes(&mut self, scalar_attributes: &[ScalarAttribute]) -> &mut Self {
+        self.attributes = scalar_attributes.to_vec();
         self
     }
 
     pub fn build(&self) -> Rc<ColourAttributeDisplayStack> {
-        let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
-        let mut cads = vec![];
-        let hue_cad: Rc<dyn DynColourAttributeDisplay<PWT = gtk::DrawingArea>> = HueCAD::new();
-        vbox.pack_start(hue_cad.pwo(), true, true, 0);
-        cads.push(hue_cad);
-        for scalar_attribute in self.attributes.iter() {
-            let cad: Rc<dyn DynColourAttributeDisplay<PWT = gtk::DrawingArea>> =
-                match scalar_attribute {
-                    ScalarAttribute::Value => ValueCAD::new(),
-                    ScalarAttribute::Chroma => ChromaCAD::new(),
-                    ScalarAttribute::Warmth => WarmthCAD::new(),
-                    ScalarAttribute::Greyness => GreynessCAD::new(),
-                };
-            vbox.pack_start(cad.pwo(), true, true, 0);
-            cads.push(cad);
-        }
-        Rc::new(ColourAttributeDisplayStack { vbox, cads })
+        ColourAttributeDisplayStack::new(&self.attributes)
     }
 }
 

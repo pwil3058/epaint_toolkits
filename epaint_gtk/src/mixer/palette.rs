@@ -1,4 +1,4 @@
-// Copyright 2019 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     cell::{Cell, RefCell},
@@ -120,7 +120,7 @@ impl MixtureEntry {
         let name_entry = gtk::EntryBuilder::new().build();
         let notes_entry = gtk::EntryBuilder::new().build();
         let cads = ColourAttributeDisplayStackBuilder::new()
-            .attributes(attributes)
+            .scalar_attributes(attributes)
             .build();
         #[cfg(feature = "palette_samples")]
         let drawing_area = gtk::DrawingAreaBuilder::new()

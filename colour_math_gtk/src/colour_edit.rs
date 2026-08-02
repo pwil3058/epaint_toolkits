@@ -1,4 +1,4 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{cell::RefCell, rc::Rc};
 
 use pw_gtk_ext::{
@@ -87,7 +87,7 @@ impl ColourEditorBuilder {
 
     pub fn build<U: Hexable>(&self) -> Rc<ColourEditor<U>> {
         let cads = ColourAttributeDisplayStackBuilder::new()
-            .attributes(&self.attributes)
+            .scalar_attributes(&self.attributes)
             .build();
         let rgb_entry = RGBHexEntryBuilder::<U>::new().editable(true).build();
         let colour_manipulator = ColourManipulatorGUIBuilder::new()

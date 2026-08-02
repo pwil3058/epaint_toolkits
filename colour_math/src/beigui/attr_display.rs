@@ -6,7 +6,7 @@ use crate::{
     fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
     hcv::HCV,
     hue::{Hue, HueIfce},
-    ColourBasics, HueConstants, RGBConstants,
+    ColourBasics, HueConstants, RGBConstants, ScalarAttribute,
 };
 
 pub trait ColourAttributeDisplayIfce {
@@ -623,6 +623,17 @@ pub enum ColourAttributeType {
     Value,
     Warmth,
     Greyness,
+}
+
+impl From<&ScalarAttribute> for ColourAttributeType {
+    fn from(scalar_attribute: &ScalarAttribute) -> Self {
+        match scalar_attribute {
+            ScalarAttribute::Chroma => Self::Chroma,
+            ScalarAttribute::Warmth => Self::Warmth,
+            ScalarAttribute::Greyness => Self::Greyness,
+            ScalarAttribute::Value => Self::Value,
+        }
+    }
 }
 
 impl ColourAttributeDisplay {

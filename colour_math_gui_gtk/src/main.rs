@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     env,
@@ -86,7 +86,7 @@ fn main() {
     ];
 
     let cads = ColourAttributeDisplayStackBuilder::new()
-        .attributes(&attributes)
+        .scalar_attributes(&attributes)
         .build();
     cads.set_colour(Some(&RGB::from([0.1, 0.4, 0.7])));
     cads.set_target_colour(Some(&RGB::from([0.7, 0.4, 0.7])));

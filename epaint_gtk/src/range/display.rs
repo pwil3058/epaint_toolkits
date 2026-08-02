@@ -1,4 +1,4 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -118,7 +118,7 @@ impl PaintDisplayBuilder {
         vbox.pack_start(&label, false, false, 0);
 
         let cads = ColourAttributeDisplayStackBuilder::new()
-            .attributes(&self.attributes)
+            .scalar_attributes(&self.attributes)
             .build();
         cads.set_colour(Some(&hcv));
 
