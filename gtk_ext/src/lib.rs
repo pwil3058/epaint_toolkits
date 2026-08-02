@@ -20,6 +20,7 @@ pub mod gtkx;
 
 pub mod printer;
 pub mod sample;
+pub mod sav_state;
 #[macro_use]
 pub mod wrapper;
 
