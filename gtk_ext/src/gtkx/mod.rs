@@ -2,6 +2,8 @@
 
 pub mod dialog_user;
 pub mod entry;
+pub mod list;
+pub mod menu;
 #[macro_use]
 pub mod tree_model;
 #[macro_use]

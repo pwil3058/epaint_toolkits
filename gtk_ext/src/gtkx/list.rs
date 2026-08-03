@@ -3,6 +3,8 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 use crate::{
+    gdk,
+    glib,
     // glibx::prelude::GlibValueExt,
     gtk::prelude::{
         GtkListStoreExt, GtkMenuItemExt, TreeModelExt, TreeSelectionExt, TreeViewExt, WidgetExt,
@@ -34,11 +36,11 @@ pub trait ListViewSpec {
 
 impl ListViewWithPopUpMenu {
     fn set_selected_id(&self, posn: (f64, f64)) {
-        if let Some(location) = self.view.get_path_at_pos(posn.0 as i32, posn.1 as i32) {
+        if let Some(location) = self.view.path_at_pos(posn.0 as i32, posn.1 as i32) {
             if let Some(path) = location.0 {
-                if let Some(list_store) = self.view.get_model() {
-                    if let Some(iter) = list_store.get_iter(&path) {
-                        let value = list_store.get_value(&iter, self.id_field);
+                if let Some(list_store) = self.view.model() {
+                    if let Some(iter) = list_store.iter(&path) {
+                        let value = list_store.value(&iter, self.id_field);
                         if let Some(string) = value.get().unwrap() {
                             *self.selected_id.borrow_mut() = Some(string);
                             self.popup_menu.update_hover_condns(true);
@@ -72,17 +74,13 @@ impl ListViewWithPopUpMenu {
         let hovered_id = (*self.selected_id.borrow())
             .as_ref()
             .map(|id| id.to_string());
-        let selection = self.view.get_selection();
-        let (tree_paths, store) = selection.get_selected_rows();
+        let selection = self.view.selection();
+        let (tree_paths, store) = selection.selected_rows();
         let selected_ids: Option<Vec<String>> = if !tree_paths.is_empty() {
             let mut vector = vec![];
             for tree_path in tree_paths.iter() {
-                if let Some(iter) = store.get_iter(tree_path) {
-                    if let Some(id) = store
-                        .get_value(&iter, self.id_field)
-                        .get::<String>()
-                        .unwrap()
-                    {
+                if let Some(iter) = store.iter(tree_path) {
+                    if let Ok(id) = store.value(&iter, self.id_field).get::<String>() {
                         vector.push(id);
                     }
                 }
@@ -114,7 +112,7 @@ impl ListViewWithPopUpMenu {
 
     pub fn remove_row(&self, id: &str) {
         if let Some((_, iter)) = self.list_store.find_row_where(|list_store, iter| {
-            list_store.get_value(iter, self.id_field).get_ok() == Some(id)
+            list_store.value(iter, self.id_field).get() == Ok(Some(id))
         }) {
             self.list_store.remove(&iter);
         } else {
@@ -172,16 +170,16 @@ impl ListViewWithPopUpMenuBuilder {
 
     pub fn build(&self, spec: &impl ListViewSpec) -> Rc<ListViewWithPopUpMenu> {
         let list_store = gtk::ListStore::new(&spec.column_types());
-        let view = gtk::TreeViewBuilder::new().headers_visible(true).build();
+        let view = gtk::TreeView::builder().headers_visible(true).build();
         view.set_model(Some(&list_store));
-        view.get_selection().set_mode(self.selection_mode);
+        view.selection().set_mode(self.selection_mode);
 
         for col in spec.columns() {
             view.append_column(&col);
         }
 
         let popup_menu = ManagedMenuBuilder::new()
-            .selection(&view.get_selection())
+            .selection(&view.selection())
             .build();
 
         let rgb_l_v = Rc::new(ListViewWithPopUpMenu {
@@ -217,21 +215,24 @@ impl ListViewWithPopUpMenuBuilder {
 
         let rgb_l_v_c = Rc::clone(&rgb_l_v);
         rgb_l_v.view.connect_button_press_event(move |_, event| {
-            if event.get_event_type() == gdk::EventType::ButtonPress {
-                match event.get_button() {
+            if event.event_type() == gdk::EventType::ButtonPress {
+                match event.button() {
                     2 => {
-                        rgb_l_v_c.view.get_selection().unselect_all();
-                        gtk::Inhibit(true)
+                        rgb_l_v_c.view.selection().unselect_all();
+                        glib::Propagation::Stop
+                        // gkk::gtk::Inhibit(true)
                     }
                     3 => {
-                        rgb_l_v_c.set_selected_id(event.get_position());
+                        rgb_l_v_c.set_selected_id(event.position());
                         rgb_l_v_c.popup_menu.popup_at_event(event);
-                        gtk::Inhibit(true)
+                        glib::Propagation::Stop
+                        // gtk::Inhibit(true)
                     }
-                    _ => gtk::Inhibit(false),
+                    _ => glib::Propagation::Proceed, // _ => gtk::Inhibit(false),
                 }
             } else {
-                gtk::Inhibit(false)
+                glib::Propagation::Proceed
+                // gtk::Inhibit(false)
             }
         });
 

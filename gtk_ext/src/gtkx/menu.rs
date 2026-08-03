@@ -1,8 +1,8 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
-
-use crate::gtk::prelude::*;
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::{
+    gdk, gtk,
+    gtk::prelude::*,
     sav_state::{
         self, ChangedCondnsNotifier, ConditionalWidgets, ConditionalWidgetsBuilder, MaskedCondns,
         WidgetStatesControlled,
@@ -25,19 +25,19 @@ impl From<(&'static str, Option<gtk::Image>, Option<&'static str>)> for MenuItem
 
 impl From<&MenuItemSpec> for gtk::MenuItem {
     fn from(menu_item_spec: &MenuItemSpec) -> Self {
-        let h_box = gtk::BoxBuilder::new()
+        let h_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .spacing(6)
             .build();
         if let Some(image) = &menu_item_spec.1 {
             h_box.pack_start(image, false, false, 0);
         }
-        let label = gtk::LabelBuilder::new()
+        let label = gtk::Label::builder()
             .label(menu_item_spec.0)
             .xalign(0.0)
             .build();
         h_box.pack_start(&label, true, true, 0);
-        let item = gtk::MenuItemBuilder::new().child(&h_box).build();
+        let item = gtk::MenuItem::builder().child(&h_box).build();
         item.set_tooltip_text(menu_item_spec.2);
 
         item
@@ -158,7 +158,7 @@ impl ManagedMenu {
 
     pub fn popup_at_event(&self, event: &gdk::EventButton) {
         if !self.items.is_empty() {
-            self.menu.popup_easy(event.get_button(), event.get_time());
+            self.menu.popup_easy(event.button(), event.time());
         }
     }
 }
@@ -200,7 +200,7 @@ impl ManagedMenuBuilder {
     }
 
     pub fn build(&self) -> ManagedMenu {
-        let menu = gtk::MenuBuilder::new().build();
+        let menu = gtk::Menu::builder().build();
         let items = self
             .conditional_widgets_builder
             .build::<&'static str, gtk::MenuItem>();
