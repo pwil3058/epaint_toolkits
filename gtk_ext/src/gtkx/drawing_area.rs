@@ -1,12 +1,10 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::cell::{Cell, RefCell};
 use std::convert::From;
 use std::rc::Rc;
 
-use gdk;
-use gtk;
-use gtk::prelude::*;
+use crate::{gdk, glib, gtk, gtk::prelude::*};
 
 use crate::geometry::*;
 
@@ -82,7 +80,7 @@ impl XYSelection {
             | gdk::EventMask::BUTTON_RELEASE_MASK
             | gdk::EventMask::LEAVE_NOTIFY_MASK;
         drawing_area.add_events(events);
-        let allocation = Cell::new(Rectangle::from(drawing_area.get_allocation()).size());
+        let allocation = Cell::new(Rectangle::from(drawing_area.allocation()).size());
         let xys = Rc::new(XYSelection {
             drawing_area: drawing_area.clone(),
             start_xy: Cell::new(None),
@@ -94,49 +92,54 @@ impl XYSelection {
         let xys_c = xys.clone();
         xys.drawing_area
             .connect_button_press_event(move |da, event| {
-                if event.get_button() == 1
-                    && !event.get_state().contains(gdk::ModifierType::CONTROL_MASK)
-                {
-                    let point = Point::from(event.get_position());
+                if event.button() == 1 && !event.state().contains(gdk::ModifierType::CONTROL_MASK) {
+                    let point = Point::from(event.position());
                     xys_c.start_xy.set(Some(point));
                     xys_c.end_xy.set(Some(point));
                     xys_c.selection_made.set(false);
                     da.queue_draw();
-                    Inhibit(true)
-                } else if event.get_button() == 2 {
+                    glib::Propagation::Stop
+                    // Inhibit(true)
+                } else if event.button() == 2 {
                     if xys_c.in_progress() || xys_c.selection_made.get() {
                         xys_c.reset()
                     };
                     da.queue_draw();
-                    Inhibit(true)
+                    glib::Propagation::Stop
+                    // Inhibit(true)
                 } else {
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 }
             });
         let xys_c = xys.clone();
         xys.drawing_area
             .connect_button_release_event(move |da, event| {
-                if event.get_button() == 1 && xys_c.in_progress() {
-                    xys_c.end_xy.set(Some(Point::from(event.get_position())));
+                if event.button() == 1 && xys_c.in_progress() {
+                    xys_c.end_xy.set(Some(Point::from(event.position())));
                     xys_c.selection_made.set(true);
                     for callback in xys_c.selection_made_callbacks.borrow().iter() {
                         callback();
                     }
                     da.queue_draw();
-                    Inhibit(true)
+                    glib::Propagation::Stop
+                    // Inhibit(true)
                 } else {
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 }
             });
         let xys_c = xys.clone();
         xys.drawing_area
             .connect_motion_notify_event(move |da, event| {
                 if xys_c.in_progress() {
-                    xys_c.end_xy.set(Some(Point::from(event.get_position())));
+                    xys_c.end_xy.set(Some(Point::from(event.position())));
                     da.queue_draw();
-                    Inhibit(true)
+                    glib::Propagation::Stop
+                    // Inhibit(true)
                 } else {
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 }
             });
         let xys_c = xys.clone();
@@ -145,7 +148,8 @@ impl XYSelection {
                 xys_c.reset();
                 da.queue_draw();
             };
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
         let xys_c = xys.clone();
         xys.drawing_area
