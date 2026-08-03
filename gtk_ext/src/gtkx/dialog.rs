@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use log;
 
@@ -37,7 +37,7 @@ fn recall_dialog_last_size(key: &str, default: (i32, i32)) -> (i32, i32) {
     }
 }
 
-pub trait RememberDialogSize: gtk::WidgetExt + gtk::GtkWindowExt {
+pub trait RememberDialogSize: gtk::prelude::WidgetExt + gtk::prelude::GtkWindowExt {
     fn set_size_from_recollections(&self, dialog_name: &str, default: (i32, i32)) {
         let key = format!("{}::dialog::last_size", dialog_name);
         let (width, height) = recall_dialog_last_size(key.as_str(), default);
@@ -48,15 +48,15 @@ pub trait RememberDialogSize: gtk::WidgetExt + gtk::GtkWindowExt {
             false
         });
         self.connect_realize(|widget| {
-            let (req_width, req_height) = widget.get_default_size();
-            let allocation = widget.get_allocation();
+            let (req_width, req_height) = widget.default_size();
+            let allocation = widget.allocation();
             let width_corrn = if req_width > 0 {
-                req_width - allocation.width
+                req_width - allocation.width()
             } else {
                 0
             };
             let height_corrn = if req_height > 0 {
-                req_height - allocation.height
+                req_height - allocation.height()
             } else {
                 0
             };
