@@ -7,5 +7,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+recollections = { path = "../recollections" }
+
 gtk_ext = { path = "../gtk_ext" }
 gtk_ext_derive = { path = "../gtk_ext_derive" }

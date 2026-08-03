@@ -1,14 +1,15 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::io::{self, Write};
 
-use gtk;
-//use gtk::prelude::*;
+use crate::gtk;
+use gtk::prelude::*;
 
 use crate::gdkx::*;
-use crate::recollections;
 
-pub trait RememberGeometry: gtk::WidgetExt + gtk::GtkWindowExt {
+use recollections;
+
+pub trait RememberGeometry: WidgetExt + GtkWindowExt {
     fn set_geometry_from_recollections(&self, window_name: &str, default_size: (i32, i32)) {
         let key = format!("{}::window::last_geometry", window_name);
         if let Some(last_geometry) = recollections::recall(key.as_str()) {

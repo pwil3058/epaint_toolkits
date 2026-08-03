@@ -14,6 +14,7 @@ pub mod notebook;
 pub mod paned;
 pub mod radio_button;
 pub mod tree_view;
+pub mod window;
 
 #[macro_use]
 pub mod tree_model;

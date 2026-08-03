@@ -13,10 +13,11 @@ use gtk_ext::gtkx::radio_button::RadioButtonsBuilder;
 use gtk_ext::gtkx::tree_view::TreeViewWithPopupBuilder;
 use gtk_ext::gtkx::window::RememberGeometry;
 
-use gtk_ext::recollections;
 use gtk_ext::sav_state::{SAV_SELN_UNIQUE, SAV_SELN_UNIQUE_OR_HOVER_OK};
 use gtk_ext::wrapper::*;
 use gtk_ext::*;
+
+use recollections;
 
 #[derive(PWO)]
 struct SimpleCore {
@@ -30,32 +31,36 @@ struct TestListSpec;
 
 impl ListViewSpec for TestListSpec {
     fn column_types() -> Vec<glib::Type> {
-        vec![glib::Type::String, glib::Type::String]
+        vec![glib::Type::STRING, glib::Type::STRING]
     }
 
     fn columns() -> Vec<gtk::TreeViewColumn> {
         let mut cols = vec![];
 
-        let col = gtk::TreeViewColumnBuilder::new()
+        let col = gtk::TreeViewColumn::builder()
             .title("Id")
             .resizable(false)
             .sort_column_id(0)
             .sort_indicator(true)
             .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 0);
+        let cell = gtk::CellRendererText::builder().editable(false).build();
+        gtk_ext::gtk::prelude::TreeViewColumnExt::pack_start(&col, &cell, false);
+        // col.pack_start(&cell, false);
+        gtk_ext::gtk::prelude::TreeViewColumnExt::add_attribute(&col, &cell, "text", 0);
+        // col.add_attribute(&cell, "text", 0);
         cols.push(col);
 
-        let col = gtk::TreeViewColumnBuilder::new()
+        let col = gtk::TreeViewColumn::builder()
             .title("Name")
             .resizable(true)
             .sort_column_id(1)
             .sort_indicator(true)
             .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", 1);
+        let cell = gtk::CellRendererText::builder().editable(false).build();
+        gtk_ext::gtk::prelude::TreeViewColumnExt::pack_start(&col, &cell, false);
+        // col.pack_start(&cell, false);
+        gtk_ext::gtk::prelude::TreeViewColumnExt::add_attribute(&col, &cell, "text", 1);
+        // col.add_attribute(&cell, "text", 1);
         cols.push(col);
 
         cols
@@ -78,12 +83,12 @@ fn main() {
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
 
     let simple_core = SimpleCore {
-        h_box: gtk::BoxBuilder::new()
+        h_box: gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .build(),
     };
 
-    let v_box = gtk::BoxBuilder::new()
+    let v_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
 
@@ -175,11 +180,11 @@ fn main() {
 
     v_box.pack_start(simple_core.pwo(), false, false, 0);
     let simple = Simple(rc::Rc::new(SimpleCore {
-        h_box: gtk::BoxBuilder::new()
+        h_box: gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .build(),
     }));
-    let notebook = gtk::NotebookBuilder::new().build();
+    let notebook = gtk::Notebook::builder().build();
     let tab_label = TabRemoveLabelBuilder::new().label_text("whatever").build();
     let menu_label = gtk::Label::new(Some("whatever"));
     notebook.insert_page_menu(
@@ -192,10 +197,10 @@ fn main() {
 
     let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
     v_box.pack_start(&hbox, false, false, 0);
-    let menu_bar = gtk::MenuBarBuilder::new().build();
+    let menu_bar = gtk::MenuBar::builder().build();
     menu_bar.show();
     hbox.pack_start(&menu_bar, true, true, 0);
-    let menu_item = gtk::MenuItemBuilder::new().label("Menu").build();
+    let menu_item = gtk::MenuItem::builder().label("Menu").build();
     let menu1 = ManagedMenuBuilder::new()
         .items(&[
             ("remove", ("Remove", None, Some("help help")).into(), 0),
