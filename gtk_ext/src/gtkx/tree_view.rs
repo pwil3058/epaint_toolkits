@@ -1,17 +1,20 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::glib::Value;
-use crate::gtk::prelude::{
-    GtkMenuItemExt, IsA, TreeModelExt, TreeSelectionExt, TreeViewExt, WidgetExt,
-};
-use crate::gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec};
-use crate::gtkx::tree_model::{TreeModelRowOps, WrappedTreeModel};
-use crate::sav_state::MaskedCondns;
-use crate::wrapper::*;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::rc::Rc;
+
+use crate::gdk;
+use crate::glib::{self, Value};
+use crate::gtk::prelude::{
+    GtkMenuItemExt, IsA, TreeModelExt, TreeSelectionExt, TreeViewExt, WidgetExt,
+};
+
+use crate::gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec};
+use crate::gtkx::tree_model::{TreeModelRowOps, WrappedTreeModel};
+use crate::sav_state::MaskedCondns;
+use crate::wrapper::*;
 
 type PopupCallback = Box<dyn Fn(Option<Value>, Vec<Value>)>;
 type DoubleClickCallback = Box<dyn Fn(&Value)>;
@@ -39,15 +42,11 @@ impl Deref for TreeViewWithPopup {
 
 impl TreeViewWithPopup {
     fn get_id_value_at(&self, posn: (f64, f64)) -> Option<Value> {
-        if let Some(location) = self
-            .0
-            .tree_view
-            .get_path_at_pos(posn.0 as i32, posn.1 as i32)
-        {
+        if let Some(location) = self.0.tree_view.path_at_pos(posn.0 as i32, posn.1 as i32) {
             if let Some(path) = location.0 {
-                if let Some(tree_model) = self.0.tree_view.get_model() {
-                    if let Some(iter) = tree_model.get_iter(&path) {
-                        let value = tree_model.get_value(&iter, self.0.id_field);
+                if let Some(tree_model) = self.0.tree_view.model() {
+                    if let Some(iter) = tree_model.iter(&path) {
+                        let value = tree_model.value(&iter, self.0.id_field);
                         return Some(value);
                     }
                 }
@@ -84,12 +83,12 @@ impl TreeViewWithPopup {
 
     fn menu_item_selected(&self, name: &str) {
         let hovered_id = (*self.0.selected_id.borrow()).as_ref().cloned();
-        let selection = self.0.tree_view.get_selection();
-        let (tree_paths, store) = selection.get_selected_rows();
+        let selection = self.0.tree_view.selection();
+        let (tree_paths, store) = selection.selected_rows();
         let mut selected_ids = vec![];
         for tree_path in tree_paths.iter() {
-            if let Some(iter) = store.get_iter(tree_path) {
-                selected_ids.push(store.get_value(&iter, self.0.id_field));
+            if let Some(iter) = store.iter(tree_path) {
+                selected_ids.push(store.value(&iter, self.0.id_field));
             }
         }
         if hovered_id.is_some() || !selected_ids.is_empty() {
@@ -130,7 +129,7 @@ pub struct TreeViewWithPopupBuilder {
     menu_items: Vec<(&'static str, MenuItemSpec, u64)>,
     id_field: i32,
     selection_mode: gtk::SelectionMode,
-    tree_view_builder: gtk::TreeViewBuilder,
+    tree_view_builder: gtk::builders::TreeViewBuilder,
 }
 
 impl Default for TreeViewWithPopupBuilder {
@@ -139,7 +138,7 @@ impl Default for TreeViewWithPopupBuilder {
             menu_items: vec![],
             id_field: 0,
             selection_mode: gtk::SelectionMode::Single,
-            tree_view_builder: gtk::TreeViewBuilder::new(),
+            tree_view_builder: gtk::TreeView::builder(),
         }
     }
 }
@@ -229,14 +228,14 @@ impl TreeViewWithPopupBuilder {
     {
         let tree_view = self.tree_view_builder.build();
         tree_view.set_model(Some(wrapped_tree_model.model()));
-        tree_view.get_selection().set_mode(self.selection_mode);
+        tree_view.selection().set_mode(self.selection_mode);
 
         for col in W::columns() {
             tree_view.append_column(&col);
         }
 
         let popup_menu = ManagedMenuBuilder::new()
-            .selection(&tree_view.get_selection())
+            .selection(&tree_view.selection())
             .build();
 
         let blv = TreeViewWithPopup(Rc::new(TreeViewWithPopupCore {
@@ -266,27 +265,33 @@ impl TreeViewWithPopupBuilder {
         let blv_c = blv.clone();
         blv.0
             .tree_view
-            .connect_button_press_event(move |_, event| match event.get_event_type() {
-                gdk::EventType::ButtonPress => match event.get_button() {
+            .connect_button_press_event(move |_, event| match event.event_type() {
+                gdk::EventType::ButtonPress => match event.button() {
                     2 => {
-                        blv_c.0.tree_view.get_selection().unselect_all();
-                        gtk::Inhibit(true)
+                        blv_c.0.tree_view.selection().unselect_all();
+                        glib::Propagation::Stop
+                        // gtk::Inhibit(true)
                     }
                     3 => {
-                        blv_c.set_selected_id(event.get_position());
+                        blv_c.set_selected_id(event.position());
                         blv_c.0.popup_menu.popup_at_event(event);
-                        gtk::Inhibit(true)
+                        glib::Propagation::Stop
+                        // gtk::Inhibit(true)
                     }
-                    _ => gtk::Inhibit(false),
+                    _ => glib::Propagation::Proceed,
+                    // _ => gtk::Inhibit(false),
                 },
-                gdk::EventType::DoubleButtonPress => match event.get_button() {
+                gdk::EventType::DoubleButtonPress => match event.button() {
                     1 => {
-                        blv_c.process_double_click(event.get_position());
-                        gtk::Inhibit(true)
+                        blv_c.process_double_click(event.position());
+                        glib::Propagation::Stop
+                        // gtk::Inhibit(true)
                     }
-                    _ => gtk::Inhibit(false),
+                    _ => glib::Propagation::Proceed,
+                    // _ => gtk::Inhibit(false),
                 },
-                _ => gtk::Inhibit(false),
+                _ => glib::Propagation::Proceed,
+                // _ => gtk::Inhibit(false),
             });
 
         blv
