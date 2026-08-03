@@ -8,7 +8,9 @@ pub mod dialog_user;
 pub mod drawing_area;
 pub mod entry;
 pub mod list;
+pub mod mapped;
 pub mod menu;
+
 #[macro_use]
 pub mod tree_model;
 #[macro_use]
