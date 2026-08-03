@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 gtk = "0.18.2"
 
-cairo-rs = { version = "0.22.0", features = ["png"] }
+cairo-rs = "0.18.2"
 
 pango = "0.18.3"
 pangocairo = "0.18.0"
@@ -25,3 +25,6 @@ num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 
 gtk_ext_derive = { path = "../gtk_ext_derive" }
 path_utilities = { path = "../path_utilities" }
+
+[features]
+default = ["cairo-rs/png"]

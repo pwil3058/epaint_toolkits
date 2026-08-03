@@ -7,13 +7,14 @@ use std::process::Command;
 
 use crate::gdk::{self, prelude::WindowExtManual};
 use crate::gdk_pixbuf::Pixbuf;
-use crate::glib;
 use crate::gtk;
 
 use which::which;
 
 #[derive(Debug)]
 pub enum FailureReason {
+    GrabFailed(gdk::GrabStatus),
+    SeatNotFound,
     UserCancelled,
     NoDefaultScreen,
     NonCompositing,
@@ -30,6 +31,8 @@ impl Clone for FailureReason {
     // NB: this is necessary because io::Error doesn't implement copy OR clone
     fn clone(&self) -> FailureReason {
         match *self {
+            FailureReason::GrabFailed(status) => FailureReason::GrabFailed(status),
+            FailureReason::SeatNotFound => FailureReason::SeatNotFound,
             FailureReason::UserCancelled => FailureReason::UserCancelled,
             FailureReason::NoDefaultScreen => FailureReason::NoDefaultScreen,
             FailureReason::NonCompositing => FailureReason::NonCompositing,
@@ -58,6 +61,8 @@ pub struct Failure {
 impl Failure {
     pub fn new(reason: FailureReason) -> Failure {
         let message = match reason {
+            FailureReason::GrabFailed(status) => format!("Grab failed: {}", status),
+            FailureReason::SeatNotFound => format!("Seat not found"),
             FailureReason::UserCancelled => "User cancelled".to_string(),
             FailureReason::NoDefaultScreen => "No default screen".to_string(),
             FailureReason::NonCompositing => "Non compositing screen".to_string(),
@@ -127,8 +132,8 @@ pub fn take_screen_sample() -> Result<(), Failure> {
 }
 
 pub fn get_screen_pixbuf_rectangle(rect: &gdk::Rectangle) -> Option<Pixbuf> {
-    let root_window = gdk::Window::get_default_root_window();
-    root_window.get_pixbuf(rect.x, rect.y, rect.width, rect.height)
+    let root_window = gdk::Window::default_root_window();
+    root_window.pixbuf(rect.x(), rect.y(), rect.width(), rect.height())
 }
 
 pub mod area_selection {
@@ -139,10 +144,10 @@ pub mod area_selection {
     use std::rc::Rc;
 
     use crate::cairo;
-    use crate::gdk::{self, prelude::WindowExtManual};
+    use crate::gdk::{self, prelude::*, SeatCapabilities};
     use crate::glib;
+    use crate::gtk;
     use crate::gtk::prelude::*;
-    use crate::gtk::{self, prelude::WidgetExtManual, Widget};
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     struct IntPoint {
@@ -202,9 +207,9 @@ pub mod area_selection {
         }
 
         fn is_makeable() -> bool {
-            if let Some(screen) = gdk::Screen::get_default() {
+            if let Some(screen) = gdk::Screen::default() {
                 if screen.is_composited() {
-                    return screen.get_rgba_visual().is_some();
+                    return screen.rgba_visual().is_some();
                 }
             };
             false
@@ -230,12 +235,12 @@ pub mod area_selection {
                     let i_last: IntPoint = end_position.into();
                     let position = top_left_corner((i_start, i_last));
                     let size = IntSize::from((i_start, i_last));
-                    return Ok(gdk::Rectangle {
-                        x: position.x,
-                        y: position.y,
-                        width: size.width,
-                        height: size.height,
-                    });
+                    return Ok(gdk::Rectangle::new(
+                        position.x,
+                        position.y,
+                        size.width,
+                        size.height,
+                    ));
                 }
             };
             Err(Failure::new(FailureReason::UserCancelled))
@@ -252,9 +257,9 @@ pub mod area_selection {
         fn create() -> Result<SelectAreaData, Failure> {
             let sad = Rc::new(SelectAreaDataCore::new());
 
-            if let Some(screen) = gdk::Screen::get_default() {
+            if let Some(screen) = gdk::Screen::default() {
                 if screen.is_composited() {
-                    if let Some(ref visual) = screen.get_rgba_visual() {
+                    if let Some(ref visual) = screen.rgba_visual() {
                         sad.window.set_visual(Some(visual));
                         sad.window.set_app_paintable(true);
                     } else {
@@ -289,7 +294,7 @@ pub mod area_selection {
                         cairo_context.set_source_rgb(0.0, 0.0, 0.0);
                         cairo_context.set_dash(&[3.0], 0.0);
                         cairo_context.set_operator(cairo::Operator::Xor);
-                        cairo_context.stroke();
+                        cairo_context.stroke().expect("context stroke failed");
                     }
                 };
                 glib::Propagation::Proceed
@@ -298,7 +303,7 @@ pub mod area_selection {
 
             let sad_c = sad.clone();
             sad.window.connect_key_press_event(move |_, event| {
-                if event.get_keyval() == gdk::keys::constants::Escape {
+                if event.keyval() == gdk::keys::constants::Escape {
                     sad_c.start_position.set(None);
                     sad_c.current_position.set(None);
                     sad_c.end_position.set(None);
@@ -307,15 +312,15 @@ pub mod area_selection {
                     gtk::main_quit();
                 }
 
-                glib::Propagation::Stop;
+                glib::Propagation::Stop
                 // gtk::Inhibit(true)
             });
 
             let sad_c = sad.clone();
             sad.window.connect_button_press_event(move |_, event| {
                 if !sad_c.in_progress() {
-                    sad_c.button_num.set(Some(event.get_button()));
-                    sad_c.start_position.set(Some(event.get_position()));
+                    sad_c.button_num.set(Some(event.button()));
+                    sad_c.start_position.set(Some(event.position()));
                 }
 
                 glib::Propagation::Stop
@@ -325,8 +330,8 @@ pub mod area_selection {
             let sad_c = sad.clone();
             sad.window
                 .connect_button_release_event(move |window, event| {
-                    if sad_c.in_progress_for(event.get_button()) {
-                        sad_c.end_position.set(Some(event.get_position()));
+                    if sad_c.in_progress_for(event.button()) {
+                        sad_c.end_position.set(Some(event.position()));
                         sad_c.current_position.set(None);
                         sad_c.button_num.set(None);
                         window.queue_draw();
@@ -342,7 +347,7 @@ pub mod area_selection {
             sad.window
                 .connect_motion_notify_event(move |window, event| {
                     if sad_c.in_progress() {
-                        sad_c.current_position.set(Some(event.get_position()));
+                        sad_c.current_position.set(Some(event.position()));
                         window.queue_draw();
                     }
 
@@ -350,11 +355,10 @@ pub mod area_selection {
                     // gtk::Inhibit(true)
                 });
 
-            let root_window = gdk::Window::get_default_root_window();
+            let root_window = gdk::Window::default_root_window();
 
             sad.window.move_(0, 0);
-            sad.window
-                .resize(root_window.get_width(), root_window.get_height());
+            sad.window.resize(root_window.width(), root_window.height());
             sad.window.show();
 
             Ok(sad)
@@ -362,84 +366,44 @@ pub mod area_selection {
     }
 
     #[derive(Debug)]
-    struct PointerAndKeyboard {
-        pointer: gdk::Device,
-        keyboard: gdk::Device,
-    }
+    struct PointerAndKeyboard(gdk::Seat);
 
     impl PointerAndKeyboard {
         fn is_makeable() -> bool {
-            if let Some(display) = gdk::Display::get_default() {
-                if let Some(manager) = display.get_device_manager() {
-                    if let Some(pointer) = manager.get_client_pointer() {
-                        return pointer.get_associated_device().is_some();
-                    }
+            if let Some(display) = gdk::Display::default() {
+                if let Some(seat) = display.default_seat() {
+                    return seat.pointer().is_some() && seat.keyboard().is_some();
                 }
             };
             false
         }
 
-        fn grab<W: WidgetExt>(w: &W) -> Result<PointerAndKeyboard, Failure> {
-            if let Some(display) = gdk::Display::get_default() {
-                if let Some(manager) = display.get_device_manager() {
-                    if let Some(pointer) = manager.get_client_pointer() {
-                        if let Some(keyboard) = pointer.get_associated_device() {
-                            if let Some(ref window) = w.get_window() {
-                                let cursor = gdk::Cursor::new_for_display(
-                                    &display,
-                                    gdk::CursorType::Crosshair,
-                                );
-                                let status = pointer.grab(
-                                    window,
-                                    gdk::GrabOwnership::None,
-                                    false,
-                                    gdk::EventMask::POINTER_MOTION_MASK
-                                        | gdk::EventMask::BUTTON_PRESS_MASK
-                                        | gdk::EventMask::BUTTON_RELEASE_MASK,
-                                    Some(&cursor),
-                                    0,
-                                );
-                                if status != gdk::GrabStatus::Success {
-                                    return Err(Failure::new(FailureReason::PointerGrabFailed(
-                                        status,
-                                    )));
-                                }
-                                let status = keyboard.grab(
-                                    window,
-                                    gdk::GrabOwnership::None,
-                                    false,
-                                    gdk::EventMask::KEY_PRESS_MASK
-                                        | gdk::EventMask::KEY_RELEASE_MASK,
-                                    None,
-                                    0,
-                                );
-                                if status != gdk::GrabStatus::Success {
-                                    pointer.ungrab(0);
-                                    return Err(Failure::new(FailureReason::KeyboardGrabFailed(
-                                        status,
-                                    )));
-                                }
-                                Ok(PointerAndKeyboard { pointer, keyboard })
-                            } else {
-                                panic!("window not realized!!!")
-                            }
-                        } else {
-                            Err(Failure::new(FailureReason::KeyboardNotFound))
-                        }
-                    } else {
-                        Err(Failure::new(FailureReason::PointerNotFound))
-                    }
-                } else {
-                    Err(Failure::new(FailureReason::NoDeviceManager))
-                }
+        fn grab<W: WidgetExt>(widget: &W) -> Result<PointerAndKeyboard, Failure> {
+            let display =
+                gdk::Display::default().ok_or(Failure::new(FailureReason::NoDefaultScreen))?;
+            let seat = display
+                .default_seat()
+                .ok_or(Failure::new(FailureReason::SeatNotFound))?;
+            let window = widget.window().expect("window not realized!");
+            let _cursor = gdk::Cursor::for_display(&display, gdk::CursorType::Crosshair);
+            let status = seat.grab(
+                &window,
+                SeatCapabilities::ALL,
+                false,
+                None,
+                // Some(&cursor),
+                None,
+                None,
+            );
+            if status == gdk::GrabStatus::Success {
+                Ok(PointerAndKeyboard(seat))
             } else {
-                Err(Failure::new(FailureReason::NoDefaultScreen))
+                Err(Failure::new(FailureReason::GrabFailed(status)))
             }
         }
 
         fn ungrab(&self) {
-            self.pointer.ungrab(0);
-            self.keyboard.ungrab(0);
+            self.0.ungrab();
         }
     }
 

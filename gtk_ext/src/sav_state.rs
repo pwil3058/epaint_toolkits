@@ -12,7 +12,7 @@ use std::ops::BitOr;
 use std::rc::Rc;
 
 use crate::glib::IsA;
-use crate::gtk::{TreeSelection, Widget};
+use crate::gtk::{prelude::*, TreeSelection, Widget};
 
 pub use gtk_ext_derive::*;
 

@@ -7,7 +7,7 @@ pub use gtk::gdk_pixbuf;
 pub use gtk::gio;
 pub use gtk::glib;
 
-pub use cairo;
+pub use gtk::cairo;
 
 pub use pango;
 pub use pango_sys;
@@ -20,7 +20,7 @@ pub mod gtkx;
 
 pub mod gdkx;
 pub mod geometry;
-pub mod glibx;
+// pub mod glibx;
 pub mod printer;
 pub mod sample;
 pub mod sav_state;
