@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::glib::Value;
 pub use crate::gtkx::list_store::*;
@@ -40,7 +40,7 @@ impl<R: RowDataSource> RowBuffer<R> {
         row_data.rows_digest = row_data.row_data_source_digest.clone();
     }
 
-    fn get_rows(&self) -> Rc<Vec<Vec<glib::Value>>> {
+    fn get_rows(&self) -> Rc<Vec<Vec<Value>>> {
         let row_data = self.row_data.borrow();
         Rc::clone(&row_data.rows)
     }
