@@ -1,8 +1,9 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{cell::RefCell, collections::HashMap, hash::Hash, rc::Rc};
 
-use crate::gtk::prelude::*;
+use crate::{gtk, gtk::prelude::*};
+
 use crate::wrapper::*;
 
 pub type ChangeCallback<T> = Box<dyn Fn(&T)>;
@@ -28,7 +29,7 @@ impl<T: Clone + Hash> RadioButtons<T> {
         self.0
             .radio_buttons
             .iter()
-            .filter_map(|(tag, button)| if button.get_active() { Some(tag) } else { None })
+            .filter_map(|(tag, button)| if button.is_active() { Some(tag) } else { None })
             .next()
             .expect("exactly one should be active")
     }
@@ -86,7 +87,7 @@ impl<T: Clone + Hash + Eq + 'static> RadioButtonsBuilder<T> {
         let mut radio_buttons = HashMap::new();
         let mut group: Option<gtk::RadioButton> = None;
         for (tag, label_text, tooltip_text) in self.radio_buttons {
-            let radio_button = gtk::RadioButtonBuilder::new()
+            let radio_button = gtk::RadioButton::builder()
                 .label(label_text)
                 .tooltip_text(tooltip_text)
                 .build();
@@ -112,7 +113,7 @@ impl<T: Clone + Hash + Eq + 'static> RadioButtonsBuilder<T> {
             let radio_buttons_c = radio_buttons.clone();
             let tag_c = tag.clone();
             radio_button.connect_toggled(move |cb| {
-                if cb.get_active() {
+                if cb.is_active() {
                     radio_buttons_c.inform_change(&tag_c);
                 }
             });

@@ -12,6 +12,7 @@ pub mod mapped;
 pub mod menu;
 pub mod notebook;
 pub mod paned;
+pub mod radio_button;
 
 #[macro_use]
 pub mod tree_model;
