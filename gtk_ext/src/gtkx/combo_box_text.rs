@@ -1,4 +1,4 @@
-// Copyright 2017 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{error, fmt};
 
 use gtk;
@@ -45,13 +45,11 @@ pub trait SortedUnique {
 
 impl SortedUnique for gtk::ComboBoxText {
     fn get_item_index(&self, item: &str) -> Result<i32, i32> {
-        if let Some(model) = self.get_model() {
-            if let Some(ref iter) = model.get_iter_first() {
+        if let Some(model) = self.model() {
+            if let Some(ref iter) = model.iter_first() {
                 for index in 0.. {
-                    if let Some(ref text) = model
-                        .get_value(iter, 0)
-                        .get::<String>()
-                        .expect("only using strings")
+                    if let Ok(ref text) = model.value(iter, 0).get::<String>()
+                    // .expect("only using strings")
                     {
                         if text == item {
                             return Ok(index);
@@ -70,13 +68,11 @@ impl SortedUnique for gtk::ComboBoxText {
 
     fn get_text_items(&self) -> Vec<String> {
         let mut text_items = Vec::new();
-        if let Some(model) = self.get_model() {
-            if let Some(ref iter) = model.get_iter_first() {
+        if let Some(model) = self.model() {
+            if let Some(ref iter) = model.iter_first() {
                 loop {
-                    if let Some(ref text) = model
-                        .get_value(iter, 0)
-                        .get::<String>()
-                        .expect("only using strings")
+                    if let Ok(ref text) = model.value(iter, 0).get::<String>()
+                    // .expect("only using strings")
                     {
                         text_items.push(text.clone());
                     };
