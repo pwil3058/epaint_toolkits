@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 pub mod buffered_list_store;
+pub mod check_button;
 pub mod dialog_user;
 pub mod entry;
 pub mod list;

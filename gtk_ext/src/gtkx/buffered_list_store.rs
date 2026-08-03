@@ -1,9 +1,10 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::glib::Value;
-pub use crate::gtkx::list_store::*;
 use std::cell::RefCell;
 use std::rc::Rc;
+
+use crate::glib::Value;
+pub use crate::gtkx::list_store::*;
 
 pub trait RowDataSource: ListViewSpec + Sized {
     fn generate_rows(&self) -> Vec<Vec<Value>>;
