@@ -1,15 +1,17 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use log;
 use recollections;
 use std::str::FromStr;
 
-pub trait RememberPosition: gtk::WidgetExt + gtk::PanedExt {
+use crate::gtk::prelude::*;
+
+pub trait RememberPosition: WidgetExt + PanedExt {
     fn recall_last_position(&self, paned_name: &str, default: i32) -> i32 {
         let key = format!("{}::paned::last_position", paned_name);
         let key_c = key.clone();
-        self.connect_property_position_notify(move |paned| {
-            let position = paned.get_position();
+        self.connect_position_notify(move |paned| {
+            let position = paned.position();
             let text = format!("{}", position);
             recollections::remember(key_c.as_str(), text.as_str());
         });
