@@ -18,6 +18,7 @@ pub use sourceview;
 #[macro_use]
 pub mod gtkx;
 
+pub mod gdk_pixbufx;
 pub mod gdkx;
 pub mod geometry;
 // pub mod glibx;

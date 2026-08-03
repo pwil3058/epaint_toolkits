@@ -1,4 +1,4 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     cell::{Cell, RefCell},
@@ -6,10 +6,13 @@ use std::{
     rc::Rc,
 };
 
-use cairo::Operator;
-use gdk::prelude::GdkContextExt;
-use gdk_pixbuf;
-use gtk::prelude::*;
+use crate::cairo::Operator;
+use crate::gdk::{self, prelude::GdkContextExt};
+use crate::gdk_pixbuf;
+use crate::glib;
+use crate::gtk::prelude::*;
+
+use recollections;
 
 use crate::{
     geometry::{AspectRatio, Point, Rectangle, Size, SizeExt},
@@ -17,7 +20,6 @@ use crate::{
         drawing_area::XYSelection,
         menu::{ManagedMenu, ManagedMenuBuilder},
     },
-    recollections,
     sav_state::{MaskedCondns, SAV_NEXT_CONDN},
     wrapper::*,
 };
@@ -50,9 +52,11 @@ impl Zoomable {
     }
 
     pub fn subpixbuf(&self, rect: Rectangle<i32>) -> Option<gdk_pixbuf::Pixbuf> {
-        self.zoomed
-            .borrow()
-            .new_subpixbuf(rect.x, rect.y, rect.width, rect.height)
+        Some(
+            self.zoomed
+                .borrow()
+                .new_subpixbuf(rect.x, rect.y, rect.width, rect.height),
+        )
     }
 
     pub fn zoom_factor(&self) -> f64 {
@@ -120,7 +124,7 @@ impl PixbufView {
         if let Some(pixbuf) = o_pixbuf {
             self.xy_selection.reset();
             let zoomable: Zoomable = pixbuf.into();
-            let alloc = self.drawing_area.get_allocation().size();
+            let alloc = self.drawing_area.allocation().size();
             if pixbuf.aspect_ratio_matches_size(alloc.into()) {
                 zoomable.set_zoomed_size(alloc);
             } else {
@@ -156,7 +160,7 @@ impl PixbufView {
             let new_size: Size<i32> = zoomable.zoomed_size().into();
             self.drawing_area
                 .set_size_request(new_size.width, new_size.height);
-            let sizediff = self.scrolled_window.get_allocation().size() - new_size;
+            let sizediff = self.scrolled_window.allocation().size() - new_size;
             if sizediff.width >= 0 && sizediff.height >= 0 {
                 self.scrolled_window
                     .set_policy(gtk::PolicyType::Never, gtk::PolicyType::Never)
@@ -173,17 +177,17 @@ impl PixbufView {
             let current_zoom = zoomable.zoom_factor();
             zoomable.set_zoom(current_zoom * Self::ZOOM_FACTOR);
             self.resize_drawing_area();
-            for (dim, o_adj) in [
-                self.scrolled_window.get_hadjustment(),
-                self.scrolled_window.get_vadjustment(),
+            for (dim, adj) in [
+                self.scrolled_window.hadjustment(),
+                self.scrolled_window.vadjustment(),
             ]
             .iter()
             .enumerate()
             {
-                if let Some(ref adj) = *o_adj {
-                    let new_val = adj.get_value() * Self::ZOOM_FACTOR + self.zoom_in_adj.get()[dim];
-                    adj.set_value(new_val);
-                }
+                // if let Some(ref adj) = *o_adj {
+                let new_val = adj.value() * Self::ZOOM_FACTOR + self.zoom_in_adj.get()[dim];
+                adj.set_value(new_val);
+                // }
             }
         }
     }
@@ -199,18 +203,17 @@ impl PixbufView {
             };
             zoomable.set_zoom(current_zoom / Self::ZOOM_FACTOR);
             self.resize_drawing_area();
-            for (dim, o_adj) in [
-                self.scrolled_window.get_hadjustment(),
-                self.scrolled_window.get_vadjustment(),
+            for (dim, adj) in [
+                self.scrolled_window.hadjustment(),
+                self.scrolled_window.vadjustment(),
             ]
             .iter()
             .enumerate()
             {
-                if let Some(ref adj) = *o_adj {
-                    let new_val =
-                        adj.get_value() / Self::ZOOM_FACTOR + self.zoom_out_adj.get()[dim];
-                    adj.set_value(new_val.max(0.0));
-                }
+                // if let Some(ref adj) = *o_adj {
+                let new_val = adj.value() / Self::ZOOM_FACTOR + self.zoom_out_adj.get()[dim];
+                adj.set_value(new_val.max(0.0));
+                // }
             }
         }
     }
@@ -240,9 +243,9 @@ impl PixbufViewBuilder {
     }
 
     pub fn build(&self) -> Rc<PixbufView> {
-        let drawing_area = gtk::DrawingAreaBuilder::new().build();
+        let drawing_area = gtk::DrawingArea::builder().build();
         let xy_selection = XYSelection::create(&drawing_area);
-        let scrolled_window = gtk::ScrolledWindowBuilder::new()
+        let scrolled_window = gtk::ScrolledWindow::builder()
             .events(
                 gdk::EventMask::POINTER_MOTION_MASK
                     | gdk::EventMask::BUTTON_PRESS_MASK
@@ -251,7 +254,7 @@ impl PixbufViewBuilder {
             )
             .child(&drawing_area)
             .build();
-        let alloc: Size<f64> = drawing_area.get_allocation().size().into();
+        let alloc: Size<f64> = drawing_area.allocation().size().into();
 
         let viewer = Rc::new(PixbufView {
             scrolled_window,
@@ -271,7 +274,7 @@ impl PixbufViewBuilder {
         viewer.drawing_area.connect_draw(move |_, cairo_context| {
             if let Some(ref zoomable) = *viewer_c.zoomable.borrow() {
                 cairo_context.set_source_pixbuf(&zoomable.pixbuf(), 0.0, 0.0);
-                cairo_context.paint();
+                cairo_context.paint().expect("Failed to paint image");
                 if viewer_c.xy_selection.is_drawable() {
                     let rect = viewer_c.xy_selection.get_selected_rectangle().unwrap();
                     if viewer_c.xy_selection.selection_made() {
@@ -282,7 +285,7 @@ impl PixbufViewBuilder {
                     cairo_context.rectangle(rect.x, rect.y, rect.width, rect.height);
                     cairo_context.set_source_rgb(0.0, 0.0, 0.0);
                     cairo_context.set_operator(Operator::Xor);
-                    cairo_context.stroke();
+                    cairo_context.stroke().expect("failed to make stroke");
                     viewer_c.popup_menu.update_condns(MaskedCondns {
                         condns: PixbufView::SAV_HAS_SELECTION,
                         mask: PixbufView::SAV_HAS_SELECTION,
@@ -294,7 +297,8 @@ impl PixbufViewBuilder {
                     });
                 }
             };
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
 
         let viewer_c = Rc::clone(&viewer);
@@ -382,32 +386,37 @@ impl PixbufViewBuilder {
             .scrolled_window
             .connect_scroll_event(move |_, event| {
                 if !event
-                    .get_state()
+                    .state()
                     .intersects(gdk::ModifierType::CONTROL_MASK | gdk::ModifierType::SHIFT_MASK)
                 {
-                    match event.get_direction() {
+                    match event.direction() {
                         gdk::ScrollDirection::Up => {
                             viewer_c.zoom_in();
-                            return Inhibit(true);
+                            return glib::Propagation::Stop;
+                            // return Inhibit(true);
                         }
                         gdk::ScrollDirection::Down => {
                             viewer_c.zoom_in();
-                            return Inhibit(true);
+                            return glib::Propagation::Stop;
+                            // return Inhibit(true);
                         }
                         gdk::ScrollDirection::Smooth => {
-                            let (_, delta_y) = event.get_delta();
+                            let (_, delta_y) = event.delta();
                             if delta_y > 0.0 {
                                 viewer_c.zoom_in();
-                                return Inhibit(true);
+                                return glib::Propagation::Stop;
+                                // return Inhibit(true);
                             } else if delta_y < 0.0 {
                                 viewer_c.zoom_out();
-                                return Inhibit(true);
+                                return glib::Propagation::Stop;
+                                // return Inhibit(true);
                             }
                         }
                         _ => (),
                     }
                 };
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         let viewer_c = Rc::clone(&viewer);
@@ -420,61 +429,64 @@ impl PixbufViewBuilder {
         viewer
             .scrolled_window
             .connect_button_press_event(move |_, event| {
-                if event.get_button() == 1
-                    && event.get_state().contains(gdk::ModifierType::CONTROL_MASK)
-                {
-                    viewer_c.last_xy.set(event.get_position().into());
+                if event.button() == 1 && event.state().contains(gdk::ModifierType::CONTROL_MASK) {
+                    viewer_c.last_xy.set(event.position().into());
                     viewer_c.doing_button_motion.set(true);
-                    return Inhibit(true);
-                } else if event.get_button() == 3 {
+                    return glib::Propagation::Stop;
+                    // return Inhibit(true);
+                } else if event.button() == 3 {
                     viewer_c.popup_menu.popup_at_event(event);
-                    return Inhibit(true);
+                    return glib::Propagation::Stop;
+                    // return Inhibit(true);
                 };
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
         let viewer_c = Rc::clone(&viewer);
         viewer
             .scrolled_window
             .connect_button_release_event(move |_, event| {
-                if event.get_button() == 1 && viewer_c.doing_button_motion.get() {
+                if event.button() == 1 && viewer_c.doing_button_motion.get() {
                     viewer_c.doing_button_motion.set(false);
-                    return Inhibit(true);
+                    return glib::Propagation::Stop;
+                    // return Inhibit(true);
                 };
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
         let viewer_c = Rc::clone(&viewer);
         viewer
             .scrolled_window
             .connect_leave_notify_event(move |_, _| {
                 viewer_c.doing_button_motion.set(false);
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
         let viewer_c = Rc::clone(&viewer);
         viewer
             .scrolled_window
             .connect_motion_notify_event(move |_, event| {
                 if viewer_c.doing_button_motion.get() {
-                    let this_xy: Point = event.get_position().into();
+                    let this_xy: Point = event.position().into();
                     let delta_xy: [f64; 2] = (this_xy - viewer_c.last_xy.get()).into();
                     viewer_c.last_xy.set(this_xy);
-                    for (dim, o_adj) in [
-                        viewer_c.scrolled_window.get_hadjustment(),
-                        viewer_c.scrolled_window.get_vadjustment(),
+                    for (dim, adj) in [
+                        viewer_c.scrolled_window.hadjustment(),
+                        viewer_c.scrolled_window.vadjustment(),
                     ]
                     .iter()
                     .enumerate()
                     {
-                        if let Some(ref adj) = *o_adj {
-                            let new_val = adj.get_value() - delta_xy[dim];
-                            adj.set_value(
-                                new_val
-                                    .clamp(adj.get_lower(), adj.get_upper() - adj.get_page_size()),
-                            );
-                        }
+                        // if let Some(ref adj) = *o_adj {
+                        let new_val = adj.value() - delta_xy[dim];
+                        adj.set_value(new_val.clamp(adj.lower(), adj.upper() - adj.page_size()));
+                        // }
                     }
-                    return Inhibit(true);
+                    return glib::Propagation::Stop;
+                    // return Inhibit(true);
                 };
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         // POPUP MENU

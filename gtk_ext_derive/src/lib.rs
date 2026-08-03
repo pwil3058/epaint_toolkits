@@ -104,7 +104,7 @@ pub fn wrapper_derive(input: TokenStream) -> TokenStream {
     let tokens = quote! {
         impl #impl_generics TopGtkWindow for #struct_name #ty_generics #where_clause {
             fn get_toplevel_gtk_window(&self) -> Option<gtk::Window> {
-                if let Some(widget) = self.pwo().get_toplevel() {
+                if let Some(widget) = self.pwo().toplevel() {
                     if widget.is_toplevel() {
                         if let Ok(window) = widget.dynamic_cast::<gtk::Window>() {
                             return Some(window)
