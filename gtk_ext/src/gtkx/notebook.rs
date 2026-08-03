@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::gtk::prelude::{BoxExt, ButtonExt, WidgetExt};
 use std::cell::RefCell;
@@ -16,6 +16,10 @@ pub struct TabRemoveLabelCore {
 pub struct TabRemoveLabel(Rc<TabRemoveLabelCore>);
 
 impl TabRemoveLabel {
+    pub fn builder() -> TabRemoveLabelBuilder {
+        TabRemoveLabelBuilder::new()
+    }
+
     pub fn connect_remove_page<F: 'static + Fn()>(&self, callback: F) {
         self.0
             .remove_page_callbacks
@@ -61,13 +65,13 @@ impl TabRemoveLabelBuilder {
             None => gtk::Label::new(None),
         };
         trl.0.h_box.pack_start(&label, true, true, 0);
-        let icon = gio::ThemedIcon::with_default_fallbacks("window-close-symbolic");
+        let icon = gtk::gio::ThemedIcon::with_default_fallbacks("window-close-symbolic");
         let image = gtk::Image::from_gicon(&icon, gtk::IconSize::Menu);
         match self.label_text {
             Some(ref text) => image.set_tooltip_text(Some(text)),
             None => image.set_tooltip_text(None),
         };
-        let button = gtk::ButtonBuilder::new()
+        let button = gtk::Button::builder()
             .relief(gtk::ReliefStyle::None)
             //.focus_on_click(false)
             .image(&image)

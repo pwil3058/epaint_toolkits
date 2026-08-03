@@ -10,6 +10,7 @@ pub mod entry;
 pub mod list;
 pub mod mapped;
 pub mod menu;
+pub mod notebook;
 
 #[macro_use]
 pub mod tree_model;
