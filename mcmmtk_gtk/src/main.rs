@@ -1,8 +1,9 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::rc::Rc;
 
-use pw_gtk_ext::{
+use gtk_ext::{
+    glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
     recollections,
@@ -31,9 +32,11 @@ fn main() {
     let mcmmtk_c = Rc::clone(&mcmmtk);
     win.connect_delete_event(move |_, _| {
         if mcmmtk_c.ok_to_quit() {
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         } else {
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         }
     });
     win.connect_destroy(|_| gtk::main_quit());
@@ -42,7 +45,7 @@ fn main() {
 }
 
 mod icon {
-    use pw_gtk_ext::{gdk_pixbuf, gtk};
+    use gtk_ext::{gdk_pixbuf, gtk};
 
     // XPM
     static MCMMTKRS_XPM: &[&str] = &[
@@ -62,11 +65,9 @@ mod icon {
 
     #[allow(dead_code)]
     pub fn mcmmtkrs_pixbuf(size: i32) -> Option<gdk_pixbuf::Pixbuf> {
-        gdk_pixbuf::Pixbuf::from_xpm_data(MCMMTKRS_XPM).scale_simple(
-            size,
-            size,
-            gdk_pixbuf::InterpType::Tiles,
-        )
+        gdk_pixbuf::Pixbuf::from_xpm_data(MCMMTKRS_XPM)
+            .expect("from xpm failed")
+            .scale_simple(size, size, gdk_pixbuf::InterpType::Tiles)
     }
 
     #[allow(dead_code)]

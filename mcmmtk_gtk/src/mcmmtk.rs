@@ -2,7 +2,7 @@
 
 use std::{process::Command, rc::Rc};
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gdk_pixbufx::viewer::PixbufViewBuilder,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
@@ -57,7 +57,7 @@ impl ModellersColourMixerMatcherTK {
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         mcmmtk.vbox.pack_start(&hbox, false, false, 0);
 
-        let stack = gtk::StackBuilder::new().build();
+        let stack = gtk::Stack::builder().build();
         stack.add_titled(mcmmtk.mixer.pwo(), "mixer", "Mixer");
         stack.add_titled(
             mcmmtk.factory.pwo(),
@@ -65,13 +65,13 @@ impl ModellersColourMixerMatcherTK {
             "Paint/Standard Editor/Factory",
         );
         mcmmtk.vbox.pack_start(&stack, true, true, 0);
-        let stack_switcher = gtk::StackSwitcherBuilder::new()
+        let stack_switcher = gtk::StackSwitcher::builder()
             .tooltip_text("Select mode.")
             .stack(&stack)
             .build();
         hbox.pack_start(&stack_switcher, true, true, 0);
 
-        let seperator = gtk::SeparatorBuilder::new().build();
+        let seperator = gtk::Separator::builder().build();
         hbox.pack_start(&seperator, false, false, 0);
 
         let button = gtk::Button::with_label("PDF Viewer");

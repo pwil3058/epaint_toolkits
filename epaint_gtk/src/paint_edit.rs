@@ -181,11 +181,11 @@ impl PaintEditor {
                     condns: 0,
                     mask: crate::sav_state::SAV_ID_READY + crate::sav_state::SAV_ID_CHANGED,
                 };
-                if entry.get_text_length() > 0 {
+                if entry.text_length() > 0 {
                     masked_condns.condns += crate::sav_state::SAV_ID_READY;
                 };
                 if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                    if paint.id != entry.get_text() {
+                    if paint.id != entry.text() {
                         masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
                     }
                 }
