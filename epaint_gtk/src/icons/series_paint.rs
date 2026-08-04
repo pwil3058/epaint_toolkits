@@ -1,6 +1,7 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-pub static XPM: &[&str] = &[    "128 128 7 1",
+pub static XPM: &[&str] = &[
+    "128 128 7 1",
     " 	c None",
     "A	c #FF0000",
     "H	c #DBDBDB",
@@ -135,10 +136,10 @@ pub static XPM: &[&str] = &[    "128 128 7 1",
     "   JAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJ    JIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIJ  JLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLJ",
     "   JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ    JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ  JJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJJ",
     "                                                                                                                                ",
-    "                                                                                                                                "
+    "                                                                                                                                ",
 ];
 
-use pw_gtk_ext::{gdk_pixbuf, gtk};
+use gtk_ext::{gdk_pixbuf, gtk};
 
 #[allow(dead_code)]
 pub fn pixbuf() -> gdk_pixbuf::Pixbuf {

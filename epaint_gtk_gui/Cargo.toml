@@ -1,6 +1,6 @@
 [package]
 name = "epaint_gtk_gui"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 
 [features]
@@ -11,8 +11,7 @@ palette_samples = []
 
 [dependencies]
 
-#pw_gtk_ext = { git = "https://github.com/pwil3058/rs_pw_gix.git" }
-pw_gtk_ext = { path = "../pw_gtk_ext" }
+gtk_ext = { path = "../gtk_ext" }
 colour_math = { path = "../colour_math" }
 colour_math_derive = { path = "../colour_math_derive" }
 

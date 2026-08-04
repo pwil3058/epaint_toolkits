@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 pub static XPM: &[&str] = &[
     "64 64 12 1",
@@ -80,7 +80,7 @@ pub static XPM: &[&str] = &[
     "                                                                ",
 ];
 
-use pw_gtk_ext::{gdk_pixbuf, gtk};
+use gtk_ext::{gdk_pixbuf, gtk};
 
 #[allow(dead_code)]
 pub fn pixbuf() -> gdk_pixbuf::Pixbuf {
