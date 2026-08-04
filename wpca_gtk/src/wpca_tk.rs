@@ -71,7 +71,7 @@ impl PaintersColourAssistantTK {
             .build();
         hbox.pack_start(&stack_switcher, true, true, 0);
 
-        let seperator = gtk::SeparatorBuilder::new().build();
+        let seperator = gtk::Separator::builder().build();
         hbox.pack_start(&seperator, false, false, 0);
 
         let button = gtk::Button::with_label("PDF Viewer");

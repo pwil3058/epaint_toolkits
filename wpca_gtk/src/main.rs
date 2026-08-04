@@ -3,6 +3,7 @@
 use std::rc::Rc;
 
 use gtk_ext::{
+    glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
     recollections,
@@ -28,9 +29,11 @@ fn main() {
     let wpca_tk_c = Rc::clone(&wpca_tk);
     win.connect_delete_event(move |_, _| {
         if wpca_tk_c.ok_to_quit() {
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         } else {
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         }
     });
     win.connect_destroy(|_| gtk::main_quit());
@@ -58,11 +61,9 @@ mod icon {
     ];
 
     pub fn pcatkrs_pixbuf(size: i32) -> Option<gdk_pixbuf::Pixbuf> {
-        gdk_pixbuf::Pixbuf::from_xpm_data(PCATKRS_XPM).scale_simple(
-            size,
-            size,
-            gdk_pixbuf::InterpType::Tiles,
-        )
+        gdk_pixbuf::Pixbuf::from_xpm_data(PCATKRS_XPM)
+            .expect("from_xpm failed")
+            .scale_simple(size, size, gdk_pixbuf::InterpType::Tiles)
     }
 
     pub fn _pcatkrs_image(size: i32) -> Option<gtk::Image> {
