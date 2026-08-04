@@ -4,7 +4,7 @@ use std::collections::HashMap;
 #[cfg(feature = "targeted_mixtures")]
 use std::rc::Rc;
 
-use pw_gtk_ext::{
+use gtk_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::{
@@ -21,9 +21,8 @@ use colour_math_gtk::coloured::Colourable;
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};
 
-use epaint::{mixtures::Mixture, properties::PropertyTypes};
-
 use crate::list::PaintListRow;
+use epaint::{mixtures::Mixture, properties::PropertyTypes};
 
 #[derive(PWO)]
 pub struct MixtureDisplay {
@@ -92,19 +91,19 @@ impl MixtureDisplayBuilder {
 
     pub fn build(&self, mixture: &Mixture) -> MixtureDisplay {
         let colour = mixture.hcv();
-        let vbox = gtk::BoxBuilder::new()
+        let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let label = gtk::LabelBuilder::new().label(mixture.id()).build();
+        let label = gtk::Label::builder().label(mixture.id()).build();
         label.set_widget_colour(&colour);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new().label(mixture.name()).build();
+        let label = gtk::Label::builder().label(mixture.name()).build();
         label.set_widget_colour(&colour);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new().label(mixture.notes()).build();
+        let label = gtk::Label::builder().label(mixture.notes()).build();
         label.set_widget_colour(&colour);
         vbox.pack_start(&label, false, false, 0);
 
@@ -115,12 +114,12 @@ impl MixtureDisplayBuilder {
 
         #[cfg(feature = "targeted_mixtures")]
         let target_label = if let Some(target_colour) = self.target_colour {
-            let label = gtk::LabelBuilder::new().label("Target").build();
+            let label = gtk::Label::builder().label("Target").build();
             label.set_widget_colour(&target_colour);
             cads.set_target_colour(Some(&target_colour));
             label
         } else {
-            let label = gtk::LabelBuilder::new().build();
+            let label = gtk::Label::builder().build();
             label.set_widget_colour(&colour);
             label
         };
@@ -129,7 +128,7 @@ impl MixtureDisplayBuilder {
 
         #[cfg(feature = "targeted_mixtures")]
         if let Some(targeted_colour) = mixture.targeted_colour() {
-            let label = gtk::LabelBuilder::new().label("Matched Colour").build();
+            let label = gtk::Label::builder().label("Matched Colour").build();
             label.set_widget_colour(&targeted_colour);
             vbox.pack_start(&label, true, true, 0);
         }
@@ -138,7 +137,7 @@ impl MixtureDisplayBuilder {
 
         for property in mixture.iter_properties() {
             let value = property.value();
-            let label = gtk::LabelBuilder::new().label(value).build();
+            let label = gtk::Label::builder().label(value).build();
             label.set_widget_colour(&colour);
             vbox.pack_start(&label, false, false, 0);
         }
@@ -180,7 +179,7 @@ pub struct MixtureDisplayDialogManager<W: TopGtkWindow> {
 
 impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
     fn new_dialog(&self) -> gtk::Dialog {
-        let dialog = gtk::DialogBuilder::new().build();
+        let dialog = gtk::Dialog::builder().build();
         if let Some(parent) = self.caller.get_toplevel_gtk_window() {
             dialog.set_transient_for(Some(&parent));
         }
@@ -192,7 +191,8 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
         // TODO: think about removal from map as an optional action to hiding
         dialog.connect_delete_event(|d, _| {
             d.hide_on_delete();
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         });
         dialog
     }
@@ -202,7 +202,7 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
             let dialog = self.new_dialog();
             let display = self.mixture_display_builder.build(mixture);
             dialog
-                .get_content_area()
+                .content_area()
                 .pack_start(display.pwo(), true, true, 0);
             let pdd = MixtureDisplayDialog {
                 dialog,
@@ -299,28 +299,28 @@ impl ListViewSpec for ComponentsListViewSpec {
     fn column_types(&self) -> Vec<glib::Type> {
         #[cfg(feature = "paints_have_ids")]
         let mut column_types = vec![
-            glib::Type::String,
-            glib::Type::String,
+            glib::Type::STRING,
+            glib::Type::STRING,
             u64::static_type(),
-            glib::Type::String,
-            glib::Type::String,
-            glib::Type::String,
-            glib::Type::String,
+            glib::Type::STRING,
+            glib::Type::STRING,
+            glib::Type::STRING,
+            glib::Type::STRING,
             f64::static_type(),
         ];
         #[cfg(not(feature = "paints_have_ids"))]
         let mut column_types = vec![
-            glib::Type::String,
-            glib::Type::String,
+            glib::Type::STRING,
+            glib::Type::STRING,
             u64::static_type(),
-            glib::Type::String,
-            glib::Type::String,
-            glib::Type::String,
+            glib::Type::STRING,
+            glib::Type::STRING,
+            glib::Type::STRING,
             f64::static_type(),
         ];
 
         for _ in 0..self.attributes.len() * 3 + self.property_types.len() {
-            column_types.push(glib::Type::String);
+            column_types.push(glib::Type::STRING);
         }
 
         column_types
@@ -330,15 +330,17 @@ impl ListViewSpec for ComponentsListViewSpec {
         let mut cols = vec![];
 
         let mut index = 2;
-        let col = gtk::TreeViewColumnBuilder::new()
+        let col = gtk::TreeViewColumn::builder()
             .title("Parts")
             .resizable(false)
             .sort_column_id(index)
             .sort_indicator(true)
             .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "text", index);
+        let cell = gtk::CellRendererText::builder().editable(false).build();
+        TreeViewColumnExt::pack_start(&col, &cell, false);
+        // col.pack_start(&cell, false);
+        TreeViewColumnExt::add_attribute(&col, &cell, "text", index);
+        // col.add_attribute(&cell, "text", index);
         cols.push(col);
         index += 1;
 
@@ -347,59 +349,73 @@ impl ListViewSpec for ComponentsListViewSpec {
         #[cfg(not(feature = "paints_have_ids"))]
         let headers = ["Name", "Notes"];
 
-        for header in &headers {
-            let col = gtk::TreeViewColumnBuilder::new()
+        for header in headers {
+            let col = gtk::TreeViewColumn::builder()
                 .title(header)
                 .resizable(true)
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
-            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-            col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", 0);
-            col.add_attribute(&cell, "foreground", 1);
+            let cell = gtk::CellRendererText::builder().editable(false).build();
+            TreeViewColumnExt::pack_start(&col, &cell, false);
+            // col.pack_start(&cell, false);
+            TreeViewColumnExt::add_attribute(&col, &cell, "text", index);
+            // col.add_attribute(&cell, "text", index);
+            TreeViewColumnExt::add_attribute(&col, &cell, "background", 0);
+            // col.add_attribute(&cell, "background", 0);
+            TreeViewColumnExt::add_attribute(&col, &cell, "foregound", 1);
+            // col.add_attribute(&cell, "foreground", 1);
             cols.push(col);
             index += 1;
         }
 
-        let col = gtk::TreeViewColumnBuilder::new()
+        let col = gtk::TreeViewColumn::builder()
             .title("Hue")
             .sort_column_id(index + 1)
             .sort_indicator(true)
             .build();
-        let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-        col.pack_start(&cell, false);
-        col.add_attribute(&cell, "background", index);
+        let cell = gtk::CellRendererText::builder().editable(false).build();
+        TreeViewColumnExt::pack_start(&col, &cell, false);
+        // col.pack_start(&cell, false);
+        TreeViewColumnExt::add_attribute(&col, &cell, "background", index);
+        // col.add_attribute(&cell, "background", index);
         cols.push(col);
         index += 2;
 
         for attr in self.attributes.iter() {
-            let col = gtk::TreeViewColumnBuilder::new()
+            let col = gtk::TreeViewColumn::builder()
                 .title(&attr.to_string())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
-            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-            col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", index + 1);
-            col.add_attribute(&cell, "foreground", index + 2);
+            let cell = gtk::CellRendererText::builder().editable(false).build();
+            TreeViewColumnExt::pack_start(&col, &cell, false);
+            // col.pack_start(&cell, false);
+            TreeViewColumnExt::add_attribute(&col, &cell, "text", index);
+            // col.add_attribute(&cell, "text", index);
+            TreeViewColumnExt::add_attribute(&col, &cell, "background", index + 1);
+            // col.add_attribute(&cell, "background", index + 1);
+            TreeViewColumnExt::add_attribute(&col, &cell, "foreground", index + 2);
+            // col.add_attribute(&cell, "foreground", index + 2);
             cols.push(col);
             index += 3;
         }
 
         for property_type in self.property_types.iter() {
-            let col = gtk::TreeViewColumnBuilder::new()
+            let col = gtk::TreeViewColumn::builder()
                 .title(property_type.list_header())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
-            let cell = gtk::CellRendererTextBuilder::new().editable(false).build();
-            col.pack_start(&cell, false);
-            col.add_attribute(&cell, "text", index);
-            col.add_attribute(&cell, "background", 0);
-            col.add_attribute(&cell, "foreground", 1);
+            let cell = gtk::CellRendererText::builder().editable(false).build();
+            TreeViewColumnExt::pack_start(&col, &cell, false);
+            // col.pack_start(&cell, false);
+            TreeViewColumnExt::add_attribute(&col, &cell, "text", index);
+            // col.add_attribute(&cell, "text", index);
+            TreeViewColumnExt::add_attribute(&col, &cell, "background", 0);
+            // col.add_attribute(&cell, "background", 0);
+            TreeViewColumnExt::add_attribute(&col, &cell, "foreground", 1);
+            // col.add_attribute(&cell, "foreground", 1);
             cols.push(col);
             index += 1;
         }

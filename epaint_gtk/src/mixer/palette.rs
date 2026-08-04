@@ -7,8 +7,8 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    cairo,
+use gtk_ext::{
+    cairo, glib,
     gtk::{self, prelude::*},
     gtkx::{
         list::{ListViewWithPopUpMenu, ListViewWithPopUpMenuBuilder},
@@ -22,8 +22,9 @@ use pw_gtk_ext::{
 
 #[cfg(feature = "palette_samples")]
 use colour_math_cairo::Point;
+use gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 #[cfg(feature = "palette_samples")]
-use pw_gtk_ext::{
+use gtk_ext::{
     gdk, gdk_pixbuf,
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
@@ -43,7 +44,6 @@ use colour_math_gtk::{
     colour::GdkColour,
     hue_wheel::{GtkHueWheel, GtkHueWheelBuilder},
 };
-use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use epaint::{
     mixtures::{MixingSession, MixtureBuilder},
@@ -116,19 +116,19 @@ pub struct MixtureEntry {
 impl MixtureEntry {
     pub fn new(attributes: &[ScalarAttribute]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let id_label = gtk::LabelBuilder::new().label("MIX#001").build();
-        let name_entry = gtk::EntryBuilder::new().build();
-        let notes_entry = gtk::EntryBuilder::new().build();
+        let id_label = gtk::Label::builder().label("MIX#001").build();
+        let name_entry = gtk::Entry::builder().build();
+        let notes_entry = gtk::Entry::builder().build();
         let cads = ColourAttributeDisplayStackBuilder::new()
             .scalar_attributes(attributes)
             .build();
         #[cfg(feature = "palette_samples")]
-        let drawing_area = gtk::DrawingAreaBuilder::new()
+        let drawing_area = gtk::DrawingArea::builder()
             .events(gdk::EventMask::BUTTON_PRESS_MASK)
             .height_request(100)
             .build();
         #[cfg(not(feature = "palette_samples"))]
-        let drawing_area = gtk::DrawingAreaBuilder::new().height_request(100).build();
+        let drawing_area = gtk::DrawingArea::builder().height_request(100).build();
 
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&id_label, false, false, 0);
@@ -209,10 +209,8 @@ impl MixtureEntry {
             mixture_entry
                 .drawing_area
                 .connect_button_press_event(move |_, event| {
-                    if event.get_event_type() == gdk::EventType::ButtonPress
-                        && event.get_button() == 3
-                    {
-                        let position = Point::from(event.get_position());
+                    if event.event_type() == gdk::EventType::ButtonPress && event.button() == 3 {
+                        let position = Point::from(event.position());
                         let n_samples = mixture_entry_c.samples.samples.borrow().len();
                         let cbd = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
                         let mut condns = if cbd.wait_is_image_available() {
@@ -229,16 +227,19 @@ impl MixtureEntry {
                             .update_condns(MaskedCondns { condns, mask: MASK });
                         mixture_entry_c.samples.popup_menu_posn.set(position);
                         mixture_entry_c.samples.popup_menu.popup_at_event(event);
-                        return Inhibit(true);
+                        return glib::Propagation::Stop;
+                        // return Inhibit(true);
                     }
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 });
         }
 
         let mixture_entry_c = Rc::clone(&mixture_entry);
         mixture_entry.drawing_area.connect_draw(move |da, ctxt| {
             mixture_entry_c.draw(da, ctxt);
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
 
         mixture_entry
@@ -251,15 +252,15 @@ impl MixtureEntry {
         } else {
             cairo_context.set_source_colour(&HCV::BLACK);
         };
-        cairo_context.paint();
+        cairo_context.paint().expect("failed to paint");
 
         #[cfg(feature = "targeted_mixtures")]
         if let Some(ref colour) = *self.target_colour.borrow() {
             cairo_context.set_source_colour(colour);
-            let width = drawing_area.get_allocated_width() as f64;
-            let height = drawing_area.get_allocated_height() as f64;
+            let width = drawing_area.allocated_width() as f64;
+            let height = drawing_area.allocated_height() as f64;
             cairo_context.rectangle(width / 4.0, height / 4.0, width / 2.0, height / 2.0);
-            cairo_context.fill();
+            cairo_context.fill().expect("failed to fill image");
         }
 
         #[cfg(feature = "palette_samples")]
@@ -270,8 +271,10 @@ impl MixtureEntry {
                 .expect("pixbuf to png error");
             let mut reader = std::io::Cursor::new(buffer);
             let surface = cairo::ImageSurface::create_from_png(&mut reader).unwrap();
-            cairo_context.set_source_surface(&surface, sample.position.x, sample.position.y);
-            cairo_context.paint();
+            cairo_context
+                .set_source_surface(&surface, sample.position.x, sample.position.y)
+                .expect("failed to set source surface");
+            cairo_context.paint().expect("paint error");
         }
     }
 
@@ -400,9 +403,7 @@ impl MixtureMixer {
         for button in Self::CANCEL_OK_BUTTONS.iter() {
             dialog.add_button(button.0, button.1);
         }
-        dialog
-            .get_content_area()
-            .pack_start(tpe.pwo(), true, true, 0);
+        dialog.content_area().pack_start(tpe.pwo(), true, true, 0);
         if dialog.run() == gtk::ResponseType::Ok {
             let rgb = tpe.rgb();
             let name = tpe.name();
@@ -508,8 +509,8 @@ impl MixtureMixer {
         let mut mixed_paint_builder = MixtureBuilder::new(&mix_id);
         mixed_paint_builder
             .id(&mix_id)
-            .name(&self.mix_entry.name_entry.get_text())
-            .notes(&self.mix_entry.notes_entry.get_text())
+            .name(&self.mix_entry.name_entry.text())
+            .notes(&self.mix_entry.notes_entry.text())
             .paint_components(self.range_paint_spinner_box.paint_contributions());
         #[cfg(feature = "targeted_mixtures")]
         mixed_paint_builder.targeted_colour(
@@ -605,7 +606,7 @@ impl PixtureMixerBuilder {
 
         let change_notifier = ChangedCondnsNotifier::new(MixtureMixer::SAV_NOT_HAS_TARGET);
 
-        let notes_entry = gtk::EntryBuilder::new().build();
+        let notes_entry = gtk::Entry::builder().build();
 
         let hue_wheel = GtkHueWheelBuilder::new()
             .attributes(&self.attributes)
@@ -723,7 +724,7 @@ impl PixtureMixerBuilder {
             .build::<gtk::Button>();
         let button_box = gtk::Box::new(gtk::Orientation::Horizontal, 0);
 
-        let new_mix_btn = gtk::ButtonBuilder::new()
+        let new_mix_btn = gtk::Button::builder()
             .label("New")
             .tooltip_text("Start mixing a new colour.")
             .build();
@@ -732,7 +733,7 @@ impl PixtureMixerBuilder {
             .expect("Duplicate key or button: new_mis");
         button_box.pack_start(&new_mix_btn, true, true, 0);
 
-        let accept_btn = gtk::ButtonBuilder::new()
+        let accept_btn = gtk::Button::builder()
             .label("Accept")
             .tooltip_text("Accept the current mixtures and add it to the list of mixtures.")
             .build();
@@ -748,7 +749,7 @@ impl PixtureMixerBuilder {
             .expect("Duplicate key or button: accept");
         button_box.pack_start(&accept_btn, true, true, 0);
 
-        let cancel_btn = gtk::ButtonBuilder::new()
+        let cancel_btn = gtk::Button::builder()
             .label("Cancel")
             .tooltip_text("Cancel the current mixtures.")
             .build();
@@ -761,7 +762,7 @@ impl PixtureMixerBuilder {
             .expect("Duplicate key or button: Cancel");
         button_box.pack_start(&cancel_btn, true, true, 0);
 
-        let simplify_btn = gtk::ButtonBuilder::new()
+        let simplify_btn = gtk::Button::builder()
             .label("Simplify Parts")
             .tooltip_text("Simplify the parts currently allocated to paints.")
             .build();
@@ -770,7 +771,7 @@ impl PixtureMixerBuilder {
             .expect("Duplicate key or button: simplify parts");
         button_box.pack_start(&simplify_btn, true, true, 0);
 
-        let zero_parts_btn = gtk::ButtonBuilder::new()
+        let zero_parts_btn = gtk::Button::builder()
             .label("Zero All Parts")
             .tooltip_text("Set the parts for all paints to zero.")
             .build();
@@ -813,7 +814,7 @@ impl PixtureMixerBuilder {
                     condns: 0,
                     mask: MixtureMixer::SAV_HAS_NAME,
                 };
-                if entry.get_text_length() > 0 {
+                if entry.text_length() > 0 {
                     condns.condns = MixtureMixer::SAV_HAS_NAME;
                 };
                 change_notifier_c.notify_changed_condns(condns);
@@ -821,7 +822,7 @@ impl PixtureMixerBuilder {
 
         let mixture_mixer_c = Rc::clone(&mixture_mixer);
         mixture_mixer.notes_entry.connect_changed(move |entry| {
-            let text = entry.get_text();
+            let text = entry.text();
             mixture_mixer_c.mixing_session.borrow_mut().set_notes(&text);
             mixture_mixer_c.update_session_needs_saving();
             mixture_mixer_c.update_session_is_saveable();
@@ -959,8 +960,8 @@ impl TargetPaintEntry {
         // TODO: remember auto match on paste value
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
-        let name_entry = gtk::EntryBuilder::new().hexpand(true).build();
-        let notes_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let name_entry = gtk::Entry::builder().hexpand(true).build();
+        let notes_entry = gtk::Entry::builder().hexpand(true).build();
         let colour_editor = ColourEditorBuilder::new().attributes(attributes).build();
 
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
@@ -984,11 +985,11 @@ impl TargetPaintEntry {
     }
 
     fn name(&self) -> String {
-        self.name_entry.get_text().to_string()
+        self.name_entry.text().to_string()
     }
 
     fn notes(&self) -> String {
-        self.notes_entry.get_text().to_string()
+        self.notes_entry.text().to_string()
     }
 
     fn rgb(&self) -> RGB<f64> {

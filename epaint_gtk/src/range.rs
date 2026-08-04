@@ -8,7 +8,7 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk::{self, prelude::*},
     gtkx::{
         dialog_user::TopGtkWindow,
@@ -22,11 +22,8 @@ use pw_gtk_ext::{
 };
 
 use colour_math::{HCV, ScalarAttribute, hue_wheel::MakeColouredShape};
-use colour_math_gtk::{
-    colour::GdkColour,
-    hue_wheel::{GtkHueWheel, GtkHueWheelBuilder},
-};
-use pw_gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
+use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};
+use gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
 use epaint::{
     PaintRangeId,
@@ -101,10 +98,10 @@ impl RangePageBuilder {
     }
 
     fn build(&self, paint_series: PaintRange) -> Rc<RangePage> {
-        let paned = gtk::PanedBuilder::new().build();
+        let paned = gtk::Paned::builder().build();
         paned.set_position_from_recollections("SeriesPage:paned_position", 200);
 
-        let hue_wheel = GtkHueWheelBuilder::new()
+        let hue_wheel = GtkHueWheel::builder()
             .menu_item_specs(&self.menu_items)
             .attributes(&self.attributes)
             .build();
@@ -120,7 +117,7 @@ impl RangePageBuilder {
             let row = paint.row(&self.attributes);
             list_view.add_row(&row);
         }
-        let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
+        let scrolled_window = gtk::ScrolledWindow::builder().build();
         scrolled_window.add(list_view.pwo());
 
         paned.add1(hue_wheel.pwo());
@@ -221,7 +218,7 @@ impl RangeBinder {
         loaded_files_data_path: Option<PathBuf>,
         selection_mode: gtk::SelectionMode,
     ) -> Rc<Self> {
-        let notebook = gtk::NotebookBuilder::new().enable_popup(true).build();
+        let notebook = gtk::Notebook::builder().enable_popup(true).build();
         let pages = RefCell::new(vec![]);
 
         let mut hash_map: HashMap<String, Vec<PaintActionCallback>> = HashMap::new();
@@ -591,7 +588,7 @@ impl PaintRangeManagerBuilder {
             self.loaded_files_data_path.clone(),
             gtk::SelectionMode::Multiple,
         );
-        let load_file_btn = gtk::ButtonBuilder::new()
+        let load_file_btn = gtk::Button::builder()
             .image(&icons::series_paint_load::sized_image_or(24).upcast::<gtk::Widget>())
             .tooltip_text("Load a paint range from a file.")
             .build();
@@ -756,7 +753,7 @@ impl PaintStandardsManagerBuilder {
             self.loaded_files_data_path.clone(),
             gtk::SelectionMode::None,
         );
-        let load_file_btn = gtk::ButtonBuilder::new()
+        let load_file_btn = gtk::Button::builder()
             .image(&icons::paint_standard_load::sized_image_or(24).upcast::<gtk::Widget>())
             .tooltip_text("Load a paint standards range from a file.")
             .build();
@@ -766,7 +763,7 @@ impl PaintStandardsManagerBuilder {
         vbox.pack_start(&hbox, false, false, 0);
         vbox.pack_start(binder.pwo(), true, true, 0);
         vbox.show_all();
-        let display_dialog_manager = PaintDisplayDialogManagerBuilder::new(&vbox)
+        let display_dialog_manager = PaintDisplayDialogManager::builder(&vbox)
             .attributes(&self.attributes)
             .property_types(&self.property_types)
             .change_notifier(&self.change_notifier)

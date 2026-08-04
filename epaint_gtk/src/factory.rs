@@ -5,7 +5,7 @@ use std::fs::File;
 use std::path::Path;
 use std::rc::Rc;
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk::{self, prelude::*},
     gtkx::{
         list::{ListViewWithPopUpMenu, ListViewWithPopUpMenuBuilder},
@@ -211,23 +211,23 @@ impl PaintFactoryBuilder {
             ),
         ];
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let grid = gtk::GridBuilder::new().hexpand(true).build();
+        let grid = gtk::Grid::builder().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
 
-        let label = gtk::LabelBuilder::new()
+        let label = gtk::Label::builder()
             .label("Series Name:")
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, 0, 1, 1);
-        let series_name_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let series_name_entry = gtk::Entry::builder().hexpand(true).build();
         grid.attach(&series_name_entry, 1, 0, 1, 1);
 
-        let label = gtk::LabelBuilder::new()
+        let label = gtk::Label::builder()
             .label("Proprietor:")
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, 1, 1, 1);
-        let proprietor_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let proprietor_entry = gtk::Entry::builder().hexpand(true).build();
         grid.attach(&proprietor_entry, 1, 1, 1, 1);
 
         let paint_editor = PaintEditor::new(&self.attributes, &self.property_types);
@@ -242,10 +242,10 @@ impl PaintFactoryBuilder {
             .menu_items(menu_items.to_vec())
             .id_field(2)
             .build(&paint_list_spec);
-        let scrolled_window = gtk::ScrolledWindowBuilder::new().build();
+        let scrolled_window = gtk::ScrolledWindow::builder().build();
         scrolled_window.add(list_view.pwo());
 
-        let notebook = gtk::NotebookBuilder::new().build();
+        let notebook = gtk::Notebook::builder().build();
         notebook.add(&scrolled_window);
         notebook.set_tab_label_text(&scrolled_window, "Paint List");
         notebook.add(hue_wheel.pwo());
@@ -314,7 +314,7 @@ impl PaintFactoryBuilder {
 
         let bpf_c = Rc::clone(&bpf);
         bpf.proprietor_entry.connect_changed(move |entry| {
-            let text = entry.get_text();
+            let text = entry.text();
             bpf_c.paint_series.borrow_mut().set_proprietor(&text);
             bpf_c.update_saveability();
             bpf_c.update_series_needs_saving();
@@ -322,7 +322,7 @@ impl PaintFactoryBuilder {
 
         let bpf_c = Rc::clone(&bpf);
         bpf.series_name_entry.connect_changed(move |entry| {
-            let text = entry.get_text();
+            let text = entry.text();
             bpf_c.paint_series.borrow_mut().set_range_name(&text);
             bpf_c.update_saveability();
             bpf_c.update_series_needs_saving();

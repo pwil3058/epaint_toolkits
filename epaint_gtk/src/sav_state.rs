@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use pw_gtk_ext::sav_state::SAV_NEXT_CONDN;
+use gtk_ext::sav_state::SAV_NEXT_CONDN;
 
 pub const SAV_EDITING: u64 = SAV_NEXT_CONDN;
 pub const SAV_NOT_EDITING: u64 = SAV_NEXT_CONDN << 1;

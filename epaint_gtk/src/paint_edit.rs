@@ -4,10 +4,9 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use colour_math::ScalarAttribute;
-use colour_math_gtk::colour_edit::{ColourEditor, ColourEditorBuilder};
-use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
-use pw_gtk_ext::{
-    gtk::{self, prelude::*},
+use colour_math_gtk::colour_edit::ColourEditor;
+use gtk_ext::{
+    gtk::{self, Button, prelude::*},
     sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled},
     wrapper::*,
 };
@@ -82,15 +81,15 @@ pub struct PaintEditor {
 impl PaintEditor {
     pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let grid = gtk::GridBuilder::new().hexpand(true).build();
+        let grid = gtk::Grid::builder().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);
 
         let mut row = 1;
         #[cfg(feature = "paints_have_ids")]
-        let id_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let id_entry = gtk::Entry::builder().hexpand(true).build();
         #[cfg(feature = "paints_have_ids")]
         {
-            let label = gtk::LabelBuilder::new()
+            let label = gtk::Label::builder()
                 .label("Id:")
                 .halign(gtk::Align::End)
                 .build();
@@ -99,21 +98,21 @@ impl PaintEditor {
             row += 1;
         }
 
-        let label = gtk::LabelBuilder::new()
+        let label = gtk::Label::builder()
             .label("Name:")
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, row, 1, 1);
-        let name_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let name_entry = gtk::Entry::builder().hexpand(true).build();
         grid.attach(&name_entry, 1, row, 1, 1);
         row += 1;
 
-        let label = gtk::LabelBuilder::new()
+        let label = gtk::Label::builder()
             .label("Notes:")
             .halign(gtk::Align::End)
             .build();
         grid.attach(&label, 0, row, 1, 1);
-        let notes_entry = gtk::EntryBuilder::new().hexpand(true).build();
+        let notes_entry = gtk::Entry::builder().hexpand(true).build();
         grid.attach(&notes_entry, 1, row, 1, 1);
         row += 1;
 
@@ -126,15 +125,15 @@ impl PaintEditor {
             row += 1;
         }
 
-        let add_btn = gtk::ButtonBuilder::new().label("Add").build();
-        let accept_btn = gtk::ButtonBuilder::new().label("Accept").build();
-        let reset_btn = gtk::ButtonBuilder::new().label("Reset").build();
-        let colour_editor = ColourEditorBuilder::new()
+        let add_btn = gtk::Button::builder().label("Add").build();
+        let accept_btn = gtk::Button::builder().label("Accept").build();
+        let reset_btn = gtk::Button::builder().label("Reset").build();
+        let colour_editor = ColourEditor::<u16>::builder()
             .attributes(attributes)
             .extra_buttons(&[add_btn.clone(), accept_btn.clone(), reset_btn.clone()])
             .build();
         vbox.pack_start(colour_editor.pwo(), true, true, 0);
-        let buttons = ConditionalWidgetGroupsBuilder::new()
+        let buttons = ConditionalWidgetGroups::<Button>::builder()
             .widget_states_controlled(WidgetStatesControlled::Sensitivity)
             .build::<gtk::Button>();
         buttons
@@ -202,11 +201,11 @@ impl PaintEditor {
                 condns: 0,
                 mask: SAV_NAME_READY + SAV_NAME_CHANGED,
             };
-            if entry.get_text_length() > 0 {
+            if entry.text_length() > 0 {
                 masked_condns.condns += SAV_NAME_READY;
             };
             if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                if paint.name != entry.get_text() {
+                if paint.name != entry.text() {
                     masked_condns.condns += SAV_NAME_CHANGED;
                 }
             }
@@ -221,11 +220,11 @@ impl PaintEditor {
                 condns: 0,
                 mask: SAV_NOTES_READY + SAV_NOTES_CHANGED,
             };
-            if entry.get_text_length() > 0 {
+            if entry.text_length() > 0 {
                 masked_condns.condns += SAV_NOTES_READY;
             };
             if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                if paint.notes != entry.get_text() {
+                if paint.notes != entry.text() {
                     masked_condns.condns += SAV_NOTES_CHANGED;
                 }
             }
@@ -300,10 +299,10 @@ impl PaintEditor {
             Properties(self.property_entries.iter().map(|e| e.value()).collect());
         Paint {
             #[cfg(feature = "paints_have_ids")]
-            id: self.id_entry.get_text().to_string(),
+            id: self.id_entry.text().to_string(),
             colour: self.colour_editor.hcv(),
-            name: self.name_entry.get_text().to_string(),
-            notes: self.notes_entry.get_text().to_string(),
+            name: self.name_entry.text().to_string(),
+            notes: self.notes_entry.text().to_string(),
             properties,
         }
     }

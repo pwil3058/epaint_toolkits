@@ -1,4 +1,11 @@
-// Copyright 2019 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
+
+use gtk_ext::{
+    gtk::{self, prelude::*},
+    recollections::{recall, remember},
+    sav_state::{ConditionalWidgetGroups, MaskedCondns, SAV_NEXT_CONDN, WidgetStatesControlled},
+    wrapper::*,
+};
 
 use std::{
     cell::RefCell,
@@ -6,16 +13,9 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    gtk::{self, prelude::*},
-    recollections::{recall, remember},
-    sav_state::{ConditionalWidgetGroups, MaskedCondns, SAV_NEXT_CONDN, WidgetStatesControlled},
-    wrapper::*,
-};
-
 use colour_math::{HCV, RGBConstants};
 use colour_math_gtk::coloured::Colourable;
-use pw_gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
+use gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use crate::icons;
 
@@ -287,7 +287,7 @@ impl StorageManagerBuilder {
             buttons: ConditionalWidgetGroupsBuilder::new()
                 .widget_states_controlled(WidgetStatesControlled::Sensitivity)
                 .build::<gtk::Button>(),
-            file_name_label: gtk::LabelBuilder::new()
+            file_name_label: gtk::Label::builder()
                 .justify(gtk::Justification::Left)
                 .xalign(0.01)
                 .build(),
@@ -300,7 +300,7 @@ impl StorageManagerBuilder {
         });
 
         // Reset
-        let button = gtk::ButtonBuilder::new()
+        let button = gtk::Button::builder()
             .tooltip_text(&self.reset_tooltip_text)
             .image(&icons::colln_new::sized_image_or(BTN_IMAGE_SIZE).upcast::<gtk::Widget>())
             .build();
@@ -313,7 +313,7 @@ impl StorageManagerBuilder {
         button.connect_clicked(move |_| sm_c.reset());
 
         // Load
-        let button = gtk::ButtonBuilder::new()
+        let button = gtk::Button::builder()
             .tooltip_text(&self.load_tooltip_text)
             .image(&icons::colln_load::sized_image_or(BTN_IMAGE_SIZE).upcast::<gtk::Widget>())
             .build();
@@ -326,7 +326,7 @@ impl StorageManagerBuilder {
         button.connect_clicked(move |_| sm_c.load());
 
         // Save
-        let button = gtk::ButtonBuilder::new()
+        let button = gtk::Button::builder()
             .tooltip_text(&self.save_tooltip_text)
             .image(&icons::colln_save::sized_image_or(BTN_IMAGE_SIZE).upcast::<gtk::Widget>())
             .build();
@@ -339,7 +339,7 @@ impl StorageManagerBuilder {
         button.connect_clicked(move |_| sm_c.save());
 
         // Save As
-        let button = gtk::ButtonBuilder::new()
+        let button = gtk::Button::builder()
             .tooltip_text(&self.save_as_tooltip_text)
             .image(&icons::colln_save_as::sized_image_or(BTN_IMAGE_SIZE).upcast::<gtk::Widget>())
             .build();
@@ -365,7 +365,7 @@ impl StorageManagerBuilder {
             .hbox
             .pack_start(&storage_manager.file_name_label, true, true, 1);
 
-        let button = gtk::ButtonBuilder::new().sensitive(false).build();
+        let button = gtk::Button::builder().sensitive(false).build();
         button.set_image(Some(&icons::up_to_date::sized_image_or(BTN_IMAGE_SIZE)));
         storage_manager.hbox.pack_start(&button, false, false, 1);
         storage_manager

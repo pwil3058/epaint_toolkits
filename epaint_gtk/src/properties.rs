@@ -2,9 +2,9 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk,
-    gtk::{ComboBoxExt, ComboBoxTextExt},
+    gtk::prelude::{ComboBoxExt, ComboBoxTextExt},
     wrapper::*,
 };
 
@@ -49,14 +49,14 @@ impl PropertyEntry {
     }
 
     pub fn prompt(&self, align: gtk::Align) -> gtk::Label {
-        gtk::LabelBuilder::new()
+        gtk::Label::builder()
             .label(self.property_type.prompt())
             .halign(align)
             .build()
     }
 
     pub fn value(&self) -> Property {
-        if let Some(text) = self.combo_box_text.get_active_text() {
+        if let Some(text) = self.combo_box_text.active_text() {
             Property::from((self.property_type, text.as_ref()))
         } else {
             self.property_type.default_property()

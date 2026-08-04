@@ -12,7 +12,7 @@ use std::ops::BitOr;
 use std::rc::Rc;
 
 use crate::glib::IsA;
-use crate::gtk::{prelude::*, TreeSelection, Widget};
+use crate::gtk::{TreeSelection, Widget, prelude::*};
 
 pub use gtk_ext_derive::*;
 
@@ -373,6 +373,10 @@ impl<W> ConditionalWidgetGroups<W>
 where
     W: IsA<Widget> + Clone + PartialEq,
 {
+    pub fn builder() -> ConditionalWidgetGroupsBuilder {
+        ConditionalWidgetGroupsBuilder::default()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }

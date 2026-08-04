@@ -2,7 +2,7 @@
 
 use std::{process::Command, rc::Rc};
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gdk_pixbufx::viewer::PixbufViewBuilder,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
@@ -61,11 +61,11 @@ impl PaintersColourAssistantTK {
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         pcatk.vbox.pack_start(&hbox, false, false, 0);
 
-        let stack = gtk::StackBuilder::new().build();
+        let stack = gtk::Stack::builder().build();
         stack.add_titled(pcatk.palette.pwo(), "palette", "Palette");
         stack.add_titled(pcatk.factory.pwo(), "factory", "Paint Editor/Factory");
         pcatk.vbox.pack_start(&stack, true, true, 0);
-        let stack_switcher = gtk::StackSwitcherBuilder::new()
+        let stack_switcher = gtk::StackSwitcher::builder()
             .tooltip_text("Select mode.")
             .stack(&stack)
             .build();

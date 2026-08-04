@@ -13,6 +13,7 @@ pub use pango;
 pub use pango_sys;
 pub use pangocairo;
 
+pub use recollections;
 pub use sourceview;
 
 #[macro_use]

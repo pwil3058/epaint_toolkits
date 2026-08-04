@@ -1,8 +1,8 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::rc::Rc;
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
     recollections,
@@ -39,7 +39,7 @@ fn main() {
 }
 
 mod icon {
-    use pw_gtk_ext::{gdk_pixbuf, gtk};
+    use gtk_ext::{gdk_pixbuf, gtk};
 
     // XPM
     static PCATKRS_XPM: &[&str] = &[

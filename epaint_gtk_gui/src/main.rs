@@ -1,9 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::rc::Rc;
-
-use pw_gtk_ext::{
-    gtk::{self, BoxExt, ContainerExt, WidgetExt},
+use gtk_ext::{
+    gtk::{self, prelude::*},
     recollections,
     wrapper::*,
 };
@@ -77,9 +75,9 @@ fn main() {
     paint.name = "name".to_string();
     paint.notes = "notes".to_string();
     bpe.edit(&paint);
-    let colln_paint = RangePaint::from((
-        paint,
-        PaintRangeId {
+    let range_paint = RangePaint::from((
+        &paint,
+        &PaintRangeId {
             name: "Series".to_string(),
             proprietor: "Owner".to_string(),
         },
@@ -92,7 +90,7 @@ fn main() {
             ScalarAttribute::Chroma,
         ])
         .property_types(&property_types);
-    let display = builder.build(&colln_paint);
+    let display = builder.build(&range_paint);
     vbox.pack_start(display.pwo(), true, true, 0);
     let mut paint_series_manager_builder = PaintRangeManagerBuilder::new();
     paint_series_manager_builder.property_types(&property_types);

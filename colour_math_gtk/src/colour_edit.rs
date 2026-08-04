@@ -28,6 +28,10 @@ pub struct ColourEditor<U: Hexable> {
 }
 
 impl<U: Hexable> ColourEditor<U> {
+    pub fn builder() -> ColourEditorBuilder {
+        ColourEditorBuilder::new()
+    }
+
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
         self.colour_manipulator.rgb()
     }

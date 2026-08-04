@@ -4,7 +4,8 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::{collections::BTreeMap, rc::Rc};
 
-use pw_gtk_ext::{
+use gtk_ext::{
+    glib,
     gtk::{self, prelude::*},
     gtkx::dialog_user::TopGtkWindow,
     sav_state::{ChangedCondnsNotifier, ConditionalWidgetsBuilder},
@@ -86,34 +87,32 @@ impl PaintDisplayBuilder {
 
     pub fn build(&self, range_paint: &RangePaint) -> PaintDisplay {
         let hcv = range_paint.hcv();
-        let vbox = gtk::BoxBuilder::new()
+        let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
 
         #[cfg(feature = "paints_have_ids")]
         {
-            let label = gtk::LabelBuilder::new().label(range_paint.id()).build();
+            let label = gtk::Label::builder().label(range_paint.id()).build();
             label.set_widget_colour(&hcv);
             vbox.pack_start(&label, false, false, 0);
         }
 
-        let label = gtk::LabelBuilder::new().label(range_paint.name()).build();
+        let label = gtk::Label::builder().label(range_paint.name()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
-        let label = gtk::LabelBuilder::new().label(range_paint.notes()).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
-
-        let series_id = range_paint.series_id();
-        let label = gtk::LabelBuilder::new().label(&series_id.name).build();
+        let label = gtk::Label::builder().label(range_paint.notes()).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
         let series_id = range_paint.series_id();
-        let label = gtk::LabelBuilder::new()
-            .label(&series_id.proprietor)
-            .build();
+        let label = gtk::Label::builder().label(&series_id.name).build();
+        label.set_widget_colour(&hcv);
+        vbox.pack_start(&label, false, false, 0);
+
+        let series_id = range_paint.series_id();
+        let label = gtk::Label::builder().label(&series_id.proprietor).build();
         label.set_widget_colour(&hcv);
         vbox.pack_start(&label, false, false, 0);
 
@@ -124,12 +123,12 @@ impl PaintDisplayBuilder {
 
         #[cfg(feature = "targeted_mixtures")]
         let target_label = if let Some(target_colour) = self.target_colour {
-            let label = gtk::LabelBuilder::new().label("Target").build();
+            let label = gtk::Label::builder().label("Target").build();
             label.set_widget_colour(&target_colour);
             cads.set_target_colour(Some(&target_colour));
             label
         } else {
-            let label = gtk::LabelBuilder::new().build();
+            let label = gtk::Label::builder().build();
             label.set_widget_colour(&hcv);
             label
         };
@@ -139,7 +138,7 @@ impl PaintDisplayBuilder {
 
         for property in range_paint.properties() {
             let value = property.value();
-            let label = gtk::LabelBuilder::new().label(value).build();
+            let label = gtk::Label::builder().label(value).build();
             label.set_widget_colour(&hcv);
             vbox.pack_start(&label, false, false, 0);
         }
@@ -171,16 +170,21 @@ pub struct PaintDisplayDialogManager<W: TopGtkWindow> {
     dialogs: RefCell<BTreeMap<RangePaint, PaintDisplayDialog>>,
 }
 
-impl<W: TopGtkWindow> PaintDisplayDialogManager<W> {
+impl<W: TopGtkWindow + Clone> PaintDisplayDialogManager<W> {
+    pub fn builder(caller: &W) -> PaintDisplayDialogManagerBuilder<W> {
+        PaintDisplayDialogManagerBuilder::<W>::new(caller)
+    }
+
     fn new_dialog(&self) -> gtk::Dialog {
-        let dialog = gtk::DialogBuilder::new().build();
+        let dialog = gtk::Dialog::builder().build();
         if let Some(parent) = self.caller.get_toplevel_gtk_window() {
             dialog.set_transient_for(Some(&parent));
         }
         // TODO: think about removal from map as an optional action to hiding
         dialog.connect_delete_event(|d, _| {
             d.hide_on_delete();
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         });
         dialog
     }
@@ -219,7 +223,7 @@ pub trait DisplayPaint {
     fn display_paint(&self, paint: &RangePaint);
 }
 
-impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
+impl<W: TopGtkWindow + Clone + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>> {
     fn display_paint(&self, colln_paint: &RangePaint) {
         if !self.dialogs.borrow().contains_key(colln_paint) {
             let dialog = self.new_dialog();
@@ -233,7 +237,7 @@ impl<W: TopGtkWindow + 'static> DisplayPaint for Rc<PaintDisplayDialogManager<W>
                     .expect(&std::format!("Duplicate key or button: {label:?}"));
             }
             dialog
-                .get_content_area()
+                .content_area()
                 .pack_start(display.pwo(), true, true, 0);
             let self_c = Rc::clone(self);
             let colln_paint_clone = colln_paint.clone();

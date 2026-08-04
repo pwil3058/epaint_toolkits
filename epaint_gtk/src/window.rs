@@ -2,8 +2,8 @@
 
 use std::{cell::Cell, rc::Rc};
 
-use pw_gtk_ext::{
-    gdk, gdk_pixbuf,
+use gtk_ext::{
+    gdk, gdk_pixbuf, glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
     wrapper::*,
@@ -25,8 +25,8 @@ pub struct PersistentWindowButtonBuilder {
 impl Default for PersistentWindowButtonBuilder {
     fn default() -> Self {
         Self {
-            button: gtk::ButtonBuilder::new().build(),
-            window: gtk::WindowBuilder::new().destroy_with_parent(true).build(),
+            button: gtk::Button::builder().build(),
+            window: gtk::Window::builder().destroy_with_parent(true).build(),
             is_iconified: Cell::new(false),
         }
     }
@@ -76,8 +76,7 @@ impl PersistentWindowButtonBuilder {
             self.window
                 .set_geometry_from_recollections(saved_geometry_key, default_size);
         } else {
-            self.window
-                .set_default_geometry(default_size.0, default_size.1);
+            self.window.set_default_size(default_size.0, default_size.1);
         }
         self
     }
@@ -91,16 +90,18 @@ impl PersistentWindowButtonBuilder {
 
         pwb.window.connect_delete_event(|w, _| {
             w.hide_on_delete();
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         });
 
         let pwb_c = Rc::clone(&pwb);
         pwb.window.connect_window_state_event(move |_, event| {
-            let state = event.get_new_window_state();
+            let state = event.new_window_state();
             pwb_c
                 .is_iconified
                 .set(state.contains(gdk::WindowState::ICONIFIED));
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
 
         let pwb_c = Rc::clone(&pwb);

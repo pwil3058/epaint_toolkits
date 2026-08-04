@@ -84,7 +84,7 @@ use gtk_ext::{gdk_pixbuf, gtk};
 
 #[allow(dead_code)]
 pub fn pixbuf() -> gdk_pixbuf::Pixbuf {
-    gdk_pixbuf::Pixbuf::from_xpm_data(XPM)
+    gdk_pixbuf::Pixbuf::from_xpm_data(XPM).expect("failed to create pixbuf")
 }
 
 #[allow(dead_code)]

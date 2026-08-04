@@ -40,6 +40,10 @@ pub struct GtkHueWheel {
 }
 
 impl GtkHueWheel {
+    pub fn builder() -> GtkHueWheelBuilder {
+        GtkHueWheelBuilder::new()
+    }
+
     fn current_transform_matrix(&self) -> cairo::Matrix {
         let origin_offset = self.origin_offset.get();
         let mut ctm = CairoCartesian::cartesian_transform_matrix(

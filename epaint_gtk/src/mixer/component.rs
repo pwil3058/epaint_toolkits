@@ -1,4 +1,4 @@
-// Copyright 2019 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     cell::{Cell, RefCell},
@@ -7,9 +7,9 @@ use std::{
 
 use gcd::Gcd;
 
-use pw_gtk_ext::{
-    gdk,
-    gtk::{self, ContainerExt, WidgetExt, prelude::*},
+use gtk_ext::{
+    gdk, glib,
+    gtk::{self, prelude::*},
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
     sav_state::{MaskedCondns, SAV_NEXT_CONDN},
     wrapper::*,
@@ -38,11 +38,11 @@ pub struct PartsSpinButton {
 
 impl PartsSpinButton {
     pub fn new(range_paint: &RangePaint, sensitive: bool) -> Rc<Self> {
-        let event_box = gtk::EventBoxBuilder::new()
+        let event_box = gtk::EventBox::builder()
             .tooltip_text(&range_paint.tooltip_text())
             .events(gdk::EventMask::BUTTON_PRESS_MASK | gdk::EventMask::BUTTON_RELEASE_MASK)
             .build();
-        let spin_button = gtk::SpinButtonBuilder::new()
+        let spin_button = gtk::SpinButton::builder()
             .adjustment(&gtk::Adjustment::new(0.0, 0.0, 999.0, 1.0, 10.0, 0.0))
             .climb_rate(0.0)
             .digits(0)
@@ -54,7 +54,7 @@ impl PartsSpinButton {
         let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
         hbox.pack_start(&label, true, true, 0);
         hbox.pack_start(&spin_button, false, false, 0);
-        let frame = gtk::FrameBuilder::new().build();
+        let frame = gtk::Frame::builder().build();
         frame.add(&hbox);
         event_box.add(&frame);
         let psb = Rc::new(Self {
@@ -83,7 +83,7 @@ impl PartsSpinButton {
 
         let psb_c = Rc::clone(&psb);
         psb.event_box.connect_button_press_event(move |_, event| {
-            if event.get_event_type() == gdk::EventType::ButtonPress && event.get_button() == 3 {
+            if event.event_type() == gdk::EventType::ButtonPress && event.button() == 3 {
                 if psb_c.parts() == 0 {
                     psb_c.popup_menu.update_condns(MaskedCondns {
                         condns: HAS_NO_PARTS,
@@ -96,16 +96,18 @@ impl PartsSpinButton {
                     });
                 }
                 psb_c.popup_menu.popup_at_event(event);
-                return Inhibit(true);
+                return glib::Propagation::Stop;
+                // return Inhibit(true);
             };
-            gtk::Inhibit(false)
+            glib::Propagation::Proceed
+            // gtk::Inhibit(false)
         });
 
         psb
     }
 
     fn parts(&self) -> u64 {
-        self.spin_button.get_value_as_int() as u64
+        self.spin_button.value_as_int() as u64
     }
 
     pub fn set_parts(&self, parts: u64) {
@@ -165,7 +167,7 @@ pub struct PartsSpinButtonBox {
 impl PartsSpinButtonBox {
     pub fn new(title: &str, n_cols: u32, sensitive: bool) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
-        let frame = gtk::FrameBuilder::new().label(title).build();
+        let frame = gtk::Frame::builder().label(title).build();
         frame.add(&vbox);
         Rc::new(Self {
             frame,
@@ -216,9 +218,9 @@ impl PartsSpinButtonBox {
     }
 
     fn repack_all(&self) {
-        for row_widget in self.vbox.get_children() {
+        for row_widget in self.vbox.children() {
             let row = row_widget.downcast::<gtk::Box>().unwrap();
-            for child in row.get_children() {
+            for child in row.children() {
                 row.remove(&child)
             }
             self.vbox.remove(&row);
