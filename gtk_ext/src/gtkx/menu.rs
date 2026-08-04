@@ -51,6 +51,10 @@ pub struct ManagedMenu {
 }
 
 impl ManagedMenu {
+    pub fn builder() -> ManagedMenuBuilder {
+        ManagedMenuBuilder::default()
+    }
+
     pub fn menu(&self) -> gtk::Menu {
         self.menu.clone()
     }

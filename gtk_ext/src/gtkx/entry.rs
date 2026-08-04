@@ -2,7 +2,7 @@
 
 use std::cell::{Cell, RefCell};
 use std::cmp;
-use std::path::{PathBuf, MAIN_SEPARATOR};
+use std::path::{MAIN_SEPARATOR, PathBuf};
 use std::rc::Rc;
 
 use crate::gdk;
@@ -77,6 +77,10 @@ where
         + std::ops::Shr<u8, Output = U>
         + 'static,
 {
+    pub fn builder() -> HexEntryBuilder<U> {
+        HexEntryBuilder::<U>::default()
+    }
+
     pub fn value(&self) -> U {
         self.value.get()
     }

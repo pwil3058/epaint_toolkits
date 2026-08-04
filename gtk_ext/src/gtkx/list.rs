@@ -11,7 +11,7 @@ use crate::{
     },
     gtkx::{
         list_store::*,
-        menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
+        menu::{ManagedMenu, MenuItemSpec},
     },
     sav_state::*,
     wrapper::*,
@@ -178,9 +178,7 @@ impl ListViewWithPopUpMenuBuilder {
             view.append_column(&col);
         }
 
-        let popup_menu = ManagedMenuBuilder::new()
-            .selection(&view.selection())
-            .build();
+        let popup_menu = ManagedMenu::builder().selection(&view.selection()).build();
 
         let rgb_l_v = Rc::new(ListViewWithPopUpMenu {
             view,
