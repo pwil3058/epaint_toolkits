@@ -1,14 +1,14 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{cell::RefCell, rc::Rc};
 
-use num_traits::Num;
-use num_traits_plus::NumberConstants;
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk::{self, prelude::*},
     gtkx::entry::{HexEntry, HexEntryBuilder},
     wrapper::*,
 };
+use num_traits::Num;
+use num_traits_plus::NumberConstants;
 
 use colour_math::{HueConstants, UnsignedLightLevel, HCV, RGB};
 
@@ -90,7 +90,7 @@ impl<U: Hexable> RGBHexEntryBuilder<U> {
     }
 
     pub fn build(&self) -> Rc<RGBHexEntry<U>> {
-        let hbox = gtk::BoxBuilder::new().build();
+        let hbox = gtk::Box::builder().build();
 
         let mut v: Vec<Rc<HexEntry<U>>> = vec![];
         for (index, (label, rgb)) in [

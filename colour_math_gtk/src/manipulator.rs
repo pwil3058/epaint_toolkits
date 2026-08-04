@@ -1,12 +1,12 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{
     cell::{Cell, RefCell},
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    cairo, gdk, gdk_pixbuf,
-    gtk::{self, prelude::*, DrawingAreaBuilder},
+use gtk_ext::{
+    cairo, gdk, gdk_pixbuf, glib,
+    gtk::{self, prelude::*, DrawingArea},
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
     sav_state::{MaskedCondns, SAV_NEXT_CONDN},
     wrapper::*,
@@ -138,7 +138,7 @@ impl ColourManipulatorGUI {
     fn draw(&self, cairo_context: &cairo::Context) {
         let rgb = self.colour_manipulator.borrow().rgb();
         cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
-        cairo_context.paint();
+        cairo_context.paint().expect("cairo_context paint failed");
         for sample in self.samples.borrow().iter() {
             let buffer = sample
                 .pixbuf
@@ -146,8 +146,10 @@ impl ColourManipulatorGUI {
                 .expect("pixbuf to png error");
             let mut reader = std::io::Cursor::new(buffer);
             let surface = cairo::ImageSurface::create_from_png(&mut reader).unwrap();
-            cairo_context.set_source_surface(&surface, sample.position.x, sample.position.y);
-            cairo_context.paint();
+            cairo_context
+                .set_source_surface(&surface, sample.position.x, sample.position.y)
+                .expect("set_source_surface failed");
+            cairo_context.paint().expect("cairo_context paint failed");
         }
     }
 
@@ -157,13 +159,13 @@ impl ColourManipulatorGUI {
         let mut blue: u64 = 0;
         let mut npixels: u64 = 0;
         for sample in self.samples.borrow().iter() {
-            assert_eq!(sample.pixbuf.get_bits_per_sample(), 8);
-            let nc = sample.pixbuf.get_n_channels() as usize;
-            let rs = sample.pixbuf.get_rowstride() as usize;
-            let width = sample.pixbuf.get_width() as usize;
-            let n_rows = sample.pixbuf.get_height() as usize;
+            assert_eq!(sample.pixbuf.bits_per_sample(), 8);
+            let nc = sample.pixbuf.n_channels() as usize;
+            let rs = sample.pixbuf.rowstride() as usize;
+            let width = sample.pixbuf.width() as usize;
+            let n_rows = sample.pixbuf.height() as usize;
             unsafe {
-                let data = sample.pixbuf.get_pixels();
+                let data = sample.pixbuf.pixels();
                 for row_num in 0..n_rows {
                     let row_start = row_num * rs;
                     let row_end = row_start + width * nc;
@@ -246,7 +248,7 @@ impl ColourManipulatorGUIBuilder {
     }
 
     pub fn build(&self) -> Rc<ColourManipulatorGUI> {
-        let vbox = gtk::BoxBuilder::new()
+        let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .events(
                 gdk::EventMask::KEY_PRESS_MASK
@@ -260,7 +262,7 @@ impl ColourManipulatorGUIBuilder {
                 .clamped(self.clamped)
                 .build(),
         );
-        let drawing_area = DrawingAreaBuilder::new()
+        let drawing_area = DrawingArea::builder()
             .events(gdk::EventMask::BUTTON_PRESS_MASK)
             .height_request(150)
             .width_request(150)
@@ -333,32 +335,36 @@ impl ColourManipulatorGUIBuilder {
 
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui.vbox.connect_key_press_event(move |_, event| {
-            let key = event.get_keyval();
+            let key = event.keyval();
             if key == gdk::keys::constants::Shift_L {
                 rgbm_gui_c.delta_size.set(DeltaSize::Large);
             } else if key == gdk::keys::constants::Shift_R {
                 rgbm_gui_c.delta_size.set(DeltaSize::Small);
             };
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui.vbox.connect_key_release_event(move |_, event| {
-            let key = event.get_keyval();
+            let key = event.keyval();
             if key == gdk::keys::constants::Shift_L || key == gdk::keys::constants::Shift_R {
                 rgbm_gui_c.delta_size.set(DeltaSize::Normal);
             };
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui.vbox.connect_enter_notify_event(move |_, _| {
             rgbm_gui_c.delta_size.set(DeltaSize::Normal);
-            Inhibit(false)
+            glib::Propagation::Proceed
+            // Inhibit(false)
         });
 
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui.drawing_area.connect_draw(move |_, cctx| {
             rgbm_gui_c.draw(cctx);
-            Inhibit(true)
+            glib::Propagation::Stop
+            // Inhibit(true)
         });
 
         connect_button!(rgbm_gui, incr_value_btn, for_value, incr_value);
@@ -392,7 +398,7 @@ impl ColourManipulatorGUIBuilder {
                         position: rgbm_gui_c.popup_menu_posn.get(),
                     };
                     rgbm_gui_c.samples.borrow_mut().push(sample);
-                    if rgbm_gui_c.auto_match_on_paste_btn.get_active() {
+                    if rgbm_gui_c.auto_match_on_paste_btn.is_active() {
                         rgbm_gui_c.auto_match_samples();
                     } else {
                         rgbm_gui_c.drawing_area.queue_draw();
@@ -421,9 +427,8 @@ impl ColourManipulatorGUIBuilder {
         rgbm_gui
             .drawing_area
             .connect_button_press_event(move |_, event| {
-                if event.get_event_type() == gdk::EventType::ButtonPress && event.get_button() == 3
-                {
-                    let position = Point::from(event.get_position());
+                if event.event_type() == gdk::EventType::ButtonPress && event.button() == 3 {
+                    let position = Point::from(event.position());
                     let n_samples = rgbm_gui_c.samples.borrow().len();
                     let cbd = gtk::Clipboard::get(&gdk::SELECTION_CLIPBOARD);
                     let mut condns = if cbd.wait_is_image_available() {
@@ -440,9 +445,11 @@ impl ColourManipulatorGUIBuilder {
                     });
                     rgbm_gui_c.popup_menu_posn.set(position);
                     rgbm_gui_c.popup_menu.popup_at_event(event);
-                    return Inhibit(true);
+                    return glib::Propagation::Stop;
+                    // return Inhibit(true);
                 }
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         rgbm_gui.reset();

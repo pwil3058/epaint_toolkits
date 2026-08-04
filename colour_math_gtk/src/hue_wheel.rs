@@ -6,24 +6,23 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    cairo, gdk,
+use gtk_ext::{
+    cairo, gdk, glib,
     gtk::{self, prelude::*},
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
     sav_state::MaskedCondns,
     wrapper::*,
 };
 
+use crate::{
+    attributes::{AttributeSelectorBuilder, ScalarAttributeSelector},
+    colour::GdkColour,
+};
 use colour_math::{
     hue_wheel::{ColouredShape, HueWheel},
     ScalarAttribute,
 };
 use colour_math_cairo::*;
-
-use crate::{
-    attributes::{AttributeSelectorBuilder, ScalarAttributeSelector},
-    colour::GdkColour,
-};
 
 type PopupCallback = Box<dyn Fn(&str)>;
 
@@ -44,8 +43,8 @@ impl GtkHueWheel {
     fn current_transform_matrix(&self) -> cairo::Matrix {
         let origin_offset = self.origin_offset.get();
         let mut ctm = CairoCartesian::cartesian_transform_matrix(
-            self.drawing_area.get_allocated_width() as f64,
-            self.drawing_area.get_allocated_height() as f64,
+            self.drawing_area.allocated_width() as f64,
+            self.drawing_area.allocated_height() as f64,
         );
         ctm.translate(origin_offset.x, origin_offset.y);
         ctm
@@ -151,7 +150,7 @@ impl GtkHueWheelBuilder {
             .attributes(attributes)
             .build();
 
-        let drawing_area = gtk::DrawingAreaBuilder::new()
+        let drawing_area = gtk::DrawingArea::builder()
             .height_request(200)
             .width_request(200)
             .has_tooltip(true)
@@ -212,15 +211,16 @@ impl GtkHueWheelBuilder {
             .connect_draw(move |da, cairo_context| {
                 cairo_context.transform(gtk_hue_wheel_c.current_transform_matrix());
                 let size = Size {
-                    width: da.get_allocated_width() as f64,
-                    height: da.get_allocated_height() as f64,
+                    width: da.allocated_width() as f64,
+                    height: da.allocated_height() as f64,
                 };
                 let cartesian = Drawer::new(cairo_context, size);
                 gtk_hue_wheel_c
                     .hue_wheel
                     .borrow()
                     .draw(gtk_hue_wheel_c.attribute_selector.attribute(), &cartesian);
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         // ZOOM
@@ -228,24 +228,27 @@ impl GtkHueWheelBuilder {
         gtk_hue_wheel
             .drawing_area
             .connect_scroll_event(move |da, scroll_event| {
-                if let Some(device) = scroll_event.get_device() {
-                    if device.get_source() == gdk::InputSource::Mouse {
-                        match scroll_event.get_direction() {
+                if let Some(device) = scroll_event.device() {
+                    if device.source() == gdk::InputSource::Mouse {
+                        match scroll_event.direction() {
                             gdk::ScrollDirection::Up => {
                                 gtk_hue_wheel_c.hue_wheel.borrow_mut().decr_zoom();
                                 da.queue_draw();
-                                return Inhibit(true);
+                                return glib::Propagation::Stop;
+                                // return Inhibit(true);
                             }
                             gdk::ScrollDirection::Down => {
                                 gtk_hue_wheel_c.hue_wheel.borrow_mut().incr_zoom();
                                 da.queue_draw();
-                                return Inhibit(true);
+                                return glib::Propagation::Stop;
+                                // return Inhibit(true);
                             }
                             _ => (),
                         }
                     }
                 };
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         // COMMENCE MOVE ORIGIN OR POPUP MENU
@@ -253,18 +256,18 @@ impl GtkHueWheelBuilder {
         gtk_hue_wheel
             .drawing_area
             .connect_button_press_event(move |_, event| {
-                if event.get_event_type() != gdk::EventType::ButtonPress {
-                    return Inhibit(false);
+                if event.event_type() != gdk::EventType::ButtonPress {
+                    return glib::Propagation::Proceed;
+                    // return Inhibit(false);
                 };
-                match event.get_button() {
+                match event.button() {
                     1 => {
-                        gtk_hue_wheel_c
-                            .last_xy
-                            .set(Some(event.get_position().into()));
-                        Inhibit(true)
+                        gtk_hue_wheel_c.last_xy.set(Some(event.position().into()));
+                        glib::Propagation::Stop
+                        // Inhibit(true)
                     }
                     3 => {
-                        let device_point: Point = event.get_position().into();
+                        let device_point: Point = event.position().into();
                         if let Some(item) = gtk_hue_wheel_c.hue_wheel.borrow().item_at_point(
                             gtk_hue_wheel_c
                                 .device_to_user(device_point.x, device_point.y)
@@ -278,9 +281,10 @@ impl GtkHueWheelBuilder {
                             gtk_hue_wheel_c.popup_menu.update_hover_condns(false);
                         };
                         gtk_hue_wheel_c.popup_menu.popup_at_event(event);
-                        Inhibit(true)
+                        glib::Propagation::Stop
+                        // Inhibit(true)
                     }
-                    _ => Inhibit(false),
+                    _ => glib::Propagation::Proceed, // _ => Inhibit(false),
                 }
             });
 
@@ -290,26 +294,30 @@ impl GtkHueWheelBuilder {
             .drawing_area
             .connect_motion_notify_event(move |da, event| {
                 if let Some(last_xy) = gtk_hue_wheel_c.last_xy.get() {
-                    let this_xy: Point = event.get_position().into();
+                    let this_xy: Point = event.position().into();
                     let delta_xy = this_xy - last_xy;
                     gtk_hue_wheel_c.last_xy.set(Some(this_xy));
                     gtk_hue_wheel_c.shift_origin_offset(delta_xy);
                     da.queue_draw();
-                    Inhibit(true)
+                    glib::Propagation::Stop
+                    // Inhibit(true)
                 } else {
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 }
             });
         let gtk_hue_wheel_c = Rc::clone(&gtk_hue_wheel);
         gtk_hue_wheel
             .drawing_area
             .connect_button_release_event(move |_, event| {
-                debug_assert_eq!(event.get_event_type(), gdk::EventType::ButtonRelease);
-                if event.get_button() == 1 {
+                debug_assert_eq!(event.event_type(), gdk::EventType::ButtonRelease);
+                if event.button() == 1 {
                     gtk_hue_wheel_c.last_xy.set(None);
-                    Inhibit(true)
+                    glib::Propagation::Stop
+                    // Inhibit(true)
                 } else {
-                    Inhibit(false)
+                    glib::Propagation::Proceed
+                    // Inhibit(false)
                 }
             });
         let gtk_hue_wheel_c = Rc::clone(&gtk_hue_wheel);
@@ -317,7 +325,8 @@ impl GtkHueWheelBuilder {
             .drawing_area
             .connect_leave_notify_event(move |_, _| {
                 gtk_hue_wheel_c.last_xy.set(None);
-                Inhibit(false)
+                glib::Propagation::Proceed
+                // Inhibit(false)
             });
 
         // TOOLTIP

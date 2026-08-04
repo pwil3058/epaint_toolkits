@@ -1,8 +1,8 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{cell::Cell, ops::Add, ops::Sub};
 
-use pw_gtk_ext::cairo;
+use gtk_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
@@ -149,13 +149,13 @@ impl<'a> Drawer<'a> {
     fn fill(&self) {
         self.cairo_context
             .set_source_colour_rgb(&self.fill_colour.get());
-        self.cairo_context.fill();
+        self.cairo_context.fill().expect("Failed to fill cairo");
     }
 
     fn stroke(&self) {
         self.cairo_context
             .set_source_colour_rgb(&self.line_colour.get());
-        self.cairo_context.stroke();
+        self.cairo_context.stroke().expect("stroke failed");
     }
 }
 
@@ -216,28 +216,33 @@ impl<'a> Draw for Drawer<'a> {
             return;
         }
         self.cairo_context.set_font_size(font_size.into());
-        let te = self.cairo_context.text_extents(text);
+        let te = self
+            .cairo_context
+            .text_extents(text)
+            .expect("couldn't get text extents");
         match TextPosn::from(posn) {
             TextPosn::Centre(x, y) => {
                 self.cairo_context
-                    .move_to(x - te.width / 2.0, y + te.height / 2.0);
+                    .move_to(x - te.width() / 2.0, y + te.height() / 2.0);
             }
             TextPosn::TopLeftCorner(x, y) => {
-                self.cairo_context.move_to(x, y + te.height);
+                self.cairo_context.move_to(x, y + te.height());
             }
             TextPosn::TopRightCorner(x, y) => {
-                self.cairo_context.move_to(x - te.width, y + te.height);
+                self.cairo_context.move_to(x - te.width(), y + te.height());
             }
             TextPosn::BottomLeftCorner(x, y) => {
                 self.cairo_context.move_to(x, y);
             }
             TextPosn::BottomRightCorner(x, y) => {
-                self.cairo_context.move_to(x - te.width, y);
+                self.cairo_context.move_to(x - te.width(), y);
             }
         }
         self.cairo_context
             .set_source_colour_rgb(&self.text_colour.get());
-        self.cairo_context.show_text(text);
+        self.cairo_context
+            .show_text(text)
+            .expect("couldn't show text");
     }
 
     fn paint_linear_gradient(
@@ -262,8 +267,10 @@ impl<'a> Draw for Drawer<'a> {
             size.width.into(),
             size.height.into(),
         );
-        self.cairo_context.set_source(&linear_gradient);
-        self.cairo_context.fill();
+        self.cairo_context.set_source(&linear_gradient).expect("");
+        self.cairo_context
+            .fill()
+            .expect("couldn't fill linear gradient");
     }
 }
 
@@ -273,7 +280,7 @@ impl<'a> DrawShapes for Drawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.cairo_context
             .set_source_colour_rgb(&colour.rgb::<f64>());
-        self.cairo_context.paint();
+        self.cairo_context.paint().expect("couldn't paint");
     }
 
     fn draw_circle(&self, centre: beigui::Point, radius: UFDRNumber, fill: bool) {

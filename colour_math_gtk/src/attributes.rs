@@ -5,8 +5,13 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    gtk::{self, BoxExt, DrawingArea, RadioButtonExt, ToggleButtonExt, WidgetExt},
+use gtk_ext::{
+    glib,
+    gtk::{
+        self,
+        prelude::{BoxExt, RadioButtonExt, ToggleButtonExt, WidgetExt},
+        DrawingArea,
+    },
     wrapper::*,
 };
 
@@ -14,8 +19,6 @@ use colour_math::{
     attr_display, attr_display::ColourAttributeType, ColourBasics, ScalarAttribute, HCV,
 };
 use colour_math_cairo::{Drawer, Size};
-
-use pw_gtk_ext::gtk::DrawingAreaBuilder;
 
 use crate::colour::GdkColour;
 
@@ -27,7 +30,7 @@ pub struct ColourAttributeDisplay {
 
 impl ColourAttributeDisplay {
     pub fn new(colour_attr_type: &ColourAttributeType) -> Rc<Self> {
-        let drawing_area = DrawingAreaBuilder::new()
+        let drawing_area = DrawingArea::builder()
             .hexpand(true)
             .height_request(30)
             .width_request(90)
@@ -43,12 +46,13 @@ impl ColourAttributeDisplay {
         cad.drawing_area
             .connect_draw(move |drawing_area, cairo_context| {
                 let size = Size {
-                    width: drawing_area.get_allocated_width() as f64,
-                    height: drawing_area.get_allocated_height() as f64,
+                    width: drawing_area.allocated_width() as f64,
+                    height: drawing_area.allocated_height() as f64,
                 };
                 let drawer = Drawer::new(cairo_context, size);
                 cad_c.colout_attr_display.borrow().draw_all(&drawer);
-                gtk::Inhibit(false)
+                glib::Propagation::Stop
+                // gtk::Inhibit(false)
             });
 
         cad
@@ -202,7 +206,7 @@ impl AttributeSelectorBuilder {
             let asrb_c = Rc::clone(&asrb);
             let attr = *attr;
             button.connect_toggled(move |button| {
-                let its_us = button.get_active();
+                let its_us = button.is_active();
                 if its_us {
                     asrb_c.notify_changed(attr);
                 }

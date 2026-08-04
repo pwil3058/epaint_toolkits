@@ -6,10 +6,12 @@ use std::{
     rc::Rc,
 };
 
-use pw_gtk_ext::{
-    gtk::{self, prelude::*, MessageDialogBuilder},
+use recollections;
+
+use gtk_ext::{
+    gtk::{self, prelude::*, MessageDialog},
     gtkx::window::RememberGeometry,
-    recollections, sample,
+    sample,
     wrapper::PackableWidgetObject,
 };
 use pw_pathux::expand_home_dir_or_mine;
@@ -68,10 +70,7 @@ fn main() {
         btn.connect_clicked(move |_| {
             if let Err(err) = sample::take_screen_sample() {
                 let msg = format!("Failure: {err:?}");
-                let dialog = MessageDialogBuilder::new()
-                    .parent(&win_c)
-                    .text(&msg)
-                    .build();
+                let dialog = MessageDialog::builder().parent(&win_c).text(&msg).build();
                 dialog.show()
             }
         });

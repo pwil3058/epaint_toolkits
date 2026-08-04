@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{cell::RefCell, rc::Rc};
 
-use pw_gtk_ext::{
+use gtk_ext::{
     gtk::{self, prelude::*},
     wrapper::*,
 };

@@ -8,19 +8,14 @@ pub mod manipulator;
 pub mod rgb_entry;
 
 pub mod colour {
-    use pw_gtk_ext::gdk;
+    use gtk_ext::gdk;
 
     use colour_math::{LightLevel, ManipulatedColour, HCV, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
             let rgb = self.rgb::<f64>();
-            gdk::RGBA {
-                red: rgb[0],
-                green: rgb[1],
-                blue: rgb[2],
-                alpha: 1.0,
-            }
+            gdk::RGBA::new(rgb[0], rgb[1], rgb[2], 1.0)
         }
     }
 
@@ -34,30 +29,30 @@ pub mod colour {
 }
 
 pub mod coloured {
-    use pw_gtk_ext::gtk::{self, prelude::*};
+    use gtk_ext::gtk::{self, prelude::*};
 
     use crate::colour::*;
 
     #[allow(deprecated)]
     pub trait Colourable: WidgetExt {
         fn set_widget_colour(&self, colour: &impl GdkColour) {
-            let bg_gdk_rgba = colour.gdk_rgba();
-            let fg_gdk_rgba = colour.best_foreground().gdk_rgba();
-            self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
-            self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
+            let _bg_gdk_rgba = colour.gdk_rgba();
+            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
+            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
+            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
         }
     }
 
     #[allow(deprecated)]
     impl Colourable for gtk::Button {
         fn set_widget_colour(&self, colour: &impl GdkColour) {
-            let bg_gdk_rgba = colour.gdk_rgba();
-            let fg_gdk_rgba = colour.best_foreground().gdk_rgba();
-            self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
-            self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
-            for child in self.get_children().iter() {
-                child.set_widget_colour(colour);
-            }
+            let _bg_gdk_rgba = colour.gdk_rgba();
+            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
+            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
+            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
+            // for child in self.get_children().iter() {
+            //     child.set_widget_colour(colour);
+            // }
         }
     }
 
