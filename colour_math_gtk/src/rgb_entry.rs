@@ -10,10 +10,9 @@ use gtk_ext::{
 use num_traits::Num;
 use num_traits_plus::NumberConstants;
 
-use colour_math::{HueConstants, UnsignedLightLevel, HCV, RGB};
+use colour_math::{UnsignedLightLevel, HCV, RGB};
 
 use crate::colour::GdkColour;
-use crate::coloured::Colourable;
 
 pub trait Hexable:
     UnsignedLightLevel + NumberConstants + Num + std::ops::Shr<u8, Output = Self> + 'static
@@ -94,9 +93,9 @@ impl<U: Hexable> RGBHexEntryBuilder<U> {
 
         let mut v: Vec<Rc<HexEntry<U>>> = vec![];
         for (index, (label, rgb)) in [
-            ("Red:", RGB::<U>::RED),
-            ("Green:", RGB::<U>::GREEN),
-            ("Blue:", RGB::<U>::BLUE),
+            ("Red:", "#CF0000"),
+            ("Green:", "#00CF00"),
+            ("Blue:", "#0000FF"),
         ]
         .iter()
         .enumerate()
@@ -105,8 +104,9 @@ impl<U: Hexable> RGBHexEntryBuilder<U> {
                 .editable(self.editable)
                 .initial_value(self.initial_rgb[index])
                 .build();
-            let label = gtk::Label::new(Some(label));
-            label.set_widget_colour(rgb);
+            let markup = format!("<span foreground =\"{}\"><b>{}</b></span>", rgb, label);
+            let label = gtk::Label::new(None);
+            label.set_markup(&markup);
             hbox.pack_start(&label, true, true, 0);
             hbox.pack_start(entry.pwo(), false, false, 0);
             v.push(entry);
