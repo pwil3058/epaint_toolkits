@@ -17,7 +17,7 @@ use colour_math::{ColourBasics, HCV, ScalarAttribute};
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::colour::GdkColour;
-use colour_math_gtk::coloured::Colourable;
+use colour_math_gtk::coloured::{Colourable, NewColourable};
 
 use epaint::{paint::RangePaint, properties::PropertyTypes};
 

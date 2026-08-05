@@ -92,6 +92,14 @@ fn main() {
         .orientation(gtk::Orientation::Vertical)
         .build();
 
+    let coloured_label = gtkx::label::ColourLabel::new(Some("Coloured Label"));
+    coloured_label.set_colours(
+        &gdk::RGBA::new(1.0, 0.0, 0.0, 1.0),
+        &gdk::RGBA::new(0.0, 1.0, 0.0, 1.0),
+    );
+    let normal_label = gtk::Label::new(Some("Normal Label"));
+    v_box.pack_start(&normal_label, true, true, 0);
+    v_box.pack_start(&coloured_label, false, false, 0);
     let button = gtk::Button::with_label("Image Viewer");
     v_box.pack_start(&button, false, false, 0);
     button.connect_clicked(|_| launch_image_viewer());

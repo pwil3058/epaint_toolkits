@@ -16,7 +16,7 @@ use gtk_ext::{
 
 use colour_math::{ColourBasics, HCV, ScalarAttribute};
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
-use colour_math_gtk::coloured::Colourable;
+use colour_math_gtk::coloured::{Colourable, NewColourable};
 
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::{attributes::ColourAttributeDisplayStack, colour::*};

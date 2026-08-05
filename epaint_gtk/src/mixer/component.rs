@@ -17,7 +17,7 @@ use gtk_ext::{
 
 // use crate::colour::PartsColour;
 use colour_math::{ColourBasics, HCV, LightLevel, RGB};
-use colour_math_gtk::coloured::Colourable;
+use colour_math_gtk::coloured::{Colourable, NewColourable};
 
 use epaint::paint::RangePaint;
 use epaint::{LabelText, TooltipText};

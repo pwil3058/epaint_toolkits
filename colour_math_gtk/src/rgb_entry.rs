@@ -13,7 +13,7 @@ use num_traits_plus::NumberConstants;
 use colour_math::{HueConstants, UnsignedLightLevel, HCV, RGB};
 
 use crate::colour::GdkColour;
-use crate::coloured::Colourable;
+use crate::coloured::{Colourable, NewColourable};
 
 pub trait Hexable:
     UnsignedLightLevel + NumberConstants + Num + std::ops::Shr<u8, Output = Self> + 'static

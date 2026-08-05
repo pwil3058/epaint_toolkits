@@ -14,7 +14,7 @@ use std::{
 };
 
 use colour_math::{HCV, RGBConstants};
-use colour_math_gtk::coloured::Colourable;
+use colour_math_gtk::coloured::{Colourable, NewColourable};
 use gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use crate::icons;
