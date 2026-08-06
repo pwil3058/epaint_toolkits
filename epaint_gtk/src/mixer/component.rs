@@ -21,6 +21,7 @@ use colour_math_gtk::coloured::Colourable;
 
 use epaint::paint::RangePaint;
 use epaint::{LabelText, TooltipText};
+use gtk_ext::gtk::Orientation;
 
 type RemoveCallback = Box<dyn Fn(&RangePaint)>;
 
@@ -41,19 +42,25 @@ impl PartsSpinButton {
         let event_box = gtk::EventBox::builder()
             .tooltip_text(&range_paint.tooltip_text())
             .events(gdk::EventMask::BUTTON_PRESS_MASK | gdk::EventMask::BUTTON_RELEASE_MASK)
+            .hexpand(false)
             .build();
+        event_box.set_widget_colour(&range_paint.hcv());
         let spin_button = gtk::SpinButton::builder()
             .adjustment(&gtk::Adjustment::new(0.0, 0.0, 999.0, 1.0, 10.0, 0.0))
             .climb_rate(0.0)
             .digits(0)
             .sensitive(sensitive)
             .numeric(true)
+            .hexpand(true)
             .build();
-        let label = gtk::Label::new(Some(&range_paint.label_text()));
-        label.set_widget_colour(&range_paint.hcv());
-        let hbox = gtk::Box::new(gtk::Orientation::Horizontal, 0);
-        hbox.pack_start(&label, true, true, 0);
-        hbox.pack_start(&spin_button, false, false, 0);
+        spin_button.set_widget_colour(&range_paint.hcv());
+        let hbox = gtk::Box::builder()
+            .orientation(Orientation::Horizontal)
+            .hexpand(false)
+            .halign(gtk::Align::Start)
+            .build();
+        hbox.set_widget_colour(&range_paint.hcv());
+        hbox.pack_start(&spin_button, false, false, 2);
         let frame = gtk::Frame::builder().build();
         frame.add(&hbox);
         event_box.add(&frame);
@@ -226,7 +233,10 @@ impl PartsSpinButtonBox {
             self.vbox.remove(&row);
         }
         if !self.spinners.borrow().is_empty() {
-            let mut current_row = gtk::Box::new(gtk::Orientation::Horizontal, 1);
+            let mut current_row = gtk::Box::builder()
+                .orientation(gtk::Orientation::Horizontal)
+                .halign(gtk::Align::Start)
+                .build();
             self.vbox.pack_start(&current_row, false, false, 0);
             for (count, spinner) in self.spinners.borrow().iter().enumerate() {
                 if count > 0 && count % self.n_cols.get() as usize == 0 {

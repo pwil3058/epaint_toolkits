@@ -638,7 +638,7 @@ impl PixtureMixerBuilder {
 
         let mix_entry = MixtureEntry::new(&self.attributes);
 
-        let range_paint_spinner_box = PartsSpinButtonBox::new("Paints", 4, true);
+        let range_paint_spinner_box = PartsSpinButtonBox::new("Paints", 16, true);
 
         let mixture_display_dialog_manager = MixtureDisplayDialogManagerBuilder::new(&vbox)
             .attributes(&self.attributes)
