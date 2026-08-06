@@ -146,6 +146,10 @@ pub struct ScalarAttributeSelector {
 }
 
 impl ScalarAttributeSelector {
+    pub fn builder() -> ScalarAttributeSelectorBuilder {
+        ScalarAttributeSelectorBuilder::new()
+    }
+
     pub fn attribute(&self) -> ScalarAttribute {
         self.attribute.get()
     }
@@ -162,12 +166,12 @@ impl ScalarAttributeSelector {
     }
 }
 
-pub struct AttributeSelectorBuilder {
+pub struct ScalarAttributeSelectorBuilder {
     attributes: Vec<ScalarAttribute>,
     orientation: gtk::Orientation,
 }
 
-impl Default for AttributeSelectorBuilder {
+impl Default for ScalarAttributeSelectorBuilder {
     fn default() -> Self {
         Self {
             attributes: vec![],
@@ -176,7 +180,7 @@ impl Default for AttributeSelectorBuilder {
     }
 }
 
-impl AttributeSelectorBuilder {
+impl ScalarAttributeSelectorBuilder {
     pub fn new() -> Self {
         Self::default()
     }

@@ -4,7 +4,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use gtk_ext::{
     gtk::{self, prelude::*},
-    gtkx::entry::{HexEntry, HexEntryBuilder},
+    gtkx::entry::HexEntry,
     wrapper::*,
 };
 use num_traits::Num;
@@ -34,6 +34,10 @@ pub struct RGBHexEntry<U: Hexable> {
 }
 
 impl<U: Hexable> RGBHexEntry<U> {
+    pub fn builder() -> RGBHexEntryBuilder<U> {
+        RGBHexEntryBuilder::<U>::new()
+    }
+
     pub fn rgb(&self) -> RGB<U> {
         let v: Vec<U> = self.entries.iter().map(|e| e.value()).collect();
         RGB::<U>::from([v[0], v[1], v[2]])
@@ -100,7 +104,7 @@ impl<U: Hexable> RGBHexEntryBuilder<U> {
         .iter()
         .enumerate()
         {
-            let entry = HexEntryBuilder::new()
+            let entry = HexEntry::builder()
                 .editable(self.editable)
                 .initial_value(self.initial_rgb[index])
                 .build();

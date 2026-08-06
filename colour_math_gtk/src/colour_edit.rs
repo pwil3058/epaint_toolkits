@@ -9,10 +9,10 @@ use gtk_ext::{
 use colour_math::{hcv::HCV, LightLevel, ScalarAttribute, Value, RGB};
 
 use crate::{
-    attributes::{ColourAttributeDisplayStack, ColourAttributeDisplayStackBuilder},
+    attributes::ColourAttributeDisplayStack,
     colour::{GdkColour, ManipGdkColour},
-    manipulator::{ChromaLabel, ColourManipulatorGUI, ColourManipulatorGUIBuilder},
-    rgb_entry::{Hexable, RGBHexEntry, RGBHexEntryBuilder},
+    manipulator::{ChromaLabel, ColourManipulatorGUI},
+    rgb_entry::{Hexable, RGBHexEntry},
 };
 
 type ChangeCallback = Box<dyn Fn(&HCV)>;
@@ -90,11 +90,11 @@ impl ColourEditorBuilder {
     }
 
     pub fn build<U: Hexable>(&self) -> Rc<ColourEditor<U>> {
-        let cads = ColourAttributeDisplayStackBuilder::new()
+        let cads = ColourAttributeDisplayStack::builder()
             .scalar_attributes(&self.attributes)
             .build();
-        let rgb_entry = RGBHexEntryBuilder::<U>::new().editable(true).build();
-        let colour_manipulator = ColourManipulatorGUIBuilder::new()
+        let rgb_entry = RGBHexEntry::<U>::builder().editable(true).build();
+        let colour_manipulator = ColourManipulatorGUI::builder()
             .clamped(false)
             .extra_buttons(&self.extra_buttons)
             .chroma_label(if self.attributes.contains(&ScalarAttribute::Greyness) {

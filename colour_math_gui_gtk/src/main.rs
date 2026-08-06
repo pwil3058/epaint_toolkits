@@ -21,8 +21,8 @@ use colour_math::{
     HueConstants, ScalarAttribute, Value, HCV, RGB,
 };
 use colour_math_gtk::{
-    attributes::ColourAttributeDisplayStackBuilder, colour_edit::ColourEditorBuilder,
-    hue_wheel::GtkHueWheelBuilder,
+    attributes::ColourAttributeDisplayStack, colour_edit::ColourEditorBuilder,
+    hue_wheel::GtkHueWheel,
 };
 
 const DEFAULT_CONFIG_DIR_PATH: &str = "~/.config/colour_math_gui_gtk";
@@ -84,29 +84,14 @@ fn main() {
         ScalarAttribute::Warmth,
     ];
 
-    let cads = ColourAttributeDisplayStackBuilder::new()
+    let cads = ColourAttributeDisplayStack::builder()
         .scalar_attributes(&attributes)
         .build();
     cads.set_colour(Some(&RGB::from([0.1, 0.4, 0.7])));
     cads.set_target_colour(Some(&RGB::from([0.7, 0.4, 0.7])));
     vbox.pack_start(cads.pwo(), true, true, 0);
-    //
-    // let rgb_hex_entry = RGBHexEntryBuilder::<u16>::new()
-    //     .initial_colour(&RGB::from([0.1, 0.4, 0.7]))
-    //     .editable(true)
-    //     .build();
-    // let cads_c = Rc::clone(&cads);
-    // rgb_hex_entry.connect_colour_changed(move |c| cads_c.set_colour(Some(&c)));
-    // vbox.pack_start(&rgb_hex_entry.pwo(), false, false, 0);
-    //
-    // let colour_manipulator = ColourManipulatorGUIBuilder::new().build();
-    // let hex_entry_c = Rc::clone(&rgb_hex_entry);
-    // colour_manipulator.connect_changed(move |c| hex_entry_c.set_colour(&c));
-    // let cads_c = Rc::clone(&cads);
-    // colour_manipulator.connect_changed(move |c| cads_c.set_colour(Some(&c)));
-    // vbox.pack_start(&colour_manipulator.pwo(), true, true, 0);
 
-    let gtk_hue_wheel = GtkHueWheelBuilder::new()
+    let gtk_hue_wheel = GtkHueWheel::builder()
         .attributes(&attributes)
         .menu_item_specs(&[("add", ("Add", None, Some("Add something")).into(), 0)])
         .build();

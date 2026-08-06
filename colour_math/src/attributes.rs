@@ -1,5 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
-//use std::cmp::Ordering;
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
 use std::{
@@ -275,24 +274,6 @@ impl Warmth {
     pub const FIVE_SIXTHS: Self = Self(u64::MAX / 6 * 5);
 
     pub const ONE: Self = Self(u64::MAX);
-
-    // const K: Prop = Prop(u64::MAX / 3);
-    // const K_COMP: Prop = Prop(u64::MAX - Self::K.0);
-    // const B: UFDRNumber = UFDRNumber(u64::MAX as u128 / 2);
-    //
-    // pub fn calculate(chroma: Chroma, x_dash: Prop) -> Self {
-    //     debug_assert_ne!(chroma, Chroma::ZERO);
-    //     let temp = (Self::K + Self::K_COMP * x_dash) * chroma.into_prop();
-    //     debug_assert!(temp <= UFDRNumber::ONE);
-    //     match chroma {
-    //         Chroma::Shade(prop) => {
-    //             let warmth = Self::B - Self::B * prop + temp;
-    //             debug_assert!(warmth <= UFDRNumber::ONE);
-    //             warmth.into()
-    //         }
-    //         _ => temp.into(),
-    //     }
-    // }
 
     pub fn calculate_monochrome(value: Value) -> Self {
         ((Prop::ONE - Prop::from(value)) / 2).into()

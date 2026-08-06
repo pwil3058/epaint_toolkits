@@ -9,15 +9,12 @@ use std::{
 use gtk_ext::{
     cairo, gdk, glib,
     gtk::{self, prelude::*},
-    gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
+    gtkx::menu::{ManagedMenu, MenuItemSpec},
     sav_state::MaskedCondns,
     wrapper::*,
 };
 
-use crate::{
-    attributes::{AttributeSelectorBuilder, ScalarAttributeSelector},
-    colour::GdkColour,
-};
+use crate::{attributes::ScalarAttributeSelector, colour::GdkColour};
 use colour_math::{
     hue_wheel::{ColouredShape, HueWheel},
     ScalarAttribute,
@@ -149,7 +146,7 @@ impl GtkHueWheelBuilder {
             &self.attributes
         };
 
-        let attribute_selector = AttributeSelectorBuilder::new()
+        let attribute_selector = ScalarAttributeSelector::builder()
             .orientation(gtk::Orientation::Horizontal)
             .attributes(attributes)
             .build();
@@ -167,7 +164,7 @@ impl GtkHueWheelBuilder {
             )
             .build();
 
-        let popup_menu = ManagedMenuBuilder::new().build();
+        let popup_menu = ManagedMenu::builder().build();
 
         let gtk_hue_wheel = Rc::new(GtkHueWheel {
             vbox: gtk::Box::new(gtk::Orientation::Vertical, 0),

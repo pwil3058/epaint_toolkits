@@ -7,17 +7,13 @@ use std::{
 use gtk_ext::{
     cairo, gdk, gdk_pixbuf, glib,
     gtk::{self, prelude::*, DrawingArea},
-    gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
+    gtkx::menu::{ManagedMenu, MenuItemSpec},
     sav_state::{MaskedCondns, SAV_NEXT_CONDN},
     wrapper::*,
 };
 
 use colour_math::{
-    fdrn::Prop,
-    hcv::HCV,
-    hue::angle::Angle,
-    manipulator::{ColourManipulator, ColourManipulatorBuilder},
-    LightLevel, Value, RGB,
+    fdrn::Prop, hcv::HCV, hue::angle::Angle, manipulator::ColourManipulator, LightLevel, Value, RGB,
 };
 use colour_math_cairo::Point;
 
@@ -109,6 +105,10 @@ pub struct ColourManipulatorGUI {
 }
 
 impl ColourManipulatorGUI {
+    pub fn builder() -> ColourManipulatorGUIBuilder {
+        ColourManipulatorGUIBuilder::new()
+    }
+
     pub fn set_colour(&self, colour: &impl ManipGdkColour) {
         self.colour_manipulator.borrow_mut().set_colour(colour);
         let offset: Prop = (Prop::ONE / 10 * 2).into();
@@ -257,11 +257,8 @@ impl ColourManipulatorGUIBuilder {
             )
             .receives_default(true)
             .build();
-        let colour_manipulator = RefCell::new(
-            ColourManipulatorBuilder::new()
-                .clamped(self.clamped)
-                .build(),
-        );
+        let colour_manipulator =
+            RefCell::new(ColourManipulator::builder().clamped(self.clamped).build());
         let drawing_area = DrawingArea::builder()
             .events(gdk::EventMask::BUTTON_PRESS_MASK)
             .height_request(150)
@@ -281,7 +278,7 @@ impl ColourManipulatorGUIBuilder {
             samples: RefCell::new(vec![]),
             auto_match_btn: gtk::Button::with_label("Auto Match"),
             auto_match_on_paste_btn: gtk::CheckButton::with_label("On Paste?"),
-            popup_menu: ManagedMenuBuilder::new().build(),
+            popup_menu: ManagedMenu::builder().build(),
             popup_menu_posn: Cell::new((0.0, 0.0).into()),
             change_callbacks: RefCell::new(Vec::new()),
         });
