@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use num_traits_plus::assert_approx_eq;
 
 use crate::{
@@ -7,31 +7,31 @@ use crate::{
     fdrn::{IntoProp, Prop, UFDRNumber},
     hcv::*,
     hue::{angle::*, Hue, HueBasics},
-    manipulator::{ColourManipulatorBuilder, SetHue},
+    manipulator::{ColourManipulator, SetHue},
     rgb::RGB,
     ColourBasics, HueConstants, RGBConstants,
 };
 
 #[test]
 fn build_manipulator() {
-    let manipualor = ColourManipulatorBuilder::new().build();
+    let manipualor = ColourManipulator::builder().build();
     assert_eq!(manipualor.clamped, false);
     assert_eq!(manipualor.rotation_policy, SetHue::FavourChroma);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
-    let manipualor = ColourManipulatorBuilder::new().clamped(true).build();
+    let manipualor = ColourManipulator::builder().clamped(true).build();
     assert_eq!(manipualor.clamped, true);
     assert_eq!(manipualor.rotation_policy, SetHue::FavourChroma);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
-    let manipualor = ColourManipulatorBuilder::new()
+    let manipualor = ColourManipulator::builder()
         .rotation_policy(SetHue::FavourValue)
         .build();
     assert_eq!(manipualor.clamped, false);
     assert_eq!(manipualor.rotation_policy, SetHue::FavourValue);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
-    let manipualor = ColourManipulatorBuilder::new()
+    let manipualor = ColourManipulator::builder()
         .init_rgb(&RGB::<u8>::CYAN)
         .build();
     assert_eq!(manipualor.clamped, false);
@@ -39,7 +39,7 @@ fn build_manipulator() {
     assert_eq!(manipualor.hcv(), HCV::CYAN);
     assert_eq!(manipualor.rgb::<u8>(), RGB::CYAN);
     assert_eq!(manipualor.saved_hue, Hue::CYAN);
-    let manipualor = ColourManipulatorBuilder::new()
+    let manipualor = ColourManipulator::builder()
         .clamped(true)
         .init_hcv(&HCV::YELLOW)
         .rotation_policy(SetHue::FavourValue)
@@ -53,7 +53,7 @@ fn build_manipulator() {
 
 #[test]
 fn set_get_parameters() {
-    let mut manipualor = ColourManipulatorBuilder::new().build();
+    let mut manipualor = ColourManipulator::builder().build();
     let ll_list = [
         0_u8,
         1_u8,
@@ -95,7 +95,7 @@ fn set_get_parameters() {
 fn decr_chroma() {
     // clamping should make no difference to chroma decrementing
     for clamped in &[true, false] {
-        let mut manipulator = ColourManipulatorBuilder::new().clamped(*clamped).build();
+        let mut manipulator = ColourManipulator::builder().clamped(*clamped).build();
         assert_eq!(manipulator.hcv, HCV::BLACK);
         assert!(!manipulator.decr_chroma(0.1_f64.into()));
         manipulator.set_colour(&RGB::<u64>::YELLOW);
@@ -267,7 +267,7 @@ fn incr_decr_sum_unclamped() {
 
 #[test]
 fn rotate_rgb_favouring_chroma() {
-    let mut manipulator = ColourManipulatorBuilder::new()
+    let mut manipulator = ColourManipulator::builder()
         .rotation_policy(SetHue::FavourChroma)
         .build();
     let deltas = [
@@ -349,7 +349,7 @@ fn rotate_rgb_favouring_chroma() {
 
 #[test]
 fn rotate_rgb_favouring_value() {
-    let mut manipulator = ColourManipulatorBuilder::new()
+    let mut manipulator = ColourManipulator::builder()
         .rotation_policy(SetHue::FavourValue)
         .build();
     let deltas = [

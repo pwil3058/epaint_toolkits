@@ -200,7 +200,7 @@ mod paint_tests {
         };
         let paint = Paint {
             #[cfg(feature = "paints_have_ids")]
-            id: "magenta".to_string(),
+            id: "Magenta".to_string(),
             colour: HCV::MAGENTA,
             name: "Magenta".to_string(),
             notes: String::new(),

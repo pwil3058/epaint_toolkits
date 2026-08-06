@@ -99,10 +99,12 @@ pub trait WidgetWrapper: PackableWidgetObject + DialogUser {
 #[cfg(test)]
 mod wrapper_tests {
     use super::*;
-    use glib::Cast;
-    use gtk;
-    use gtk::WidgetExt;
+
     use std::rc::Rc;
+
+    use crate::glib::Cast;
+    use crate::gtk;
+    // use crate::gtk::prelude::*;
 
     #[test]
     fn widget_wrapper_simple() {
@@ -159,6 +161,7 @@ mod wrapper_tests {
 
     #[test]
     fn widget_wrapper_complex_generic_constrained() {
+        #[allow(dead_code)]
         trait Alpha<B>
         where
             B: PartialEq,

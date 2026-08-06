@@ -65,7 +65,7 @@ fn main() {
     let bpe = PaintEditor::new(&[Warmth], &property_types);
     vbox.pack_start(bpe.pwo(), false, false, 0);
     let mut paint = Paint {
-        #[cfg(feature = "paints_have_ids")]
+        // #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
         name: "Paint Name".to_string(),
         colour: HCV::MAGENTA,

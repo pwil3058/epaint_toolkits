@@ -40,6 +40,10 @@ pub struct ColourManipulator {
 }
 
 impl ColourManipulator {
+    pub fn builder() -> ColourManipulatorBuilder {
+        ColourManipulatorBuilder::default()
+    }
+
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
         self.hcv.rgb()
     }

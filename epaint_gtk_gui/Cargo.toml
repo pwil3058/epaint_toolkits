@@ -17,11 +17,11 @@ colour_math_derive = { path = "../colour_math_derive" }
 
 [dependencies.epaint]
 path = "../epaint"
-features = ["targeted_mixtures"]
+features = ["targeted_mixtures", "paints_have_ids"]
 
 #epaint_derive = { path = "../epaint_derive" }
 
 [dependencies.epaint_gtk]
 path = "../epaint_gtk"
-features = ["targeted_mixtures", "palette_samples"]
+features = ["targeted_mixtures", "palette_samples", "paints_have_ids"]
 #features = ["palette_samples"]

@@ -76,6 +76,10 @@ pub struct ColourAttributeDisplayStack {
 }
 
 impl ColourAttributeDisplayStack {
+    pub fn builder() -> ColourAttributeDisplayStackBuilder {
+        ColourAttributeDisplayStackBuilder::new()
+    }
+
     pub fn new(scalar_attributes: &[ScalarAttribute]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let cads = RefCell::new(Vec::with_capacity(scalar_attributes.len() + 1));
