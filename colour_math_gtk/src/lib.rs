@@ -29,35 +29,23 @@ pub mod colour {
 }
 
 pub mod coloured {
-    use gtk_ext::gtk::{self, prelude::*};
+    use gtk_ext::gtk;
+    use gtk_ext::gtkx::coloured::*;
 
     use crate::colour::*;
 
     #[allow(deprecated)]
-    pub trait Colourable: WidgetExt {
+    pub trait Colourable: ColourableWidgetExt {
         fn set_widget_colour(&self, colour: &impl GdkColour) {
-            let _bg_gdk_rgba = colour.gdk_rgba();
-            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
-            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
-            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
-        }
-    }
-
-    #[allow(deprecated)]
-    impl Colourable for gtk::Button {
-        fn set_widget_colour(&self, colour: &impl GdkColour) {
-            let _bg_gdk_rgba = colour.gdk_rgba();
-            let _fg_gdk_rgba = colour.best_foreground().gdk_rgba();
-            // self.override_background_color(gtk::StateFlags::empty(), Some(&bg_gdk_rgba));
-            // self.override_color(gtk::StateFlags::empty(), Some(&fg_gdk_rgba));
-            // for child in self.get_children().iter() {
-            //     child.set_widget_colour(colour);
-            // }
+            let bg_gdk_rgba = colour.gdk_rgba();
+            let fg_gdk_rgba = colour.best_foreground().gdk_rgba();
+            self.set_widget_colours(&bg_gdk_rgba, &fg_gdk_rgba);
         }
     }
 
     impl Colourable for gtk::Bin {}
     impl Colourable for gtk::Box {}
+    impl Colourable for gtk::Button {}
     impl Colourable for gtk::ButtonBox {}
     impl Colourable for gtk::CheckButton {}
     impl Colourable for gtk::ComboBox {}
