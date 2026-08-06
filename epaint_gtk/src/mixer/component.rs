@@ -19,8 +19,8 @@ use gtk_ext::{
 use colour_math::{ColourBasics, HCV, LightLevel, RGB};
 use colour_math_gtk::coloured::Colourable;
 
+use epaint::TooltipText;
 use epaint::paint::RangePaint;
-use epaint::{LabelText, TooltipText};
 use gtk_ext::gtk::Orientation;
 
 type RemoveCallback = Box<dyn Fn(&RangePaint)>;
