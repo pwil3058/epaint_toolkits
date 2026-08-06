@@ -5,6 +5,7 @@ use gtk_ext::gdk_pixbufx::viewer::*;
 use gtk_ext::{gtk, gtk::prelude::*};
 
 use gtk_ext::gtkx::check_button::MutuallyExclusiveCheckButtonsBuilder;
+use gtk_ext::gtkx::coloured::ColourableWidgetExt;
 use gtk_ext::gtkx::combo_box_text::SortedUnique;
 use gtk_ext::gtkx::list_store::{ListRowOps, ListViewSpec, WrappedListStore, WrappedTreeModel};
 use gtk_ext::gtkx::menu::ManagedMenuBuilder;
@@ -13,10 +14,10 @@ use gtk_ext::gtkx::radio_button::RadioButtonsBuilder;
 use gtk_ext::gtkx::tree_view::TreeViewWithPopupBuilder;
 use gtk_ext::gtkx::window::RememberGeometry;
 
+use gtk_ext::gdk::RGBA;
 use gtk_ext::sav_state::{SAV_SELN_UNIQUE, SAV_SELN_UNIQUE_OR_HOVER_OK};
 use gtk_ext::wrapper::*;
 use gtk_ext::*;
-
 use recollections;
 
 #[derive(PWO)]
@@ -93,6 +94,10 @@ fn main() {
         .build();
 
     let button = gtk::Button::with_label("Image Viewer");
+    button.set_widget_colours(
+        &RGBA::new(1.0, 0.0, 0.0, 1.0),
+        &RGBA::new(0.0, 1.0, 0.0, 1.0),
+    );
     v_box.pack_start(&button, false, false, 0);
     button.connect_clicked(|_| launch_image_viewer());
 

@@ -2,6 +2,7 @@
 
 pub mod buffered_list_store;
 pub mod check_button;
+pub mod coloured;
 pub mod combo_box_text;
 pub mod dialog;
 pub mod dialog_user;
