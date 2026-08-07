@@ -10,6 +10,7 @@ use gtk_ext::gtkx::combo_box_text::SortedUnique;
 use gtk_ext::gtkx::list_store::{ListRowOps, ListViewSpec, WrappedListStore, WrappedTreeModel};
 use gtk_ext::gtkx::menu::ManagedMenuBuilder;
 use gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
+use gtk_ext::gtkx::placard::Placard;
 use gtk_ext::gtkx::radio_button::RadioButtonsBuilder;
 use gtk_ext::gtkx::tree_view::TreeViewWithPopupBuilder;
 use gtk_ext::gtkx::window::RememberGeometry;
@@ -92,6 +93,13 @@ fn main() {
     let v_box = gtk::Box::builder()
         .orientation(gtk::Orientation::Vertical)
         .build();
+
+    let placard = Placard::with_label("Placard");
+    placard.set_widget_colours(
+        &RGBA::new(1.0, 0.0, 0.0, 1.0),
+        &RGBA::new(1.0, 1.0, 0.0, 1.0),
+    );
+    v_box.pack_start(&placard, true, true, 0);
 
     let button = gtk::Button::with_label("Image Viewer");
     button.set_widget_colours(
