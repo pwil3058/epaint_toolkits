@@ -58,6 +58,7 @@ impl PartsSpinButton {
             .orientation(Orientation::Horizontal)
             .hexpand(false)
             .halign(gtk::Align::Start)
+            .border_width(2)
             .build();
         hbox.set_widget_colour(&range_paint.hcv());
         hbox.pack_start(&spin_button, false, false, 2);
