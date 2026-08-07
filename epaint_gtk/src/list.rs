@@ -170,10 +170,7 @@ impl PaintListRow for Paint {
             let string = property.abbrev_value();
             row.push(string.to_value());
         }
-        #[cfg(feature = "targeted_mixtures")]
-        {
-            row.push(self.hcv().pango_string().to_value());
-        }
+
         row
     }
 }

@@ -30,7 +30,7 @@ pub struct MixtureDisplay {
     vbox: gtk::Box,
     mixture: Mixture,
     #[cfg(feature = "targeted_mixtures")]
-    target_label: gtk::Label,
+    target_placard: Placard,
     #[cfg(feature = "targeted_mixtures")]
     cads: Rc<ColourAttributeDisplayStack>,
 }
@@ -39,12 +39,12 @@ impl MixtureDisplay {
     #[cfg(feature = "targeted_mixtures")]
     pub fn set_target(&self, new_target: Option<&impl GdkColour>) {
         if let Some(colour) = new_target {
-            self.target_label.set_label("Current Target");
-            self.target_label.set_widget_colour(colour);
+            self.target_placard.set_label("Current Target");
+            self.target_placard.set_widget_colour(colour);
             self.cads.set_target_colour(Some(colour));
         } else {
-            self.target_label.set_label("");
-            self.target_label.set_widget_colour(&self.mixture.hcv());
+            self.target_placard.set_label("");
+            self.target_placard.set_widget_colour(&self.mixture.hcv());
             self.cads.set_target_colour(Option::<&HCV>::None);
         };
     }
@@ -158,7 +158,7 @@ impl MixtureDisplayBuilder {
             vbox,
             mixture: mixture.clone(),
             #[cfg(feature = "targeted_mixtures")]
-            target_label,
+            target_placard: target_label,
             #[cfg(feature = "targeted_mixtures")]
             cads,
         }

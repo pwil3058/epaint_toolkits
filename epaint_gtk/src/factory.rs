@@ -77,8 +77,8 @@ impl PaintFactory {
         Ok(())
     }
 
-    fn add_paint(&self, paint_spec: &Paint) {
-        self.do_add_paint_work(paint_spec);
+    fn add_paint(&self, paint: &Paint) {
+        self.do_add_paint_work(paint);
         self.update_series_needs_saving();
         self.update_editor_needs_saving();
     }
@@ -286,7 +286,7 @@ impl PaintFactoryBuilder {
 
         let bpf_c = Rc::clone(&bpf);
         bpf.paint_editor
-            .connect_add_action(move |spec| bpf_c.add_paint(spec));
+            .connect_add_action(move |paint| bpf_c.add_paint(paint));
 
         let bpf_c = Rc::clone(&bpf);
         bpf.paint_editor

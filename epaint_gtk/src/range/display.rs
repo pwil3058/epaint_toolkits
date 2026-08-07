@@ -112,7 +112,6 @@ impl PaintDisplayBuilder {
         placard.set_widget_colour(&hcv);
         vbox.pack_start(&placard, false, false, 0);
 
-        // let series_id = range_paint.series_id();
         let placard = Placard::builder().label(&series_id.proprietor).build();
         placard.set_widget_colour(&hcv);
         vbox.pack_start(&placard, false, false, 0);
