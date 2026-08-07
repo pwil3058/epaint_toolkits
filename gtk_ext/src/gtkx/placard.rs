@@ -1,5 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use crate::gdk;
 use crate::glib::{self, wrapper};
 use crate::gtk::{prelude::*, subclass::prelude::*};
 
@@ -35,6 +36,10 @@ wrapper! {
 }
 
 impl Placard {
+    pub fn builder() -> PlacardBuilder {
+        PlacardBuilder::default()
+    }
+
     pub fn new() -> Self {
         glib::Object::builder::<Placard>().build()
     }
@@ -47,6 +52,38 @@ impl Placard {
 }
 
 impl ColourableWidgetExt for Placard {}
+
+#[derive(Default)]
+pub struct PlacardBuilder {
+    label: String,
+    colours: Option<(gdk::RGBA, gdk::RGBA)>,
+    // background: Option<gdk::RGBA>,
+    // foreground: Option<gdk::RGBA>,
+}
+
+impl PlacardBuilder {
+    pub fn label(&mut self, label: &str) -> &mut PlacardBuilder {
+        self.label = label.to_owned();
+        self
+    }
+
+    pub fn colours(
+        &mut self,
+        background: &gdk::RGBA,
+        foreground: &gdk::RGBA,
+    ) -> &mut PlacardBuilder {
+        self.colours = Some((background.clone(), foreground.clone()));
+        self
+    }
+
+    pub fn build(&self) -> Placard {
+        let placard = Placard::with_label(&self.label);
+        if let Some((background, foreground)) = self.colours {
+            placard.set_widget_colours(&background, &foreground);
+        }
+        placard
+    }
+}
 
 #[cfg(test)]
 mod placard_tests {
@@ -62,5 +99,7 @@ mod placard_tests {
             &RGBA::new(1.0, 0.0, 0.0, 1.0),
             &RGBA::new(0.0, 1.0, 0.0, 1.0),
         );
+        let placard2 = Placard::builder().label("label").build();
+        debug_assert_ne!(placard.label(), placard2.label());
     }
 }

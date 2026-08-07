@@ -94,11 +94,13 @@ fn main() {
         .orientation(gtk::Orientation::Vertical)
         .build();
 
-    let placard = Placard::with_label("Placard");
-    placard.set_widget_colours(
-        &RGBA::new(1.0, 0.0, 0.0, 1.0),
-        &RGBA::new(1.0, 1.0, 0.0, 1.0),
-    );
+    let placard = Placard::builder()
+        .label("Placard")
+        .colours(
+            &RGBA::new(1.0, 0.0, 0.0, 1.0),
+            &RGBA::new(1.0, 1.0, 0.0, 1.0),
+        )
+        .build();
     v_box.pack_start(&placard, true, true, 0);
 
     let button = gtk::Button::with_label("Image Viewer");
