@@ -23,3 +23,4 @@ pub mod tree_model;
 pub mod value;
 #[macro_use]
 pub mod list_store;
+pub mod placard;
