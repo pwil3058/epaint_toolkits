@@ -8,6 +8,7 @@ use gtk_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::dialog_user::TopGtkWindow,
+    gtkx::placard::*,
     sav_state::{ChangedCondnsNotifier, ConditionalWidgetsBuilder},
     wrapper::*,
 };
@@ -93,28 +94,28 @@ impl PaintDisplayBuilder {
 
         #[cfg(feature = "paints_have_ids")]
         {
-            let label = gtk::Label::builder().label(range_paint.id()).build();
-            label.set_widget_colour(&hcv);
-            vbox.pack_start(&label, false, false, 0);
+            let placard = Placard::builder().label(range_paint.id()).build();
+            placard.set_widget_colour(&hcv);
+            vbox.pack_start(&placard, false, false, 0);
         }
 
-        let label = gtk::Label::builder().label(range_paint.name()).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(range_paint.name()).build();
+        placard.set_widget_colour(&hcv);
+        vbox.pack_start(&placard, false, false, 0);
 
-        let label = gtk::Label::builder().label(range_paint.notes()).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
-
-        let series_id = range_paint.series_id();
-        let label = gtk::Label::builder().label(&series_id.name).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(range_paint.notes()).build();
+        placard.set_widget_colour(&hcv);
+        vbox.pack_start(&placard, false, false, 0);
 
         let series_id = range_paint.series_id();
-        let label = gtk::Label::builder().label(&series_id.proprietor).build();
-        label.set_widget_colour(&hcv);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(&series_id.name).build();
+        placard.set_widget_colour(&hcv);
+        vbox.pack_start(&placard, false, false, 0);
+
+        // let series_id = range_paint.series_id();
+        let placard = Placard::builder().label(&series_id.proprietor).build();
+        placard.set_widget_colour(&hcv);
+        vbox.pack_start(&placard, false, false, 0);
 
         let cads = ColourAttributeDisplayStackBuilder::new()
             .scalar_attributes(&self.attributes)

@@ -10,6 +10,7 @@ use gtk_ext::{
     gtkx::{
         dialog_user::TopGtkWindow,
         list::{ListViewSpec, ListViewWithPopUpMenuBuilder},
+        placard::*,
     },
     wrapper::*,
 };
@@ -95,17 +96,17 @@ impl MixtureDisplayBuilder {
             .orientation(gtk::Orientation::Vertical)
             .build();
 
-        let label = gtk::Label::builder().label(mixture.id()).build();
-        label.set_widget_colour(&colour);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(mixture.id()).build();
+        placard.set_widget_colour(&colour);
+        vbox.pack_start(&placard, false, false, 0);
 
-        let label = gtk::Label::builder().label(mixture.name()).build();
-        label.set_widget_colour(&colour);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(mixture.name()).build();
+        placard.set_widget_colour(&colour);
+        vbox.pack_start(&placard, false, false, 0);
 
-        let label = gtk::Label::builder().label(mixture.notes()).build();
-        label.set_widget_colour(&colour);
-        vbox.pack_start(&label, false, false, 0);
+        let placard = Placard::builder().label(mixture.notes()).build();
+        placard.set_widget_colour(&colour);
+        vbox.pack_start(&placard, false, false, 0);
 
         let cads = ColourAttributeDisplayStackBuilder::new()
             .scalar_attributes(&self.attributes)
@@ -114,14 +115,14 @@ impl MixtureDisplayBuilder {
 
         #[cfg(feature = "targeted_mixtures")]
         let target_label = if let Some(target_colour) = self.target_colour {
-            let label = gtk::Label::builder().label("Target").build();
-            label.set_widget_colour(&target_colour);
+            let placard = Placard::builder().label("Target").build();
+            placard.set_widget_colour(&target_colour);
             cads.set_target_colour(Some(&target_colour));
-            label
+            placard
         } else {
-            let label = gtk::Label::builder().build();
-            label.set_widget_colour(&colour);
-            label
+            let placard = Placard::builder().build();
+            placard.set_widget_colour(&colour);
+            placard
         };
         #[cfg(feature = "targeted_mixtures")]
         vbox.pack_start(&target_label, true, true, 0);

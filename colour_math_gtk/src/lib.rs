@@ -31,6 +31,7 @@ pub mod colour {
 pub mod coloured {
     use gtk_ext::gtk;
     use gtk_ext::gtkx::coloured::*;
+    use gtk_ext::gtkx::placard::Placard;
 
     use crate::colour::*;
 
@@ -42,6 +43,8 @@ pub mod coloured {
             self.set_widget_colours(&bg_gdk_rgba, &fg_gdk_rgba);
         }
     }
+
+    impl Colourable for Placard {}
 
     impl Colourable for gtk::Bin {}
     impl Colourable for gtk::Box {}
