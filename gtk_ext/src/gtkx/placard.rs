@@ -51,6 +51,12 @@ impl Placard {
     }
 }
 
+impl Default for Placard {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ColourableWidgetExt for Placard {}
 
 #[derive(Default)]
@@ -72,7 +78,7 @@ impl PlacardBuilder {
         background: &gdk::RGBA,
         foreground: &gdk::RGBA,
     ) -> &mut PlacardBuilder {
-        self.colours = Some((background.clone(), foreground.clone()));
+        self.colours = Some((*background, *foreground));
         self
     }
 

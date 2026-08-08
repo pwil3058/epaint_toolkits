@@ -57,22 +57,22 @@ pub enum Proximity {
 
 impl PartialOrd for Proximity {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        match self {
-            Self::Enclosed(mine) => match other {
-                Self::Enclosed(other) => mine.partial_cmp(other),
-                Self::NotEnclosed(_) => Some(Ordering::Less),
-            },
-            Self::NotEnclosed(mine) => match other {
-                Self::Enclosed(_) => Some(Ordering::Greater),
-                Self::NotEnclosed(other) => mine.partial_cmp(other),
-            },
-        }
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Proximity {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).expect("should never get None")
+        match self {
+            Self::Enclosed(mine) => match other {
+                Self::Enclosed(other) => mine.cmp(other),
+                Self::NotEnclosed(_) => Ordering::Less,
+            },
+            Self::NotEnclosed(mine) => match other {
+                Self::Enclosed(_) => Ordering::Greater,
+                Self::NotEnclosed(other) => mine.cmp(other),
+            },
+        }
     }
 }
 

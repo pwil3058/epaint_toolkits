@@ -320,7 +320,7 @@ pub trait PathCompletion: EntryExt + EditableSignals {
                             continue;
                         };
                         let mut path = dir_pathbuf.clone();
-                        path.push(&entry.file_name());
+                        path.push(entry.file_name());
                         if let Some(string) = path.to_str() {
                             list_store.append_row(&[string.to_value()]);
                         }
@@ -329,7 +329,7 @@ pub trait PathCompletion: EntryExt + EditableSignals {
                     let msep = format!("{}", MAIN_SEPARATOR);
                     for entry in entries {
                         let mut path = dir_pathbuf.clone();
-                        path.push(&entry.file_name());
+                        path.push(entry.file_name());
                         if entry.is_dir() {
                             path.push(&msep);
                         };

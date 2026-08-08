@@ -42,15 +42,12 @@ impl Deref for TreeViewWithPopup {
 
 impl TreeViewWithPopup {
     fn get_id_value_at(&self, posn: (f64, f64)) -> Option<Value> {
-        if let Some(location) = self.0.tree_view.path_at_pos(posn.0 as i32, posn.1 as i32) {
-            if let Some(path) = location.0 {
-                if let Some(tree_model) = self.0.tree_view.model() {
-                    if let Some(iter) = tree_model.iter(&path) {
-                        let value = tree_model.value(&iter, self.0.id_field);
-                        return Some(value);
-                    }
-                }
-            }
+        if let Some(location) = self.0.tree_view.path_at_pos(posn.0 as i32, posn.1 as i32)
+            && let Some(path) = location.0
+            && let Some(tree_model) = self.0.tree_view.model()
+            && let Some(iter) = tree_model.iter(&path)
+        {
+            return Some(tree_model.value(&iter, self.0.id_field));
         };
         None
     }

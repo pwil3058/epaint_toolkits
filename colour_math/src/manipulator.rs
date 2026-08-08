@@ -518,11 +518,7 @@ impl ColourManipulatorBuilder {
     }
 
     pub fn build(&self) -> ColourManipulator {
-        let hcv = if let Some(init_hcv) = self.init_hcv {
-            init_hcv
-        } else {
-            HCV::default()
-        };
+        let hcv = self.init_hcv.unwrap_or_default();
         let saved_hue = if let Some(hue) = hcv.hue() {
             hue
         } else {

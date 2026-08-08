@@ -82,11 +82,7 @@ impl MixtureDisplayBuilder {
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&mut self, target_colour: Option<&impl ColourBasics>) -> &mut Self {
-        self.target_colour = if let Some(target_colour) = target_colour {
-            Some(target_colour.hcv())
-        } else {
-            None
-        };
+        self.target_colour = target_colour.map(|target_colour| target_colour.hcv());
         self
     }
 
@@ -385,7 +381,7 @@ impl ListViewSpec for ComponentsListViewSpec {
 
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumn::builder()
-                .title(&attr.to_string())
+                .title(attr.to_string())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();

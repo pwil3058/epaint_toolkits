@@ -100,28 +100,28 @@ impl From<(Prop, Hue, UFDRNumber)> for Chroma {
 
 impl PartialOrd for Chroma {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
-        use Chroma::*;
-        match self {
-            Shade(proportion) => match rhs {
-                Shade(other_proportion) => proportion.partial_cmp(other_proportion),
-                _ => Some(Ordering::Less),
-            },
-            Tint(proportion) => match rhs {
-                Tint(other_proportion) => proportion.partial_cmp(other_proportion),
-                Shade(_) => Some(Ordering::Greater),
-                Neither(_) => Some(Ordering::Less),
-            },
-            Neither(proportion) => match rhs {
-                Neither(other_proportion) => proportion.partial_cmp(other_proportion),
-                _ => Some(Ordering::Greater),
-            },
-        }
+        Some(self.cmp(rhs))
     }
 }
 
 impl Ord for Chroma {
     fn cmp(&self, rhs: &Self) -> Ordering {
-        self.partial_cmp(rhs).unwrap()
+        use Chroma::*;
+        match self {
+            Shade(proportion) => match rhs {
+                Shade(other_proportion) => proportion.cmp(other_proportion),
+                _ => Ordering::Less,
+            },
+            Tint(proportion) => match rhs {
+                Tint(other_proportion) => proportion.cmp(other_proportion),
+                Shade(_) => Ordering::Greater,
+                Neither(_) => Ordering::Less,
+            },
+            Neither(proportion) => match rhs {
+                Neither(other_proportion) => proportion.cmp(other_proportion),
+                _ => Ordering::Greater,
+            },
+        }
     }
 }
 
@@ -198,28 +198,28 @@ impl Default for Greyness {
 
 impl PartialOrd for Greyness {
     fn partial_cmp(&self, rhs: &Self) -> Option<Ordering> {
-        use Greyness::*;
-        match self {
-            Shade(proportion) => match rhs {
-                Shade(other_proportion) => proportion.partial_cmp(other_proportion),
-                _ => Some(Ordering::Less),
-            },
-            Tint(proportion) => match rhs {
-                Tint(other_proportion) => proportion.partial_cmp(other_proportion),
-                Shade(_) => Some(Ordering::Greater),
-                Neither(_) => Some(Ordering::Less),
-            },
-            Neither(proportion) => match rhs {
-                Neither(other_proportion) => proportion.partial_cmp(other_proportion),
-                _ => Some(Ordering::Greater),
-            },
-        }
+        Some(self.cmp(rhs))
     }
 }
 
 impl Ord for Greyness {
     fn cmp(&self, rhs: &Self) -> Ordering {
-        self.partial_cmp(rhs).unwrap()
+        use Greyness::*;
+        match self {
+            Shade(proportion) => match rhs {
+                Shade(other_proportion) => proportion.cmp(other_proportion),
+                _ => Ordering::Less,
+            },
+            Tint(proportion) => match rhs {
+                Tint(other_proportion) => proportion.cmp(other_proportion),
+                Shade(_) => Ordering::Greater,
+                Neither(_) => Ordering::Less,
+            },
+            Neither(proportion) => match rhs {
+                Neither(other_proportion) => proportion.cmp(other_proportion),
+                _ => Ordering::Greater,
+            },
+        }
     }
 }
 

@@ -247,6 +247,10 @@ impl PropertyTypes {
         self.0.len()
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
     pub fn iter(&self) -> impl Iterator<Item = PropertyType> {
         self.0.iter().copied()
     }
@@ -308,17 +312,17 @@ impl Property {
 
 impl PartialOrd for Property {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        debug_assert_eq!(
-            self.property_type, other.property_type,
-            "attempt to compare properties of different types"
-        );
-        self.value.partial_cmp(&other.value)
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Property {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other).unwrap()
+        debug_assert_eq!(
+            self.property_type, other.property_type,
+            "attempt to compare properties of different types"
+        );
+        self.value.cmp(&other.value)
     }
 }
 
@@ -375,7 +379,7 @@ impl From<(PropertyType, u64)> for Property {
     fn from((property_type, value): (PropertyType, u64)) -> Self {
         Self {
             property_type,
-            value: value,
+            value,
         }
     }
 }
@@ -432,12 +436,10 @@ impl Properties {
     }
 
     pub fn get_property(&self, property_type: PropertyType) -> Option<Property> {
-        for property in self.0.iter().copied() {
-            if property.property_type == property_type {
-                return Some(property);
-            }
-        }
-        None
+        self.0
+            .iter()
+            .copied()
+            .find(|&property| property.property_type == property_type)
     }
 
     pub fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
@@ -445,7 +447,7 @@ impl Properties {
     }
 
     pub fn property_variants_u64(&self) -> Vec<u64> {
-        self.0.iter().map(|p| p.value as u64).collect()
+        self.0.iter().map(|p| p.value).collect()
     }
 }
 
@@ -495,8 +497,10 @@ impl PropertiesMixer {
             self.total_parts = parts;
         } else {
             let variant_64s = properties.property_variants_u64();
-            for index in 0..self.property_types.0.len() {
-                self.sums[index] += variant_64s[index] * parts;
+            for (index, item) in variant_64s.iter().enumerate()
+            // .take(self.property_types.0.len())
+            {
+                self.sums[index] += item * parts;
             }
             self.total_parts += parts;
         }

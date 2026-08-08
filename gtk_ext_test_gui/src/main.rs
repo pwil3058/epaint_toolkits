@@ -19,7 +19,6 @@ use gtk_ext::gdk::RGBA;
 use gtk_ext::sav_state::{SAV_SELN_UNIQUE, SAV_SELN_UNIQUE_OR_HOVER_OK};
 use gtk_ext::wrapper::*;
 use gtk_ext::*;
-use recollections;
 
 #[derive(PWO)]
 struct SimpleCore {

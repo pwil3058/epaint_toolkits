@@ -40,7 +40,7 @@ pub struct PartsSpinButton {
 impl PartsSpinButton {
     pub fn new(range_paint: &RangePaint, sensitive: bool) -> Rc<Self> {
         let event_box = gtk::EventBox::builder()
-            .tooltip_text(&range_paint.tooltip_text())
+            .tooltip_text(range_paint.tooltip_text())
             .events(gdk::EventMask::BUTTON_PRESS_MASK | gdk::EventMask::BUTTON_RELEASE_MASK)
             .hexpand(false)
             .build();

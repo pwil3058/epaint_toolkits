@@ -5,8 +5,8 @@ use std::ops::Deref;
 
 use crate::glib;
 
-pub use crate::gtkx::tree_model::*;
 use crate::UNEXPECTED;
+pub use crate::gtkx::tree_model::*;
 
 // NB: when done with the returned rows their items need to be unset?
 #[macro_export]

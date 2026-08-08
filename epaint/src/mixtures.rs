@@ -54,20 +54,14 @@ impl Mixture {
 impl Mixture {
     #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
-        if let Some(ref colour) = self.targeted_colour {
-            Some(colour.rgb::<L>())
-        } else {
-            None
-        }
+        self.targeted_colour
+            .as_ref()
+            .map(|colour| colour.rgb::<L>())
     }
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn targeted_colour(&self) -> Option<HCV> {
-        if let Some(colour) = self.targeted_colour {
-            Some(colour)
-        } else {
-            None
-        }
+        self.targeted_colour
     }
 
     #[cfg(feature = "targeted_mixtures")]
@@ -117,7 +111,7 @@ impl MakeColouredShape for Mixture {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Default)]
 pub struct MixingSession {
     notes: String,
     mixtures: Vec<Mixture>,
@@ -125,10 +119,7 @@ pub struct MixingSession {
 
 impl MixingSession {
     pub fn new() -> Self {
-        Self {
-            notes: "".to_string(),
-            mixtures: Vec::new(),
-        }
+        Self::default()
     }
 
     pub fn notes(&self) -> &str {
@@ -271,7 +262,7 @@ impl MixtureBuilder {
     }
 
     pub fn build(&self) -> Mixture {
-        debug_assert!(self.series_components.len() > 0);
+        debug_assert!(!self.series_components.is_empty());
         let mut gcd: u64 = 0;
         for (_, parts) in self.series_components.iter() {
             debug_assert!(*parts > 0);

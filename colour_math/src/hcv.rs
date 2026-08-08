@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{
     cmp::Ordering,
     convert::TryFrom,
@@ -78,7 +78,9 @@ impl HCV {
         if let Some(hue) = self.hue {
             hue.sum_and_chroma_prop_are_compatible(self.sum, self.c_prop)
         } else {
-            self.c_prop == Prop::ZERO && self.sum <= UFDRNumber::THREE && self.sum.0 % 3 == 0
+            self.c_prop == Prop::ZERO
+                && self.sum <= UFDRNumber::THREE
+                && self.sum.0.is_multiple_of(3)
         }
     }
 

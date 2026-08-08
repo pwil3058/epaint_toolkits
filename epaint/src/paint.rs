@@ -66,14 +66,13 @@ impl Eq for Paint {}
 
 impl PartialOrd for Paint {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        self.key().cmp(&other.key()).into()
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Paint {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.partial_cmp(other)
-            .expect("serializable paints are comparable")
+        self.key().cmp(other.key())
     }
 }
 
@@ -115,7 +114,7 @@ impl RangePaint {
     }
 
     pub fn colour(&self) -> HCV {
-        self.paint.colour.clone()
+        self.paint.colour
     }
 
     pub fn properties(&self) -> impl Iterator<Item = Property> {
@@ -160,9 +159,9 @@ impl LabelText for RangePaint {
     }
 }
 
-impl Into<Paint> for RangePaint {
-    fn into(self) -> Paint {
-        self.paint.clone()
+impl From<RangePaint> for Paint {
+    fn from(range_paint: RangePaint) -> Self {
+        range_paint.paint.clone()
     }
 }
 

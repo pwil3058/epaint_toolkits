@@ -329,13 +329,13 @@ impl RangeBinder {
     }
 
     fn read_loaded_file_paths(&self) -> Vec<PathBuf> {
-        if let Some(loaded_files_data_path) = &self.loaded_files_data_path {
-            if loaded_files_data_path.exists() {
-                let mut file = File::open(loaded_files_data_path).expect("unrecoverable");
-                let mut string = String::new();
-                file.read_to_string(&mut string).expect("unrecoverable");
-                return string.lines().map(PathBuf::from).collect();
-            }
+        if let Some(loaded_files_data_path) = &self.loaded_files_data_path
+            && loaded_files_data_path.exists()
+        {
+            let mut file = File::open(loaded_files_data_path).expect("unrecoverable");
+            let mut string = String::new();
+            file.read_to_string(&mut string).expect("unrecoverable");
+            return string.lines().map(PathBuf::from).collect();
         }
         vec![]
     }
@@ -359,7 +359,7 @@ trait RcRangeBinder {
 
 impl RcRangeBinder for Rc<RangeBinder> {
     fn add_range(&self, new_range: PaintRange, path: &Path) -> Result<(), crate::Error> {
-        match self.binary_search_range_id(&new_range.range_id()) {
+        match self.binary_search_range_id(new_range.range_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
                 "{}: Range already in binder",
                 &new_range.range_id()

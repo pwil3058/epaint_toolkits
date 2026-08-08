@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{
     cmp::Ordering,
     convert::TryInto,
@@ -84,10 +84,7 @@ impl<T: LightLevel + Into<Prop>> RGB<T> {
 
 impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
     fn hue(&self) -> Option<Hue> {
-        match self.try_into() {
-            Ok(hue) => Some(hue),
-            Err(_) => None,
-        }
+        self.try_into().ok()
     }
 
     fn family(&self) -> Option<Family> {

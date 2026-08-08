@@ -36,18 +36,16 @@ pub trait ListViewSpec {
 
 impl ListViewWithPopUpMenu {
     fn set_selected_id(&self, posn: (f64, f64)) {
-        if let Some(location) = self.view.path_at_pos(posn.0 as i32, posn.1 as i32) {
-            if let Some(path) = location.0 {
-                if let Some(list_store) = self.view.model() {
-                    if let Some(iter) = list_store.iter(&path) {
-                        let value = list_store.value(&iter, self.id_field);
-                        if let Some(string) = value.get().unwrap() {
-                            *self.selected_id.borrow_mut() = Some(string);
-                            self.popup_menu.update_hover_condns(true);
-                            return;
-                        }
-                    }
-                }
+        if let Some(location) = self.view.path_at_pos(posn.0 as i32, posn.1 as i32)
+            && let Some(path) = location.0
+            && let Some(list_store) = self.view.model()
+            && let Some(iter) = list_store.iter(&path)
+        {
+            let value = list_store.value(&iter, self.id_field);
+            if let Some(string) = value.get().unwrap() {
+                *self.selected_id.borrow_mut() = Some(string);
+                self.popup_menu.update_hover_condns(true);
+                return;
             }
         };
         *self.selected_id.borrow_mut() = None;
@@ -79,10 +77,10 @@ impl ListViewWithPopUpMenu {
         let selected_ids: Option<Vec<String>> = if !tree_paths.is_empty() {
             let mut vector = vec![];
             for tree_path in tree_paths.iter() {
-                if let Some(iter) = store.iter(tree_path) {
-                    if let Ok(id) = store.value(&iter, self.id_field).get::<String>() {
-                        vector.push(id);
-                    }
+                if let Some(iter) = store.iter(tree_path)
+                    && let Ok(id) = store.value(&iter, self.id_field).get::<String>()
+                {
+                    vector.push(id);
                 }
             }
             if vector.is_empty() {

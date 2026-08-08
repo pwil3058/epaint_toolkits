@@ -52,8 +52,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let fmt_str = format!("'{{}}': Malformed '{name}' value string");
     match parsed_input.data {
         Data::Enum(e) => {
-            let mut count: u64 = 1;
-            for v in e.variants {
+            for (count, v) in (1_u64..).zip(e.variants) {
                 let v_name = v.ident.clone();
                 if first.is_none() {
                     first = Some(v.ident.clone());
@@ -111,8 +110,6 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     #enum_name::#v_name => #count,
                 };
                 to_u64_tokens.push(to_u64_token);
-
-                count += 1;
             }
         }
         _ => panic!("'Property' can only be derived for enums."),

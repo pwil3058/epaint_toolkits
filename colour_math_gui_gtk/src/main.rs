@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use recollections;
+// use recollections;
 
 use gtk_ext::{
     gtk::{self, prelude::*, MessageDialog},

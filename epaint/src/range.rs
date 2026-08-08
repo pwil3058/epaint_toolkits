@@ -55,7 +55,7 @@ impl PaintRange {
 
     pub fn remove(&mut self, key: &str) -> Result<Paint, crate::Error> {
         debug_assert!(self.is_sorted_unique());
-        match self.paint_list.binary_search_by_key(&key, |p| &p.key()) {
+        match self.paint_list.binary_search_by_key(&key, |p| p.key()) {
             Ok(index) => Ok(self.paint_list.remove(index)),
             Err(_) => Err(crate::Error::NotFound(key.to_string())),
         }

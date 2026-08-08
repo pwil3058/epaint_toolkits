@@ -87,6 +87,6 @@ pub trait PropertyEntries {
 
 impl PropertyEntries for PropertyTypes {
     fn property_entries(&self) -> impl Iterator<Item = Rc<PropertyEntry>> {
-        self.iter().map(|p| PropertyEntry::new(p))
+        self.iter().map(PropertyEntry::new)
     }
 }

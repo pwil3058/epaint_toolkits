@@ -116,7 +116,7 @@ impl PaintFactory {
         }
         let paint_series = self.paint_series.borrow();
         let paint = paint_series.get_paint(key).expect("should be there");
-        self.paint_editor.edit(&paint);
+        self.paint_editor.edit(paint);
         self.update_editor_needs_saving();
     }
 

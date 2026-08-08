@@ -580,10 +580,10 @@ where
         Ok(())
     }
 
-    pub fn get_widget<Q: ?Sized>(&self, key: &Q) -> Result<W, Error>
+    pub fn get_widget<Q>(&self, key: &Q) -> Result<W, Error>
     where
         K: std::borrow::Borrow<Q>,
-        Q: std::hash::Hash + Eq,
+        Q: std::hash::Hash + Eq + ?Sized,
     {
         let groups = self.0.groups.borrow();
         for group in groups.values() {

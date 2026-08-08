@@ -92,7 +92,7 @@ impl ListViewSpec for PaintListViewSpec {
         let mut index = next_col;
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumn::builder()
-                .title(&attr.to_string())
+                .title(attr.to_string())
                 .sort_column_id(index)
                 .sort_indicator(true)
                 .build();
@@ -287,7 +287,7 @@ impl ListViewSpec for MixtureListViewSpec {
 
         for attr in self.attributes.iter() {
             let col = gtk::TreeViewColumn::builder()
-                .title(&attr.to_string())
+                .title(attr.to_string())
                 .sort_column_id(next_col)
                 .sort_indicator(true)
                 .build();

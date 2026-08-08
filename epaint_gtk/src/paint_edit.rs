@@ -184,10 +184,10 @@ impl PaintEditor {
                 if entry.text_length() > 0 {
                     masked_condns.condns += crate::sav_state::SAV_ID_READY;
                 };
-                if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                    if paint.id != entry.text() {
-                        masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
-                    }
+                if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
+                    && paint.id != entry.text()
+                {
+                    masked_condns.condns += crate::sav_state::SAV_ID_CHANGED;
                 }
                 bpe_c.buttons.update_condns(masked_condns);
                 bpe_c.update_has_changes();
@@ -204,10 +204,10 @@ impl PaintEditor {
             if entry.text_length() > 0 {
                 masked_condns.condns += SAV_NAME_READY;
             };
-            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                if paint.name != entry.text() {
-                    masked_condns.condns += SAV_NAME_CHANGED;
-                }
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
+                && paint.name != entry.text()
+            {
+                masked_condns.condns += SAV_NAME_CHANGED;
             }
             bpe_c.buttons.update_condns(masked_condns);
             bpe_c.update_has_changes();
@@ -223,10 +223,10 @@ impl PaintEditor {
             if entry.text_length() > 0 {
                 masked_condns.condns += SAV_NOTES_READY;
             };
-            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                if paint.notes != entry.text() {
-                    masked_condns.condns += SAV_NOTES_CHANGED;
-                }
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
+                && paint.notes != entry.text()
+            {
+                masked_condns.condns += SAV_NOTES_CHANGED;
             }
             bpe_c.buttons.update_condns(masked_condns);
             bpe_c.update_has_changes();
@@ -239,10 +239,10 @@ impl PaintEditor {
                 condns: 0,
                 mask: SAV_RGB_CHANGED,
             };
-            if let Some(paint) = bpe_c.current_paint.borrow().as_ref() {
-                if &paint.colour != hcv {
-                    masked_condns.condns += SAV_RGB_CHANGED;
-                }
+            if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
+                && &paint.colour != hcv
+            {
+                masked_condns.condns += SAV_RGB_CHANGED;
             }
             bpe_c.buttons.update_condns(masked_condns);
             bpe_c.update_has_changes();

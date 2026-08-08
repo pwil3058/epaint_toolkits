@@ -304,21 +304,19 @@ impl MixtureEntry {
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         use colour_math::ColourBasics;
-        if let Some(colour) = self.target_colour.borrow().as_ref() {
-            Some(colour.rgb::<L>())
-        } else {
-            None
-        }
+        self.target_colour
+            .borrow()
+            .as_ref()
+            .map(|colour| colour.rgb::<L>())
     }
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&self) -> Option<HCV> {
         use colour_math::ColourBasics;
-        if let Some(colour) = self.target_colour.borrow().as_ref() {
-            Some(colour.hcv())
-        } else {
-            None
-        }
+        self.target_colour
+            .borrow()
+            .as_ref()
+            .map(|colour| colour.hcv())
     }
 
     #[cfg(feature = "palette_samples")]

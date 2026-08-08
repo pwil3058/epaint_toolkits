@@ -4,7 +4,7 @@ use crate::glib;
 use crate::gtk;
 use crate::gtk::prelude::*;
 
-use crate::{are_eq_values, are_equal_as, UNEXPECTED};
+use crate::{UNEXPECTED, are_eq_values, are_equal_as};
 
 // NB: when done with the returned row it's items need to be unset?
 #[macro_export]
@@ -48,9 +48,7 @@ macro_rules! matches_list_row {
 
 #[macro_export]
 macro_rules! len_of {
-    ( $store:expr ) => {{
-        $store.iter_n_children(None)
-    }};
+    ( $store:expr ) => {{ $store.iter_n_children(None) }};
 }
 
 pub trait WrappedTreeModel<M: IsA<gtk::TreeModel> + TreeModelRowOps> {

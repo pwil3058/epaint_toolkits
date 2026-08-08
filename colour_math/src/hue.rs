@@ -1,4 +1,4 @@
-// Copyright 2019 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     cmp::Ordering,
@@ -1665,13 +1665,13 @@ impl Sub for Hue {
 
 impl PartialOrd for Hue {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        self.ord_index().partial_cmp(&other.ord_index())
+        Some(self.cmp(other))
     }
 }
 
 impl Ord for Hue {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
+        self.ord_index().cmp(&other.ord_index())
     }
 }
 

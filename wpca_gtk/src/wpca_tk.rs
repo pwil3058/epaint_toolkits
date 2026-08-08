@@ -116,12 +116,13 @@ impl PaintersColourAssistantTK {
         } else {
             None
         };
-        if let Some(question) = question {
-            if self.ask_question(question, None, &buttons) == gtk::ResponseType::Cancel {
-                return false;
-            }
+        if let Some(question) = question
+            && self.ask_question(question, None, &buttons) == gtk::ResponseType::Cancel
+        {
+            false
+        } else {
+            true
         }
-        true
     }
 
     fn launch_pdf_viewer(&self) {

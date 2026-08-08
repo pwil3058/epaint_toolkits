@@ -78,11 +78,7 @@ impl PaintDisplayBuilder {
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&mut self, target_colour: Option<&impl GdkColour>) -> &mut Self {
-        self.target_colour = if let Some(target_colour) = target_colour {
-            Some(target_colour.hcv())
-        } else {
-            None
-        };
+        self.target_colour = target_colour.map(|target_colour| target_colour.hcv());
         self
     }
 
@@ -234,7 +230,7 @@ impl<W: TopGtkWindow + Clone + 'static> DisplayPaint for Rc<PaintDisplayDialogMa
                 button.set_tooltip_text(*tooltip_text);
                 managed_buttons
                     .add_widget(*response, &button, *condns)
-                    .expect(&std::format!("Duplicate key or button: {label:?}"));
+                    .unwrap_or_else(|_| panic!("Duplicate key or button: {label:?}"));
             }
             dialog
                 .content_area()
