@@ -497,10 +497,9 @@ impl PropertiesMixer {
             self.total_parts = parts;
         } else {
             let variant_64s = properties.property_variants_u64();
-            for (index, item) in variant_64s.iter().enumerate()
-            // .take(self.property_types.0.len())
-            {
-                self.sums[index] += item * parts;
+            debug_assert_eq!(variant_64s.len(), self.property_types.len());
+            for (sum, value) in self.sums.iter_mut().zip(variant_64s.iter()) {
+                *sum += value;
             }
             self.total_parts += parts;
         }
