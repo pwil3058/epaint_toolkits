@@ -8,7 +8,7 @@ use std::{
 
 // use recollections;
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, prelude::*, MessageDialog},
     gtkx::window::RememberGeometry,
     sample,

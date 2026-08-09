@@ -1,24 +1,24 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::rc;
 
-use gtk_ext::gdk_pixbufx::viewer::*;
-use gtk_ext::{gtk, gtk::prelude::*};
+use gtk3_ext::gdk_pixbufx::viewer::*;
+use gtk3_ext::{gtk, gtk::prelude::*};
 
-use gtk_ext::gtkx::check_button::MutuallyExclusiveCheckButtonsBuilder;
-use gtk_ext::gtkx::coloured::ColourableWidgetExt;
-use gtk_ext::gtkx::combo_box_text::SortedUnique;
-use gtk_ext::gtkx::list_store::{ListRowOps, ListViewSpec, WrappedListStore, WrappedTreeModel};
-use gtk_ext::gtkx::menu::ManagedMenuBuilder;
-use gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
-use gtk_ext::gtkx::placard::Placard;
-use gtk_ext::gtkx::radio_button::RadioButtonsBuilder;
-use gtk_ext::gtkx::tree_view::TreeViewWithPopupBuilder;
-use gtk_ext::gtkx::window::RememberGeometry;
+use gtk3_ext::gtkx::check_button::MutuallyExclusiveCheckButtonsBuilder;
+use gtk3_ext::gtkx::coloured::ColourableWidgetExt;
+use gtk3_ext::gtkx::combo_box_text::SortedUnique;
+use gtk3_ext::gtkx::list_store::{ListRowOps, ListViewSpec, WrappedListStore, WrappedTreeModel};
+use gtk3_ext::gtkx::menu::ManagedMenuBuilder;
+use gtk3_ext::gtkx::notebook::TabRemoveLabelBuilder;
+use gtk3_ext::gtkx::placard::Placard;
+use gtk3_ext::gtkx::radio_button::RadioButtonsBuilder;
+use gtk3_ext::gtkx::tree_view::TreeViewWithPopupBuilder;
+use gtk3_ext::gtkx::window::RememberGeometry;
 
-use gtk_ext::gdk::RGBA;
-use gtk_ext::sav_state::{SAV_SELN_UNIQUE, SAV_SELN_UNIQUE_OR_HOVER_OK};
-use gtk_ext::wrapper::*;
-use gtk_ext::*;
+use gtk3_ext::gdk::RGBA;
+use gtk3_ext::sav_state::{SAV_SELN_UNIQUE, SAV_SELN_UNIQUE_OR_HOVER_OK};
+use gtk3_ext::wrapper::*;
+use gtk3_ext::*;
 
 #[derive(PWO)]
 struct SimpleCore {
@@ -45,9 +45,9 @@ impl ListViewSpec for TestListSpec {
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererText::builder().editable(false).build();
-        gtk_ext::gtk::prelude::TreeViewColumnExt::pack_start(&col, &cell, false);
+        TreeViewColumnExt::pack_start(&col, &cell, false);
         // col.pack_start(&cell, false);
-        gtk_ext::gtk::prelude::TreeViewColumnExt::add_attribute(&col, &cell, "text", 0);
+        TreeViewColumnExt::add_attribute(&col, &cell, "text", 0);
         // col.add_attribute(&cell, "text", 0);
         cols.push(col);
 
@@ -58,9 +58,9 @@ impl ListViewSpec for TestListSpec {
             .sort_indicator(true)
             .build();
         let cell = gtk::CellRendererText::builder().editable(false).build();
-        gtk_ext::gtk::prelude::TreeViewColumnExt::pack_start(&col, &cell, false);
+        TreeViewColumnExt::pack_start(&col, &cell, false);
         // col.pack_start(&cell, false);
-        gtk_ext::gtk::prelude::TreeViewColumnExt::add_attribute(&col, &cell, "text", 1);
+        TreeViewColumnExt::add_attribute(&col, &cell, "text", 1);
         // col.add_attribute(&cell, "text", 1);
         cols.push(col);
 

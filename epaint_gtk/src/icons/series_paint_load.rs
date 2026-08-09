@@ -140,7 +140,7 @@ pub static XPM: &[&str] = &[
     "                                                                                                                                ",
 ];
 
-use gtk_ext::{gdk_pixbuf, gtk};
+use gtk3_ext::{gdk_pixbuf, gtk};
 
 #[allow(dead_code)]
 pub fn pixbuf() -> gdk_pixbuf::Pixbuf {

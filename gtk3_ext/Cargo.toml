@@ -1,5 +1,5 @@
 [package]
-name = "gtk_ext"
+name = "gtk3_ext"
 version = "0.1.0"
 edition = "2024"
 

@@ -2,7 +2,7 @@
 
 use std::{cell::Cell, ops::Add, ops::Sub};
 
-use gtk_ext::cairo;
+use gtk3_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},

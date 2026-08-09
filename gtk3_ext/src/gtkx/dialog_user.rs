@@ -33,7 +33,7 @@ macro_rules! implement_tgw_for_widget {
     };
 }
 
-// implement_tgw_for_widget!(Bin);
+implement_tgw_for_widget!(Bin);
 implement_tgw_for_widget!(Box);
 implement_tgw_for_widget!(Container);
 implement_tgw_for_widget!(DrawingArea);

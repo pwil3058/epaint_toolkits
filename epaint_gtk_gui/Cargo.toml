@@ -11,7 +11,7 @@ palette_samples = []
 
 [dependencies]
 
-gtk_ext = { path = "../gtk_ext" }
+gtk3_ext = { path = "../gtk3_ext" }
 colour_math = { path = "../colour_math" }
 colour_math_derive = { path = "../colour_math_derive" }
 

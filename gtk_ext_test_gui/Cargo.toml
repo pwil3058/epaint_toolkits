@@ -9,5 +9,5 @@ edition = "2021"
 [dependencies]
 recollections = { path = "../recollections" }
 
-gtk_ext = { path = "../gtk_ext" }
+gtk3_ext = { path = "../gtk3_ext" }
 gtk_ext_derive = { path = "../gtk_ext_derive" }

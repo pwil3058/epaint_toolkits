@@ -6,7 +6,7 @@ use std::{
     rc::Rc,
 };
 
-use gtk_ext::{
+use gtk3_ext::{
     cairo, gdk, glib,
     gtk::{self, prelude::*},
     gtkx::menu::{ManagedMenu, MenuItemSpec},

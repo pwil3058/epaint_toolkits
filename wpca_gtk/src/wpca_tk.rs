@@ -2,7 +2,7 @@
 
 use std::{process::Command, rc::Rc};
 
-use gtk_ext::{
+use gtk3_ext::{
     gdk_pixbufx::viewer::PixbufViewBuilder,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,

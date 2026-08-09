@@ -4,7 +4,7 @@ use std::{
     rc::Rc,
 };
 
-use gtk_ext::{
+use gtk3_ext::{
     cairo, gdk, gdk_pixbuf, glib,
     gtk::{self, prelude::*, DrawingArea},
     gtkx::menu::{ManagedMenu, MenuItemSpec},

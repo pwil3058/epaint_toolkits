@@ -4,7 +4,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::{collections::BTreeMap, rc::Rc};
 
-use gtk_ext::{
+use gtk3_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::dialog_user::TopGtkWindow,
@@ -13,7 +13,7 @@ use gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, HCV, ScalarAttribute};
+use colour_math::{ColourBasics, ScalarAttribute, HCV};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;

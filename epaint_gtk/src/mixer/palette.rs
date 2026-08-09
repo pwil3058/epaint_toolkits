@@ -7,7 +7,7 @@ use std::{
     rc::Rc,
 };
 
-use gtk_ext::{
+use gtk3_ext::{
     cairo, glib,
     gtk::{self, prelude::*},
     gtkx::{
@@ -15,22 +15,22 @@ use gtk_ext::{
         paned::RememberPosition,
     },
     sav_state::{
-        ChangedCondnsNotifier, MaskedCondns, SAV_HOVER_OK, SAV_NEXT_CONDN, WidgetStatesControlled,
+        ChangedCondnsNotifier, MaskedCondns, WidgetStatesControlled, SAV_HOVER_OK, SAV_NEXT_CONDN,
     },
     wrapper::*,
 };
 
 #[cfg(feature = "palette_samples")]
 use colour_math_cairo::Point;
-use gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
+use gtk3_ext::sav_state::ConditionalWidgetGroupsBuilder;
 #[cfg(feature = "palette_samples")]
-use gtk_ext::{
+use gtk3_ext::{
     gdk, gdk_pixbuf,
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
 
 use colour_math::{
-    HCV, RGBConstants, ScalarAttribute, hue_wheel::MakeColouredShape, mixing::SubtractiveMixer,
+    hue_wheel::MakeColouredShape, mixing::SubtractiveMixer, RGBConstants, ScalarAttribute, HCV,
 };
 use colour_math_cairo::CairoSetColour;
 

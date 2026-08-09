@@ -7,7 +7,7 @@ use std::{
 
 use gcd::Gcd;
 
-use gtk_ext::{
+use gtk3_ext::{
     gdk, glib,
     gtk::{self, prelude::*},
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
@@ -16,12 +16,12 @@ use gtk_ext::{
 };
 
 // use crate::colour::PartsColour;
-use colour_math::{ColourBasics, HCV, LightLevel, RGB};
+use colour_math::{ColourBasics, LightLevel, HCV, RGB};
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::TooltipText;
 use epaint::paint::RangePaint;
-use gtk_ext::gtk::Orientation;
+use epaint::TooltipText;
+use gtk3_ext::gtk::Orientation;
 
 type RemoveCallback = Box<dyn Fn(&RangePaint)>;
 

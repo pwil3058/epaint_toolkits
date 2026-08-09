@@ -5,7 +5,7 @@ use std::rc::Rc;
 
 use colour_math::ScalarAttribute;
 use colour_math_gtk::colour_edit::ColourEditor;
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, Button, prelude::*},
     sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled},
     wrapper::*,

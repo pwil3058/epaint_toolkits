@@ -2,7 +2,7 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk,
     gtk::prelude::{ComboBoxExt, ComboBoxTextExt},
     wrapper::*,

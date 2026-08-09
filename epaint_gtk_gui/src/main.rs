@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, prelude::*},
     recollections,
     wrapper::*,
@@ -8,21 +8,21 @@ use gtk_ext::{
 
 use colour_math::ScalarAttribute;
 use colour_math::ScalarAttribute::*;
-use colour_math::{HCV, HueConstants};
+use colour_math::{HueConstants, HCV};
 
-use epaint::PaintRangeId;
 use epaint::paint::{Paint, RangePaint};
 use epaint::properties::{
     Properties,
     PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
     PropertyTypes,
 };
+use epaint::PaintRangeId;
 
 use epaint_gtk::factory::PaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PixtureMixerBuilder;
 use epaint_gtk::paint_edit::PaintEditor;
-use epaint_gtk::range::PaintRangeManagerBuilder;
 use epaint_gtk::range::display::*;
+use epaint_gtk::range::PaintRangeManagerBuilder;
 
 fn main() {
     recollections::init("./.recollections");

@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, prelude::*},
     recollections::{recall, remember},
-    sav_state::{ConditionalWidgetGroups, MaskedCondns, SAV_NEXT_CONDN, WidgetStatesControlled},
+    sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled, SAV_NEXT_CONDN},
     wrapper::*,
 };
 
@@ -13,9 +13,9 @@ use std::{
     rc::Rc,
 };
 
-use colour_math::{HCV, RGBConstants};
+use colour_math::{RGBConstants, HCV};
 use colour_math_gtk::coloured::Colourable;
-use gtk_ext::sav_state::ConditionalWidgetGroupsBuilder;
+use gtk3_ext::sav_state::ConditionalWidgetGroupsBuilder;
 
 use crate::icons;
 

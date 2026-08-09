@@ -2,7 +2,7 @@
 
 use std::{cell::Cell, rc::Rc};
 
-use gtk_ext::{
+use gtk3_ext::{
     gdk, gdk_pixbuf, glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,

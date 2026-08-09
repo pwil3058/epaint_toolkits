@@ -8,7 +8,7 @@ edition = "2024"
 lazy_static = "0.2.8"
 
 colour_math = { path = "../colour_math" }
-gtk_ext = { path = "../gtk_ext" }
+gtk3_ext = { path = "../gtk3_ext" }
 pw_pathux = { git = "https://github.com/pwil3058/rs_pw_pathux.git" }
 
 

@@ -8,7 +8,7 @@ use std::{
     rc::Rc,
 };
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, prelude::*},
     gtkx::{
         dialog_user::TopGtkWindow,
@@ -23,7 +23,7 @@ use gtk_ext::{
 
 use colour_math::{HCV, ScalarAttribute, hue_wheel::MakeColouredShape};
 use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};
-use gtk_ext::gtkx::notebook::TabRemoveLabelBuilder;
+use gtk3_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
 use epaint::{
     PaintRangeId,

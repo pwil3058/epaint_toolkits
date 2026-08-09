@@ -2,7 +2,7 @@
 
 use std::rc::Rc;
 
-use gtk_ext::{
+use gtk3_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
@@ -45,7 +45,7 @@ fn main() {
 }
 
 mod icon {
-    use gtk_ext::{gdk_pixbuf, gtk};
+    use gtk3_ext::{gdk_pixbuf, gtk};
 
     // XPM
     static MCMMTKRS_XPM: &[&str] = &[

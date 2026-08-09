@@ -5,7 +5,7 @@ use std::fs::File;
 use std::path::Path;
 use std::rc::Rc;
 
-use gtk_ext::{
+use gtk3_ext::{
     gtk::{self, prelude::*},
     gtkx::{
         list::{ListViewWithPopUpMenu, ListViewWithPopUpMenuBuilder},
@@ -16,7 +16,7 @@ use gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{ScalarAttribute, beigui::hue_wheel::MakeColouredShape};
+use colour_math::{beigui::hue_wheel::MakeColouredShape, ScalarAttribute};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;

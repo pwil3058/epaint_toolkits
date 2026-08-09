@@ -4,7 +4,7 @@ use std::collections::HashMap;
 #[cfg(feature = "targeted_mixtures")]
 use std::rc::Rc;
 
-use gtk_ext::{
+use gtk3_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::{
@@ -15,7 +15,7 @@ use gtk_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, HCV, ScalarAttribute};
+use colour_math::{ColourBasics, ScalarAttribute, HCV};
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::coloured::Colourable;
 

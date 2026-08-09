@@ -8,7 +8,7 @@ pub mod manipulator;
 pub mod rgb_entry;
 
 pub mod colour {
-    use gtk_ext::gdk;
+    use gtk3_ext::gdk;
 
     use colour_math::{LightLevel, ManipulatedColour, HCV, RGB};
 
@@ -29,9 +29,9 @@ pub mod colour {
 }
 
 pub mod coloured {
-    use gtk_ext::gtk;
-    use gtk_ext::gtkx::coloured::*;
-    use gtk_ext::gtkx::placard::Placard;
+    use gtk3_ext::gtk;
+    use gtk3_ext::gtkx::coloured::*;
+    use gtk3_ext::gtkx::placard::Placard;
 
     use crate::colour::*;
 

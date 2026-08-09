@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use gtk_ext::{
+use gtk3_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::list::ListViewSpec,
@@ -11,7 +11,7 @@ use epaint::{
     paint::{Paint, RangePaint},
 };
 
-use colour_math::{HCV, ScalarAttribute};
+use colour_math::{ScalarAttribute, HCV};
 use epaint::properties::PropertyTypes;
 
 pub struct PaintListViewSpec {
