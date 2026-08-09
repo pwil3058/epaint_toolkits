@@ -15,6 +15,6 @@ members = [
     "wpca_gtk",
     "mcmmtk_gtk",
     "gtk3_ext",
-    "gtk_ext_derive",
+    "gtk3_ext_derive",
     "gtk_ext_test_gui",
 ]

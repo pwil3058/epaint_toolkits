@@ -10,4 +10,4 @@ edition = "2021"
 recollections = { path = "../recollections" }
 
 gtk3_ext = { path = "../gtk3_ext" }
-gtk_ext_derive = { path = "../gtk_ext_derive" }
+gtk3_ext_derive = { path = "../gtk3_ext_derive" }

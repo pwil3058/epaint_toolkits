@@ -10,7 +10,7 @@ use crate::gtk::prelude::*;
 pub use crate::gtkx::dialog_user::*;
 
 use crate::printer::*;
-pub use gtk_ext_derive::*;
+pub use gtk3_ext_derive::*;
 
 pub trait PackableWidgetObject {
     type PWT: glib::IsA<gtk::Widget> + WidgetExt;

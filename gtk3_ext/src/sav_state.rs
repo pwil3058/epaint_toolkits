@@ -12,9 +12,9 @@ use std::ops::BitOr;
 use std::rc::Rc;
 
 use crate::glib::IsA;
-use crate::gtk::{TreeSelection, Widget, prelude::*};
+use crate::gtk::{prelude::*, TreeSelection, Widget};
 
-pub use gtk_ext_derive::*;
+pub use gtk3_ext_derive::*;
 
 #[derive(Debug)]
 pub enum Error {
