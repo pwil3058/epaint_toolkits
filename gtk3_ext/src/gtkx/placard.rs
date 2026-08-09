@@ -1,5 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use std::cell::Cell;
+
 use crate::gdk;
 use crate::glib::{self, wrapper};
 use crate::gtk::{self, prelude::*, subclass::prelude::*};
@@ -7,7 +9,9 @@ use crate::gtk::{self, prelude::*, subclass::prelude::*};
 use crate::gtkx::coloured::ColourableWidgetExt;
 
 #[derive(Default)]
-pub struct PlacardImp;
+pub struct PlacardImp {
+    bold: Cell<bool>,
+}
 
 #[glib::object_subclass]
 impl ObjectSubclass for PlacardImp {
@@ -46,14 +50,19 @@ impl Placard {
         glib::Object::builder::<Placard>().build()
     }
 
-    pub fn with_label(label: &str) -> Placard {
-        let placard = Self::new();
-        placard.set_markup(label);
-
-        placard
+    pub fn set_bold(&mut self, bold: bool) {
+        self.imp().bold.set(bold);
     }
 
-    pub fn set_markup(&self, markup: &str) {
+    pub fn set_text(&self, text: &str) {
+        if self.imp().bold.get() {
+            self.set_markup(format!("<b>{}</b>", text).as_str());
+        } else {
+            self.set_label(text);
+        }
+    }
+
+    fn set_markup(&self, markup: &str) {
         self.children().iter().for_each(|child| {
             if let Some(label) = child.downcast_ref::<gtk::Label>() {
                 label.set_markup(markup);
@@ -72,13 +81,19 @@ impl ColourableWidgetExt for Placard {}
 
 #[derive(Default)]
 pub struct PlacardBuilder {
-    label: Option<String>,
+    bold: bool,
+    text: String,
     colours: Option<(gdk::RGBA, gdk::RGBA)>,
 }
 
 impl PlacardBuilder {
+    pub fn bold(mut self, bold: bool) -> Self {
+        self.bold = bold;
+        self
+    }
+
     pub fn label(&mut self, label: &str) -> &mut PlacardBuilder {
-        self.label = label.to_owned();
+        self.text = label.to_owned();
         self
     }
 
@@ -92,7 +107,9 @@ impl PlacardBuilder {
     }
 
     pub fn build(&self) -> Placard {
-        let placard = Placard::with_label(&self.label);
+        let mut placard = Placard::default();
+        placard.set_bold(self.bold);
+        placard.set_text(&self.text);
         if let Some((background, foreground)) = self.colours {
             placard.set_widget_colours(&background, &foreground);
         }

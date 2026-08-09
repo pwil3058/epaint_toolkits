@@ -94,7 +94,8 @@ fn main() {
         .build();
 
     let placard = Placard::builder()
-        .label("<b>Placard</b>")
+        .bold(true)
+        .label("Placard")
         .colours(
             &RGBA::new(1.0, 0.0, 0.0, 1.0),
             &RGBA::new(1.0, 1.0, 0.0, 1.0),
