@@ -9,9 +9,7 @@ use crate::gtk::{self, prelude::*, subclass::prelude::*};
 use crate::gtkx::coloured::ColourableWidgetExt;
 
 #[derive(Default)]
-pub struct PlacardImp {
-    bold: Cell<bool>,
-}
+pub struct PlacardImp;
 
 #[glib::object_subclass]
 impl ObjectSubclass for PlacardImp {
@@ -50,16 +48,8 @@ impl Placard {
         glib::Object::builder::<Placard>().build()
     }
 
-    pub fn set_bold(&mut self, bold: bool) {
-        self.imp().bold.set(bold);
-    }
-
-    pub fn set_text(&self, text: &str) {
-        if self.imp().bold.get() {
-            self.set_markup(format!("<b>{}</b>", text).as_str());
-        } else {
-            self.set_label(text);
-        }
+    pub fn set_label_bold(&self, label: &str) {
+        self.set_markup(format!("<b>{}</b>", label).as_str());
     }
 
     fn set_markup(&self, markup: &str) {
@@ -108,11 +98,16 @@ impl PlacardBuilder {
 
     pub fn build(&self) -> Placard {
         let mut placard = Placard::default();
-        placard.set_bold(self.bold);
-        placard.set_text(&self.text);
+
+        if self.bold {
+            placard.set_label_bold(&self.text);
+        } else {
+            placard.set_label(&self.text);
+        }
         if let Some((background, foreground)) = self.colours {
             placard.set_widget_colours(&background, &foreground);
         }
+
         placard
     }
 }
