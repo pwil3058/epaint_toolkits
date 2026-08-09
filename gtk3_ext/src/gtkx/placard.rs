@@ -2,7 +2,7 @@
 
 use crate::gdk;
 use crate::glib::{self, wrapper};
-use crate::gtk::{prelude::*, subclass::prelude::*};
+use crate::gtk::{self, prelude::*, subclass::prelude::*};
 
 use crate::gtkx::coloured::ColourableWidgetExt;
 
@@ -20,6 +20,8 @@ impl ObjectImpl for PlacardImp {
     fn constructed(&self) {
         self.parent_constructed();
 
+        // Make sure we have a label child
+        self.obj().set_label("");
         self.obj().set_relief(gtk::ReliefStyle::None);
         self.obj().set_focus_on_click(false);
         self.obj().set_can_focus(false);
@@ -46,8 +48,17 @@ impl Placard {
 
     pub fn with_label(label: &str) -> Placard {
         let placard = Self::new();
-        placard.set_label(label);
+        placard.set_markup(label);
+
         placard
+    }
+
+    pub fn set_markup(&self, markup: &str) {
+        self.children().iter().for_each(|child| {
+            if let Some(label) = child.downcast_ref::<gtk::Label>() {
+                label.set_markup(markup);
+            }
+        })
     }
 }
 
@@ -61,10 +72,8 @@ impl ColourableWidgetExt for Placard {}
 
 #[derive(Default)]
 pub struct PlacardBuilder {
-    label: String,
+    label: Option<String>,
     colours: Option<(gdk::RGBA, gdk::RGBA)>,
-    // background: Option<gdk::RGBA>,
-    // foreground: Option<gdk::RGBA>,
 }
 
 impl PlacardBuilder {
@@ -94,11 +103,15 @@ impl PlacardBuilder {
 #[cfg(test)]
 mod placard_tests {
     use super::*;
+    use gtk::Label;
 
     use crate::gdk::RGBA;
 
     #[test]
     fn test_new() {
+        // Initialize GTK context for testing
+        gtk::init().expect("Failed to initialize GTK");
+
         let placard = Placard::new();
         placard.set_label("label");
         placard.set_widget_colours(
@@ -106,6 +119,11 @@ mod placard_tests {
             &RGBA::new(0.0, 1.0, 0.0, 1.0),
         );
         let placard2 = Placard::builder().label("label").build();
-        debug_assert_ne!(placard.label(), placard2.label());
+        debug_assert_eq!(placard.label(), placard2.label());
+        placard2.children().iter().for_each(|child| {
+            if let Some(label) = child.downcast_ref::<Label>() {
+                debug_assert_eq!(Some(label.label()), placard2.label());
+            }
+        })
     }
 }
