@@ -13,7 +13,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, ScalarAttribute, HCV};
+use colour_math::{ColourBasics, HCV, ScalarAttribute};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
@@ -29,7 +29,7 @@ pub struct PaintDisplay {
     vbox: gtk::Box,
     range_paint: RangePaint,
     #[cfg(feature = "targeted_mixtures")]
-    target_label: gtk::Label,
+    target_label: Placard,
     #[cfg(feature = "targeted_mixtures")]
     cads: Rc<ColourAttributeDisplayStack>,
 }
@@ -118,18 +118,18 @@ impl PaintDisplayBuilder {
         cads.set_colour(Some(&hcv));
 
         #[cfg(feature = "targeted_mixtures")]
-        let target_label = if let Some(target_colour) = self.target_colour {
-            let label = gtk::Label::builder().label("Target").build();
-            label.set_widget_colour(&target_colour);
+        let target_placard = if let Some(target_colour) = self.target_colour {
+            let placard = Placard::builder().label("Target").build();
+            placard.set_widget_colour(&target_colour);
             cads.set_target_colour(Some(&target_colour));
-            label
+            placard
         } else {
-            let label = gtk::Label::builder().build();
-            label.set_widget_colour(&hcv);
-            label
+            let placard = Placard::builder().build();
+            placard.set_widget_colour(&hcv);
+            placard
         };
         #[cfg(feature = "targeted_mixtures")]
-        vbox.pack_start(&target_label, true, true, 0);
+        vbox.pack_start(&target_placard, true, true, 0);
         vbox.pack_start(cads.pwo(), true, true, 0);
 
         for property in range_paint.properties() {
@@ -144,7 +144,7 @@ impl PaintDisplayBuilder {
             vbox,
             range_paint: range_paint.clone(),
             #[cfg(feature = "targeted_mixtures")]
-            target_label,
+            target_label: target_placard,
             #[cfg(feature = "targeted_mixtures")]
             cads,
         }

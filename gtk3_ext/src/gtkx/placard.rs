@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::cell::Cell;
-
 use crate::gdk;
 use crate::glib::{self, wrapper};
 use crate::gtk::{self, prelude::*, subclass::prelude::*};
@@ -97,7 +95,7 @@ impl PlacardBuilder {
     }
 
     pub fn build(&self) -> Placard {
-        let mut placard = Placard::default();
+        let placard = Placard::default();
 
         if self.bold {
             placard.set_label_bold(&self.text);
