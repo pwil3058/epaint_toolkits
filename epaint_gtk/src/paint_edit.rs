@@ -362,6 +362,8 @@ impl PaintEditor {
             }
         }
         self.set_current_paint(None);
+        #[cfg(feature = "paints_have_ids")]
+        self.id_entry.set_text("");
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         // NB: do not reset properties
@@ -436,6 +438,8 @@ impl PaintEditor {
 
     pub fn hard_reset(&self) {
         self.set_current_paint(None);
+        #[cfg(feature = "paints_have_ids")]
+        self.id_entry.set_text("");
         self.name_entry.set_text("");
         self.notes_entry.set_text("");
         for property_entry in self.property_entries.iter() {

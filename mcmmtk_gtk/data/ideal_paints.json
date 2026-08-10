@@ -1,25 +1,12 @@
 {
-  "series_id": {
+  "range_id": {
     "proprietor": "Theory",
-    "series_name": "Ideal Paint Colours"
+    "name": "IDEAL"
   },
   "paint_list": [
     {
-      "colour": {
-        "hue": null,
-        "c_prop": 0,
-        "sum": 0
-      },
-      "id": "Black",
-      "name": "Black",
-      "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
-    },
-    {
+      "id": "B",
+      "name": "Blue",
       "colour": {
         "hue": {
           "Primary": "Blue"
@@ -27,33 +14,59 @@
         "c_prop": 18446744073709551615,
         "sum": 18446744073709551615
       },
-      "id": "Blue",
-      "name": "Blue",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "C",
+      "name": "Cyan",
       "colour": {
         "hue": {
           "Secondary": "Cyan"
         },
-        "c_prop": 9223512776490647552,
-        "sum": 46116719444638007293
+        "c_prop": 18446744073709551615,
+        "sum": 36893488147419103230
       },
-      "id": "Cyan",
-      "name": "Cyan",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "G",
+      "name": "Green",
       "colour": {
         "hue": {
           "Primary": "Green"
@@ -61,16 +74,57 @@
         "c_prop": 18446744073709551615,
         "sum": 18446744073709551615
       },
-      "id": "Green",
-      "name": "Green",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "K",
+      "name": "Black",
+      "colour": {
+        "hue": null,
+        "c_prop": 0,
+        "sum": 0
+      },
+      "notes": "",
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "M",
+      "name": "Magenta",
       "colour": {
         "hue": {
           "Secondary": "Magenta"
@@ -78,16 +132,29 @@
         "c_prop": 18446744073709551615,
         "sum": 36893488147419103230
       },
-      "id": "Magenta",
-      "name": "Magenta",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "R",
+      "name": "Red",
       "colour": {
         "hue": {
           "Primary": "Red"
@@ -95,31 +162,57 @@
         "c_prop": 18446744073709551615,
         "sum": 18446744073709551615
       },
-      "id": "Red",
-      "name": "Red",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "W",
+      "name": "White",
       "colour": {
         "hue": null,
         "c_prop": 0,
         "sum": 55340232221128654845
       },
-      "id": "White",
-      "name": "White",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     },
     {
+      "id": "Y",
+      "name": "Yellow",
       "colour": {
         "hue": {
           "Secondary": "Yellow"
@@ -127,14 +220,25 @@
         "c_prop": 18446744073709551615,
         "sum": 36893488147419103230
       },
-      "id": "Yellow",
-      "name": "Yellow",
       "notes": "",
-      "finish": "Gloss",
-      "transparency": "Opaque",
-      "permanence": "Permanent",
-      "fluorescence": "NonFluorescent",
-      "metallicness": "NonMetallic"
+      "properties": [
+        {
+          "property_type": "Finish",
+          "value": 1
+        },
+        {
+          "property_type": "Transparency",
+          "value": 2
+        },
+        {
+          "property_type": "Fluorescence",
+          "value": 4
+        },
+        {
+          "property_type": "Metallicness",
+          "value": 4
+        }
+      ]
     }
   ]
 }
