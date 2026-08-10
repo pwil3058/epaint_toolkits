@@ -1,3 +1,4 @@
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::env;
 use std::ffi::OsString;
 use std::fs::{DirEntry, FileType, Metadata, ReadDir};
@@ -17,7 +18,7 @@ pub fn absolute_pathbuf(path: &Path) -> Option<PathBuf> {
     } else if let Ok(curr_dir) = env::current_dir() {
         let mut components = path.components();
         if let Some(first_component) = components.next() {
-            if let Component::CurDir = first_component {
+            if Component::CurDir == first_component {
                 Some(curr_dir.join(components.as_path()))
             } else {
                 Some(curr_dir.join(path))
