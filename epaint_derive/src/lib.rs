@@ -31,10 +31,10 @@ fn abbreviate(input: &str, n: usize) -> String {
 }
 
 fn extract_string(meta: &MetaNameValue) -> Option<String> {
-    if let Expr::Lit(expr_lit) = &meta.value {
-        if let Lit::Str(lit_str) = &expr_lit.lit {
-            return Some(lit_str.value());
-        }
+    if let Expr::Lit(expr_lit) = &meta.value
+        && let Lit::Str(lit_str) = &expr_lit.lit
+    {
+        return Some(lit_str.value());
     }
     None
 }
@@ -48,10 +48,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let prompt = enum_name.to_string() + ":";
     let mut list_header_attr: Option<String> = None;
     for attr in &parsed_input.attrs {
-        if let Ok(mnv) = attr.meta.require_name_value() {
-            if mnv.path.is_ident("list_header") {
-                list_header_attr = extract_string(&mnv);
-            }
+        if let Ok(mnv) = attr.meta.require_name_value()
+            && mnv.path.is_ident("list_header")
+        {
+            list_header_attr = extract_string(mnv);
         }
     }
     let list_header = if let Some(list_header) = list_header_attr {
@@ -83,10 +83,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                         if path.is_ident("default") {
                             default = Some(v.ident.clone());
                         }
-                    } else if let Ok(mnv) = attr.meta.require_name_value() {
-                        if mnv.path.is_ident("abbreviation") {
-                            abbr_attr = extract_string(&mnv);
-                        }
+                    } else if let Ok(mnv) = attr.meta.require_name_value()
+                        && mnv.path.is_ident("abbreviation")
+                    {
+                        abbr_attr = extract_string(mnv);
                     }
                 }
 
