@@ -30,12 +30,16 @@ pub enum Transparency {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
-#[list_header = "LF"]
+#[list_header = "Lf."]
 pub enum Lightfastness {
-    ExcellentLightfastness,
+    #[abbreviation = "I"]
+    Excellent,
     #[default]
-    VeryGoodLightfastness,
-    FairLightfastness,
+    #[abbreviation = "II"]
+    VeryGood,
+    #[abbreviation = "III"]
+    Fair,
+    #[abbreviation = "IV"]
     Fugitive,
 }
 
@@ -67,11 +71,15 @@ pub enum Opacity {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Permanence {
-    #[abbreviation = "AAA"]
+    #[abbreviation = "AA"]
     ExtremelyPermanent,
     #[default]
+    #[abbreviation = "A"]
     Permanent,
+    #[abbreviation = "B"]
     ModeratelyDurable,
+    #[abbreviation = "C"]
+    Fugitive,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
