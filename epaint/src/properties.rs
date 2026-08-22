@@ -30,6 +30,7 @@ pub enum Transparency {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
+#[list_header = "LF"]
 pub enum Lightfastness {
     ExcellentLightfastness,
     #[default]
@@ -66,6 +67,7 @@ pub enum Opacity {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Property)]
 pub enum Permanence {
+    #[abbreviation = "AAA"]
     ExtremelyPermanent,
     #[default]
     Permanent,

@@ -5,7 +5,7 @@ extern crate proc_macro;
 use heck::KebabCase;
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Ident, parse_macro_input};
+use syn::{Data, DeriveInput, Expr, Ident, Lit, MetaNameValue, parse_macro_input};
 
 fn acronym(input: &str) -> String {
     let mut output = String::new();
@@ -30,13 +30,36 @@ fn abbreviate(input: &str, n: usize) -> String {
     output
 }
 
-#[proc_macro_derive(Property, attributes(default))]
+fn extract_string(meta: &MetaNameValue) -> Option<String> {
+    if let Expr::Lit(expr_lit) = &meta.value {
+        if let Lit::Str(lit_str) = &expr_lit.lit {
+            return Some(lit_str.value());
+        }
+    }
+    None
+}
+
+#[proc_macro_derive(Property, attributes(abbreviation, default, list_header))]
 pub fn property_derive(input: TokenStream) -> TokenStream {
     let parsed_input: DeriveInput = parse_macro_input!(input);
+
     let enum_name = parsed_input.ident;
     let name = enum_name.to_string();
     let prompt = enum_name.to_string() + ":";
-    let list_header = abbreviate(&enum_name.to_string(), 2);
+    let mut list_header_attr: Option<String> = None;
+    for attr in &parsed_input.attrs {
+        if let Ok(mnv) = attr.meta.require_name_value() {
+            if mnv.path.is_ident("list_header") {
+                list_header_attr = extract_string(&mnv);
+            }
+        }
+    }
+    let list_header = if let Some(list_header) = list_header_attr {
+        list_header
+    } else {
+        abbreviate(&enum_name.to_string(), 2)
+    };
+
     let mut abbrev_tokens = vec![];
     let mut full_tokens = vec![];
     let mut full_variant_tokens = vec![];
@@ -53,17 +76,28 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     match parsed_input.data {
         Data::Enum(e) => {
             for (count, v) in (1_u64..).zip(e.variants) {
+                let mut abbr_attr: Option<String> = None;
                 let v_name = v.ident.clone();
                 if first.is_none() {
                     first = Some(v.ident.clone());
                 }
                 for attr in v.attrs.iter() {
-                    if attr.path.is_ident("default") {
-                        default = Some(v.ident.clone());
+                    if let Ok(path) = attr.meta.require_path_only() {
+                        if path.is_ident("default") {
+                            default = Some(v.ident.clone());
+                        }
+                    } else if let Ok(mnv) = attr.meta.require_name_value() {
+                        if mnv.path.is_ident("abbreviation") {
+                            abbr_attr = extract_string(&mnv);
+                        }
                     }
                 }
 
-                let v_abbrev = acronym(&v.ident.to_string());
+                let v_abbrev = if let Some(v_abbrev) = abbr_attr {
+                    v_abbrev
+                } else {
+                    acronym(&v.ident.to_string())
+                };
 
                 let v_full = v.ident.to_string().to_kebab_case();
 
