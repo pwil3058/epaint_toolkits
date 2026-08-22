@@ -1,4 +1,4 @@
-// Copyright 2024 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::collections::HashMap;
 use std::fs;
 use std::io::{self, Seek};
@@ -15,13 +15,13 @@ pub struct Recollections {
 impl Recollections {
     pub fn new(o_file_path: Option<&path::Path>) -> Recollections {
         if let Some(ref file_path) = o_file_path {
-            if !file_path.exists() {
-                if let Some(dir_path) = file_path.parent() {
-                    if !dir_path.exists() {
-                        fs::create_dir_all(dir_path).unwrap_or_else(|err| {
-                            panic!("{:?}: line {:?}: {:?}", file!(), line!(), err)
-                        });
-                    }
+            if !file_path.exists()
+                && let Some(dir_path) = file_path.parent()
+            {
+                if !dir_path.exists() {
+                    fs::create_dir_all(dir_path).unwrap_or_else(|err| {
+                        panic!("{:?}: line {:?}: {:?}", file!(), line!(), err)
+                    });
                 }
                 let mut file = fs::File::create(file_path)
                     .unwrap_or_else(|err| panic!("{:?}: line {:?}: {:?}", file!(), line!(), err));
@@ -38,12 +38,11 @@ impl Recollections {
 
     pub fn set_data_file_path(&mut self, file_path: &path::Path) {
         if !file_path.exists() {
-            if let Some(dir_path) = file_path.parent() {
-                if !dir_path.exists() {
-                    fs::create_dir_all(dir_path).unwrap_or_else(|err| {
-                        panic!("{:?}: line {:?}: {:?}", file!(), line!(), err)
-                    });
-                }
+            if let Some(dir_path) = file_path.parent()
+                && !dir_path.exists()
+            {
+                fs::create_dir_all(dir_path)
+                    .unwrap_or_else(|err| panic!("{:?}: line {:?}: {:?}", file!(), line!(), err));
             }
             let mut file = fs::File::create(file_path)
                 .unwrap_or_else(|err| panic!("{:?}: line {:?}: {:?}", file!(), line!(), err));
