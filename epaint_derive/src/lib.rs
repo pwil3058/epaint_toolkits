@@ -67,7 +67,6 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let mut from_tokens = vec![];
     let mut from_u64_tokens = vec![];
     let mut to_u64_tokens = vec![];
-    let mut value_tokens = vec![];
     let mut first: Option<Ident> = None;
     let mut default: Option<Ident> = None;
     let fmt_str = format!("'{{}}': Malformed '{name}' value string");
@@ -91,20 +90,19 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     }
                 }
 
-                let v_abbrev = if let Some(v_abbrev) = abbr_attr {
-                    v_abbrev
+                let v_abbrev = if let Some(ref v_abbrev) = abbr_attr {
+                    v_abbrev.to_string()
                 } else {
                     acronym(&v.ident.to_string())
                 };
 
-                let v_full = v.ident.to_string().to_kebab_case();
+                let v_full = if let Some(v_abbrev) = abbr_attr {
+                    format!("{} ({})", v.ident.to_string().to_kebab_case(), v_abbrev)
+                } else {
+                    v.ident.to_string().to_kebab_case()
+                };
 
                 let v_full_normal = v.ident.to_string();
-
-                let token = quote! {
-                    #v_full,
-                };
-                value_tokens.push(token);
 
                 let abbrev_token = quote! {
                     #enum_name::#v_name => #v_abbrev,
