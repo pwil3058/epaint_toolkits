@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-gtk = "0.18.2"
+gtk = { version = "0.18.2", package = "gtk" }
 
 cairo-rs = "0.18.2"
 
@@ -20,6 +20,8 @@ mut_static = "5.0.0"
 num = "0.4"
 num-traits = "0.2.19"
 which = "6"
+
+proc-macro-error = "1.0"
 
 normalised_angles = { git = "https://github.com/pwil3058/rs_normalised_angles.git" }
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }

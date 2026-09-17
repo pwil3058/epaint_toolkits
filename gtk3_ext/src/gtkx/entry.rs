@@ -12,7 +12,6 @@ use crate::gtk;
 use crate::gtk::prelude::*;
 
 use path_utilities;
-//use pw_pathux;
 
 use crate::{gtkx::list_store::*, wrapper::*};
 

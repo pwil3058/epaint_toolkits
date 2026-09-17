@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
-use std::{error, fmt};
+use std::{cell::RefCell, error, fmt, rc::Rc};
 
 use gtk;
-use gtk::prelude::{ComboBoxExt, ComboBoxExtManual, ComboBoxTextExt, TreeModelExt};
+use gtk::prelude::{BoxExt, ComboBoxExt, ComboBoxExtManual, ComboBoxTextExt, TreeModelExt};
+
+use crate::wrapper::*;
 
 #[derive(Debug)]
 pub enum Error {
@@ -109,5 +111,63 @@ impl SortedUnique for gtk::ComboBoxText {
             }
             Err(_) => Err(Error::UnknownItem(item.to_string())),
         }
+    }
+}
+
+type ChangedCBs = RefCell<Vec<Box<dyn Fn(Option<String>)>>>;
+
+#[derive(PWO)]
+pub struct NameSelector {
+    h_box: gtk::Box,
+    combo: gtk::ComboBoxText,
+    changed_callbacks: ChangedCBs,
+    get_names: fn() -> Vec<String>,
+}
+
+impl NameSelector {
+    pub fn new(label: &str, get_names: fn() -> Vec<String>) -> Rc<NameSelector> {
+        let name_selector = Rc::new(NameSelector {
+            h_box: gtk::Box::new(gtk::Orientation::Horizontal, 0),
+            combo: gtk::ComboBoxText::new(),
+            changed_callbacks: RefCell::new(Vec::new()),
+            get_names,
+        });
+        let label = gtk::Label::new(Some(label)); // I18N needed here
+        name_selector.h_box.pack_start(&label, false, false, 0);
+        name_selector
+            .h_box
+            .pack_start(&name_selector.combo, true, true, 5);
+
+        let name_selector_c = name_selector.clone();
+        name_selector.combo.connect_changed(move |combo| {
+            for callback in name_selector_c.changed_callbacks.borrow().iter() {
+                if let Some(text) = combo.active_text() {
+                    callback(Some(String::from(text)))
+                } else {
+                    callback(None)
+                }
+            }
+        });
+
+        name_selector.update_available_names();
+
+        name_selector
+    }
+
+    pub fn get_selected_name(&self) -> Option<String> {
+        self.combo.active_text().map(String::from)
+    }
+
+    pub fn set_selected_name(&self, archive_name: &str) -> Result<(), Error> {
+        self.combo.set_active_text(archive_name)
+    }
+
+    pub fn update_available_names(&self) {
+        let new_item_list = (self.get_names)();
+        self.combo.update_with(&new_item_list);
+    }
+
+    pub fn connect_changed<F: Fn(Option<String>) + 'static>(&self, callback: F) {
+        self.changed_callbacks.borrow_mut().push(Box::new(callback));
     }
 }

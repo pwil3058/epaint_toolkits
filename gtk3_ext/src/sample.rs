@@ -144,7 +144,7 @@ pub mod area_selection {
     use std::rc::Rc;
 
     use crate::cairo;
-    use crate::gdk::{self, SeatCapabilities, prelude::*};
+    use crate::gdk::{self, SeatCapabilities};
     use crate::glib;
     use crate::gtk;
     use crate::gtk::prelude::*;
