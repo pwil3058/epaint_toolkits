@@ -1,11 +1,11 @@
-// Copyright 2020 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::{
     env,
     path::{Path, PathBuf},
 };
 
-use pw_pathux::expand_home_dir_or_mine;
+use path_utilities::expand_home_dir_or_mine;
 
 const DEFAULT_CONFIG_DIR_PATH: &str = "~/.config/wpca_gtk";
 

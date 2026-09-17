@@ -344,7 +344,7 @@ impl RangeBinder {
         if let Some(loaded_files_data_path) = &self.loaded_files_data_path {
             let mut string = String::new();
             for (_, path_buf) in self.pages.borrow().iter() {
-                string += (pw_pathux::path_to_string(path_buf) + "\n").as_str();
+                string += (path_utilities::path_to_string(path_buf) + "\n").as_str();
             }
             let mut file = File::create(loaded_files_data_path).expect("unrecoverable");
             file.write_all(&string.into_bytes()).expect("unrecoverable");
@@ -479,9 +479,9 @@ impl PaintRangeManager {
         let last_file = recall("PaintRangeManager::last_loaded_file");
         let last_file = last_file.as_deref();
         if let Some(path) = self.ask_file_path(Some("Paint Range File Name:"), last_file, true) {
-            let abs_path = pw_pathux::expand_home_dir_or_mine(&path).canonicalize()?;
+            let abs_path = path_utilities::expand_home_dir_or_mine(&path).canonicalize()?;
             self.binder.add_range_from_file(&abs_path)?;
-            let path_text = pw_pathux::path_to_string(&abs_path);
+            let path_text = path_utilities::path_to_string(&abs_path);
             remember("PaintRangeManager::last_loaded_file", &path_text);
             self.binder.write_loaded_file_paths();
         };
@@ -649,9 +649,9 @@ impl PaintStandardsManager {
         let last_file = last_file.as_deref();
         if let Some(path) = self.ask_file_path(Some("Paint Standard's File Name:"), last_file, true)
         {
-            let abs_path = pw_pathux::expand_home_dir_or_mine(&path).canonicalize()?;
+            let abs_path = path_utilities::expand_home_dir_or_mine(&path).canonicalize()?;
             self.binder.add_range_from_file(&abs_path)?;
-            let path_text = pw_pathux::path_to_string(&abs_path);
+            let path_text = path_utilities::path_to_string(&abs_path);
             remember("PaintStandardsManager::last_loaded_file", &path_text);
             self.binder.write_loaded_file_paths();
         };

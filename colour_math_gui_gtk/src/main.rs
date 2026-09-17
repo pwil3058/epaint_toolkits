@@ -14,7 +14,7 @@ use gtk3_ext::{
     sample,
     wrapper::PackableWidgetObject,
 };
-use pw_pathux::expand_home_dir_or_mine;
+use path_utilities::expand_home_dir_or_mine;
 
 use colour_math::{
     beigui::hue_wheel::{ColouredShape, Shape},
@@ -58,7 +58,8 @@ pub fn recollection_file_path() -> PathBuf {
 
 fn main() {
     gtk::init().expect("nowhere to go if Gtk++ initialization fails");
-    recollections::init(recollection_file_path());
+    recollections::init(recollection_file_path())
+        .expect("nowhere to go if recollection initialization fails");
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
     win.set_geometry_from_recollections("main_window", (600, 400));
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);

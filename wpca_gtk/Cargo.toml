@@ -11,8 +11,8 @@ palette_samples = []
 paints_have_ids = []
 
 [dependencies]
-gtk3_ext = { path = "../gtk3_ext" }
-pw_pathux = { git = "https://github.com/pwil3058/rs_pw_pathux" }
+gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
+path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
 
 colour_math = { path = "../colour_math" }
 
