@@ -7,6 +7,6 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-gtk3_ext = { path = "../gtk3_ext" }
+gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
 
 colour_math = { path = "../colour_math" }
