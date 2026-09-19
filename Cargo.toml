@@ -15,3 +15,8 @@ members = [
     "wpca_gtk",
     "mcmmtk_gtk",
 ]
+
+[workspace.dependencies]
+gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
+path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
+recollections = { git = "https://github.com/pwil3058/rust_utilities" }

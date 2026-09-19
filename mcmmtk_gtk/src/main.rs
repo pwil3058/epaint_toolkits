@@ -6,9 +6,10 @@ use gtk3_ext::{
     glib,
     gtk::{self, prelude::*},
     gtkx::window::RememberGeometry,
-    recollections,
     wrapper::*,
 };
+
+use recollections;
 
 mod config;
 mod mcmmtk;
@@ -18,7 +19,7 @@ fn main() {
     if let Err(err) = gtk::init() {
         panic!("GTK failed to initialize! {err}.");
     };
-    recollections::init(config::recollection_file_path());
+    recollections::init(config::recollection_file_path()).expect("recollections::init failed!");
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
     win.set_geometry_from_recollections("main_window", (600, 400));
     if let Some(icon) = mcmmtk_icon::sized_pixbuf(64) {

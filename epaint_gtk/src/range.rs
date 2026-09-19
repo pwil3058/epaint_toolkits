@@ -16,10 +16,11 @@ use gtk3_ext::{
         menu::MenuItemSpec,
         paned::RememberPosition,
     },
-    recollections::{recall, remember},
     sav_state::{ChangedCondnsNotifier, MaskedCondns, SAV_HOVER_OK},
     wrapper::*,
 };
+
+use recollections::{recall, remember};
 
 use colour_math::{HCV, ScalarAttribute, hue_wheel::MakeColouredShape};
 use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};

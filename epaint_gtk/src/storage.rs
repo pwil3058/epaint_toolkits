@@ -2,10 +2,11 @@
 
 use gtk3_ext::{
     gtk::{self, prelude::*},
-    recollections::{recall, remember},
-    sav_state::{ConditionalWidgetGroups, MaskedCondns, WidgetStatesControlled, SAV_NEXT_CONDN},
+    sav_state::{ConditionalWidgetGroups, MaskedCondns, SAV_NEXT_CONDN, WidgetStatesControlled},
     wrapper::*,
 };
+
+use recollections::{recall, remember};
 
 use std::{
     cell::RefCell,
@@ -13,7 +14,7 @@ use std::{
     rc::Rc,
 };
 
-use colour_math::{RGBConstants, HCV};
+use colour_math::{HCV, RGBConstants};
 use colour_math_gtk::coloured::Colourable;
 use gtk3_ext::sav_state::ConditionalWidgetGroupsBuilder;
 

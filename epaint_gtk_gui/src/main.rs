@@ -2,30 +2,31 @@
 
 use gtk3_ext::{
     gtk::{self, prelude::*},
-    recollections,
+    gtkx::window::RememberGeometry,
     wrapper::*,
 };
+use recollections;
 
 use colour_math::ScalarAttribute;
 use colour_math::ScalarAttribute::*;
-use colour_math::{HueConstants, HCV};
+use colour_math::{HCV, HueConstants};
 
+use epaint::PaintRangeId;
 use epaint::paint::{Paint, RangePaint};
 use epaint::properties::{
     Properties,
     PropertyType::{Granulation, Lightfastness, Luminescence, Staining, Transparency},
     PropertyTypes,
 };
-use epaint::PaintRangeId;
 
 use epaint_gtk::factory::PaintFactoryBuilder;
 use epaint_gtk::mixer::palette::PixtureMixerBuilder;
 use epaint_gtk::paint_edit::PaintEditor;
-use epaint_gtk::range::display::*;
 use epaint_gtk::range::PaintRangeManagerBuilder;
+use epaint_gtk::range::display::*;
 
 fn main() {
-    recollections::init("./.recollections");
+    let _ = recollections::init("./.recollections");
     if gtk::init().is_err() {
         println!("GTK init failed");
         return;
@@ -38,6 +39,7 @@ fn main() {
         Luminescence,
     ]);
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
+    win.set_geometry_from_recollections("main_window", (600, 400));
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
     vbox.pack_start(
         PaintFactoryBuilder::new()

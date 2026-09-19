@@ -19,8 +19,10 @@ serde_derive = "1.0"
 gcd = "2.0.1"
 
 num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
-path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
-gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
+
+path_utilities.workspace = true
+recollections.workspace = true
+gtk3_ext.workspace = true
 
 colour_math = { path = "../colour_math" }
 colour_math_cairo = { path = "../colour_math_cairo" }
