@@ -8,7 +8,7 @@ edition = "2021"
 
 [dependencies]
 # cargo.io crates
-lazy_static = "1.4.0"
+#lazy_static = "1.4.0"
 num-traits = "0.2.14"
 regex = "1.4.3"
 serde = "1.0"

@@ -19,11 +19,9 @@ fn main() {
     if let Err(err) = gtk::init() {
         panic!("GTK failed to initialize! {err}.");
     };
-    // if let Err(err) =
-    let _ = recollections::init(config::recollection_file_path());
-    // {
-    //     eprintln!("Failed to open recollections database: {}", err);
-    // };
+    if let Err(err) = recollections::init(config::recollection_file_path()) {
+        eprintln!("Failed to open recollections database: {}", err);
+    };
     let win = gtk::Window::new(gtk::WindowType::Toplevel);
     win.set_geometry_from_recollections("main_window", (600, 400));
     if let Some(icon) = icon::pcatkrs_pixbuf(64) {

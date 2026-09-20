@@ -5,8 +5,6 @@ authors = ["Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>"]
 edition = "2024"
 
 [dependencies]
-lazy_static = "0.2.8"
-
 gtk3_ext.workspace = true
 path_utilities.workspace = true
 recollections.workspace = true

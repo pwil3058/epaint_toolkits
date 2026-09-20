@@ -6,9 +6,10 @@ use std::{
     ops::Index,
     ops::{Add, Mul},
     str::FromStr,
+    sync::LazyLock,
 };
 
-use lazy_static::lazy_static;
+// use lazy_static::lazy_static;
 use regex::Regex;
 
 use crate::attributes::Family;
@@ -363,23 +364,33 @@ impl From<std::num::ParseIntError> for RGBError {
     }
 }
 
-lazy_static! {
-    pub static ref RGB16_RE: Regex = Regex::new(
+// lazy_static! {
+pub static RGB16_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r"RGB(16)?\((red=)?0x(?P<red>[a-fA-F0-9]{4}), (green=)?0x(?P<green>[a-fA-F0-9]{4}), (blue=)?0x(?P<blue>[a-fA-F0-9]{4})\)"
-    ).unwrap();
-    pub static ref RGB16_BASE_10_RE: Regex = Regex::new(
+    ).unwrap()
+});
+pub static RGB16_BASE_10_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r"RGB(16)?\((red=)?(?P<red>\d{1,5}), (green=)?(?P<green>\d{1,5}), (blue=)?(?P<blue>\d{1,5})\)"
-    ).unwrap();
-    pub static ref RGB8_RE: Regex = Regex::new(
+    ).unwrap()
+});
+pub static RGB8_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r"RGB(8)?\((red=)?0x(?P<red>[a-fA-F0-9]{2}), (green=)?0x(?P<green>[a-fA-F0-9]{2}), (blue=)?0x(?P<blue>[a-fA-F0-9]{2})\)"
-    ).unwrap();
-    pub static ref RGB8_BASE_10_RE: Regex = Regex::new(
+    ).unwrap()
+});
+pub static RGB8_BASE_10_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r"RGB(8)?\((red=)?(?P<red>\d{1,3}), (green=)?(?P<green>\d{1,3}), (blue=)?(?P<blue>\d{1,3})\)"
-    ).unwrap();
-    pub static ref RGB_PANGO_RE: Regex = Regex::new(
+    ).unwrap()
+});
+pub static RGB_PANGO_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
         r#"#(?P<red>[a-fA-F0-9][a-fA-F0-9])(?P<green>[a-fA-F0-9][a-fA-F0-9])(?P<blue>[a-fA-F0-9][a-fA-F0-9])"#
-    ).unwrap();
-}
+    ).unwrap()
+});
+// }
 
 impl FromStr for RGB<u16> {
     type Err = RGBError;
