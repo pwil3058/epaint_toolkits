@@ -1,6 +1,6 @@
 [workspace]
 
-resolver = "2"
+resolver = "3"
 
 members = [
     "colour_math",
@@ -13,10 +13,16 @@ members = [
     "epaint_gtk",
     "epaint_gtk_gui",
     "wpca_gtk",
-    "mcmmtk_gtk",
+    "mcmmtk_gtk", "colour_math_egui_lib", "colour_math_egui_gui",
 ]
 
 [workspace.dependencies]
+egui = "0.36"
+eframe = "0.36"
+
 gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
 path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
 recollections = { git = "https://github.com/pwil3058/rust_utilities" }
+
+colour_math = { path = "./colour_math" }
+colour_math_egui_lib = { path = "./colour_math_egui_lib" }

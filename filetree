@@ -1,0 +1,267 @@
+.:
+total 240
+-rw-rw-r-- 1 peter peter 139450 Oct  2 10:14 Cargo.lock
+-rw-rw-r-- 1 peter peter    550 Oct  2 10:14 Cargo.toml
+drwxrwxr-x 3 peter peter   4096 Sep 20 09:56 colour_math
+drwxrwxr-x 3 peter peter   4096 Sep 19 12:09 colour_math_cairo
+drwxrwxr-x 3 peter peter   4096 Mar  4  2024 colour_math_derive
+drwxrwxr-x 3 peter peter   4096 Oct  2 10:14 colour_math_egui_gui
+drwxrwxr-x 3 peter peter   4096 Oct  2 08:48 colour_math_egui_lib
+drwxrwxr-x 3 peter peter   4096 Sep 19 12:09 colour_math_gtk
+drwxrwxr-x 3 peter peter   4096 Sep 19 12:10 colour_math_gui_gtk
+-rw-rw-r-- 1 peter peter    467 Jul 19  2022 COPYRIGHT
+drwxrwxr-x 3 peter peter   4096 Jul 21 07:03 epaint
+drwxrwxr-x 3 peter peter   4096 Aug 22 06:48 epaint_derive
+drwxrwxr-x 3 peter peter   4096 Sep 19 12:07 epaint_gtk
+drwxrwxr-x 3 peter peter   4096 Sep 19 12:16 epaint_gtk_gui
+-rw-rw-r-- 1 peter peter      0 Oct  2 10:15 filetree
+-rw-rw-r-- 1 peter peter  16726 Jun 25 10:42 LICENSE
+-rw-rw-r-- 1 peter peter  10847 Jun 20 16:17 LICENSE-APACHE
+-rw-rw-r-- 1 peter peter   1023 Jun 20 16:17 LICENSE-MIT
+drwxrwxr-x 5 peter peter   4096 Sep 20 10:10 mcmmtk_gtk
+-rw-rw-r-- 1 peter peter     59 Jun 25 10:42 README.md
+drwxrwxr-x 4 peter peter   4096 Sep 19 12:05 wpca_gtk
+
+./colour_math:
+total 8
+-rw-rw-r-- 1 peter peter  458 Sep 20 09:56 Cargo.toml
+drwxrwxr-x 7 peter peter 4096 Sep 20 10:07 src
+
+./colour_math/src:
+total 192
+-rw-rw-r-- 1 peter peter 11098 Aug  8 12:58 attributes.rs
+drwxrwxr-x 2 peter peter  4096 Aug  8 12:59 beigui
+-rw-rw-r-- 1 peter peter  9292 Mar  4  2024 beigui.rs
+-rw-rw-r-- 1 peter peter  2919 Mar  4  2024 debug.rs
+drwxrwxr-x 2 peter peter  4096 Mar  4  2024 fdrn
+-rw-rw-r-- 1 peter peter 16896 Aug  8 12:46 fdrn.rs
+drwxrwxr-x 2 peter peter  4096 Jun 20 11:23 hcv
+-rw-rw-r-- 1 peter peter 13752 Aug  8 12:45 hcv.rs
+drwxrwxr-x 2 peter peter  4096 Jul 12 06:39 hue
+-rw-rw-r-- 1 peter peter 61154 Aug  8 12:43 hue.rs
+-rw-rw-r-- 1 peter peter  7538 Aug  2 17:39 lib.rs
+drwxrwxr-x 2 peter peter  4096 Aug  6 14:47 manipulator
+-rw-rw-r-- 1 peter peter 19421 Aug  8 12:40 manipulator.rs
+-rw-rw-r-- 1 peter peter  2341 Jul 21 15:31 mixing.rs
+-rw-rw-r-- 1 peter peter 13275 Sep 20 10:07 rgb.rs
+
+./colour_math/src/beigui:
+total 40
+-rw-rw-r-- 1 peter peter 22028 Aug  2 17:58 attr_display.rs
+-rw-rw-r-- 1 peter peter 11860 Aug  8 12:59 hue_wheel.rs
+-rw-rw-r-- 1 peter peter   275 Mar  4  2024 test_beigui.rs
+
+./colour_math/src/fdrn:
+total 8
+-rw-rw-r-- 1 peter peter 5081 Mar  4  2024 fdrn_tests.rs
+
+./colour_math/src/hcv:
+total 8
+-rw-rw-r-- 1 peter peter 6617 Jun 20 11:23 hcv_tests.rs
+
+./colour_math/src/hue:
+total 68
+-rw-rw-r-- 1 peter peter  6934 Mar  4  2024 angle.rs
+-rw-rw-r-- 1 peter peter 58913 Jul 12 06:39 hue_tests.rs
+
+./colour_math/src/manipulator:
+total 16
+-rw-rw-r-- 1 peter peter 16325 Aug  6 14:47 manipulator_tests.rs
+
+./colour_math_cairo:
+total 8
+-rw-rw-r-- 1 peter peter  305 Sep 19 12:09 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Aug  9 10:33 src
+
+./colour_math_cairo/src:
+total 12
+-rw-rw-r-- 1 peter peter 8628 Aug  9 10:33 lib.rs
+
+./colour_math_derive:
+total 8
+-rw-rw-r-- 1 peter peter  288 Mar  4  2024 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Jul 11 11:07 src
+
+./colour_math_derive/src:
+total 4
+-rw-rw-r-- 1 peter peter 3696 Jul 11 11:07 lib.rs
+
+./colour_math_egui_gui:
+total 8
+-rw-rw-r-- 1 peter peter   91 Oct  2 10:14 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Oct  2 10:14 src
+
+./colour_math_egui_gui/src:
+total 4
+-rw-rw-r-- 1 peter peter 45 Oct  2 10:14 main.rs
+
+./colour_math_egui_lib:
+total 8
+-rw-rw-r-- 1 peter peter  125 Oct  2 08:48 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Oct  2 08:51 src
+
+./colour_math_egui_lib/src:
+total 20
+-rw-rw-r-- 1 peter peter 7198 Oct  2 08:51 colour_matrix_dashboard.rs
+-rw-rw-r-- 1 peter peter 7052 Oct  2 08:48 egui_drawer.rs
+-rw-rw-r-- 1 peter peter  131 Oct  2 08:51 lib.rs
+
+./colour_math_gtk:
+total 8
+-rw-rw-r-- 1 peter peter  462 Sep 19 12:09 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Aug  9 10:34 src
+
+./colour_math_gtk/src:
+total 64
+-rw-rw-r-- 1 peter peter  6789 Aug  9 10:33 attributes.rs
+-rw-rw-r-- 1 peter peter  3181 Aug  9 10:33 cads.rs
+-rw-rw-r-- 1 peter peter  4727 Aug  9 10:33 colour_edit.rs
+-rw-rw-r-- 1 peter peter 12701 Aug  9 10:34 hue_wheel.rs
+-rw-rw-r-- 1 peter peter  2205 Aug  9 10:34 lib.rs
+-rw-rw-r-- 1 peter peter 16507 Aug  9 10:34 manipulator.rs
+-rw-rw-r-- 1 peter peter  3598 Aug  9 10:34 rgb_entry.rs
+
+./colour_math_gui_gtk:
+total 8
+-rw-rw-r-- 1 peter peter  476 Sep 19 12:10 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Sep 17 12:48 src
+
+./colour_math_gui_gtk/src:
+total 8
+-rw-rw-r-- 1 peter peter 4695 Sep 17 12:48 main.rs
+
+./epaint:
+total 8
+-rw-rw-r-- 1 peter peter  498 Jul 21 07:03 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Aug 22 13:32 src
+
+./epaint/src:
+total 56
+-rw-rw-r-- 1 peter peter  3261 Aug  8 07:46 lib.rs
+-rw-rw-r-- 1 peter peter 10767 Aug  8 07:44 mixtures.rs
+-rw-rw-r-- 1 peter peter  6589 Aug  8 07:36 paint.rs
+-rw-rw-r-- 1 peter peter 21259 Aug 22 13:32 properties.rs
+-rw-rw-r-- 1 peter peter  5935 Aug  8 06:48 range.rs
+
+./epaint_derive:
+total 8
+-rw-rw-r-- 1 peter peter  150 Aug 22 06:48 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Aug 22 14:25 src
+
+./epaint_derive/src:
+total 8
+-rw-rw-r-- 1 peter peter 7121 Aug 22 14:25 lib.rs
+
+./epaint_gtk:
+total 8
+-rw-rw-r-- 1 peter peter  755 Sep 19 12:07 Cargo.toml
+drwxrwxr-x 5 peter peter 4096 Sep 19 12:01 src
+
+./epaint_gtk/src:
+total 124
+-rw-rw-r-- 1 peter peter 12067 Aug  9 10:36 factory.rs
+drwxrwxr-x 2 peter peter  4096 Aug  9 10:37 icons
+-rw-rw-r-- 1 peter peter  1321 Jul 22 17:11 lib.rs
+-rw-rw-r-- 1 peter peter 14138 Aug  9 10:36 list.rs
+drwxrwxr-x 2 peter peter  4096 Aug  9 10:39 mixer
+-rw-rw-r-- 1 peter peter   134 Jul  4 15:54 mixer.rs
+-rw-rw-r-- 1 peter peter 16458 Aug 10 10:48 paint_edit.rs
+-rw-rw-r-- 1 peter peter  2659 Aug  9 10:36 properties.rs
+drwxrwxr-x 2 peter peter  4096 Aug 10 06:53 range
+-rw-rw-r-- 1 peter peter 27211 Sep 19 12:00 range.rs
+-rw-rw-r-- 1 peter peter  1857 Aug  9 10:36 sav_state.rs
+-rw-rw-r-- 1 peter peter 15375 Sep 19 12:01 storage.rs
+-rw-rw-r-- 1 peter peter  3147 Aug  9 10:38 window.rs
+
+./epaint_gtk/src/icons:
+total 116
+-rw-rw-r-- 1 peter peter  5907 Aug  9 10:34 colln_load.rs
+-rw-rw-r-- 1 peter peter  6060 Aug  9 10:35 colln_new.rs
+-rw-rw-r-- 1 peter peter  5869 Aug  9 10:35 colln_save_as.rs
+-rw-rw-r-- 1 peter peter  5869 Aug  9 10:35 colln_save.rs
+-rw-rw-r-- 1 peter peter   340 Jul  4 15:54 mod.rs
+-rw-rw-r-- 1 peter peter  5774 Aug  9 10:35 needs_save_not_ready.rs
+-rw-rw-r-- 1 peter peter  5774 Aug  9 10:35 needs_save_ready.rs
+-rw-rw-r-- 1 peter peter  5965 Aug  9 10:35 paint_standard_load.rs
+-rw-rw-r-- 1 peter peter  5927 Aug  9 10:35 paint_standard.rs
+-rw-rw-r-- 1 peter peter 18691 Aug  9 10:36 series_paint_load.rs
+-rw-rw-r-- 1 peter peter 18671 Aug  9 10:36 series_paint.rs
+-rw-rw-r-- 1 peter peter  5774 Aug  9 10:37 up_to_date.rs
+
+./epaint_gtk/src/mixer:
+total 68
+-rw-rw-r-- 1 peter peter 10540 Aug  9 10:37 component.rs
+-rw-rw-r-- 1 peter peter 14838 Aug  9 10:37 display.rs
+-rw-rw-r-- 1 peter peter 37542 Aug  9 10:39 palette.rs
+
+./epaint_gtk/src/range:
+total 12
+-rw-rw-r-- 1 peter peter 11713 Aug 10 06:53 display.rs
+
+./epaint_gtk_gui:
+total 8
+-rw-rw-r-- 1 peter peter  547 Sep 19 12:16 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Sep 19 12:19 src
+
+./epaint_gtk_gui/src:
+total 4
+-rw-rw-r-- 1 peter peter 3494 Sep 19 12:19 main.rs
+
+./mcmmtk_gtk:
+total 304
+-rw-rw-r-- 1 peter peter    513 Sep 20 10:10 Cargo.toml
+-rw-rw-r-- 1 peter peter  18092 Jul 14  2022 COPYING
+-rw-rw-r-- 1 peter peter    787 Jul 14  2022 copyright
+drwxrwxr-x 4 peter peter   4096 Jul 14  2022 data
+-rw-rw-r-- 1 peter peter 264153 Jul 14  2022 mcmmtk.xpm
+-rw-rw-r-- 1 peter peter   3430 Jul 14  2022 README
+drwxrwxr-x 2 peter peter   4096 Jul 14  2022 samples
+drwxrwxr-x 2 peter peter   4096 Sep 19 12:15 src
+
+./mcmmtk_gtk/data:
+total 16
+-rw-rw-r-- 1 peter peter 4728 Aug 10 10:43 ideal_paints.json
+drwxrwxr-x 2 peter peter 4096 Jul 14  2022 paints
+drwxrwxr-x 2 peter peter 4096 Jul 14  2022 standards
+
+./mcmmtk_gtk/data/paints:
+total 208
+-rw-rw-r-- 1 peter peter   4298 Jul 14  2022 Humbrol_Enamel-Paints.json
+-rw-rw-r-- 1 peter peter 112000 Jul 14  2022 Vallejo-ModelAirColor-rev18-Baja.json
+-rw-rw-r-- 1 peter peter   4792 Jul 14  2022 Vallejo-ModelColor-Metallic-rev18-Baja.json
+-rw-rw-r-- 1 peter peter  80255 Jul 14  2022 Vallejo-ModelColor-rev18-Baja.json
+
+./mcmmtk_gtk/data/standards:
+total 128
+-rw-rw-r-- 1 peter peter 56911 Jul 14  2022 bs381c.json
+-rw-rw-r-- 1 peter peter 72464 Jul 14  2022 FederalStandard595C-1XXXX-colorserver.json
+
+./mcmmtk_gtk/samples:
+total 232
+-rw-rw-r-- 1 peter peter 237158 Jul 14  2022 example.jpg
+
+./mcmmtk_gtk/src:
+total 308
+-rw-rw-r-- 1 peter peter   1029 Sep 17 14:10 config.rs
+-rw-rw-r-- 1 peter peter   2116 Sep 19 12:15 main.rs
+-rw-rw-r-- 1 peter peter 298899 Aug  9 10:38 mcmmtk_icon.rs
+-rw-rw-r-- 1 peter peter   4891 Aug  9 10:39 mcmmtk.rs
+
+./wpca_gtk:
+total 12
+-rw-rw-r-- 1 peter peter  543 Sep 19 12:05 Cargo.toml
+drwxrwxr-x 2 peter peter 4096 Jul 16 17:37 pixmaps
+drwxrwxr-x 2 peter peter 4096 Sep 19 13:21 src
+
+./wpca_gtk/pixmaps:
+total 16
+-rw-rw-r-- 1 peter peter 245 Jul 16 17:37 wpca_gtk.xpm
+-rw-rw-r-- 1 peter peter 190 Jul 16 17:37 wpcatk.ico
+-rw-rw-r-- 1 peter peter 575 Jul 16 17:37 wpcatk.png
+-rw-rw-r-- 1 peter peter 689 Jul 16 17:37 wpcatk.xcf
+
+./wpca_gtk/src:
+total 16
+-rw-rw-r-- 1 peter peter 1025 Sep 17 14:15 config.rs
+-rw-rw-r-- 1 peter peter 1967 Sep 19 13:21 main.rs
+-rw-rw-r-- 1 peter peter 4904 Aug  9 10:40 wpca_tk.rs
