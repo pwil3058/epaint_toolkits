@@ -3,8 +3,7 @@
 use colour_math::{
     ColourBasics,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fdrn::{FDRNumber, Prop, UFDRNumber},
-    hcv::HCV,
+    fdrn::{Prop, UFDRNumber},
 };
 use eframe::egui;
 use std::cell::Cell;
@@ -13,6 +12,7 @@ use std::cell::Cell;
 pub struct EguiDrawer<'a> {
     pub painter: &'a egui::Painter,
     pub rect: egui::Rect,
+    pub canvas_rect: egui::Rect, // 🆕 Fixed widget rect (for the stable square background)
     pub scale: f64,
     fill_colour: Cell<egui::Color32>,
     line_colour: Cell<egui::Color32>,
@@ -21,8 +21,8 @@ pub struct EguiDrawer<'a> {
 }
 
 impl<'a> EguiDrawer<'a> {
-    pub fn new(painter: &'a egui::Painter, rect: egui::Rect) -> Self {
-        // Compute standard Cartesian scale factor matching your original 2.15 layout ratio
+    // 🆕 Update constructor to accept both the transformed rect and the original raw canvas rect
+    pub fn new(painter: &'a egui::Painter, rect: egui::Rect, canvas_rect: egui::Rect) -> Self {
         let size = rect.size();
         let scale = if size.x > size.y {
             size.y as f64 / 2.15
@@ -33,6 +33,7 @@ impl<'a> EguiDrawer<'a> {
         Self {
             painter,
             rect,
+            canvas_rect, // 🆕 Store the stable viewport boundary area
             scale,
             fill_colour: Cell::new(egui::Color32::BLACK),
             line_colour: Cell::new(egui::Color32::BLACK),
@@ -201,7 +202,7 @@ impl<'a> DrawIsosceles for EguiDrawer<'a> {}
 impl<'a> DrawShapes for EguiDrawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.painter
-            .rect_filled(self.rect, 0.0, Self::to_egui_color(colour));
+            .rect_filled(self.canvas_rect, 0.0, Self::to_egui_color(colour));
     }
 
     fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNumber, fill: bool) {
