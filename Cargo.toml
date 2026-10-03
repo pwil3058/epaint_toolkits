@@ -19,6 +19,8 @@ members = [
 [workspace.dependencies]
 egui = "0.36"
 eframe = "0.36"
+egui_extras = "0.36"
+image = "0.25"# 🌟 Centralized table extension dependency crate!
 
 gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
 path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
