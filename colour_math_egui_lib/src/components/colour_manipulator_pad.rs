@@ -1,81 +1,107 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::widgets::{colour_button::DirectionalNudgeButton, sample_field::SampleField};
-use colour_math::{ColourBasics, HCV, Prop, hue::angle::Angle, manipulator::ColourManipulator};
+use crate::EguiColorBridge;
+use colour_math::{
+    ColourBasics, Prop, hue::angle::Angle, manipulator::ColourManipulator, rgb::RGB,
+};
 use eframe::egui;
 
 pub struct ColourManipulatorPad {
-    /// Fine-tuning angle increment step used when nudging the hue buttons left or right
     pub hue_step: Angle,
-    /// Fine-tuning proportion step used when nudging chroma or value scalars up or down
     pub scalar_step: Prop,
 }
 
 impl ColourManipulatorPad {
     pub fn new() -> Self {
         Self {
-            // Default to a crisp 5-degree arc step and a standard fractional prop nudge increment
             hue_step: Angle::from(5.0),
             scalar_step: Prop::from(0.05_f64),
         }
     }
 
-    /// Renders the standalone color manipulator ring, piping clicks right into your engine model.
     pub fn show(
-        &self,
+        &mut self,
         ui: &mut egui::Ui,
         manipulator: &mut ColourManipulator,
-        texture: Option<&egui::TextureHandle>,
+        texture: &mut Option<egui::TextureHandle>,
     ) {
-        ui.vertical_centered(|ui| {
-            // -----------------------------------------------------------------
-            // 1. TOP AXIS: Value++ Nudge Button
-            // -----------------------------------------------------------------
-            let mut val_up_model = ColourManipulator::builder()
-                .init_hcv(&manipulator.hcv())
-                .build();
-            val_up_model.incr_value(self.scalar_step);
-            let val_up_tint = val_up_model.hcv();
+        let side_btn_width = 32.0;
+        let button_height = 24.0;
 
-            if DirectionalNudgeButton::new("Value++", &val_up_tint)
-                .show(ui)
-                .clicked()
-            {
-                manipulator.incr_value(self.scalar_step);
-            }
+        // 🌟 FIX A: Match ergonomics lookup - remove explicit 'ref' keyword to satisfy type bounds
+        let (content_width, content_height) = if let Some(tex) = texture {
+            let size = tex.size();
+            (size[0] as f32, size[1] as f32)
+        } else {
+            (220.0, 220.0)
+        };
+
+        ui.vertical_centered(|ui| {
+            // 1. Value++ Button
+            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                if ui
+                    .add_sized([content_width, button_height], egui::Button::new("Value++"))
+                    .clicked()
+                {
+                    manipulator.incr_value(self.scalar_step);
+                }
+            });
 
             ui.add_space(4.0);
 
-            // -----------------------------------------------------------------
-            // 2. CENTRAL ROW: Left Hue, Central Grey Sampling Canvas, Right Hue
-            // -----------------------------------------------------------------
+            // 2. Central Row: Dynamic Sized Image Center Box
             ui.horizontal(|ui| {
-                // Left Hue Nudge Button ("<")
-                let mut hue_left_model = ColourManipulator::builder()
-                    .init_hcv(&manipulator.hcv())
-                    .build();
-                hue_left_model.rotate(-self.hue_step);
-                let hue_left_tint = hue_left_model.hcv();
+                let total_row_width = content_width + (side_btn_width * 2.0) + 8.0;
+                let left_margin = (ui.available_width() - total_row_width) / 2.0;
+                ui.add_space(left_margin.max(0.0));
 
-                if DirectionalNudgeButton::new(" < ", &hue_left_tint)
-                    .show(ui)
+                if ui
+                    .add_sized([side_btn_width, content_height], egui::Button::new("<"))
                     .clicked()
                 {
                     manipulator.rotate(-self.hue_step);
                 }
 
-                // Central Gray backdrop matrix canvas image box
-                SampleField::new(texture, egui::vec2(220.0, 220.0)).show(ui);
+                ui.add_space(4.0);
 
-                // Right Hue Nudge Button (">")
-                let mut hue_right_model = ColourManipulator::builder()
-                    .init_hcv(&manipulator.hcv())
-                    .build();
-                hue_right_model.rotate(self.hue_step);
-                let hue_right_tint = hue_right_model.hcv();
+                let (field_rect, response) = ui.allocate_exact_size(
+                    egui::vec2(content_width, content_height),
+                    egui::Sense::click(),
+                );
 
-                if DirectionalNudgeButton::new(" > ", &hue_right_tint)
-                    .show(ui)
+                let current_rgb_u64 = RGB::<u64>::from(manipulator.hcv());
+                ui.painter()
+                    .rect_filled(field_rect, 4.0, current_rgb_u64.to_color32());
+
+                if let Some(tex) = texture {
+                    ui.painter().image(
+                        tex.id(),
+                        field_rect,
+                        egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
+                        egui::Color32::WHITE,
+                    );
+                } else {
+                    ui.painter().rect_stroke(
+                        field_rect,
+                        4.0,
+                        egui::Stroke::new(1.0, egui::Color32::from_gray(64)),
+                        egui::StrokeKind::Middle,
+                    );
+                }
+
+                response.context_menu(|ui| {
+                    if ui.button("📋 Paste Sample from Clipboard").clicked() {
+                        // Clipboard decoding hooks go here
+                    }
+                    if ui.button("❌ Delete Sample Image").clicked() {
+                        *texture = None;
+                    }
+                });
+
+                ui.add_space(4.0);
+
+                if ui
+                    .add_sized([side_btn_width, content_height], egui::Button::new(">"))
                     .clicked()
                 {
                     manipulator.rotate(self.hue_step);
@@ -84,56 +110,73 @@ impl ColourManipulatorPad {
 
             ui.add_space(4.0);
 
-            // -----------------------------------------------------------------
-            // 3. BOTTOM AXIS: Value-- Nudge Button
-            // -----------------------------------------------------------------
-            let mut val_down_model = ColourManipulator::builder()
-                .init_hcv(&manipulator.hcv())
-                .build();
-            val_down_model.decr_value(self.scalar_step);
-            let val_down_tint = val_down_model.hcv();
+            // 3. Value-- Button
+            ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                if ui
+                    .add_sized([content_width, button_height], egui::Button::new("Value--"))
+                    .clicked()
+                {
+                    manipulator.decr_value(self.scalar_step);
+                }
+            });
 
-            if DirectionalNudgeButton::new("Value--", &val_down_tint)
-                .show(ui)
-                .clicked()
-            {
-                manipulator.decr_value(self.scalar_step);
-            }
+            ui.add_space(6.0);
 
-            ui.add_space(8.0);
-
-            // -----------------------------------------------------------------
-            // 4. FOOTER ROW: Chroma / Greyness Tuning Shifts
-            // -----------------------------------------------------------------
+            // 4. Footer Chroma tuning row
             ui.horizontal(|ui| {
-                // Chroma-- / Greyness++ Nudge Button
-                let mut chroma_down_model = ColourManipulator::builder()
-                    .init_hcv(&manipulator.hcv())
-                    .build();
-                chroma_down_model.decr_chroma(self.scalar_step);
-                let chroma_down_tint = chroma_down_model.hcv();
+                let half_row_width = (content_width + (side_btn_width * 2.0)) / 2.0;
+                let footer_margin =
+                    (ui.available_width() - (content_width + (side_btn_width * 2.0) + 4.0)) / 2.0;
+                ui.add_space(footer_margin.max(0.0));
 
-                if DirectionalNudgeButton::new("Chroma-- / Greyness++", &chroma_down_tint)
-                    .show(ui)
+                if ui
+                    .add_sized(
+                        [half_row_width, button_height],
+                        egui::Button::new("Chroma-- / Greyness++"),
+                    )
                     .clicked()
                 {
                     manipulator.decr_chroma(self.scalar_step);
                 }
-
-                ui.add_space(12.0);
-
-                // Chroma++ / Greyness-- Nudge Button
-                let mut chroma_up_model = ColourManipulator::builder()
-                    .init_hcv(&manipulator.hcv())
-                    .build();
-                chroma_up_model.incr_chroma(self.scalar_step);
-                let chroma_up_tint = chroma_up_model.hcv();
-
-                if DirectionalNudgeButton::new("Chroma++ / Greyness--", &chroma_up_tint)
-                    .show(ui)
+                ui.add_space(4.0);
+                if ui
+                    .add_sized(
+                        [half_row_width, button_height],
+                        egui::Button::new("Chroma++ / Greyness--"),
+                    )
                     .clicked()
                 {
                     manipulator.incr_chroma(self.scalar_step);
+                }
+            });
+
+            ui.add_space(8.0);
+            ui.separator();
+            ui.add_space(4.0);
+
+            // 5. Integral Automation Footer Controls (With egui Native Data Persistence)
+            ui.horizontal(|ui| {
+                let footer_align_margin =
+                    (ui.available_width() - (content_width + (side_btn_width * 2.0))) / 2.0;
+                ui.add_space(footer_align_margin.max(0.0));
+
+                if ui.button("🤖 Auto Match Pixels").clicked() {
+                    // Triggers calculations on your active manipulator structures
+                }
+                ui.add_space(16.0);
+
+                // 🌟 FIX B: Load, render, and persist your checkbox state seamlessly inline!
+                let storage_key = egui::Id::new("on_paste_auto_toggle");
+                let mut on_paste_automatic = ui
+                    .ctx()
+                    .data_mut(|d| *d.get_temp_mut_or_default::<bool>(storage_key));
+
+                if ui
+                    .checkbox(&mut on_paste_automatic, "On Paste? (Match Automatically)")
+                    .changed()
+                {
+                    ui.ctx()
+                        .data_mut(|d| d.insert_temp(storage_key, on_paste_automatic));
                 }
             });
         });

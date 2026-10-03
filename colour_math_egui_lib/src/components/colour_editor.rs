@@ -6,7 +6,7 @@ use crate::{
     widgets::rgb_hex_editor::RgbHexEditor,
 };
 use colour_math::{
-    ColourBasics, Prop, RGB,
+    ColourBasics, Prop, RGB, UFDRNumber,
     beigui::attr_display::{ColourAttributeDisplay, ColourAttributeType},
     manipulator::ColourManipulator,
 };
@@ -15,11 +15,13 @@ use eframe::egui;
 pub struct ColourEditor {
     pub manipulator_view: ColourManipulatorView,
     pub pad: ColourManipulatorPad,
-    pub active_rgb: RGB<u8>, // Stored cleanly as u8 for text field symmetry
+    pub active_rgb: RGB<u8>,
+    pub displayed_attributes: Vec<ColourAttributeType>,
 }
 
 impl ColourEditor {
-    pub fn new(initial_model: ColourManipulator) -> Self {
+    /// 🆕 Accept a customizable array slice of attributes upon dashboard creation
+    pub fn new(initial_model: ColourManipulator, attributes: &[ColourAttributeType]) -> Self {
         let hcv = initial_model.hcv();
         let u8_rgb = RGB::<u8>::from(hcv);
 
@@ -27,6 +29,7 @@ impl ColourEditor {
             manipulator_view: ColourManipulatorView::new(initial_model),
             pad: ColourManipulatorPad::new(),
             active_rgb: u8_rgb,
+            displayed_attributes: attributes.to_vec(), // Cloned once on application startup pass
         }
     }
 
@@ -40,17 +43,12 @@ impl ColourEditor {
     pub fn show(&mut self, ui: &mut egui::Ui) {
         ui.vertical(|ui| {
             // -----------------------------------------------------------------
-            // STACK 1: The Multi-Stop Attribute Sliders Display Trackers
+            // STACK 1: The Configured Dynamic Attribute Sliders Trackers
             // -----------------------------------------------------------------
             let current_hcv = self.manipulator_view.model.hcv();
 
-            for attr_type in &[
-                ColourAttributeType::Hue,
-                ColourAttributeType::Value,
-                ColourAttributeType::Chroma,
-                ColourAttributeType::Greyness,
-                ColourAttributeType::Warmth,
-            ] {
+            // Iterate natively over your customized collection constraints
+            for attr_type in &self.displayed_attributes {
                 let mut cad = ColourAttributeDisplay::new(attr_type);
                 cad.set_colour(Some(&current_hcv));
 
@@ -78,8 +76,9 @@ impl ColourEditor {
 
                             match attr_type {
                                 ColourAttributeType::Value => {
+                                    let ufdr_val = UFDRNumber::from(click_fraction as f64) * 3;
                                     self.manipulator_view.model.set_sum(
-                                        new_prop * 3,
+                                        ufdr_val,
                                         colour_math::manipulator::SetScalar::Accommodate,
                                     );
                                 }
@@ -108,11 +107,11 @@ impl ColourEditor {
             RgbHexEditor::new(&mut self.active_rgb).show(ui);
 
             if self.active_rgb != prev_rgb {
-                // 🌟 FIX: Map RGB<u8> to a verified [Prop; 3] intermediate array first,
-                // then feed that checked array straight down to satisfy the ColourBasics bound!
+                // Pipeline the structural active_rgb state using your engine's native From trait configurations
                 let prop_array = <[Prop; 3]>::from(self.active_rgb);
-                let checked_rgb = RGB::<u64>::from(prop_array);
-                self.manipulator_view.model.set_colour(&checked_rgb);
+                let target_rgb_u64 = RGB::<u64>::from(prop_array);
+
+                self.manipulator_view.model.set_colour(&target_rgb_u64);
             }
 
             ui.add_space(6.0);
@@ -120,7 +119,8 @@ impl ColourEditor {
             // -----------------------------------------------------------------
             // STACK 3: The Standalone Directional Nudge Pad Ring & Backdrop Area
             // -----------------------------------------------------------------
-            self.pad.show(ui, &mut self.manipulator_view.model, None);
+            self.pad
+                .show(ui, &mut self.manipulator_view.model, &mut None);
 
             ui.add_space(6.0);
 

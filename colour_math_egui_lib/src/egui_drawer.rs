@@ -3,7 +3,7 @@
 use colour_math::{
     ColourBasics,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fdrn::{Prop, UFDRNumber},
+    fdrn::UFDRNumber,
 };
 use eframe::egui;
 use std::cell::Cell;
@@ -12,7 +12,7 @@ use std::cell::Cell;
 pub struct EguiDrawer<'a> {
     pub painter: &'a egui::Painter,
     pub rect: egui::Rect,
-    pub canvas_rect: egui::Rect, // 🆕 Fixed widget rect (for the stable square background)
+    pub canvas_rect: egui::Rect, // Fixed widget rect (for the stable square background)
     pub scale: f64,
     fill_colour: Cell<egui::Color32>,
     line_colour: Cell<egui::Color32>,
@@ -21,19 +21,18 @@ pub struct EguiDrawer<'a> {
 }
 
 impl<'a> EguiDrawer<'a> {
-    // 🆕 Update constructor to accept both the transformed rect and the original raw canvas rect
     pub fn new(painter: &'a egui::Painter, rect: egui::Rect, canvas_rect: egui::Rect) -> Self {
-        let size = rect.size();
-        let scale = if size.x > size.y {
-            size.y as f64 / 2.15
+        // Differentiate layout rows by absolute pixel height instead of variable width aspect ratios
+        let scale = if rect.height() < 32.0 {
+            rect.height() as f64 / 2.0 // Lock indicator strips to prevent shapes from blowing out
         } else {
-            size.x as f64 / 2.15
+            rect.height() as f64 / 2.15 // Safe Cartesian plane scalar for square canvas widgets
         };
 
         Self {
             painter,
             rect,
-            canvas_rect, // 🆕 Store the stable viewport boundary area
+            canvas_rect,
             scale,
             fill_colour: Cell::new(egui::Color32::BLACK),
             line_colour: Cell::new(egui::Color32::BLACK),
@@ -45,21 +44,39 @@ impl<'a> EguiDrawer<'a> {
     /// Map a domain Point [-1.0..=1.0] straight to absolute pixel coordinates on screen.
     fn to_egui_pos(&self, point: colour_math::beigui::Point) -> egui::Pos2 {
         let center = self.rect.center();
-        let x_offset = f64::from(point.x) * self.scale;
-        // Invert Y axis to perfectly preserve Cartesian orientation vs screen spaces
-        let y_offset = -f64::from(point.y) * self.scale;
+
+        // 🌟 FIX A: If we are handling a short slider row, the X coordinate represents an
+        // absolute horizontal pixel offset fraction across the bar instead of a scaled Cartesian point.
+        let (target_x, target_y) = if self.rect.height() < 32.0 {
+            let x_pixel = self.rect.left() + (f64::from(point.x) as f32);
+            let y_pixel = self.rect.top() + (f64::from(point.y) as f32);
+            (x_pixel, y_pixel)
+        } else {
+            let x_offset = f64::from(point.x) * self.scale;
+            let y_offset = -f64::from(point.y) * self.scale;
+            (
+                (center.x as f64 + x_offset) as f32,
+                (center.y as f64 + y_offset) as f32,
+            )
+        };
+
+        // Clamp the calculated screen point strictly within the current row rect
         egui::pos2(
-            (center.x as f64 + x_offset) as f32,
-            (center.y as f64 + y_offset) as f32,
+            target_x.clamp(self.rect.left(), self.rect.right()),
+            target_y.clamp(self.rect.top(), self.rect.bottom()),
         )
     }
 
     fn to_egui_color(colour: &impl ColourBasics) -> egui::Color32 {
-        let rgb = colour.rgb::<f64>();
+        let prop_array = <[colour_math::fdrn::Prop; 3]>::from(colour.hcv());
+        let r_f64 = f64::from(prop_array[0]);
+        let g_f64 = f64::from(prop_array[1]);
+        let b_f64 = f64::from(prop_array[2]);
+
         egui::Color32::from_rgb(
-            (rgb[0] * 255.0) as u8,
-            (rgb[1] * 255.0) as u8,
-            (rgb[2] * 255.0) as u8,
+            (r_f64 * 255.0).clamp(0.0, 255.0) as u8,
+            (g_f64 * 255.0).clamp(0.0, 255.0) as u8,
+            (b_f64 * 255.0).clamp(0.0, 255.0) as u8,
         )
     }
 }
@@ -87,8 +104,12 @@ impl<'a> Draw for EguiDrawer<'a> {
     }
 
     fn set_line_width(&self, width: UFDRNumber) {
-        self.line_width
-            .set(f64::from(width) as f32 * self.scale as f32);
+        if self.rect.height() < 32.0 {
+            self.line_width.set(f64::from(width) as f32);
+        } else {
+            self.line_width
+                .set(f64::from(width) as f32 * self.scale as f32);
+        }
     }
 
     fn draw_polygon(&self, polygon: &[colour_math::beigui::Point], fill: bool) {
@@ -102,7 +123,6 @@ impl<'a> Draw for EguiDrawer<'a> {
                 ));
             } else {
                 let stroke = egui::Stroke::new(self.line_width.get(), self.line_colour.get());
-                // Close the shape ring layout manually
                 self.painter.add(egui::Shape::closed_line(points, stroke));
             }
         }
@@ -121,7 +141,6 @@ impl<'a> Draw for EguiDrawer<'a> {
             return;
         }
 
-        // Match explicit alignment anchors without Cairo text extent lookups
         let (target_point, align) = match posn {
             TextPosn::Centre(p) => (p, egui::Align2::CENTER_CENTER),
             TextPosn::TopLeftCorner(p) => (p, egui::Align2::LEFT_TOP),
@@ -131,7 +150,13 @@ impl<'a> Draw for EguiDrawer<'a> {
         };
 
         let screen_pos = self.to_egui_pos(target_point);
-        let size_pixels = f64::from(font_size) * self.scale;
+
+        // 🌟 FIX B: Scale text sizes cleanly depending on row context
+        let size_pixels = if self.rect.height() < 32.0 {
+            f64::from(font_size)
+        } else {
+            f64::from(font_size) * self.scale
+        };
 
         self.painter.text(
             screen_pos,
@@ -146,9 +171,8 @@ impl<'a> Draw for EguiDrawer<'a> {
         &self,
         _posn: colour_math::beigui::Point,
         _size: colour_math::beigui::Size,
-        colour_stops: &[(colour_math::hcv::HCV, Prop)],
+        colour_stops: &[(colour_math::hcv::HCV, colour_math::fdrn::Prop)],
     ) {
-        // Construct horizontal bar gradient meshes directly matching slider parameters
         if colour_stops.is_empty() {
             return;
         }
@@ -156,7 +180,6 @@ impl<'a> Draw for EguiDrawer<'a> {
         let mut mesh = egui::Mesh::default();
         let rect = self.rect;
 
-        // Map individual color stop parameters dynamically into native vertex bands
         for i in 0..(colour_stops.len() - 1) {
             let (c1, p1) = &colour_stops[i];
             let (c2, p2) = &colour_stops[i + 1];
@@ -207,7 +230,11 @@ impl<'a> DrawShapes for EguiDrawer<'a> {
 
     fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNumber, fill: bool) {
         let screen_center = self.to_egui_pos(centre);
-        let screen_radius = f64::from(radius) * self.scale;
+        let screen_radius = if self.rect.height() < 32.0 {
+            f64::from(radius)
+        } else {
+            f64::from(radius) * self.scale
+        };
 
         if fill {
             self.painter

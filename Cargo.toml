@@ -18,7 +18,7 @@ members = [
 
 [workspace.dependencies]
 egui = "0.36"
-eframe = "0.36"
+eframe = { version = "0.36", features = ["persistence"] }
 egui_extras = "0.36"
 image = "0.25"# 🌟 Centralized table extension dependency crate!
 
