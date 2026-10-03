@@ -11,12 +11,12 @@ paints_have_ids = []
 
 [dependencies]
 
-serde = { version = "1.0.228", features = ["derive"] }
-serde_json = "1.0.150"
-crypto-hash = "0.3.4"
-gcd = "2.3.0"
-regex = "*"
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+crypto-hash.workspace = true
+gcd.workspace = true
+regex.workspace = true
 
-epaint_derive = { path = "../epaint_derive" }
-colour_math = { path = "../colour_math" }
-colour_math_derive = { path = "../colour_math_derive" }
+epaint_derive.workspace = true
+colour_math.workspace = true
+colour_math_derive.workspace = true

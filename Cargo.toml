@@ -17,14 +17,34 @@ members = [
 ]
 
 [workspace.dependencies]
+# cargo.io crates
+crypto-hash = "0.3.4"
 egui = "0.36"
 eframe = { version = "0.36", features = ["persistence"] }
 egui_extras = "0.36"
+gcd = "2.3.0"
+heck = "0.3.3"
 image = "0.25"# 🌟 Centralized table extension dependency crate!
+num-traits = "0.2.14"
+quote = "1.0"
+regex = "1.4.3"
+serde = "1.0"
+serde_derive = "1.0"
+serde_json = "1.0.150"
+syn = "3.0"
 
+# crates from my github account
 gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
+num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
 path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
 recollections = { git = "https://github.com/pwil3058/rust_utilities" }
 
+# local crates
 colour_math = { path = "./colour_math" }
+colour_math_cairo = { path = "./colour_math_cairo" }
+colour_math_derive = { path = "./colour_math_derive" }
 colour_math_egui_lib = { path = "./colour_math_egui_lib" }
+colour_math_gtk = { path = "./colour_math_gtk" }
+epaint = { path = "./epaint" }
+epaint_derive = { path = "./epaint_derive" }
+epaint_gtk = { path = "./epaint_gtk" }

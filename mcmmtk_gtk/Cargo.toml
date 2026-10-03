@@ -9,14 +9,6 @@ gtk3_ext.workspace = true
 path_utilities.workspace = true
 recollections.workspace = true
 
-colour_math = { path = "../colour_math" }
-
-[dependencies.epaint]
-path = "../epaint"
-version = "*"
-features = ["targeted_mixtures", "paints_have_ids"]
-
-[dependencies.epaint_gtk]
-path = "../epaint_gtk"
-version = "*"
-features = ["targeted_mixtures", "paints_have_ids"]
+colour_math.workspace = true
+epaint = { workspace = true, features = ["targeted_mixtures", "paints_have_ids"] }
+epaint_gtk = { workspace = true, features = ["targeted_mixtures", "paints_have_ids"] }

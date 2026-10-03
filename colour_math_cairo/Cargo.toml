@@ -9,4 +9,4 @@ edition = "2021"
 [dependencies]
 gtk3_ext.workspace = true
 
-colour_math = { path = "../colour_math" }
+colour_math.workspace = true

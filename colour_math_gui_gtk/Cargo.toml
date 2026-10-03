@@ -11,6 +11,6 @@ gtk3_ext.workspace = true
 recollections.workspace = true
 path_utilities.workspace = true
 
-colour_math = { path = "../colour_math" }
-colour_math_gtk = { path = "../colour_math_gtk" }
-colour_math_derive = { path = "../colour_math_derive" }
+colour_math.workspace = true
+colour_math_gtk.workspace = true
+colour_math_derive.workspace = true

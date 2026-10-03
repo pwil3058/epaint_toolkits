@@ -14,13 +14,9 @@ palette_samples = []
 gtk3_ext.workspace = true
 recollections.workspace = true
 
-colour_math = { path = "../colour_math" }
-colour_math_derive = { path = "../colour_math_derive" }
+colour_math.workspace = true
+colour_math_derive.workspace = true
 
-[dependencies.epaint]
-path = "../epaint"
-features = ["targeted_mixtures", "paints_have_ids"]
+epaint = { workspace = true, features = ["targeted_mixtures", "paints_have_ids"] }
+epaint_gtk = { workspace = true, features = ["targeted_mixtures", "palette_samples", "paints_have_ids"] }
 
-[dependencies.epaint_gtk]
-path = "../epaint_gtk"
-features = ["targeted_mixtures", "palette_samples", "paints_have_ids"]

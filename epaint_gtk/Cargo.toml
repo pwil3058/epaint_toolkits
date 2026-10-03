@@ -13,22 +13,19 @@ palette_samples = []
 paints_have_ids = []
 
 [dependencies]
-serde = "1.0"
-serde_derive = "1.0"
+serde.workspace = true
+serde_derive.workspace = true
 
-gcd = "2.0.1"
+gcd.workspace = true
 
-num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+num_traits_plus.workspace = true
 
 path_utilities.workspace = true
 recollections.workspace = true
 gtk3_ext.workspace = true
 
-colour_math = { path = "../colour_math" }
-colour_math_cairo = { path = "../colour_math_cairo" }
-colour_math_gtk = { path = "../colour_math_gtk" }
-
-[dependencies.epaint]
-path = "../epaint"
-features = []
+colour_math.workspace = true
+colour_math_cairo.workspace = true
+colour_math_gtk.workspace = true
+epaint = { workspace = true, features = [] }
 

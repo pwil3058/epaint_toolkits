@@ -8,11 +8,10 @@ edition = "2021"
 
 [dependencies]
 # cargo.io crates
-#lazy_static = "1.4.0"
-num-traits = "0.2.14"
-regex = "1.4.3"
-serde = "1.0"
-serde_derive = "1.0"
+num-traits.workspace = true
+regex.workspace = true
+serde.workspace = true
+serde_derive.workspace = true
 
 # crates from my github account
-num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+num_traits_plus.workspace = true

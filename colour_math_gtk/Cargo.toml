@@ -7,11 +7,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-num-traits = "0.2.14"
+num-traits.workspace = true
 
-num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+num_traits_plus.workspace = true
 
 gtk3_ext.workspace = true
 
-colour_math = { path = "../colour_math" }
-colour_math_cairo = { path = "../colour_math_cairo" }
+colour_math.workspace = true
+colour_math_cairo.workspace = true
