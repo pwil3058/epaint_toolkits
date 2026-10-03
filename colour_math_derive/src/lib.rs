@@ -20,7 +20,7 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                         first = Some(field.ident.clone().unwrap());
                     }
                     for attr in field.attrs.iter() {
-                        if attr.path.is_ident("colour") {
+                        if attr.path().is_ident("colour") {
                             colour = Some(field.ident.clone().unwrap());
                         }
                     }

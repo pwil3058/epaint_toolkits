@@ -22,6 +22,43 @@ pub enum SetHue {
     FavourValue,
 }
 
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum DeltaSize {
+    Small,
+    Normal,
+    Large,
+}
+
+impl DeltaSize {
+    pub fn for_value(self) -> Prop {
+        match self {
+            DeltaSize::Small => 0.0025.into(),
+            DeltaSize::Normal => 0.005.into(),
+            DeltaSize::Large => 0.01.into(),
+        }
+    }
+
+    pub fn for_chroma(self) -> Prop {
+        match self {
+            DeltaSize::Small => 0.0025.into(),
+            DeltaSize::Normal => 0.005.into(),
+            DeltaSize::Large => 0.01.into(),
+        }
+    }
+
+    pub fn for_hue_anticlockwise(self) -> Angle {
+        match self {
+            DeltaSize::Small => 0.5.into(),
+            DeltaSize::Normal => 1.0.into(),
+            DeltaSize::Large => 5.0.into(),
+        }
+    }
+
+    pub fn for_hue_clockwise(self) -> Angle {
+        -self.for_hue_anticlockwise()
+    }
+}
+
 #[derive(Debug)]
 pub enum Outcome {
     Ok,

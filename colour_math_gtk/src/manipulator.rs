@@ -13,7 +13,11 @@ use gtk3_ext::{
 };
 
 use colour_math::{
-    fdrn::Prop, hcv::HCV, hue::angle::Angle, manipulator::ColourManipulator, LightLevel, Value, RGB,
+    fdrn::Prop,
+    hcv::HCV,
+    hue::angle::Angle,
+    manipulator::{ColourManipulator, DeltaSize},
+    LightLevel, Value, RGB,
 };
 use colour_math_cairo::Point;
 
@@ -39,43 +43,6 @@ macro_rules! connect_button {
 pub const CAN_PASTE: u64 = SAV_NEXT_CONDN;
 pub const CAN_REMOVE: u64 = SAV_NEXT_CONDN << 1;
 pub const COMBINED_MASK: u64 = CAN_PASTE | CAN_REMOVE;
-
-#[derive(Debug, PartialEq, Clone, Copy)]
-enum DeltaSize {
-    Small,
-    Normal,
-    Large,
-}
-
-impl DeltaSize {
-    fn for_value(self) -> Prop {
-        match self {
-            DeltaSize::Small => 0.0025.into(),
-            DeltaSize::Normal => 0.005.into(),
-            DeltaSize::Large => 0.01.into(),
-        }
-    }
-
-    fn for_chroma(self) -> Prop {
-        match self {
-            DeltaSize::Small => 0.0025.into(),
-            DeltaSize::Normal => 0.005.into(),
-            DeltaSize::Large => 0.01.into(),
-        }
-    }
-
-    fn for_hue_anticlockwise(self) -> Angle {
-        match self {
-            DeltaSize::Small => 0.5.into(),
-            DeltaSize::Normal => 1.0.into(),
-            DeltaSize::Large => 5.0.into(),
-        }
-    }
-
-    fn for_hue_clockwise(self) -> Angle {
-        -self.for_hue_anticlockwise()
-    }
-}
 
 struct Sample {
     pixbuf: gdk_pixbuf::Pixbuf,
