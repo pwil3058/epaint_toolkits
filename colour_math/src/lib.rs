@@ -221,6 +221,17 @@ pub trait ColourBasics {
         let rgb = self.rgb::<u8>();
         format!("#{:02X}{:02X}{:02X}", rgb.0[0], rgb.0[1], rgb.0[2])
     }
+
+    fn hex_string<L: LightLevel + Unsigned + UpperHex>(&self) -> String {
+        let rgb = self.rgb::<L>();
+        let hex_digits_per_item = std::mem::size_of::<L>() * 2;
+
+        // 3$ means "use the argument at index 3 for the width"
+        format!(
+            "0x{:03$X}{:03$X}{:03$X}",
+            rgb.0[0], rgb.0[1], rgb.0[2], hex_digits_per_item
+        )
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -277,4 +288,22 @@ pub trait ManipulatedColour: ColourBasics {
     fn saturated(&self, prop: Prop) -> Self;
     fn greyed(&self, prop: Prop) -> Self;
     fn rotated(&self, angle: Angle) -> Self;
+}
+
+#[cfg(test)]
+mod rgb_tests {
+    use super::*;
+    use std::str::FromStr;
+
+    #[test]
+    fn write_hex() {
+        assert_eq!(RGB::<u8>::RED.hex_string::<u8>(), "0xFF0000");
+        assert_eq!(RGB::<u8>::CYAN.hex_string::<u16>(), "0x0000FFFFFFFF");
+    }
+
+    #[test]
+    fn read_hex() {
+        assert_eq!(RGB::<u8>::from_str("0xFF0000"), Ok(RGB::<u8>::RED));
+        assert_eq!(RGB::<u16>::from_str("0x0000FFFFFFFF"), Ok(RGB::<u16>::CYAN));
+    }
 }

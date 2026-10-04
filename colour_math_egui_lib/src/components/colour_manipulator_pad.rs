@@ -1,22 +1,19 @@
+// Complete refactor of colour_math_egui_lib/src/components/colour_manipulator_pad.rs
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::EguiColorBridge;
 use colour_math::{
-    ColourBasics, Prop, hue::angle::Angle, manipulator::ColourManipulator, rgb::RGB,
+    ColourBasics,
+    manipulator::{ColourManipulator, DeltaSize},
+    rgb::RGB,
 };
 use eframe::egui;
 
-pub struct ColourManipulatorPad {
-    pub hue_step: Angle,
-    pub scalar_step: Prop,
-}
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ColourManipulatorPad;
 
 impl ColourManipulatorPad {
     pub fn new() -> Self {
-        Self {
-            hue_step: Angle::from(5.0),
-            scalar_step: Prop::from(0.05_f64),
-        }
+        Self::default()
     }
 
     pub fn show(
@@ -25,16 +22,20 @@ impl ColourManipulatorPad {
         manipulator: &mut ColourManipulator,
         texture: &mut Option<egui::TextureHandle>,
     ) {
+        let content_width = 220.0;
+        let content_height = 220.0;
         let side_btn_width = 32.0;
         let button_height = 24.0;
 
-        // 🌟 FIX A: Match ergonomics lookup - remove explicit 'ref' keyword to satisfy type bounds
-        let (content_width, content_height) = if let Some(tex) = texture {
-            let size = tex.size();
-            (size[0] as f32, size[1] as f32)
-        } else {
-            (220.0, 220.0)
-        };
+        let delta_size = ui.input(|i| {
+            if i.modifiers.ctrl {
+                DeltaSize::Small
+            } else if i.modifiers.shift {
+                DeltaSize::Large
+            } else {
+                DeltaSize::Normal
+            }
+        });
 
         ui.vertical_centered(|ui| {
             // 1. Value++ Button
@@ -43,13 +44,13 @@ impl ColourManipulatorPad {
                     .add_sized([content_width, button_height], egui::Button::new("Value++"))
                     .clicked()
                 {
-                    manipulator.incr_value(self.scalar_step);
+                    manipulator.incr_value(delta_size.for_value());
                 }
             });
 
             ui.add_space(4.0);
 
-            // 2. Central Row: Dynamic Sized Image Center Box
+            // 2. Central Row: Left Hue, Central Field with Context Menus, Right Hue
             ui.horizontal(|ui| {
                 let total_row_width = content_width + (side_btn_width * 2.0) + 8.0;
                 let left_margin = (ui.available_width() - total_row_width) / 2.0;
@@ -59,7 +60,7 @@ impl ColourManipulatorPad {
                     .add_sized([side_btn_width, content_height], egui::Button::new("<"))
                     .clicked()
                 {
-                    manipulator.rotate(-self.hue_step);
+                    manipulator.rotate(delta_size.for_hue_clockwise());
                 }
 
                 ui.add_space(4.0);
@@ -69,18 +70,41 @@ impl ColourManipulatorPad {
                     egui::Sense::click(),
                 );
 
+                // Draw ground-truth base solid color block behind
                 let current_rgb_u64 = RGB::<u64>::from(manipulator.hcv());
-                ui.painter()
-                    .rect_filled(field_rect, 4.0, current_rgb_u64.to_color32());
+                let rgb_channels = current_rgb_u64.rgb::<u8>();
+                ui.painter().rect_filled(
+                    field_rect,
+                    4.0,
+                    egui::Color32::from_rgb(rgb_channels[0], rgb_channels[1], rgb_channels[2]),
+                );
 
                 if let Some(tex) = texture {
+                    // Enforce actual-size rendering centered perfectly inside our field box footprint
+                    let actual_texture_size = tex.size_vec2();
+                    let centered_image_rect = egui::Rect::from_center_size(
+                        field_rect.center(),
+                        egui::vec2(
+                            actual_texture_size.x.min(content_width),
+                            actual_texture_size.y.min(content_height),
+                        ),
+                    );
+
                     ui.painter().image(
                         tex.id(),
-                        field_rect,
+                        centered_image_rect,
                         egui::Rect::from_min_max(egui::pos2(0.0, 0.0), egui::pos2(1.0, 1.0)),
                         egui::Color32::WHITE,
                     );
+
+                    ui.painter().rect_stroke(
+                        centered_image_rect,
+                        0.0,
+                        egui::Stroke::new(1.0, egui::Color32::from_gray(180)),
+                        egui::StrokeKind::Outside,
+                    );
                 } else {
+                    // Clean stroke border layout outline when no sample is active
                     ui.painter().rect_stroke(
                         field_rect,
                         4.0,
@@ -90,10 +114,7 @@ impl ColourManipulatorPad {
                 }
 
                 response.context_menu(|ui| {
-                    if ui.button("📋 Paste Sample from Clipboard").clicked() {
-                        // Clipboard decoding hooks go here
-                    }
-                    if ui.button("❌ Delete Sample Image").clicked() {
+                    if ui.button("❌ Delete Active Sample").clicked() {
                         *texture = None;
                     }
                 });
@@ -104,7 +125,7 @@ impl ColourManipulatorPad {
                     .add_sized([side_btn_width, content_height], egui::Button::new(">"))
                     .clicked()
                 {
-                    manipulator.rotate(self.hue_step);
+                    manipulator.rotate(delta_size.for_hue_anticlockwise());
                 }
             });
 
@@ -116,7 +137,7 @@ impl ColourManipulatorPad {
                     .add_sized([content_width, button_height], egui::Button::new("Value--"))
                     .clicked()
                 {
-                    manipulator.decr_value(self.scalar_step);
+                    manipulator.decr_value(delta_size.for_value());
                 }
             });
 
@@ -136,7 +157,7 @@ impl ColourManipulatorPad {
                     )
                     .clicked()
                 {
-                    manipulator.decr_chroma(self.scalar_step);
+                    manipulator.decr_chroma(delta_size.for_chroma());
                 }
                 ui.add_space(4.0);
                 if ui
@@ -146,7 +167,7 @@ impl ColourManipulatorPad {
                     )
                     .clicked()
                 {
-                    manipulator.incr_chroma(self.scalar_step);
+                    manipulator.incr_chroma(delta_size.for_chroma());
                 }
             });
 
@@ -154,18 +175,43 @@ impl ColourManipulatorPad {
             ui.separator();
             ui.add_space(4.0);
 
-            // 5. Integral Automation Footer Controls (With egui Native Data Persistence)
+            // 5. Integral Automation Footer Controls
             ui.horizontal(|ui| {
                 let footer_align_margin =
                     (ui.available_width() - (content_width + (side_btn_width * 2.0))) / 2.0;
                 ui.add_space(footer_align_margin.max(0.0));
 
-                if ui.button("🤖 Auto Match Pixels").clicked() {
-                    // Triggers calculations on your active manipulator structures
+                // Manual AutoMatch action click trigger
+                if ui.button("AutoMatch").clicked() {
+                    let image_data_key = egui::Id::new("active_pasted_image_buffer_matrix");
+                    if let Some(cropped_img) = ui.ctx().data_mut(|d| {
+                        d.get_temp_mut_or_default::<Option<egui::ColorImage>>(image_data_key)
+                            .clone()
+                    }) {
+                        let mut total_r: u64 = 0;
+                        let mut total_g: u64 = 0;
+                        let mut total_b: u64 = 0;
+                        let count = cropped_img.pixels.len() as u64;
+
+                        if count > 0 {
+                            for pixel in &cropped_img.pixels {
+                                let ch = pixel.to_array();
+                                total_r += ch[0] as u64;
+                                total_g += ch[1] as u64;
+                                total_b += ch[2] as u64;
+                            }
+                            let avg_rgb = colour_math::rgb::RGB::<u8>::from([
+                                (total_r / count) as u8,
+                                (total_g / count) as u8,
+                                (total_b / count) as u8,
+                            ]);
+                            manipulator.set_colour(&avg_rgb);
+                        }
+                    }
                 }
+
                 ui.add_space(16.0);
 
-                // 🌟 FIX B: Load, render, and persist your checkbox state seamlessly inline!
                 let storage_key = egui::Id::new("on_paste_auto_toggle");
                 let mut on_paste_automatic = ui
                     .ctx()

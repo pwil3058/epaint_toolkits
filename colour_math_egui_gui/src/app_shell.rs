@@ -1,19 +1,19 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::components::colour_editor::ColourEditor;
-use crate::egui_drawer::EguiDrawer;
-use crate::paint_table_view::PaintTableView;
-use crate::widgets::attribute_deck::AttributeDeck;
-use crate::widgets::digital_readout::DigitalReadout;
-use crate::widgets::nudge_panel::NudgePanel;
 use colour_math::{
     HCV, ScalarAttribute, beigui::attr_display::ColourAttributeType, hue_wheel::HueWheel,
     manipulator::ColourManipulator,
 };
+use colour_math_egui_lib::components::colour_editor::ColourEditor;
+use colour_math_egui_lib::components::colour_table_view::ColourTableView;
+use colour_math_egui_lib::egui_drawer::EguiDrawer;
+use colour_math_egui_lib::widgets::attribute_deck::AttributeDeck;
+use colour_math_egui_lib::widgets::digital_readout::DigitalReadout;
+use colour_math_egui_lib::widgets::nudge_panel::NudgePanel;
 use eframe::egui;
 
 pub struct AppShell {
-    pub table_view: PaintTableView,
+    pub table_view: ColourTableView,
     pub colour_editor: ColourEditor,
     pub hue_wheel: HueWheel,
     pub active_wheel_attribute: ScalarAttribute,
@@ -32,7 +32,7 @@ impl AppShell {
         let baseline_manipulator = ColourManipulator::builder().clamped(false).build();
 
         Self {
-            table_view: PaintTableView::new(),
+            table_view: ColourTableView::new(),
             colour_editor: ColourEditor::new(baseline_manipulator, sliders),
             hue_wheel: HueWheel::new(),
             active_wheel_attribute: ScalarAttribute::Value,
@@ -72,7 +72,8 @@ impl AppShell {
 
                 // 1. Independent Take Sample Button Call
                 ui.vertical_centered(|ui| {
-                    if crate::widgets::take_sample_button::TakeSampleButton::show(ui) {
+                    if colour_math_egui_lib::widgets::take_sample_button::TakeSampleButton::show(ui)
+                    {
                         self.execute_take_sample(ui.ctx());
                     }
                 });
@@ -159,9 +160,13 @@ impl AppShell {
                 });
                 ui.add_space(8.0);
 
-                // 4. Atomic Digital Readouts & Unified Manipulator Console
+                // -----------------------------------------------------------------
+                // CONSOLE BLOCK 4: Atomic Digital Readouts & Unified Manipulator Console
+                // -----------------------------------------------------------------
                 ui.group(|ui| {
-                    DigitalReadout::show(ui, &self.colour_editor.active_rgb);
+                    // 🌟 FIX: Supply a mutable reference to the model engine controller
+                    // instead of a read-only snapshot reference to active_rgb.
+                    DigitalReadout::show(ui, &mut self.colour_editor.manipulator_view.model);
                     ui.add_space(6.0);
 
                     self.colour_editor.pad.show(

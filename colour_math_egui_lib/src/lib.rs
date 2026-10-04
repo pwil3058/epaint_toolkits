@@ -1,11 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-pub mod app_shell;
-pub mod colour_matrix_dashboard;
+pub mod colour;
 pub mod components;
 pub mod egui_drawer;
-pub mod paint_table_view;
 pub mod widgets;
 
 use colour_math::fdrn::Prop;

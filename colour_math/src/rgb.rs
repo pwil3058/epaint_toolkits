@@ -390,13 +390,52 @@ pub static RGB_PANGO_RE: LazyLock<Regex> = LazyLock::new(|| {
         r#"#(?P<red>[a-fA-F0-9][a-fA-F0-9])(?P<green>[a-fA-F0-9][a-fA-F0-9])(?P<blue>[a-fA-F0-9][a-fA-F0-9])"#
     ).unwrap()
 });
-// }
+
+pub static RGB8_HEX_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"0x(?P<red>[a-fA-F0-9]{2})(?P<green>[a-fA-F0-9]{2})(?P<blue>[a-fA-F0-9]{2})")
+        .unwrap()
+});
+
+pub static RGB16_HEX_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"0x(?P<red>[a-fA-F0-9]{4})(?P<green>[a-fA-F0-9]{4})(?P<blue>[a-fA-F0-9]{4})")
+        .unwrap()
+});
+
+impl FromStr for RGB<u8> {
+    type Err = RGBError;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        if let Some(captures) = RGB8_HEX_RE.captures(string) {
+            let red = u8::from_str_radix(captures.name("red").unwrap().as_str(), 16)?;
+            let green = u8::from_str_radix(captures.name("green").unwrap().as_str(), 16)?;
+            let blue = u8::from_str_radix(captures.name("blue").unwrap().as_str(), 16)?;
+            Ok([red, green, blue].into())
+        } else if let Some(captures) = RGB8_RE.captures(string) {
+            let red = u8::from_str_radix(captures.name("red").unwrap().as_str(), 16)?;
+            let green = u8::from_str_radix(captures.name("green").unwrap().as_str(), 16)?;
+            let blue = u8::from_str_radix(captures.name("blue").unwrap().as_str(), 16)?;
+            Ok([red, green, blue].into())
+        } else if let Some(captures) = RGB8_BASE_10_RE.captures(string) {
+            let red = captures.name("red").unwrap().as_str().parse::<u8>()?;
+            let green = captures.name("green").unwrap().as_str().parse::<u8>()?;
+            let blue = captures.name("blue").unwrap().as_str().parse::<u8>()?;
+            Ok([red, green, blue].into())
+        } else {
+            Err(RGBError::MalformedText(string.to_string()))
+        }
+    }
+}
 
 impl FromStr for RGB<u16> {
     type Err = RGBError;
 
     fn from_str(string: &str) -> Result<Self, Self::Err> {
-        if let Some(captures) = RGB16_RE.captures(string) {
+        if let Some(captures) = RGB16_HEX_RE.captures(string) {
+            let red = u16::from_str_radix(captures.name("red").unwrap().as_str(), 16)?;
+            let green = u16::from_str_radix(captures.name("green").unwrap().as_str(), 16)?;
+            let blue = u16::from_str_radix(captures.name("blue").unwrap().as_str(), 16)?;
+            Ok([red, green, blue].into())
+        } else if let Some(captures) = RGB16_RE.captures(string) {
             let red = u16::from_str_radix(captures.name("red").unwrap().as_str(), 16)?;
             let green = u16::from_str_radix(captures.name("green").unwrap().as_str(), 16)?;
             let blue = u16::from_str_radix(captures.name("blue").unwrap().as_str(), 16)?;

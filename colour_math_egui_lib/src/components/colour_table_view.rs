@@ -3,12 +3,13 @@
 use eframe::egui;
 use egui_extras::{Column, TableBuilder};
 
-pub struct PaintTableView {
+#[derive(Debug, Default, Clone)]
+pub struct ColourTableView {
     pub search_filter: String,
     pub selected_row_index: Option<usize>,
 }
 
-impl PaintTableView {
+impl ColourTableView {
     pub fn new() -> Self {
         Self {
             search_filter: String::new(),

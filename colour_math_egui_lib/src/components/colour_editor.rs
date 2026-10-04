@@ -21,15 +21,13 @@ pub struct ColourEditor {
 
 impl ColourEditor {
     /// 🆕 Accept a customizable array slice of attributes upon dashboard creation
-    pub fn new(initial_model: ColourManipulator, attributes: &[ColourAttributeType]) -> Self {
-        let hcv = initial_model.hcv();
-        let u8_rgb = RGB::<u8>::from(hcv);
-
+    pub fn new(initial_model: ColourManipulator, sliders: &[ColourAttributeType]) -> Self {
         Self {
-            manipulator_view: ColourManipulatorView::new(initial_model),
+            active_rgb: initial_model.rgb::<u8>(),
+            // 🌟 FIX: Instantiated using the zero-argument constructor matching our updated Pad struct
             pad: ColourManipulatorPad::new(),
-            active_rgb: u8_rgb,
-            displayed_attributes: attributes.to_vec(), // Cloned once on application startup pass
+            manipulator_view: ColourManipulatorView::new(initial_model),
+            displayed_attributes: sliders.to_vec(),
         }
     }
 

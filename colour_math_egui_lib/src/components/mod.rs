@@ -3,3 +3,4 @@
 pub mod colour_editor;
 pub mod colour_manipulator_pad;
 pub mod colour_manipulator_view;
+pub mod colour_table_view;
