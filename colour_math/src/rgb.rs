@@ -289,6 +289,12 @@ impl<L: LightLevel> From<&RGB<L>> for [L; 3] {
     }
 }
 
+impl<L: LightLevel> From<RGB<L>> for (L, L, L) {
+    fn from(rgb: RGB<L>) -> Self {
+        (rgb.0[0], rgb.0[1], rgb.0[2])
+    }
+}
+
 impl<T: LightLevel + From<Prop>> From<[Prop; 3]> for RGB<T> {
     fn from(array: [Prop; 3]) -> Self {
         let red: T = array[0].into();
