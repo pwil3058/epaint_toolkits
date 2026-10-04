@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, HCV, LightLevel, RGB};
-use eframe::egui::Color32;
+use colour_math::{ColourBasics, HCV, HueConstants, LightLevel, RGB};
+use eframe::egui::{Color32, ColorImage};
+use std::ops::{Deref, DerefMut};
 
 pub trait Depuis<T: Copy>: Sized {
     fn depuis(arg: T) -> Self;
@@ -59,6 +60,63 @@ impl Depuis<HCV> for Color32 {
 impl Dedans<Color32> for HCV {
     fn dedans(self) -> Color32 {
         Color32::depuis(self)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct AverageColour {
+    sums: [u128; 3],
+    count: u128,
+}
+
+impl AverageColour {
+    pub fn add_rgb(&mut self, rgb: RGB<u8>) {
+        self.sums[0] += rgb[0] as u128;
+        self.sums[1] += rgb[1] as u128;
+        self.sums[2] += rgb[2] as u128;
+        self.count += 1;
+    }
+
+    pub fn add_image(&mut self, image: &ColorImage) {
+        for colour in &image.pixels {
+            self.add_rgb(colour.dedans())
+        }
+    }
+
+    pub fn average(&self) -> RGB<u8> {
+        let avg: [u8; 3] = [
+            (self.sums[0] / self.count).try_into().unwrap(),
+            (self.sums[1] / self.count).try_into().unwrap(),
+            (self.sums[2] / self.count).try_into().unwrap(),
+        ];
+        RGB::<u8>::from(avg)
+    }
+}
+
+pub struct Images(pub Vec<ColorImage>);
+
+impl Deref for Images {
+    type Target = [ColorImage];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for Images {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl Images {
+    pub fn average_colour(&self) -> RGB<u8> {
+        let mut average = AverageColour::default();
+
+        for image in &self.0 {
+            average.add_image(image);
+        }
+        average.average()
     }
 }
 
