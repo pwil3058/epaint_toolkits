@@ -9,4 +9,5 @@ pub mod nudge_panel;
 pub mod rgb_hex_editor;
 pub mod sample_field;
 pub mod spectrum_slider;
+pub mod take_sample_button;
 pub mod value_slider;
