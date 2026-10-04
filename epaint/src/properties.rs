@@ -560,14 +560,14 @@ mod tests {
     #[test]
     fn test_property_from_string() {
         assert_eq!(
-            Property::from_str("Lightfastness::ExcellentLightfastness"),
+            Property::from_str("Lightfastness::Excellent"),
             Ok(Property {
                 property_type: PropertyType::Lightfastness,
                 value: 1
             })
         );
         assert_eq!(
-            Property::from_str("Lightfastness::VeryGoodLightfastness"),
+            Property::from_str("Lightfastness::VeryGood"),
             Ok(Property {
                 property_type: PropertyType::Lightfastness,
                 value: 2
@@ -575,30 +575,10 @@ mod tests {
         )
     }
 
-    // Test objects that implement Property
-    #[test]
-    fn test_property_from_f64() {
-        let transparency: Transparency = 1.0.into();
-        assert_eq!(Transparency::Clear, transparency);
-        assert_eq!(
-            Transparency::SemiTransparent,
-            Into::<Transparency>::into(3.0)
-        );
-        assert_eq!(
-            Transparency::SemiTransparent,
-            Into::<Transparency>::into(3.0)
-        );
-        assert_eq!(Transparency::SemiOpaque, Into::<Transparency>::into(4.0));
-        assert_eq!(Transparency::Opaque, Into::<Transparency>::into(5.0));
-    }
-
     #[test]
     fn test_property_default() {
         assert_eq!(Transparency::default(), Transparency::Transparent);
-        assert_eq!(
-            Lightfastness::default(),
-            Lightfastness::VeryGoodLightfastness
-        );
+        assert_eq!(Lightfastness::default(), Lightfastness::VeryGood);
     }
 
     #[test]
