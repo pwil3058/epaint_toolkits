@@ -1,134 +1,81 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::{
-    components::colour_manipulator_pad::ColourManipulatorPad,
-    components::colour_manipulator_view::ColourManipulatorView, egui_drawer::EguiDrawer,
-    widgets::rgb_hex_editor::RgbHexEditor,
-};
+use crate::colour::Dedans;
+use crate::components::colour_manipulator_view::ColourManipulatorView;
+use crate::widgets::sample_field::SampleField;
 use colour_math::{
-    ColourBasics, Prop, RGB, UFDRNumber,
-    beigui::attr_display::{ColourAttributeDisplay, ColourAttributeType},
-    manipulator::ColourManipulator,
+    ColourBasics, beigui::attr_display::ColourAttributeType, manipulator::ColourManipulator,
 };
-use eframe::egui;
+use eframe::egui; // Uses your clean, un-premultiplied trait conversion
 
 pub struct ColourEditor {
-    pub manipulator_view: ColourManipulatorView,
-    pub pad: ColourManipulatorPad,
-    pub active_rgb: RGB<u8>,
+    pub active_rgb: colour_math::rgb::RGB<u8>,
     pub displayed_attributes: Vec<ColourAttributeType>,
+    pub manipulator_view: ColourManipulatorView,
+    pub sample_field: SampleField,
 }
 
 impl ColourEditor {
-    /// 🆕 Accept a customizable array slice of attributes upon dashboard creation
     pub fn new(initial_model: ColourManipulator, sliders: &[ColourAttributeType]) -> Self {
         Self {
             active_rgb: initial_model.rgb::<u8>(),
-            // 🌟 FIX: Instantiated using the zero-argument constructor matching our updated Pad struct
-            pad: ColourManipulatorPad::new(),
-            manipulator_view: ColourManipulatorView::new(initial_model),
             displayed_attributes: sliders.to_vec(),
+            manipulator_view: ColourManipulatorView::new(initial_model),
+            sample_field: SampleField::new(),
         }
     }
 
-    fn is_settable(attr_type: &ColourAttributeType) -> bool {
-        match attr_type {
-            ColourAttributeType::Warmth => false,
-            _ => true,
-        }
-    }
-
+    /// Renders the entire standalone colour workbench console layout on screen.
     pub fn show(&mut self, ui: &mut egui::Ui) {
         ui.vertical(|ui| {
-            // -----------------------------------------------------------------
-            // STACK 1: The Configured Dynamic Attribute Sliders Trackers
-            // -----------------------------------------------------------------
-            let current_hcv = self.manipulator_view.model.hcv();
+            ui.heading("🔬 Colour Workbench Console");
+            ui.add_space(4.0);
+            ui.separator();
+            ui.add_space(8.0);
 
-            // Iterate natively over your customized collection constraints
-            for attr_type in &self.displayed_attributes {
-                let mut cad = ColourAttributeDisplay::new(attr_type);
-                cad.set_colour(Some(&current_hcv));
+            // Lay components out side-by-side horizontally: Sliders on left, Field on right
+            ui.horizontal(|ui| {
+                // 📊 REGION 1: Colour Attribute Sliders & Interactive Wheels
+                ui.vertical(|ui| {
+                    ui.set_width(320.0);
+                    // Pass the expected bounding size to drive your hue wheel rendering calculations
+                    let view_dimensions = egui::vec2(320.0, ui.available_height() - 20.0);
+                    self.manipulator_view.show(ui, view_dimensions);
+                });
 
-                ui.horizontal(|ui| {
-                    ui.add_space(2.0);
+                ui.add_space(16.0);
+                ui.separator();
+                ui.add_space(16.0);
 
-                    let (cad_rect, cad_resp) = ui.allocate_exact_size(
-                        egui::vec2(ui.available_width() - 40.0, 24.0),
-                        if Self::is_settable(attr_type) {
-                            egui::Sense::click_and_drag()
-                        } else {
-                            egui::Sense::hover()
-                        },
+                // 🎨 REGION 2: Reusable Multi-Sample Drawing Area Field Panel
+                ui.vertical(|ui| {
+                    // Render our digital R, G, B text field hex editors inside the group panel
+                    crate::widgets::digital_readout::DigitalReadout::show(
+                        ui,
+                        &mut self.manipulator_view.model,
                     );
+                    ui.add_space(8.0);
 
-                    let cad_drawer = EguiDrawer::new(ui.painter(), cad_rect, cad_rect);
-                    cad.draw_all(&cad_drawer);
+                    // Fetch the true primitive background color via your un-premultiplied trait conversion
+                    let base_bg: egui::Color32 = self.manipulator_view.model.hcv().dedans();
 
-                    if Self::is_settable(attr_type) && cad_resp.dragged() {
-                        if let Some(pointer_pos) = ui.ctx().input(|i| i.pointer.interact_pos()) {
-                            let click_fraction = ((pointer_pos.x - cad_rect.left())
-                                / cad_rect.width())
-                            .clamp(0.0, 1.0);
-                            let new_prop = Prop::from(click_fraction as f64);
+                    // Render our self-contained, multi-sample spatial drawing field widget natively!
+                    let (_field_resp, color_update_signal) = self.sample_field.show(ui, base_bg);
 
-                            match attr_type {
-                                ColourAttributeType::Value => {
-                                    let ufdr_val = UFDRNumber::from(click_fraction as f64) * 3;
-                                    self.manipulator_view.model.set_sum(
-                                        ufdr_val,
-                                        colour_math::manipulator::SetScalar::Accommodate,
-                                    );
-                                }
-                                ColourAttributeType::Chroma => {
-                                    self.manipulator_view.model.set_chroma(
-                                        new_prop,
-                                        colour_math::manipulator::SetScalar::Accommodate,
-                                    );
-                                }
-                                _ => {}
-                            }
+                    // If a right-click paste or deletion event triggered a color recalculation this frame:
+                    if let Some(new_avg_color) = color_update_signal {
+                        let storage_key = egui::Id::new("on_paste_auto_toggle");
+                        let on_paste_automatic = ui
+                            .ctx()
+                            .data_mut(|d| *d.get_temp_mut_or_default::<bool>(storage_key));
+
+                        if on_paste_automatic {
+                            // Automatically align our sliders to match the newly pasted average color!
+                            self.manipulator_view.model.set_colour(&new_avg_color);
                         }
                     }
                 });
-                ui.add_space(4.0);
-            }
-
-            ui.separator();
-            ui.add_space(4.0);
-
-            // -----------------------------------------------------------------
-            // STACK 2: Precise Numeric RgbHexEditor Line Strip
-            // -----------------------------------------------------------------
-            let prev_rgb = self.active_rgb;
-
-            RgbHexEditor::new(&mut self.active_rgb).show(ui);
-
-            if self.active_rgb != prev_rgb {
-                // Pipeline the structural active_rgb state using your engine's native From trait configurations
-                let prop_array = <[Prop; 3]>::from(self.active_rgb);
-                let target_rgb_u64 = RGB::<u64>::from(prop_array);
-
-                self.manipulator_view.model.set_colour(&target_rgb_u64);
-            }
-
-            ui.add_space(6.0);
-
-            // -----------------------------------------------------------------
-            // STACK 3: The Standalone Directional Nudge Pad Ring & Backdrop Area
-            // -----------------------------------------------------------------
-            self.pad
-                .show(ui, &mut self.manipulator_view.model, &mut None);
-
-            ui.add_space(6.0);
-
-            self.active_rgb = RGB::<u8>::from(self.manipulator_view.model.hcv());
-
-            // -----------------------------------------------------------------
-            // STACK 4: The Live Workspace Sample Patches Canvas View
-            // -----------------------------------------------------------------
-            self.manipulator_view
-                .show(ui, egui::vec2(ui.available_width(), 120.0));
+            });
         });
     }
 }

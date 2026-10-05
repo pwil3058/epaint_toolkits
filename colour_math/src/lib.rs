@@ -27,6 +27,7 @@ pub mod hue;
 pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
+pub mod rgba;
 
 pub trait Float: FloatPlus + std::iter::Sum + FloatApproxEq<Self> {}
 
