@@ -11,10 +11,24 @@ use hue::HueIfce;
 
 pub use crate::{
     attributes::{Chroma, Family, Greyness, Value, Warmth},
-    beigui::{attr_display, hue_wheel},
-    fdrn::{IntoProp, Prop, UFDRNumber},
+    beigui::{
+        attr_display::{
+            ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
+            GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
+        },
+        hue_wheel::{
+            ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts,
+            Zoom,
+        },
+        Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
+    },
+    fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
     hcv::HCV,
-    hue::{angle::Angle, Hue},
+    hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
+    manipulator::{
+        ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy, SetScalarPolicy,
+    },
+    mixing::SubtractiveMixer,
     rgb::RGB,
 };
 

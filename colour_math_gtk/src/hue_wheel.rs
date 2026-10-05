@@ -15,10 +15,7 @@ use gtk3_ext::{
 };
 
 use crate::{attributes::ScalarAttributeSelector, colour::GdkColour};
-use colour_math::{
-    hue_wheel::{ColouredShape, HueWheel},
-    ScalarAttribute,
-};
+use colour_math::{ColouredShape, HueWheel, ScalarAttribute};
 use colour_math_cairo::*;
 
 type PopupCallback = Box<dyn Fn(&str)>;

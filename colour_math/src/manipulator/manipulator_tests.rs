@@ -7,7 +7,7 @@ use crate::{
     fdrn::{IntoProp, Prop, UFDRNumber},
     hcv::*,
     hue::{angle::*, Hue, HueBasics},
-    manipulator::{ColourManipulator, SetHue},
+    manipulator::{ColourManipulator, SetHuePolicy},
     rgb::RGB,
     ColourBasics, HueConstants, RGBConstants,
 };
@@ -16,36 +16,36 @@ use crate::{
 fn build_manipulator() {
     let manipualor = ColourManipulator::builder().build();
     assert_eq!(manipualor.clamped, false);
-    assert_eq!(manipualor.rotation_policy, SetHue::FavourChroma);
+    assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourChroma);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
     let manipualor = ColourManipulator::builder().clamped(true).build();
     assert_eq!(manipualor.clamped, true);
-    assert_eq!(manipualor.rotation_policy, SetHue::FavourChroma);
+    assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourChroma);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
     let manipualor = ColourManipulator::builder()
-        .rotation_policy(SetHue::FavourValue)
+        .rotation_policy(SetHuePolicy::FavourValue)
         .build();
     assert_eq!(manipualor.clamped, false);
-    assert_eq!(manipualor.rotation_policy, SetHue::FavourValue);
+    assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourValue);
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
     let manipualor = ColourManipulator::builder()
         .init_rgb(&RGB::<u8>::CYAN)
         .build();
     assert_eq!(manipualor.clamped, false);
-    assert_eq!(manipualor.rotation_policy, SetHue::FavourChroma);
+    assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourChroma);
     assert_eq!(manipualor.hcv(), HCV::CYAN);
     assert_eq!(manipualor.rgb::<u8>(), RGB::CYAN);
     assert_eq!(manipualor.saved_hue, Hue::CYAN);
     let manipualor = ColourManipulator::builder()
         .clamped(true)
         .init_hcv(&HCV::YELLOW)
-        .rotation_policy(SetHue::FavourValue)
+        .rotation_policy(SetHuePolicy::FavourValue)
         .build();
     assert_eq!(manipualor.clamped, true);
-    assert_eq!(manipualor.rotation_policy, SetHue::FavourValue);
+    assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourValue);
     assert_eq!(manipualor.hcv(), HCV::YELLOW);
     assert_eq!(manipualor.rgb::<u8>(), RGB::YELLOW);
     assert_eq!(manipualor.saved_hue, Hue::YELLOW);
@@ -77,14 +77,14 @@ fn set_get_parameters() {
         assert_eq!(*clamped, manipualor.clamped());
     }
     for rotation_policy in &[
-        SetHue::FavourValue,
-        SetHue::FavourValue,
-        SetHue::FavourChroma,
-        SetHue::FavourChroma,
-        SetHue::FavourValue,
-        SetHue::FavourChroma,
-        SetHue::FavourValue,
-        SetHue::FavourValue,
+        SetHuePolicy::FavourValue,
+        SetHuePolicy::FavourValue,
+        SetHuePolicy::FavourChroma,
+        SetHuePolicy::FavourChroma,
+        SetHuePolicy::FavourValue,
+        SetHuePolicy::FavourChroma,
+        SetHuePolicy::FavourValue,
+        SetHuePolicy::FavourValue,
     ] {
         manipualor.set_rotation_policy(*rotation_policy);
         assert_eq!(*rotation_policy, manipualor.rotation_policy());
@@ -268,7 +268,7 @@ fn incr_decr_sum_unclamped() {
 #[test]
 fn rotate_rgb_favouring_chroma() {
     let mut manipulator = ColourManipulator::builder()
-        .rotation_policy(SetHue::FavourChroma)
+        .rotation_policy(SetHuePolicy::FavourChroma)
         .build();
     let deltas = [
         -Angle::from(180),
@@ -350,7 +350,7 @@ fn rotate_rgb_favouring_chroma() {
 #[test]
 fn rotate_rgb_favouring_value() {
     let mut manipulator = ColourManipulator::builder()
-        .rotation_policy(SetHue::FavourValue)
+        .rotation_policy(SetHuePolicy::FavourValue)
         .build();
     let deltas = [
         -Angle::from(180),

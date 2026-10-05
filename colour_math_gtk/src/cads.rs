@@ -13,7 +13,7 @@ use gtk3_ext::{
 };
 
 use colour_math::ColourBasics;
-use colour_math::{attr_display::ColourAttributeType, ScalarAttribute};
+use colour_math::{ColourAttributeType, ScalarAttribute};
 
 use colour_math::beigui::attr_display;
 

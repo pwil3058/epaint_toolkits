@@ -15,9 +15,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{
-    attr_display, attr_display::ColourAttributeType, ColourBasics, ScalarAttribute, HCV,
-};
+use colour_math::{ColourAttributeType, ColourBasics, ScalarAttribute, HCV};
 use colour_math_cairo::{Drawer, Size};
 
 use crate::colour::GdkColour;
@@ -25,7 +23,7 @@ use crate::colour::GdkColour;
 #[derive(PWO, Wrapper)]
 pub struct ColourAttributeDisplay {
     pub drawing_area: DrawingArea,
-    pub colout_attr_display: RefCell<attr_display::ColourAttributeDisplay>,
+    pub colout_attr_display: RefCell<colour_math::ColourAttributeDisplay>,
 }
 
 impl ColourAttributeDisplay {
@@ -36,7 +34,7 @@ impl ColourAttributeDisplay {
             .width_request(90)
             .build();
         let colour_attr_display =
-            RefCell::new(attr_display::ColourAttributeDisplay::new(colour_attr_type));
+            RefCell::new(colour_math::ColourAttributeDisplay::new(colour_attr_type));
         let cad = Rc::new(Self {
             drawing_area,
             colout_attr_display: colour_attr_display,

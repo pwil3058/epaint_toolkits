@@ -2,7 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use colour_math::hue_wheel::{ColouredShape, MakeColouredShape, Shape};
+use colour_math::{ColouredShape, MakeColouredShape, Shape};
 use colour_math::{HCV, LightLevel};
 use colour_math_derive::Colour;
 

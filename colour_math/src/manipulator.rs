@@ -9,14 +9,14 @@ use crate::{
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SetScalar {
+pub enum SetScalarPolicy {
     Clamp,
     Accommodate,
     Reject,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
-pub enum SetHue {
+pub enum SetHuePolicy {
     #[default]
     FavourChroma,
     FavourValue,
@@ -72,7 +72,7 @@ pub enum Outcome {
 pub struct ColourManipulator {
     hcv: HCV,
     clamped: bool,
-    rotation_policy: SetHue,
+    rotation_policy: SetHuePolicy,
     saved_hue: Hue,
 }
 
@@ -101,15 +101,15 @@ impl ColourManipulator {
         self.clamped = clamped
     }
 
-    pub fn rotation_policy(&self) -> SetHue {
+    pub fn rotation_policy(&self) -> SetHuePolicy {
         self.rotation_policy
     }
 
-    pub fn set_rotation_policy(&mut self, rotation_policy: SetHue) {
+    pub fn set_rotation_policy(&mut self, rotation_policy: SetHuePolicy) {
         self.rotation_policy = rotation_policy
     }
 
-    pub fn set_chroma(&mut self, new_c_prop: Prop, policy: SetScalar) -> Outcome {
+    pub fn set_chroma(&mut self, new_c_prop: Prop, policy: SetScalarPolicy) -> Outcome {
         debug_assert!(self.hcv.is_valid());
         let cur_c_prop = self.hcv.c_prop;
         if let Some(hue) = self.hcv.hue {
@@ -126,7 +126,7 @@ impl ColourManipulator {
                 }
             } else {
                 match policy {
-                    SetScalar::Clamp => {
+                    SetScalarPolicy::Clamp => {
                         if let Some(max_c_prop) = hue.max_chroma_prop_for_sum(self.hcv.sum) {
                             let clamped_new_c_prop = if new_c_prop < max_c_prop {
                                 new_c_prop
@@ -158,7 +158,7 @@ impl ColourManipulator {
                             Outcome::NoChange
                         }
                     }
-                    SetScalar::Accommodate => {
+                    SetScalarPolicy::Accommodate => {
                         if let Some((c_prop, sum)) =
                             hue.adjusted_favouring_chroma(self.hcv.sum, new_c_prop)
                         {
@@ -179,7 +179,7 @@ impl ColourManipulator {
                             Outcome::Accommodated
                         }
                     }
-                    SetScalar::Reject => Outcome::Rejected,
+                    SetScalarPolicy::Reject => Outcome::Rejected,
                 }
             }
         } else if new_c_prop == Prop::ZERO {
@@ -199,7 +199,7 @@ impl ColourManipulator {
             }
         } else {
             match policy {
-                SetScalar::Clamp => {
+                SetScalarPolicy::Clamp => {
                     if let Some(max_c_prop) = self.saved_hue.max_chroma_prop_for_sum(self.hcv.sum) {
                         let clamped_new_c_prop = if new_c_prop < max_c_prop {
                             new_c_prop
@@ -228,7 +228,7 @@ impl ColourManipulator {
                         Outcome::NoChange
                     }
                 }
-                SetScalar::Accommodate => {
+                SetScalarPolicy::Accommodate => {
                     if let Some((c_prop, sum)) = self
                         .saved_hue
                         .adjusted_favouring_chroma(self.hcv.sum, new_c_prop)
@@ -246,7 +246,7 @@ impl ColourManipulator {
                         Outcome::Accommodated
                     }
                 }
-                SetScalar::Reject => Outcome::Rejected,
+                SetScalarPolicy::Reject => Outcome::Rejected,
             }
         }
     }
@@ -262,9 +262,9 @@ impl ColourManipulator {
                     Prop::ZERO
                 };
                 let policy = if self.clamped {
-                    SetScalar::Clamp
+                    SetScalarPolicy::Clamp
                 } else {
-                    SetScalar::Accommodate
+                    SetScalarPolicy::Accommodate
                 };
                 match self.set_chroma(new_c_prop, policy) {
                     Outcome::Ok | Outcome::Clamped | Outcome::Accommodated => {
@@ -280,9 +280,9 @@ impl ColourManipulator {
     pub fn incr_chroma(&mut self, delta: Prop) -> bool {
         debug_assert!(self.hcv.is_valid());
         let policy = if self.clamped {
-            SetScalar::Clamp
+            SetScalarPolicy::Clamp
         } else {
-            SetScalar::Accommodate
+            SetScalarPolicy::Accommodate
         };
         match self.hcv.c_prop {
             Prop::ONE => false,
@@ -310,7 +310,7 @@ impl ColourManipulator {
         }
     }
 
-    pub fn set_sum(&mut self, new_sum: UFDRNumber, policy: SetScalar) -> Outcome {
+    pub fn set_sum(&mut self, new_sum: UFDRNumber, policy: SetScalarPolicy) -> Outcome {
         debug_assert!(self.hcv.is_valid());
         debug_assert!(new_sum.is_valid_sum());
         let cur_sum = self.hcv.sum;
@@ -328,7 +328,7 @@ impl ColourManipulator {
                 }
             } else {
                 match policy {
-                    SetScalar::Clamp => {
+                    SetScalarPolicy::Clamp => {
                         if let Some((c_prop, sum)) =
                             hue.adjusted_favouring_chroma(new_sum, self.hcv.c_prop)
                         {
@@ -345,7 +345,7 @@ impl ColourManipulator {
                             Outcome::Clamped
                         }
                     }
-                    SetScalar::Accommodate => {
+                    SetScalarPolicy::Accommodate => {
                         if let Some((c_prop, sum)) =
                             hue.adjusted_favouring_sum(new_sum, self.hcv.c_prop)
                         {
@@ -362,7 +362,7 @@ impl ColourManipulator {
                             Outcome::Accommodated
                         }
                     }
-                    SetScalar::Reject => Outcome::Rejected,
+                    SetScalarPolicy::Reject => Outcome::Rejected,
                 }
             }
         } else {
@@ -386,9 +386,9 @@ impl ColourManipulator {
                 UFDRNumber::ZERO
             };
             let policy = if self.clamped {
-                SetScalar::Clamp
+                SetScalarPolicy::Clamp
             } else {
-                SetScalar::Accommodate
+                SetScalarPolicy::Accommodate
             };
             match self.set_sum(new_sum, policy) {
                 Outcome::Ok | Outcome::Clamped | Outcome::Accommodated => {
@@ -411,9 +411,9 @@ impl ColourManipulator {
                 UFDRNumber::THREE
             };
             let policy = if self.clamped {
-                SetScalar::Clamp
+                SetScalarPolicy::Clamp
             } else {
-                SetScalar::Accommodate
+                SetScalarPolicy::Accommodate
             };
             match self.set_sum(new_sum, policy) {
                 Outcome::Ok | Outcome::Clamped | Outcome::Accommodated => {
@@ -425,14 +425,14 @@ impl ColourManipulator {
         }
     }
 
-    pub fn set_hue(&mut self, new_hue: Hue, policy: SetHue) {
+    pub fn set_hue(&mut self, new_hue: Hue, policy: SetHuePolicy) {
         // TODO: change argument to Option<Hue>
         debug_assert!(self.hcv.is_valid());
         match self.hcv.c_prop {
             Prop::ZERO => self.saved_hue = new_hue,
             Prop::ONE => match policy {
-                SetHue::FavourChroma => self.hcv = new_hue.max_chroma_hcv(),
-                SetHue::FavourValue => {
+                SetHuePolicy::FavourChroma => self.hcv = new_hue.max_chroma_hcv(),
+                SetHuePolicy::FavourValue => {
                     let c_prop = new_hue.max_chroma_prop_for_sum(self.hcv.sum).unwrap();
                     let (c_prop, sum) = new_hue
                         .adjusted_favouring_sum(self.hcv.sum, c_prop)
@@ -451,7 +451,7 @@ impl ColourManipulator {
                     };
                 } else {
                     self.hcv = match policy {
-                        SetHue::FavourChroma => {
+                        SetHuePolicy::FavourChroma => {
                             if let Some((c_prop, sum)) = if let Some((min_sum, max_sum)) =
                                 new_hue.sum_range_for_chroma_prop(c_prop)
                             {
@@ -474,7 +474,7 @@ impl ColourManipulator {
                                 HCV::new_grey((self.hcv.sum / 3).into())
                             }
                         }
-                        SetHue::FavourValue => {
+                        SetHuePolicy::FavourValue => {
                             let max_c_prop = new_hue
                                 .max_chroma_prop_for_sum(self.hcv.sum)
                                 .expect("0.0 < sum < 3.0");
@@ -522,7 +522,7 @@ impl ColourManipulator {
 pub struct ColourManipulatorBuilder {
     init_hcv: Option<HCV>,
     clamped: bool,
-    rotation_policy: SetHue,
+    rotation_policy: SetHuePolicy,
 }
 
 impl ColourManipulatorBuilder {
@@ -530,7 +530,7 @@ impl ColourManipulatorBuilder {
         Self {
             init_hcv: None,
             clamped: false,
-            rotation_policy: SetHue::FavourChroma,
+            rotation_policy: SetHuePolicy::FavourChroma,
         }
     }
 
@@ -549,7 +549,7 @@ impl ColourManipulatorBuilder {
         self
     }
 
-    pub fn rotation_policy(&mut self, rotation_policy: SetHue) -> &mut Self {
+    pub fn rotation_policy(&mut self, rotation_policy: SetHuePolicy) -> &mut Self {
         self.rotation_policy = rotation_policy;
         self
     }

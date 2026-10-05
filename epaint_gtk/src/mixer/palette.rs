@@ -15,7 +15,7 @@ use gtk3_ext::{
         paned::RememberPosition,
     },
     sav_state::{
-        ChangedCondnsNotifier, MaskedCondns, WidgetStatesControlled, SAV_HOVER_OK, SAV_NEXT_CONDN,
+        ChangedCondnsNotifier, MaskedCondns, SAV_HOVER_OK, SAV_NEXT_CONDN, WidgetStatesControlled,
     },
     wrapper::*,
 };
@@ -29,9 +29,7 @@ use gtk3_ext::{
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
 
-use colour_math::{
-    hue_wheel::MakeColouredShape, mixing::SubtractiveMixer, RGBConstants, ScalarAttribute, HCV,
-};
+use colour_math::{HCV, MakeColouredShape, RGBConstants, ScalarAttribute, SubtractiveMixer};
 use colour_math_cairo::CairoSetColour;
 
 #[cfg(feature = "targeted_mixtures")]

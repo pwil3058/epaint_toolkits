@@ -22,7 +22,7 @@ use gtk3_ext::{
 
 use recollections::{recall, remember};
 
-use colour_math::{HCV, ScalarAttribute, hue_wheel::MakeColouredShape};
+use colour_math::{HCV, MakeColouredShape, ScalarAttribute};
 use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};
 use gtk3_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
