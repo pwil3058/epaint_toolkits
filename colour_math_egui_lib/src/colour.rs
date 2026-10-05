@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, HCV, HueConstants, LightLevel, RGB};
-use eframe::egui::{Color32, ColorImage};
+use colour_math::{ColourBasics, HCV, LightLevel, RGB};
+use eframe::egui::{Color32, ColorImage, Pos2, Rect};
 use std::ops::{Deref, DerefMut};
 
 pub trait Depuis<T: Copy>: Sized {
@@ -117,6 +117,54 @@ impl Images {
             average.add_image(image);
         }
         average.average()
+    }
+}
+
+pub struct SampleImage {
+    pub image: ColorImage,
+    pub rect: Rect,
+}
+
+#[derive(Default)]
+pub struct SampleImages(pub Vec<SampleImage>);
+
+impl Deref for SampleImages {
+    type Target = [SampleImage];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for SampleImages {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl SampleImages {
+    pub fn average_colour(&self) -> RGB<u8> {
+        let mut average = AverageColour::default();
+
+        for sample in &self.0 {
+            average.add_image(&sample.image);
+        }
+        average.average()
+    }
+
+    pub fn remove_image_at(&mut self, pos: Pos2) -> Option<SampleImage> {
+        let mut index: Option<usize> = None;
+        for (i, image) in self.0.iter_mut().enumerate().rev() {
+            if image.rect.contains(pos) {
+                index = Some(i);
+                break;
+            }
+        }
+        if let Some(index) = index {
+            Some(self.0.swap_remove(index))
+        } else {
+            None
+        }
     }
 }
 
