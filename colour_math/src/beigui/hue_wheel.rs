@@ -347,7 +347,7 @@ impl HueWheel {
         point: Point,
         scalar_attribute: ScalarAttribute,
     ) -> Option<String> {
-        if let Some((shape)) = self.item_at_point(point, scalar_attribute) {
+        if let Some(shape) = self.item_at_point(point, scalar_attribute) {
             return Some(shape.tooltip_text.to_string());
         }
         None

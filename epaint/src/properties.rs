@@ -4,6 +4,7 @@
 
 use epaint_derive::Property;
 use serde::{Deserialize, Serialize};
+use std::ops::Deref;
 use std::{fmt, str::FromStr};
 
 pub trait PropertyIfce:
@@ -266,6 +267,14 @@ impl PropertyTypes {
     }
 }
 
+impl Deref for PropertyTypes {
+    type Target = [PropertyType];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Property {
     pub property_type: PropertyType,
@@ -417,6 +426,14 @@ impl From<(PropertyType, &str)> for Property {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Properties(pub Vec<Property>);
+
+impl Deref for Properties {
+    type Target = [Property];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
 
 impl Properties {
     pub fn iter(&self) -> impl Iterator<Item = Property> {
