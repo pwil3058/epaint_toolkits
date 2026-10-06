@@ -1,12 +1,8 @@
-// Complete refactor of colour_math_egui_lib/src/components/colour_manipulator_pad.rs
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{
-    ColourBasics,
-    manipulator::{ColourManipulator, DeltaSize},
-    rgb::RGB,
-};
-use eframe::egui;
+use crate::colour::Dedans;
+use colour_math::{Angle, ColourBasics, ColourManipulator, ManipulatedColour, Prop, RGB};
+use eframe::egui; // Uses your local un-premultiplied color byte converter trait
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ColourManipulatorPad;
@@ -27,23 +23,34 @@ impl ColourManipulatorPad {
         let side_btn_width = 32.0;
         let button_height = 24.0;
 
+        // 🌟 DYNAMIC GRADIENT CALCULATIONS: Read backend properties on the fly frame-by-frame
+        let current_hcv = manipulator.hcv();
+        let offset: Prop = (Prop::ONE / 10 * 2).into();
+        let angle_offset = Angle::from(45);
+
+        // Map your backend color mutations directly onto un-premultiplied egui hardware colors
+        let val_incr_color: egui::Color32 = current_hcv.lightened(offset).dedans();
+        let val_decr_color: egui::Color32 = current_hcv.darkened(offset).dedans();
+        let chrm_incr_color: egui::Color32 = current_hcv.saturated(offset).dedans();
+        let chrm_decr_color: egui::Color32 = current_hcv.greyed(offset).dedans();
+        let hue_left_color: egui::Color32 = current_hcv.rotated(angle_offset).dedans();
+        let hue_right_color: egui::Color32 = current_hcv.rotated(-angle_offset).dedans();
+
         let delta_size = ui.input(|i| {
             if i.modifiers.ctrl {
-                DeltaSize::Small
+                colour_math::manipulator::DeltaSize::Small
             } else if i.modifiers.shift {
-                DeltaSize::Large
+                colour_math::manipulator::DeltaSize::Large
             } else {
-                DeltaSize::Normal
+                colour_math::manipulator::DeltaSize::Normal
             }
         });
 
         ui.vertical_centered(|ui| {
-            // 1. Value++ Button
+            // 1. Value++ Button (Injected custom color hint background fill override)
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                if ui
-                    .add_sized([content_width, button_height], egui::Button::new("Value++"))
-                    .clicked()
-                {
+                let btn = egui::Button::new("Value++").fill(val_incr_color);
+                if ui.add_sized([content_width, button_height], btn).clicked() {
                     manipulator.incr_value(delta_size.for_value());
                 }
             });
@@ -56,8 +63,9 @@ impl ColourManipulatorPad {
                 let left_margin = (ui.available_width() - total_row_width) / 2.0;
                 ui.add_space(left_margin.max(0.0));
 
+                let btn_left = egui::Button::new("<").fill(hue_left_color);
                 if ui
-                    .add_sized([side_btn_width, content_height], egui::Button::new("<"))
+                    .add_sized([side_btn_width, content_height], btn_left)
                     .clicked()
                 {
                     manipulator.rotate(delta_size.for_hue_clockwise());
@@ -121,8 +129,9 @@ impl ColourManipulatorPad {
 
                 ui.add_space(4.0);
 
+                let btn_right = egui::Button::new(">").fill(hue_right_color);
                 if ui
-                    .add_sized([side_btn_width, content_height], egui::Button::new(">"))
+                    .add_sized([side_btn_width, content_height], btn_right)
                     .clicked()
                 {
                     manipulator.rotate(delta_size.for_hue_anticlockwise());
@@ -131,40 +140,35 @@ impl ColourManipulatorPad {
 
             ui.add_space(4.0);
 
-            // 3. Value-- Button
+            // 3. Value-- Button (Injected custom color hint background fill override)
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                if ui
-                    .add_sized([content_width, button_height], egui::Button::new("Value--"))
-                    .clicked()
-                {
+                let btn = egui::Button::new("Value--").fill(val_decr_color);
+                if ui.add_sized([content_width, button_height], btn).clicked() {
                     manipulator.decr_value(delta_size.for_value());
                 }
             });
 
             ui.add_space(6.0);
 
-            // 4. Footer Chroma tuning row
+            // 4. Footer Chroma tuning row (Injected custom color hint background fill overrides)
             ui.horizontal(|ui| {
                 let half_row_width = (content_width + (side_btn_width * 2.0)) / 2.0;
                 let footer_margin =
                     (ui.available_width() - (content_width + (side_btn_width * 2.0) + 4.0)) / 2.0;
                 ui.add_space(footer_margin.max(0.0));
 
+                let btn_c_down = egui::Button::new("Chroma-- / Greyness++").fill(chrm_decr_color);
                 if ui
-                    .add_sized(
-                        [half_row_width, button_height],
-                        egui::Button::new("Chroma-- / Greyness++"),
-                    )
+                    .add_sized([half_row_width, button_height], btn_c_down)
                     .clicked()
                 {
                     manipulator.decr_chroma(delta_size.for_chroma());
                 }
                 ui.add_space(4.0);
+
+                let btn_c_up = egui::Button::new("Chroma++ / Greyness--").fill(chrm_incr_color);
                 if ui
-                    .add_sized(
-                        [half_row_width, button_height],
-                        egui::Button::new("Chroma++ / Greyness--"),
-                    )
+                    .add_sized([half_row_width, button_height], btn_c_up)
                     .clicked()
                 {
                     manipulator.incr_chroma(delta_size.for_chroma());
