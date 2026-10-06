@@ -1,18 +1,17 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::ColourBasics;
-use colour_math::beigui::attr_display::ColourAttributeType;
+use colour_math::{ColourAttributeType, ColouredShape, HCV, HueConstants, RGBConstants, Shape};
 use eframe::egui;
 
 mod app_shell;
 use app_shell::AppShell;
 
-// 🌟 FIX A: Correct the library module lookup path to pull straight out of your `colour` file module!
-use colour_math_egui_lib::colour::{AverageColour, Dedans, Depuis};
-
 fn main() -> eframe::Result<()> {
     let mut options = eframe::NativeOptions::default();
     options.persist_window = true;
+
+    // 🌟 FIX: Initialize window sizing using egui's correct ViewportBuilder structure!
+    options.viewport = egui::ViewportBuilder::default().with_inner_size(egui::vec2(740.0, 520.0));
 
     let watercolour_profile = [
         ColourAttributeType::Hue,
@@ -28,33 +27,43 @@ fn main() -> eframe::Result<()> {
     )
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum AppState {
-    Normal,
-    WaitingForScreenshot,
-    Sampling,
-}
-
 pub struct GuiRunner {
     pub core_shell: AppShell,
-    pub sidebar_width: f32,
-    state: AppState,
-    pub drag_start_pos: Option<egui::Pos2>,
-    pub current_selection_rect: Option<egui::Rect>,
-    pub background_snapshot: Option<std::sync::Arc<egui::ColorImage>>,
-    pub background_texture: Option<egui::TextureHandle>,
+    pub standalone_wheel: colour_math_egui_lib::components::colour_wheel_panel::ColourWheelPanel,
 }
 
 impl GuiRunner {
     pub fn new(cc: &eframe::CreationContext<'_>, sliders: &[ColourAttributeType]) -> Self {
+        let mut panel_instance =
+            colour_math_egui_lib::components::colour_wheel_panel::ColourWheelPanel::new();
+
+        for (colour, name, tooltip, shape) in [
+            (&HCV::RED, "hcv_red", "Primary: Red", Shape::Circle),
+            (&HCV::GREEN, "hcv_green", "Primary: Green", Shape::Circle),
+            (&HCV::BLUE, "hcv_blue", "Primary: Blue", Shape::Circle),
+            (&HCV::CYAN, "hcv_cyan", "Secondary: Cyan", Shape::Square),
+            (
+                &HCV::MAGENTA,
+                "hcv_magenta",
+                "Secondary: Magenta",
+                Shape::Square,
+            ),
+            (
+                &HCV::YELLOW,
+                "hcv_yellow",
+                "Secondary: Yellow",
+                Shape::Square,
+            ),
+            (&HCV::WHITE, "hcv_white", "The lightest grey", Shape::Circle),
+            (&HCV::BLACK, "hcv_black", "The darkest grey", Shape::Circle),
+        ] {
+            let shape = ColouredShape::new(colour, name, tooltip, shape);
+            panel_instance.hue_wheel.add_item(shape);
+        }
+
         Self {
             core_shell: AppShell::new(cc, sliders),
-            sidebar_width: 380.0,
-            state: AppState::Normal,
-            drag_start_pos: None,
-            current_selection_rect: None,
-            background_snapshot: None,
-            background_texture: None,
+            standalone_wheel: panel_instance,
         }
     }
 }
@@ -63,15 +72,38 @@ impl eframe::App for GuiRunner {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         ui.ctx().set_visuals(egui::Visuals::dark());
 
-        // Deploy the single central panel canvas container across the full app footprint
         use egui::containers::panel::CentralPanel;
         CentralPanel::default().show_inside(ui, |ui| {
             ui.set_height(ui.available_height());
             ui.set_width(ui.available_width());
 
-            // 🌟 FIX: Render the entire unified ColourEditor directly onto the workspace window!
-            // This displays your sliders, readouts, and SampleField side-by-side cleanly.
-            self.core_shell.colour_editor.show(ui);
+            // 🌟 STABLE FIXED LAYOUT: Enforce an explicit horizontal layout flow with strict widths
+            ui.horizontal(|ui| {
+                // COLUMN 1 (LEFT): The Workbench Console Layout
+                ui.vertical(|ui| {
+                    ui.set_width(360.0); // Protect the dashboard boundaries from collapsing
+                    self.core_shell.colour_editor.show(ui);
+                });
+
+                ui.add_space(24.0);
+                ui.separator();
+                ui.add_space(24.0);
+
+                // COLUMN 2 (RIGHT): The Independent Populated Constants Reference Wheel
+                ui.vertical(|ui| {
+                    ui.heading("☸️ Independent Reference Wheel");
+                    ui.add_space(4.0);
+                    ui.separator();
+                    ui.add_space(12.0);
+
+                    // Dynamically calculate the ideal size for the wheel panel square
+                    let ideal_size = ui
+                        .available_width()
+                        .min(ui.available_height() - 60.0)
+                        .max(220.0);
+                    self.standalone_wheel.show(ui, ideal_size);
+                });
+            });
         });
     }
 

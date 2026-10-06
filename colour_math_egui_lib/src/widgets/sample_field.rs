@@ -159,7 +159,7 @@ impl SampleField {
                 ui.separator();
                 if ui.button("❌ Remove Hovered Sample").clicked() {
                     if self.samples.remove_image_at(target_pos).is_some() {
-                        self.texture_render_cache.remove(cache_idx);
+                        _ = self.texture_render_cache.remove(cache_idx);
                         color_update_signal = Some(self.samples.average_colour());
                     }
                     ui.close();
