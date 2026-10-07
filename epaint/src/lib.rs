@@ -8,6 +8,17 @@ use std::str::FromStr;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+pub use crate::{
+    mixtures::{MixingSession, Mixture, MixtureBuilder},
+    paint::{Paint, RangePaint},
+    properties::{
+        Finish, Granulation, Lightfastness, Luminescence, Metallicness, Opacity, Permanence,
+        Properties, PropertiesMixer, Property, PropertyIfce, PropertyType, PropertyTypes, Staining,
+        Transparency,
+    },
+    range::{PaintRange, RangePaintFinder},
+};
+
 pub mod mixtures;
 pub mod paint;
 pub mod properties;
