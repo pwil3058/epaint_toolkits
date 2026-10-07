@@ -315,7 +315,7 @@ mod test {
             colour: HCV::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
-            properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         });
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
@@ -323,7 +323,7 @@ mod test {
             colour: HCV::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
-            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 2))]),
         });
         let mut session: MixingSession = MixingSession::new();
         session.set_notes("a test mixing session");

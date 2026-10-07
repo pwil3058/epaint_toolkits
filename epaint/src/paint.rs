@@ -193,7 +193,7 @@ mod paint_tests {
                 colour: HCV::MAGENTA,
                 name: "Magenta".to_string(),
                 notes: "".to_string(),
-                properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
+                properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
             },
             series_id: series_id.clone(),
         };
@@ -203,7 +203,7 @@ mod paint_tests {
             colour: HCV::MAGENTA,
             name: "Magenta".to_string(),
             notes: String::new(),
-            properties: Properties(vec![Property::from((PropertyType::Transparency, 1.0))]),
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
         };
         let colln_paint: RangePaint = (&paint, &series_id).into();
         assert_eq!(colln_paint, target_paint);
@@ -217,7 +217,7 @@ mod paint_tests {
             colour: HCV::RED_MAGENTA,
             name: "Red Magenta".to_string(),
             notes: "".to_string(),
-            properties: Properties(vec![Property::from((PropertyType::Transparency, 2.0))]),
+            properties: Properties(vec![Property::from((PropertyType::Transparency, 2))]),
         };
         let series_id = PaintRangeId {
             name: "DS".to_string(),
@@ -230,7 +230,7 @@ mod paint_tests {
         assert_eq!(colln_paint.series_id, series_id.into());
         assert_eq!(
             colln_paint.paint.properties,
-            Properties(vec![Property::from((PropertyType::Transparency, 2.0))])
+            Properties(vec![Property::from((PropertyType::Transparency, 2))])
         );
         for (target, actual) in paint.properties.iter().zip(colln_paint.properties()) {
             assert_eq!(target, actual);

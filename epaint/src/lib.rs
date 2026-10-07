@@ -12,9 +12,9 @@ pub use crate::{
     mixtures::{MixingSession, Mixture, MixtureBuilder},
     paint::{Paint, RangePaint},
     properties::{
-        Finish, Granulation, Lightfastness, Luminescence, Metallicness, Opacity, Permanence,
-        Properties, PropertiesMixer, Property, PropertyIfce, PropertyType, PropertyTypes, Staining,
-        Transparency,
+        Finish, Fluorescence, Granulation, Lightfastness, Luminescence, Metallicness, Opacity,
+        Permanence, Properties, PropertiesMixer, Property, PropertyIfce, PropertyType,
+        PropertyTypes, Staining, Transparency,
     },
     range::{PaintRange, RangePaintFinder},
 };
