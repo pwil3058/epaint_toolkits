@@ -2,7 +2,7 @@
 
 use crate::components::colour_manipulator_pad::ColourManipulatorPad;
 use crate::widgets::attribute_deck::AttributeDeck;
-use colour_math::{ColourAttributeType, ColourBasics, ColourManipulator};
+use colour_math::{ColourAttributeType, ColourManipulator};
 use eframe::egui;
 
 pub struct ColourEditor {

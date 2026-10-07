@@ -13,7 +13,7 @@ members = [
     "epaint_gtk",
     "epaint_gtk_gui",
     "wpca_gtk",
-    "mcmmtk_gtk", "colour_math_egui_lib", "colour_math_egui_gui",
+    "mcmmtk_gtk", "colour_math_egui_lib", "colour_math_egui_gui", "epaint_egui_lib",
 ]
 
 [workspace.dependencies]

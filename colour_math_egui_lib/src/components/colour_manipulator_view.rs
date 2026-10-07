@@ -1,11 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{
-    ColourBasics, ScalarAttribute, beigui::hue_wheel::HueWheel, manipulator::ColourManipulator,
-};
-use eframe::egui;
-// 🌟 FIX: Pull in your native, production-ready drawing bridge struct directly!
 use crate::egui_drawer::EguiDrawer;
+use colour_math::{ColourManipulator, HueWheel, ScalarAttribute};
+use eframe::egui;
 
 pub struct ColourManipulatorView {
     pub model: ColourManipulator,

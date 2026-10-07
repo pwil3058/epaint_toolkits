@@ -73,6 +73,7 @@ impl eframe::App for GuiRunner {
         ui.ctx().set_visuals(egui::Visuals::dark());
 
         use egui::containers::panel::CentralPanel;
+        #[allow(deprecated)]
         CentralPanel::default().show_inside(ui, |ui| {
             ui.set_height(ui.available_height());
             ui.set_width(ui.available_width());

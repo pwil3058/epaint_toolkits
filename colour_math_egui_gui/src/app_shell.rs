@@ -9,7 +9,7 @@ pub struct AppShell {
 }
 
 impl AppShell {
-    pub fn new(cc: &eframe::CreationContext<'_>, sliders: &[ColourAttributeType]) -> Self {
+    pub fn new(_cc: &eframe::CreationContext<'_>, sliders: &[ColourAttributeType]) -> Self {
         let core_manipulator = colour_math::manipulator::ColourManipulator::builder().build();
 
         Self {
