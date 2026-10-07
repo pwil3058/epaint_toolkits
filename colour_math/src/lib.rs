@@ -250,6 +250,133 @@ pub trait ColourBasics {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+pub enum Colour<L: LightLevel> {
+    Rgb(RGB<L>),
+    Hc(HCV),
+}
+
+impl<L: LightLevel> ColourBasics for Colour<L> {
+    fn hue(&self) -> Option<Hue> {
+        match self {
+            Colour::Rgb(rgb) => rgb.hue(),
+            Colour::Hc(hc) => hc.hue(),
+        }
+    }
+
+    fn hue_rgb<T: LightLevel>(&self) -> Option<RGB<T>> {
+        match self {
+            Colour::Rgb(rgb) => rgb.hue_rgb::<T>(),
+            Colour::Hc(hc) => hc.hue_rgb::<T>(),
+        }
+    }
+
+    fn hue_hcv(&self) -> Option<HCV> {
+        match self {
+            Colour::Rgb(rgb) => rgb.hue_hcv(),
+            Colour::Hc(hc) => hc.hue_hcv(),
+        }
+    }
+
+    fn is_grey(&self) -> bool {
+        match self {
+            Colour::Rgb(rgb) => rgb.is_grey(),
+            Colour::Hc(hc) => hc.is_grey(),
+        }
+    }
+
+    fn chroma(&self) -> Chroma {
+        match self {
+            Colour::Rgb(rgb) => rgb.chroma(),
+            Colour::Hc(hc) => hc.chroma(),
+        }
+    }
+
+    fn chroma_prop(&self) -> Prop {
+        match self {
+            Colour::Rgb(rgb) => rgb.chroma_prop(),
+            Colour::Hc(hc) => hc.chroma_prop(),
+        }
+    }
+
+    fn value(&self) -> Value {
+        match self {
+            Colour::Rgb(rgb) => rgb.value(),
+            Colour::Hc(hc) => hc.value(),
+        }
+    }
+
+    fn greyness(&self) -> Greyness {
+        match self {
+            Colour::Rgb(rgb) => rgb.greyness(),
+            Colour::Hc(hc) => hc.greyness(),
+        }
+    }
+
+    fn warmth(&self) -> Warmth {
+        match self {
+            Colour::Rgb(rgb) => rgb.warmth(),
+            Colour::Hc(hc) => hc.warmth(),
+        }
+    }
+
+    fn family(&self) -> Option<Family> {
+        match self {
+            Colour::Rgb(rgb) => rgb.family(),
+            Colour::Hc(hc) => hc.family(),
+        }
+    }
+
+    fn hcv(&self) -> HCV {
+        match self {
+            Colour::Rgb(rgb) => rgb.hcv(),
+            Colour::Hc(hc) => hc.hcv(),
+        }
+    }
+
+    fn rgb<T: LightLevel>(&self) -> RGB<T> {
+        match self {
+            Colour::Rgb(rgb) => rgb.rgb::<T>(),
+            Colour::Hc(hc) => hc.rgb::<T>(),
+        }
+    }
+
+    fn monochrome_hcv(&self) -> HCV {
+        match self {
+            Colour::Rgb(rgb) => rgb.monochrome_hcv(),
+            Colour::Hc(hc) => hc.monochrome_hcv(),
+        }
+    }
+
+    fn monochrome_rgb<T: LightLevel>(&self) -> RGB<T> {
+        match self {
+            Colour::Rgb(rgb) => rgb.monochrome_rgb::<T>(),
+            Colour::Hc(hc) => hc.monochrome_rgb::<T>(),
+        }
+    }
+
+    fn best_foreground(&self) -> HCV {
+        match self {
+            Colour::Rgb(rgb) => rgb.best_foreground(),
+            Colour::Hc(hc) => hc.best_foreground(),
+        }
+    }
+
+    fn pango_string(&self) -> String {
+        match self {
+            Colour::Rgb(rgb) => rgb.pango_string(),
+            Colour::Hc(hc) => hc.pango_string(),
+        }
+    }
+
+    fn hex_string<T: LightLevel + Unsigned + UpperHex>(&self) -> String {
+        match self {
+            Colour::Rgb(rgb) => rgb.hex_string::<T>(),
+            Colour::Hc(hc) => hc.hex_string::<T>(),
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScalarAttribute {
     Chroma,
     Greyness,
