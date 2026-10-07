@@ -1,6 +1,14 @@
 [package]
-name = "epain_egui_lib"
+name = "epaint_egui_lib"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+colour_math.workspace = true
+colour_math_derive.workspace = true
+colour_math_egui_lib.workspace = true
+epaint.workspace = true
+epaint_derive.workspace = true
+
+egui.workspace = true
+serde.workspace = true

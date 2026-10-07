@@ -385,15 +385,6 @@ impl FromStr for Property {
     }
 }
 
-// impl From<(PropertyType, f64)> for Property {
-//     fn from((property_type, value): (PropertyType, f64)) -> Self {
-//         Self {
-//             property_type,
-//             value: value as u64,
-//         }
-//     }
-// }
-
 impl From<(PropertyType, u64)> for Property {
     fn from((property_type, value): (PropertyType, u64)) -> Self {
         Self {
