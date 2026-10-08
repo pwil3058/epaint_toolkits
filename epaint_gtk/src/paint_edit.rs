@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use colour_math::ScalarAttribute;
+use colour_math::{ColourBasics, ScalarAttribute};
 use colour_math_gtk::colour_edit::ColourEditor;
 use gtk3_ext::{
     gtk::{self, Button, prelude::*},
@@ -69,7 +69,7 @@ pub struct PaintEditor {
     id_entry: gtk::Entry,
     name_entry: gtk::Entry,
     notes_entry: gtk::Entry,
-    colour_editor: Rc<ColourEditor<u16>>,
+    colour_editor: Rc<ColourEditor<u8>>,
     property_entries: Vec<Rc<PropertyEntry>>,
     buttons: ConditionalWidgetGroups<gtk::Button>,
     current_paint: RefCell<Option<Paint>>,
@@ -240,7 +240,7 @@ impl PaintEditor {
                 mask: SAV_RGB_CHANGED,
             };
             if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
-                && &paint.colour != hcv
+                && paint.colour != hcv.rgb::<u8>()
             {
                 masked_condns.condns += SAV_RGB_CHANGED;
             }
@@ -300,7 +300,7 @@ impl PaintEditor {
         Paint {
             #[cfg(feature = "paints_have_ids")]
             id: self.id_entry.text().to_string(),
-            colour: self.colour_editor.hcv(),
+            colour: self.colour_editor.hcv().into(),
             name: self.name_entry.text().to_string(),
             notes: self.notes_entry.text().to_string(),
             properties,

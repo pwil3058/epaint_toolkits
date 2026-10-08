@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use colour_math::{ColouredShape, MakeColouredShape, Shape};
-use colour_math::{HCV, LightLevel};
+use colour_math::{HCV, LightLevel, RGB};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property};
@@ -15,7 +15,7 @@ pub struct Paint {
     pub id: String,
     pub name: String,
     #[colour]
-    pub colour: HCV,
+    pub colour: RGB<u8>,
     pub notes: String,
     pub properties: Properties,
 }
@@ -113,7 +113,7 @@ impl RangePaint {
         &self.paint.notes
     }
 
-    pub fn colour(&self) -> HCV {
+    pub fn colour(&self) -> RGB<u8> {
         self.paint.colour
     }
 
