@@ -64,9 +64,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
     let mut full_tokens = vec![];
     let mut full_variant_tokens = vec![];
     let mut abbrev_variant_tokens = vec![];
-    let mut from_tokens = vec![];
+    let mut from_str_tokens = vec![];
     let mut from_u64_tokens = vec![];
     let mut to_u64_tokens = vec![];
+    let mut display_tokens = vec![];
     let mut first: Option<Ident> = None;
     let mut default: Option<Ident> = None;
     let fmt_str = format!("'{{}}': Malformed '{name}' value string");
@@ -116,10 +117,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                 full_tokens.push(full_token);
                 full_variant_tokens.push(quote!(#v_full, ));
 
-                let from_token = quote! {
+                let from_str_token = quote! {
                     #v_abbrev | #v_full | #v_full_normal => Ok(#enum_name::#v_name),
                 };
-                from_tokens.push(from_token);
+                from_str_tokens.push(from_str_token);
 
                 let from_u64_token = quote! {
                     #count => #enum_name::#v_name,
@@ -130,6 +131,11 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
                     #enum_name::#v_name => #count,
                 };
                 to_u64_tokens.push(to_u64_token);
+
+                let display_token = quote! {
+                    #enum_name::#v_name => write!(f, "{}", (#enum_name::#v_name).to_string()),
+                };
+                display_tokens.push(display_token);
             }
         }
         _ => panic!("'Property' can only be derived for enums."),
@@ -165,7 +171,7 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
 
             fn from_str(string: &str) -> Result<#enum_name, String> {
                 match string {
-                    #(#from_tokens)*
+                    #(#from_str_tokens)*
                     _ => Err(format!(#fmt_str, string)),
                 }
             }
@@ -194,10 +200,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl std::convert::TryFrom<&Property> for #enum_name {
+        impl std::convert::TryFrom<Property> for #enum_name {
             type Error = &'static str;
 
-            fn try_from(property: &Property) -> Result<#enum_name, &'static str> {
+            fn try_from(property: Property) -> Result<#enum_name, &'static str> {
                 if PropertyType::#enum_name ==  property.property_type() {
                     Ok(Self::from(property.u64_value()))
                 } else {
@@ -206,29 +212,16 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        // impl std::convert::Into<Property> for #enum_name {
-        //     fn into(self) -> Property {
-        //         let value: u64 = self.into();
-        //         Property{
-        //             property_type: PropertyType::#enum_name,
-        //             value: value,
-        //         }
-        //     }
-        // }
-        //
-        // impl std::convert::TryFrom<&Property> for #enum_name {
-        //     type Error = &'static str;
-        //
-        //     fn try_from(property: &Property) -> Result<Self, Self::Error> {
-        //         match PropertyType::#enum_name == property.property_type {
-        //             true => Ok(Self::from(property.value)),
-        //             false => Err("Incompatible property type")
-        //         }
-        //     }
-        // }
-
         impl std::default::Default for #enum_name {
             fn default() -> Self { #enum_name::#default_value }
+        }
+
+        impl std::fmt::Display for #enum_name {
+            fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+                match self {
+                    #(#display_tokens)*
+                }
+            }
         }
     };
 

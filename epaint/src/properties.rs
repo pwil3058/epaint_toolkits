@@ -1,14 +1,26 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-//! Types to describe paint properties that cannot be derived from their colour.
-
-use epaint_derive::Property;
-use serde::{Deserialize, Serialize};
 use std::ops::Deref;
 use std::{fmt, str::FromStr};
 
+use serde::{Deserialize, Serialize};
+
+use epaint_derive::Property;
+
+/// Interface to be implemented for all property types.
 pub trait PropertyIfce:
-    FromStr<Err = String> + PartialEq + Eq + PartialOrd + Ord + fmt::Debug
+    FromStr<Err = String>
+    + PartialEq
+    + Eq
+    + PartialOrd
+    + Ord
+    + fmt::Debug
+    + From<u64>
+    + Into<u64>
+    + Copy
+    + Into<Property>
+    + TryFrom<Property>
+    + fmt::Display
 {
     const NAME: &'static str;
     const PROMPT: &'static str;
@@ -392,46 +404,6 @@ impl Ord for Property {
     }
 }
 
-macro_rules! prop_from_str_action {
-    ($variant: ident, $property_type: ident, $split: ident) => {{
-        let value = if let Some(value) = $split.next() {
-            value
-        } else {
-            $variant::default().value()
-        };
-        Ok(Self {
-            $property_type,
-            value: <$variant as Into<u64>>::into($variant::from_str(value)?).into(),
-        })
-    }};
-}
-
-// impl FromStr for Property {
-//     type Err = String;
-//
-//     fn from_str(string: &str) -> Result<Self, Self::Err> {
-//         let mut split = string.split("::");
-//         let type_name = split.next().unwrap();
-//         let property_type = PropertyType::from_str(type_name).unwrap();
-//         let result = match property_type {
-//             PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
-//             PropertyType::Lightfastness => {
-//                 prop_from_str_action!(Lightfastness, property_type, split)
-//             }
-//             PropertyType::Fluorescence => prop_from_str_action!(Fluorescence, property_type, split),
-//             PropertyType::Finish => prop_from_str_action!(Finish, property_type, split),
-//             PropertyType::Staining => prop_from_str_action!(Staining, property_type, split),
-//             PropertyType::Opacity => prop_from_str_action!(Opacity, property_type, split),
-//             PropertyType::Permanence => prop_from_str_action!(Permanence, property_type, split),
-//             PropertyType::Luminescence => prop_from_str_action!(Luminescence, property_type, split),
-//             PropertyType::Granulation => prop_from_str_action!(Granulation, property_type, split),
-//             PropertyType::Metallicness => prop_from_str_action!(Metallicness, property_type, split),
-//         };
-//         debug_assert_eq!(split.next(), None);
-//         result
-//     }
-// }
-
 impl From<(PropertyType, u64)> for Property {
     fn from((property_type, value): (PropertyType, u64)) -> Self {
         match property_type {
@@ -464,9 +436,6 @@ impl From<(PropertyType, &str)> for Property {
             }
             PropertyType::Metallicness => {
                 Property::Metallicness(Metallicness::from_str(value).unwrap().into())
-            }
-            PropertyType::Granulation => {
-                Property::Granulation(Granulation::from_str(value).unwrap().into())
             }
             PropertyType::Luminescence => {
                 Property::Luminescence(Luminescence::from_str(value).unwrap().into())
