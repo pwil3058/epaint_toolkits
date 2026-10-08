@@ -394,12 +394,9 @@ impl PaintEditor {
         for (property_entry, value) in self
             .property_entries
             .iter()
-            .zip(paint.properties.iter().map(|p| p.value))
+            .zip(paint.properties.iter().map(|p| p.value()))
         {
-            let property = Property {
-                property_type: property_entry.property_type(),
-                value,
-            };
+            let property = Property::from((property_entry.property_type(), value));
             property_entry.set_value(Some(property))
         }
         self.update_has_changes();

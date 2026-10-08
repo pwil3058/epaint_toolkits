@@ -172,10 +172,10 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
         }
 
         impl std::convert::From<u64> for #enum_name {
-            fn from(float: u64) -> #enum_name {
-                match float {
+            fn from(unsigned: u64) -> #enum_name {
+                match unsigned {
                     #(#from_u64_tokens)*
-                    _ => panic!("u64: {} out of range for '{}'", float, #name),
+                    _ => panic!("u64: {} out of range for '{}'", unsigned, #name),
                 }
             }
         }
@@ -190,24 +190,42 @@ pub fn property_derive(input: TokenStream) -> TokenStream {
 
         impl std::convert::Into<Property> for #enum_name {
             fn into(self) -> Property {
-                let value: u64 = self.into();
-                Property{
-                    property_type: PropertyType::#enum_name,
-                    value: value,
-                }
+                Property::#enum_name(self)
             }
         }
 
         impl std::convert::TryFrom<&Property> for #enum_name {
             type Error = &'static str;
 
-            fn try_from(property: &Property) -> Result<Self, Self::Error> {
-                match PropertyType::#enum_name == property.property_type {
-                    true => Ok(Self::from(property.value)),
-                    false => Err("Incompatible property type")
+            fn try_from(property: &Property) -> Result<#enum_name, &'static str> {
+                if PropertyType::#enum_name ==  property.property_type() {
+                    Ok(Self::from(property.u64_value()))
+                } else {
+                    Err("Incompatible property type")
                 }
             }
         }
+
+        // impl std::convert::Into<Property> for #enum_name {
+        //     fn into(self) -> Property {
+        //         let value: u64 = self.into();
+        //         Property{
+        //             property_type: PropertyType::#enum_name,
+        //             value: value,
+        //         }
+        //     }
+        // }
+        //
+        // impl std::convert::TryFrom<&Property> for #enum_name {
+        //     type Error = &'static str;
+        //
+        //     fn try_from(property: &Property) -> Result<Self, Self::Error> {
+        //         match PropertyType::#enum_name == property.property_type {
+        //             true => Ok(Self::from(property.value)),
+        //             false => Err("Incompatible property type")
+        //         }
+        //     }
+        // }
 
         impl std::default::Default for #enum_name {
             fn default() -> Self { #enum_name::#default_value }

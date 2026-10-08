@@ -223,9 +223,17 @@ impl PropertyType {
     }
 
     pub fn default_property(&self) -> Property {
-        Property {
-            property_type: *self,
-            value: self.default_u64(),
+        match self {
+            PropertyType::Transparency => Property::Transparency(Transparency::default()),
+            PropertyType::Lightfastness => Property::Lightfastness(Lightfastness::default()),
+            PropertyType::Staining => Property::Staining(Staining::default()),
+            PropertyType::Finish => Property::Finish(Finish::default()),
+            PropertyType::Opacity => Property::Opacity(Opacity::default()),
+            PropertyType::Permanence => Property::Permanence(Permanence::default()),
+            PropertyType::Luminescence => Property::Luminescence(Luminescence::default()),
+            PropertyType::Fluorescence => Property::Fluorescence(Fluorescence::default()),
+            PropertyType::Metallicness => Property::Metallicness(Metallicness::default()),
+            PropertyType::Granulation => Property::Granulation(Granulation::default()),
         }
     }
 }
@@ -276,56 +284,94 @@ impl Deref for PropertyTypes {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Property {
-    pub property_type: PropertyType,
-    pub value: u64,
+pub enum Property {
+    Transparency(Transparency),
+    Lightfastness(Lightfastness),
+    Staining(Staining),
+    Finish(Finish),
+    Opacity(Opacity),
+    Permanence(Permanence),
+    Luminescence(Luminescence),
+    Fluorescence(Fluorescence),
+    Metallicness(Metallicness),
+    Granulation(Granulation),
 }
 
 impl Property {
     pub fn name(&self) -> &'static str {
-        self.property_type.name()
+        self.property_type().name()
     }
 
     pub fn prompt(&self) -> &'static str {
-        self.property_type.prompt()
+        self.property_type().prompt()
     }
 
     pub fn list_header(&self) -> &'static str {
-        self.property_type.list_header()
+        self.property_type().list_header()
     }
 
     pub fn abbrev_value(&self) -> &'static str {
-        match self.property_type {
-            PropertyType::Transparency => Transparency::from(self.value).abbrev_value(),
-            PropertyType::Lightfastness => Lightfastness::from(self.value).abbrev_value(),
-            PropertyType::Staining => Staining::from(self.value).abbrev_value(),
-            PropertyType::Finish => Finish::from(self.value).abbrev_value(),
-            PropertyType::Opacity => Opacity::from(self.value).abbrev_value(),
-            PropertyType::Permanence => Permanence::from(self.value).abbrev_value(),
-            PropertyType::Luminescence => Luminescence::from(self.value).abbrev_value(),
-            PropertyType::Fluorescence => Fluorescence::from(self.value).abbrev_value(),
-            PropertyType::Granulation => Granulation::from(self.value).abbrev_value(),
-            PropertyType::Metallicness => Metallicness::from(self.value).abbrev_value(),
+        use Property::*;
+        match self {
+            Transparency(transparency) => transparency.abbrev_value(),
+            Lightfastness(lightfastness) => lightfastness.abbrev_value(),
+            Staining(staining) => staining.abbrev_value(),
+            Finish(finish) => finish.abbrev_value(),
+            Opacity(opacity) => opacity.abbrev_value(),
+            Permanence(permanence) => permanence.abbrev_value(),
+            Luminescence(luminescence) => luminescence.abbrev_value(),
+            Fluorescence(fluorescence) => fluorescence.abbrev_value(),
+            Granulation(granulation) => granulation.abbrev_value(),
+            Metallicness(metallic) => metallic.abbrev_value(),
         }
     }
 
     pub fn value(&self) -> &'static str {
-        match self.property_type {
-            PropertyType::Transparency => Transparency::from(self.value).value(),
-            PropertyType::Lightfastness => Lightfastness::from(self.value).value(),
-            PropertyType::Staining => Staining::from(self.value).value(),
-            PropertyType::Finish => Finish::from(self.value).value(),
-            PropertyType::Opacity => Opacity::from(self.value).value(),
-            PropertyType::Permanence => Permanence::from(self.value).value(),
-            PropertyType::Luminescence => Luminescence::from(self.value).value(),
-            PropertyType::Fluorescence => Fluorescence::from(self.value).value(),
-            PropertyType::Metallicness => Metallicness::from(self.value).value(),
-            PropertyType::Granulation => Granulation::from(self.value).value(),
+        use Property::*;
+        match self {
+            Transparency(transparency) => transparency.value(),
+            Lightfastness(lightfastness) => lightfastness.value(),
+            Staining(staining) => staining.value(),
+            Finish(finish) => finish.value(),
+            Opacity(opacity) => opacity.value(),
+            Permanence(permanence) => permanence.value(),
+            Luminescence(luminescence) => luminescence.value(),
+            Fluorescence(fluorescence) => fluorescence.value(),
+            Metallicness(metallic) => metallic.value(),
+            Granulation(granulation) => granulation.value(),
+        }
+    }
+
+    pub fn u64_value(&self) -> u64 {
+        use Property::*;
+        match self {
+            Transparency(transparency) => (*transparency).into(),
+            Lightfastness(lightfastness) => (*lightfastness).into(),
+            Staining(staining) => (*staining).into(),
+            Finish(finish) => (*finish).into(),
+            Opacity(opacity) => (*opacity).into(),
+            Permanence(permanence) => (*permanence).into(),
+            Luminescence(luminescence) => (*luminescence).into(),
+            Fluorescence(fluorescence) => (*fluorescence).into(),
+            Metallicness(metallic) => (*metallic).into(),
+            Granulation(granulation) => (*granulation).into(),
         }
     }
 
     pub fn property_type(&self) -> PropertyType {
-        self.property_type
+        use Property::*;
+        match self {
+            Transparency(_) => PropertyType::Transparency,
+            Lightfastness(_) => PropertyType::Lightfastness,
+            Staining(_) => PropertyType::Staining,
+            Finish(_) => PropertyType::Finish,
+            Opacity(_) => PropertyType::Opacity,
+            Permanence(_) => PropertyType::Permanence,
+            Luminescence(_) => PropertyType::Luminescence,
+            Fluorescence(_) => PropertyType::Fluorescence,
+            Metallicness(_) => PropertyType::Metallicness,
+            Granulation(_) => PropertyType::Granulation,
+        }
     }
 }
 
@@ -338,10 +384,11 @@ impl PartialOrd for Property {
 impl Ord for Property {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         debug_assert_eq!(
-            self.property_type, other.property_type,
+            self.property_type(),
+            other.property_type(),
             "attempt to compare properties of different types"
         );
-        self.value.cmp(&other.value)
+        self.value().cmp(&other.value())
     }
 }
 
@@ -359,58 +406,80 @@ macro_rules! prop_from_str_action {
     }};
 }
 
-impl FromStr for Property {
-    type Err = String;
-
-    fn from_str(string: &str) -> Result<Self, Self::Err> {
-        let mut split = string.split("::");
-        let type_name = split.next().unwrap();
-        let property_type = PropertyType::from_str(type_name).unwrap();
-        let result = match property_type {
-            PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
-            PropertyType::Lightfastness => {
-                prop_from_str_action!(Lightfastness, property_type, split)
-            }
-            PropertyType::Fluorescence => prop_from_str_action!(Fluorescence, property_type, split),
-            PropertyType::Finish => prop_from_str_action!(Finish, property_type, split),
-            PropertyType::Staining => prop_from_str_action!(Staining, property_type, split),
-            PropertyType::Opacity => prop_from_str_action!(Opacity, property_type, split),
-            PropertyType::Permanence => prop_from_str_action!(Permanence, property_type, split),
-            PropertyType::Luminescence => prop_from_str_action!(Luminescence, property_type, split),
-            PropertyType::Granulation => prop_from_str_action!(Granulation, property_type, split),
-            PropertyType::Metallicness => prop_from_str_action!(Metallicness, property_type, split),
-        };
-        debug_assert_eq!(split.next(), None);
-        result
-    }
-}
+// impl FromStr for Property {
+//     type Err = String;
+//
+//     fn from_str(string: &str) -> Result<Self, Self::Err> {
+//         let mut split = string.split("::");
+//         let type_name = split.next().unwrap();
+//         let property_type = PropertyType::from_str(type_name).unwrap();
+//         let result = match property_type {
+//             PropertyType::Transparency => prop_from_str_action!(Transparency, property_type, split),
+//             PropertyType::Lightfastness => {
+//                 prop_from_str_action!(Lightfastness, property_type, split)
+//             }
+//             PropertyType::Fluorescence => prop_from_str_action!(Fluorescence, property_type, split),
+//             PropertyType::Finish => prop_from_str_action!(Finish, property_type, split),
+//             PropertyType::Staining => prop_from_str_action!(Staining, property_type, split),
+//             PropertyType::Opacity => prop_from_str_action!(Opacity, property_type, split),
+//             PropertyType::Permanence => prop_from_str_action!(Permanence, property_type, split),
+//             PropertyType::Luminescence => prop_from_str_action!(Luminescence, property_type, split),
+//             PropertyType::Granulation => prop_from_str_action!(Granulation, property_type, split),
+//             PropertyType::Metallicness => prop_from_str_action!(Metallicness, property_type, split),
+//         };
+//         debug_assert_eq!(split.next(), None);
+//         result
+//     }
+// }
 
 impl From<(PropertyType, u64)> for Property {
     fn from((property_type, value): (PropertyType, u64)) -> Self {
-        Self {
-            property_type,
-            value,
+        match property_type {
+            PropertyType::Transparency => Property::Transparency(Transparency::from(value)),
+            PropertyType::Lightfastness => Property::Lightfastness(Lightfastness::from(value)),
+            PropertyType::Fluorescence => Property::Fluorescence(Fluorescence::from(value)),
+            PropertyType::Finish => Property::Finish(Finish::from(value)),
+            PropertyType::Staining => Property::Staining(Staining::from(value)),
+            PropertyType::Opacity => Property::Opacity(Opacity::from(value)),
+            PropertyType::Permanence => Property::Permanence(Permanence::from(value)),
+            PropertyType::Luminescence => Property::Luminescence(Luminescence::from(value)),
+            PropertyType::Granulation => Property::Granulation(Granulation::from(value)),
+            PropertyType::Metallicness => Property::Metallicness(Metallicness::from(value)),
         }
     }
 }
 
 impl From<(PropertyType, &str)> for Property {
     fn from((property_type, value): (PropertyType, &str)) -> Self {
-        let variant = match property_type {
-            PropertyType::Transparency => Transparency::from_str(value).unwrap().into(),
-            PropertyType::Lightfastness => Lightfastness::from_str(value).unwrap().into(),
-            PropertyType::Staining => Staining::from_str(value).unwrap().into(),
-            PropertyType::Finish => Finish::from_str(value).unwrap().into(),
-            PropertyType::Opacity => Opacity::from_str(value).unwrap().into(),
-            PropertyType::Permanence => Permanence::from_str(value).unwrap().into(),
-            PropertyType::Luminescence => Luminescence::from_str(value).unwrap().into(),
-            PropertyType::Metallicness => Metallicness::from_str(value).unwrap().into(),
-            PropertyType::Granulation => Granulation::from_str(value).unwrap().into(),
-            PropertyType::Fluorescence => Fluorescence::from_str(value).unwrap().into(),
-        };
-        Self {
-            property_type,
-            value: variant,
+        // let variant =
+        match property_type {
+            PropertyType::Transparency => {
+                Property::Transparency(Transparency::from_str(value).unwrap().into())
+            }
+            PropertyType::Lightfastness => {
+                Property::Lightfastness(Lightfastness::from_str(value).unwrap())
+            }
+            PropertyType::Fluorescence => {
+                Property::Fluorescence(Fluorescence::from_str(value).unwrap())
+            }
+            PropertyType::Metallicness => {
+                Property::Metallicness(Metallicness::from_str(value).unwrap().into())
+            }
+            PropertyType::Granulation => {
+                Property::Granulation(Granulation::from_str(value).unwrap().into())
+            }
+            PropertyType::Luminescence => {
+                Property::Luminescence(Luminescence::from_str(value).unwrap().into())
+            }
+            PropertyType::Granulation => {
+                Property::Granulation(Granulation::from_str(value).unwrap().into())
+            }
+            PropertyType::Staining => Property::Staining(Staining::from_str(value).unwrap().into()),
+            PropertyType::Opacity => Property::Opacity(Opacity::from_str(value).unwrap().into()),
+            PropertyType::Permanence => {
+                Property::Permanence(Permanence::from_str(value).unwrap().into())
+            }
+            PropertyType::Finish => Property::Finish(Finish::from_str(value).unwrap().into()),
         }
     }
 }
@@ -441,7 +510,7 @@ impl Properties {
                 .0
                 .iter()
                 .zip(properties)
-                .all(|(left, right)| left.property_type == right.property_type)
+                .all(|(left, right)| left.property_type() == right.property_type())
     }
 
     pub fn update(&mut self, properties: &[Property]) {
@@ -457,7 +526,7 @@ impl Properties {
         self.0
             .iter()
             .copied()
-            .find(|&property| property.property_type == property_type)
+            .find(|&property| property.property_type() == property_type)
     }
 
     pub fn iter_property_types(&self) -> impl Iterator<Item = PropertyType> {
@@ -465,7 +534,7 @@ impl Properties {
     }
 
     pub fn property_variants_u64(&self) -> Vec<u64> {
-        self.0.iter().map(|p| p.value).collect()
+        self.0.iter().map(|p| p.u64_value()).collect()
     }
 }
 
@@ -530,10 +599,7 @@ impl PropertiesMixer {
             .0
             .iter()
             .zip(self.sums.iter())
-            .map(|(t, v)| Property {
-                property_type: *t,
-                value: v / self.total_parts,
-            })
+            .map(|(t, v)| Property::from((*t, v / self.total_parts)))
         {
             properties.push(property)
         }
