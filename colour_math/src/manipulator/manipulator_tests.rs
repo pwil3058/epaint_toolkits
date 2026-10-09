@@ -1,5 +1,4 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
-use num_traits_plus::assert_approx_eq;
 
 use crate::{
     attributes::Chroma,
@@ -11,6 +10,8 @@ use crate::{
     rgb::RGB,
     ColourBasics, HueConstants, RGBConstants,
 };
+
+use approximately_equal::assert_approx_eq;
 
 #[test]
 fn build_manipulator() {

@@ -9,8 +9,6 @@ edition = "2021"
 [dependencies]
 num-traits.workspace = true
 
-num_traits_plus.workspace = true
-
 gtk3_ext.workspace = true
 
 colour_math.workspace = true

@@ -1,7 +1,7 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::convert::From;
 
-use num_traits_plus::assert_approx_eq;
+use approximately_equal::assert_approx_eq;
 
 use crate::{
     attributes::Warmth, debug::ApproxEq, hcv::*, ColourBasics, HueConstants, Prop, RGBConstants,
@@ -15,14 +15,14 @@ fn default_hcv_is_black() {
 
 #[test]
 fn create_hcv_consts_from_float() {
-    assert_eq!(HCV::from(&RGB::<f64>::RED), HCV::RED);
-    assert_eq!(HCV::from(&RGB::<f64>::GREEN), HCV::GREEN);
-    assert_eq!(HCV::from(&RGB::<f64>::BLUE), HCV::BLUE);
-    assert_eq!(HCV::from(&RGB::<f64>::CYAN), HCV::CYAN);
-    assert_eq!(HCV::from(&RGB::<f64>::MAGENTA), HCV::MAGENTA);
-    assert_eq!(HCV::from(&RGB::<f64>::YELLOW), HCV::YELLOW);
-    assert_eq!(HCV::from(&RGB::<f64>::WHITE), HCV::WHITE);
-    assert_eq!(HCV::from(&RGB::<f64>::BLACK), HCV::BLACK);
+    assert_eq!(HCV::from(&FRGB::<f64>::RED), HCV::RED);
+    assert_eq!(HCV::from(&FRGB::<f64>::GREEN), HCV::GREEN);
+    assert_eq!(HCV::from(&FRGB::<f64>::BLUE), HCV::BLUE);
+    assert_eq!(HCV::from(&FRGB::<f64>::CYAN), HCV::CYAN);
+    assert_eq!(HCV::from(&FRGB::<f64>::MAGENTA), HCV::MAGENTA);
+    assert_eq!(HCV::from(&FRGB::<f64>::YELLOW), HCV::YELLOW);
+    assert_eq!(HCV::from(&FRGB::<f64>::WHITE), HCV::WHITE);
+    assert_eq!(HCV::from(&FRGB::<f64>::BLACK), HCV::BLACK);
 }
 
 #[test]

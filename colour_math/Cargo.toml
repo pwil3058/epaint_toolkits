@@ -14,4 +14,4 @@ serde.workspace = true
 serde_derive.workspace = true
 
 # crates from my github account
-num_traits_plus.workspace = true
+approximately_equal.workspace = true

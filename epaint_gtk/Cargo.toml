@@ -18,8 +18,6 @@ serde_derive.workspace = true
 
 gcd.workspace = true
 
-num_traits_plus.workspace = true
-
 path_utilities.workspace = true
 recollections.workspace = true
 gtk3_ext.workspace = true

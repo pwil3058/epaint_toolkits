@@ -21,6 +21,7 @@ members = [
 
 [workspace.dependencies]
 # cargo.io crates
+cairo-rs = "0.22"
 crypto-hash = "0.3.4"
 egui = "0.36"
 eframe = { version = "0.36", features = ["persistence"] }
@@ -32,13 +33,14 @@ num-traits = "0.2.14"
 quote = "1.0"
 regex = "1.4.3"
 serde = "1.0"
+serde_as = "*"
 serde_derive = "1.0"
 serde_json = "1.0.150"
 syn = "3.0"
 
 # crates from my github account
 gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
-num_traits_plus = { git = "https://github.com/pwil3058/rs_num_traits_plus.git" }
+approximately_equal = { git = "https://github.com/pwil3058/approximately_equal" }
 path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
 recollections = { git = "https://github.com/pwil3058/rust_utilities" }
 
