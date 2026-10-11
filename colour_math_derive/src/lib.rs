@@ -103,6 +103,10 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
             fn pango_string(&self) -> String {
                 self.#colour.pango_string()
             }
+
+            fn into_proportions(&self) -> [Prop; 3] {
+                self.#colour.into_proportions()
+            }
         }
 
         impl #impl_generics colour_math::ColourAttributes for #struct_name #ty_generics #where_clause {}

@@ -461,6 +461,18 @@ impl fmt::UpperHex for Prop {
     }
 }
 
+impl fmt::LowerHex for Prop {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        fmt::LowerHex::fmt(&self.0, formatter)
+    }
+}
+
+impl fmt::Display for Prop {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "0.{:016x}", self.0)
+    }
+}
+
 pub trait IntoProp: Sized + Copy + Into<Prop> {
     fn into_prop(self) -> Prop {
         self.into()

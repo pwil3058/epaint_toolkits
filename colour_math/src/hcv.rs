@@ -5,16 +5,15 @@ use std::{
     ops::{Add, Sub},
 };
 
-use crate::attributes::Family;
 use crate::{
-    attributes::{Chroma, Value, Warmth},
+    attributes::{Chroma, Family, Value, Warmth},
     fdrn::{IntoProp, Prop, UFDRNumber},
     hue::{
         angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::RGB,
-    ColourBasics, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -290,7 +289,8 @@ impl From<HCV> for [Prop; 3] {
 
 impl<L: LightLevel> From<&RGB<L>> for HCV {
     fn from(rgb: &RGB<L>) -> Self {
-        Self::from(<[Prop; 3]>::from(*rgb))
+        Self::from(rgb.into_proportions())
+        // Self::from(<[Prop; 3]>::from(*rgb))
     }
 }
 
@@ -302,7 +302,7 @@ impl<L: LightLevel> From<RGB<L>> for HCV {
 
 impl<L: LightLevel> From<HCV> for RGB<L> {
     fn from(hcv: HCV) -> Self {
-        RGB::<L>::from(<[Prop; 3]>::from(hcv))
+        RGB::<L>::from_proportions(<[Prop; 3]>::from(hcv))
     }
 }
 
@@ -371,6 +371,17 @@ impl ColourBasics for HCV {
 
     fn hcv(&self) -> HCV {
         *self
+    }
+
+    fn into_proportions(&self) -> [Prop; 3] {
+        let rgb: RGB<Prop> = (*self).into();
+        [rgb[0], rgb[1], rgb[2]]
+    }
+}
+
+impl FromProps for HCV {
+    fn from_proportions(props: [Prop; 3]) -> Self {
+        Self::from(props)
     }
 }
 

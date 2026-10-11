@@ -107,7 +107,7 @@ impl ColourManipulatorGUI {
             .colour_manipulator
             .borrow()
             .rgb::<u8>()
-            .proportions()
+            .into_proportions()
             .into();
         cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
         cairo_context.paint().expect("cairo_context paint failed");

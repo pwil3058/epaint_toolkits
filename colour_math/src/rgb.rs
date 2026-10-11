@@ -11,14 +11,13 @@ use std::{
 
 use regex::Regex;
 
-use crate::attributes::Family;
 use crate::{
-    attributes::{Chroma, Value, Warmth},
+    attributes::{Chroma, Family, Value, Warmth},
     debug::ApproxEq,
     fdrn::{Prop, UFDRNumber},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Default)]
@@ -60,18 +59,25 @@ impl<T: LightLevel> RGBConstants for RGB<T> {
 impl<T: LightLevel + Copy + From<Prop>> RGB<T> {
     pub fn new_grey(value: Value) -> Self {
         let value: Prop = value.into();
-        Self::from([value, value, value])
+        Self::from_proportions([value, value, value])
     }
 
     pub fn new_warmth_rgb(warmth: Warmth) -> Self {
         let prop: Prop = warmth.into();
-        Self::from([prop, Prop::ONE - prop, Prop::ONE - prop])
+        Self::from_proportions([prop, Prop::ONE - prop, Prop::ONE - prop])
     }
 }
 
 impl<T: LightLevel + Into<Prop>> RGB<T> {
+    pub fn from_proportions(array: [Prop; 3]) -> Self {
+        let red: T = array[0].into();
+        let green: T = array[1].into();
+        let blue: T = array[2].into();
+        Self([red, green, blue])
+    }
+
     pub fn sum(&self) -> UFDRNumber {
-        let [red, green, blue] = <[Prop; 3]>::from(*self);
+        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
         red + green + blue
     }
 
@@ -103,7 +109,7 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
 
     fn chroma(&self) -> Chroma {
         if let Ok(hue) = Hue::try_from(self) {
-            let [red, green, blue] = <[Prop; 3]>::from(*self);
+            let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
             let sum = self.sum();
             match hue {
                 Hue::Primary(RGBHue::Red) => Chroma::from((red - blue, hue, sum)),
@@ -127,7 +133,7 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
     }
 
     fn chroma_prop(&self) -> Prop {
-        let [red, green, blue] = <[Prop; 3]>::from(*self);
+        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
         match red.cmp(&green) {
             Ordering::Greater => match green.cmp(&blue) {
                 Ordering::Greater | Ordering::Equal => red - blue,
@@ -168,27 +174,37 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
     }
 
     fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        <[Prop; 3]>::from(*self).into()
+        RGB::<L>::from_proportions(self.into_proportions())
+    }
+
+    fn into_proportions(&self) -> [Prop; 3] {
+        [self.0[0].into(), self.0[1].into(), self.0[2].into()]
+    }
+}
+
+impl<L: LightLevel> FromProps for RGB<L> {
+    fn from_proportions(props: [Prop; 3]) -> Self {
+        Self([props[0].into(), props[1].into(), props[2].into()])
     }
 }
 
 impl<L: LightLevel> ManipulatedColour for RGB<L> {
     fn lightened(&self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = <[Prop; 3]>::from(self);
+        let mut array = self.into_proportions(); //<[Prop; 3]>::from(self);
         for item in &mut array {
             *item = (*item * compl + prop).into();
         }
-        RGB::<L>::from(array)
+        RGB::<L>::from_proportions(array)
     }
 
     fn darkened(&self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = <[Prop; 3]>::from(self);
+        let mut array = self.into_proportions(); // <[Prop; 3]>::from(self);
         for item in &mut array {
             *item = *item * compl;
         }
-        RGB::<L>::from(array)
+        RGB::<L>::from_proportions(array)
     }
 
     fn saturated(&self, prop: Prop) -> Self {
@@ -305,41 +321,41 @@ impl<L: LightLevel> From<RGB<L>> for (L, L, L) {
     }
 }
 
-impl<T: LightLevel + From<Prop>> From<[Prop; 3]> for RGB<T> {
-    fn from(array: [Prop; 3]) -> Self {
-        let red: T = array[0].into();
-        let green: T = array[1].into();
-        let blue: T = array[2].into();
-        Self([red, green, blue])
-    }
-}
+// impl<T: LightLevel + From<Prop>> From<[Prop; 3]> for RGB<T> {
+//     fn from(array: [Prop; 3]) -> Self {
+//         let red: T = array[0].into();
+//         let green: T = array[1].into();
+//         let blue: T = array[2].into();
+//         Self([red, green, blue])
+//     }
+// }
 
-impl<T: LightLevel + Into<Prop>> From<RGB<T>> for [Prop; 3] {
-    fn from(rgb: RGB<T>) -> Self {
-        [rgb.0[0].into(), rgb.0[1].into(), rgb.0[2].into()]
-    }
-}
+// impl<T: LightLevel + Into<Prop>> From<RGB<T>> for [Prop; 3] {
+//     fn from(rgb: RGB<T>) -> Self {
+//         [rgb.0[0].into(), rgb.0[1].into(), rgb.0[2].into()]
+//     }
+// }
 
-impl<T: LightLevel + From<Prop>> From<&[Prop; 3]> for RGB<T> {
-    fn from(array: &[Prop; 3]) -> Self {
-        Self::from(*array)
-    }
-}
+// impl<T: LightLevel + From<Prop>> From<&[Prop; 3]> for RGB<T> {
+//     fn from(array: &[Prop; 3]) -> Self {
+//         Self::from(*array)
+//     }
+// }
 
-impl<T: LightLevel + From<Prop>> From<&RGB<T>> for [Prop; 3] {
-    fn from(rgb: &RGB<T>) -> Self {
-        Self::from(*rgb)
-    }
-}
+// impl<T: LightLevel + From<Prop>> From<&RGB<T>> for [Prop; 3] {
+//     fn from(rgb: &RGB<T>) -> Self {
+//         Self::from(*rgb)
+//     }
+// }
 
 // Arithmetic
 impl<L: LightLevel + From<Prop>> Mul<Prop> for RGB<L> {
     type Output = Self;
 
     fn mul(self, scalar: Prop) -> Self {
-        let [red, green, blue] = <[Prop; 3]>::from(self);
+        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
         let array: [Prop; 3] = [red * scalar, green * scalar, blue * scalar];
-        Self::from(array)
+        Self::from_proportions(array)
     }
 }
 
@@ -348,14 +364,14 @@ impl<L: LightLevel + From<Prop>> Add<RGB<L>> for RGB<L> {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
-        let [red, green, blue] = <[Prop; 3]>::from(self);
-        let [rhs_red, rhs_green, rhs_blue] = <[Prop; 3]>::from(rhs);
+        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
+        let [rhs_red, rhs_green, rhs_blue] = rhs.into_proportions(); //<[Prop; 3]>::from(rhs);
         let array: [Prop; 3] = [
             (red / 2 + rhs_red / 2).into(),
             (green / 2 + rhs_green / 2).into(),
             (blue / 2 + rhs_blue / 2).into(),
         ];
-        Self::from(array)
+        Self::from_proportions(array)
     }
 }
 

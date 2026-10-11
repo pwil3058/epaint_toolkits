@@ -2,9 +2,9 @@
 #[macro_use]
 extern crate serde_derive;
 
-use std::fmt::{Debug, UpperHex};
+use std::fmt::{Debug, LowerHex, UpperHex};
 
-use num_traits::Unsigned;
+use num_traits::{Num, Unsigned};
 
 use hue::HueIfce;
 
@@ -45,7 +45,19 @@ pub mod rgba;
 pub mod useful_consts;
 
 pub trait LightLevel:
-    Unsigned + Clone + Copy + From<Prop> + Into<Prop> + PartialEq + Debug + Default + PartialOrd
+    Clone
+    + Copy
+    + From<Prop>
+    + Into<Prop>
+    + PartialEq
+    + Debug
+    + Default
+    + PartialOrd
+    + PartialEq
+    + Eq
+    + Ord
+    + UpperHex
+    + LowerHex
 {
     const ZERO: Self;
     const ONE: Self;
@@ -84,6 +96,14 @@ impl LightLevel for u64 {
     const ONE_QUARTER: Self = Self::MAX / 4;
     const HALF: Self = Self::MAX / 2;
     const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+}
+
+impl LightLevel for Prop {
+    const ZERO: Self = Self(u64::ZERO);
+    const ONE: Self = Self(u64::ONE);
+    const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
+    const HALF: Self = Self(u64::HALF);
+    const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
 }
 
 pub trait HueConstants: Sized + Copy {
@@ -128,6 +148,10 @@ pub trait RGBConstants: HueConstants + Copy {
         Self::LIGHT_GREY,
         Self::WHITE,
     ];
+}
+
+pub trait FromProps {
+    fn from_proportions(props: [Prop; 3]) -> Self;
 }
 
 pub trait ColourBasics {
@@ -216,9 +240,7 @@ pub trait ColourBasics {
         )
     }
 
-    fn proportions(&self) -> [Prop; 3] {
-        self.rgb::<u64>().into()
-    }
+    fn into_proportions(&self) -> [Prop; 3];
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -345,6 +367,19 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
             Colour::Rgb(rgb) => rgb.hex_string::<T>(),
             Colour::Hc(hcv) => hcv.hex_string::<T>(),
         }
+    }
+
+    fn into_proportions(&self) -> [Prop; 3] {
+        match self {
+            Colour::Rgb(rgb) => rgb.into_proportions(),
+            Colour::Hc(hc) => hc.into_proportions(),
+        }
+    }
+}
+
+impl<L: LightLevel> FromProps for Colour<L> {
+    fn from_proportions(props: [Prop; 3]) -> Self {
+        Colour::Rgb(RGB::<L>::from_proportions(props))
     }
 }
 

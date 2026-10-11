@@ -6,7 +6,7 @@ use gtk3_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, Prop, UFDRNumber, HCV,
+    ColourBasics, FromProps, Prop, UFDRNumber, HCV,
 };
 
 #[derive(Debug, Default, Copy, Clone)]
@@ -135,7 +135,7 @@ impl From<beigui::TextPosn> for TextPosn {
 
 pub trait CairoSetColour {
     fn set_source_colour(&self, colour: &impl ColourBasics) {
-        let rgb: FRGB = colour.proportions().into();
+        let rgb: FRGB = colour.into_proportions().into();
         self.set_source_colour_rgb(&rgb);
     }
 
@@ -204,15 +204,15 @@ impl<'a> Draw for Drawer<'a> {
     }
 
     fn set_fill_colour(&self, colour: &impl ColourBasics) {
-        self.fill_colour.set(colour.proportions().into());
+        self.fill_colour.set(colour.into_proportions().into());
     }
 
     fn set_line_colour(&self, colour: &impl ColourBasics) {
-        self.line_colour.set(colour.proportions().into());
+        self.line_colour.set(colour.into_proportions().into());
     }
 
     fn set_text_colour(&self, colour: &impl ColourBasics) {
-        self.text_colour.set(colour.proportions().into());
+        self.text_colour.set(colour.into_proportions().into());
     }
 
     fn set_line_width(&self, width: UFDRNumber) {
@@ -279,7 +279,7 @@ impl<'a> Draw for Drawer<'a> {
             0.5 * f64::from(size.height),
         );
         for colour_stop in colour_stops.iter() {
-            let rgb: FRGB = colour_stop.0.proportions().into();
+            let rgb: FRGB = colour_stop.0.into_proportions().into();
             linear_gradient.add_color_stop_rgb(colour_stop.1.into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
@@ -300,7 +300,7 @@ impl<'a> DrawIsosceles for Drawer<'a> {}
 impl<'a> DrawShapes for Drawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.cairo_context
-            .set_source_colour_rgb(&colour.proportions().into());
+            .set_source_colour_rgb(&colour.into_proportions().into());
         self.cairo_context.paint().expect("couldn't paint");
     }
 
