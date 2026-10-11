@@ -13,6 +13,7 @@ paints_have_ids = []
 
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+serde_with.workspace = true
 crypto-hash.workspace = true
 gcd.workspace = true
 regex.workspace = true

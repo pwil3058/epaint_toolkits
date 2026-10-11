@@ -24,6 +24,12 @@ use crate::{
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Default)]
 pub struct RGB<T: LightLevel>(pub(crate) [T; 3]);
 
+impl<T: LightLevel> AsRef<[T]> for RGB<T> {
+    fn as_ref(&self) -> &[T] {
+        &self.0
+    }
+}
+
 impl<T: LightLevel> Eq for RGB<T> where T: Eq {}
 
 impl<T: LightLevel> HueConstants for RGB<T> {
@@ -265,6 +271,13 @@ impl<L: LightLevel> From<[L; 3]> for RGB<L> {
     fn from(array: [L; 3]) -> Self {
         debug_assert!(array.iter().all(|a| *a >= L::ZERO && *a <= L::ONE));
         Self(array)
+    }
+}
+
+impl<L: LightLevel> From<Vec<L>> for RGB<L> {
+    fn from(vec: Vec<L>) -> Self {
+        debug_assert!(vec.len() == 3 && vec.iter().all(|a| *a >= L::ZERO && *a <= L::ONE));
+        Self([vec[0], vec[1], vec[2]])
     }
 }
 

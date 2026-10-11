@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 
 use colour_math::{ColouredShape, MakeColouredShape, Shape};
 use colour_math::{LightLevel, RGB};
@@ -9,11 +10,13 @@ use colour_math_derive::Colour;
 use crate::properties::{Properties, Property};
 use crate::{LabelText, PaintRangeId, TooltipText};
 
+#[serde_as]
 #[derive(Debug, Serialize, Deserialize, Colour, Clone)]
 pub struct Paint {
     #[cfg(feature = "paints_have_ids")]
     pub id: String,
     pub name: String,
+    #[serde_as(as = "serde_with::hex::Hex")]
     #[colour]
     pub colour: RGB<u8>,
     pub notes: String,
