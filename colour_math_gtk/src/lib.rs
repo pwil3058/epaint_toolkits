@@ -10,12 +10,12 @@ pub mod rgb_entry;
 pub mod colour {
     use gtk3_ext::gdk;
 
-    use colour_math::{LightLevel, ManipulatedColour, HCV, RGB};
+    use colour_math::{ColourBasics, LightLevel, ManipulatedColour, HCV, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
-            let rgb = self.rgb::<f64>();
-            gdk::RGBA::new(rgb[0], rgb[1], rgb[2], 1.0)
+            let rgb = self.rgb::<u64>().proportions();
+            gdk::RGBA::new(rgb[0].into(), rgb[1].into(), rgb[2].into(), 1.0)
         }
     }
 

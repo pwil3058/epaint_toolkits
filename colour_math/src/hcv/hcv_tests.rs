@@ -13,17 +13,17 @@ fn default_hcv_is_black() {
     assert_eq!(HCV::default(), HCV::BLACK);
 }
 
-#[test]
-fn create_hcv_consts_from_float() {
-    assert_eq!(HCV::from(&FRGB::<f64>::RED), HCV::RED);
-    assert_eq!(HCV::from(&FRGB::<f64>::GREEN), HCV::GREEN);
-    assert_eq!(HCV::from(&FRGB::<f64>::BLUE), HCV::BLUE);
-    assert_eq!(HCV::from(&FRGB::<f64>::CYAN), HCV::CYAN);
-    assert_eq!(HCV::from(&FRGB::<f64>::MAGENTA), HCV::MAGENTA);
-    assert_eq!(HCV::from(&FRGB::<f64>::YELLOW), HCV::YELLOW);
-    assert_eq!(HCV::from(&FRGB::<f64>::WHITE), HCV::WHITE);
-    assert_eq!(HCV::from(&FRGB::<f64>::BLACK), HCV::BLACK);
-}
+// #[test]
+// fn create_hcv_consts_from_float() {
+//     assert_eq!(HCV::from(&FRGB::<f64>::RED), HCV::RED);
+//     assert_eq!(HCV::from(&FRGB::<f64>::GREEN), HCV::GREEN);
+//     assert_eq!(HCV::from(&FRGB::<f64>::BLUE), HCV::BLUE);
+//     assert_eq!(HCV::from(&FRGB::<f64>::CYAN), HCV::CYAN);
+//     assert_eq!(HCV::from(&FRGB::<f64>::MAGENTA), HCV::MAGENTA);
+//     assert_eq!(HCV::from(&FRGB::<f64>::YELLOW), HCV::YELLOW);
+//     assert_eq!(HCV::from(&FRGB::<f64>::WHITE), HCV::WHITE);
+//     assert_eq!(HCV::from(&FRGB::<f64>::BLACK), HCV::BLACK);
+// }
 
 #[test]
 fn create_hcv_consts_from_unsigned() {
@@ -37,41 +37,41 @@ fn create_hcv_consts_from_unsigned() {
     assert_eq!(HCV::from(&RGB::<u16>::BLACK), HCV::BLACK);
 }
 
-#[test]
-fn from_to_primary() {
-    for (rgbf64, rgbu16) in RGB::<f64>::PRIMARIES.iter().zip(&RGB::<u16>::PRIMARIES) {
-        let hcv: HCV = rgbf64.into();
-        assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-        let hcv: HCV = rgbu16.into();
-        assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-    }
-}
-
-#[test]
-fn from_to_secondary() {
-    for (rgbf64, rgbu16) in RGB::<f64>::SECONDARIES.iter().zip(&RGB::<u16>::SECONDARIES) {
-        let hcv: HCV = rgbf64.into();
-        assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-        let hcv: HCV = rgbu16.into();
-        assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-    }
-}
-
-#[test]
-fn from_to_in_betweens() {
-    for (rgbf64, rgbu16) in RGB::<f64>::IN_BETWEENS.iter().zip(&RGB::<u16>::IN_BETWEENS) {
-        let hcv: HCV = rgbf64.into();
-        assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-        let hcv: HCV = rgbu16.into();
-        assert_approx_eq!(rgbf64, &RGB::<f64>::from(&hcv), Prop(0x0010000000000000));
-        assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
-    }
-}
+// #[test]
+// fn from_to_primary() {
+//     for (rgbf64, rgbu16) in RGB::<f64>::PRIMARIES.iter().zip(&RGB::<u16>::PRIMARIES) {
+//         let hcv: HCV = rgbf64.into();
+//         assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//         let hcv: HCV = rgbu16.into();
+//         assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//     }
+// }
+//
+// #[test]
+// fn from_to_secondary() {
+//     for (rgbf64, rgbu16) in RGB::<f64>::SECONDARIES.iter().zip(&RGB::<u16>::SECONDARIES) {
+//         let hcv: HCV = rgbf64.into();
+//         assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//         let hcv: HCV = rgbu16.into();
+//         assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//     }
+// }
+//
+// #[test]
+// fn from_to_in_betweens() {
+//     for (rgbf64, rgbu16) in RGB::<f64>::IN_BETWEENS.iter().zip(&RGB::<u16>::IN_BETWEENS) {
+//         let hcv: HCV = rgbf64.into();
+//         assert_eq!(rgbf64, &RGB::<f64>::from(&hcv));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//         let hcv: HCV = rgbu16.into();
+//         assert_approx_eq!(rgbf64, &RGB::<f64>::from(&hcv), Prop(0x0010000000000000));
+//         assert_eq!(rgbu16, &RGB::<u16>::from(&hcv));
+//     }
+// }
 
 #[test]
 fn round_trip_from_to_rgb_constants() {
@@ -89,10 +89,10 @@ fn round_trip_from_to_rgb_constants() {
         let hcv = HCV::from(&rgb_in);
         let rgb_out = RGB::<u8>::from(&hcv);
         assert_eq!(rgb_in, rgb_out);
-        let rgb_in: RGB<f64> = [red, green, blue].into();
-        let hcv = HCV::from(&rgb_in);
-        let rgb_out = RGB::<f64>::from(&hcv);
-        assert_eq!(rgb_in, rgb_out);
+        // let rgb_in: RGB<f64> = [red, green, blue].into();
+        // let hcv = HCV::from(&rgb_in);
+        // let rgb_out = RGB::<f64>::from(&hcv);
+        // assert_eq!(rgb_in, rgb_out);
     }
 }
 
@@ -128,10 +128,10 @@ fn round_trip_from_to_rgb() {
                 let hcv = HCV::from(&rgb_in);
                 let rgb_out = RGB::<u8>::from(&hcv);
                 assert_eq!(rgb_in, rgb_out);
-                let rgb_in: RGB<f64> = [red, green, blue].into();
-                let hcv = HCV::from(&rgb_in);
-                let rgb_out = RGB::<f64>::from(&hcv);
-                assert_eq!(rgb_in, rgb_out);
+                // let rgb_in: RGB<f64> = [red, green, blue].into();
+                // let hcv = HCV::from(&rgb_in);
+                // let rgb_out = RGB::<f64>::from(&hcv);
+                // assert_eq!(rgb_in, rgb_out);
             }
         }
     }

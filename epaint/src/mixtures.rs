@@ -9,9 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::RGB;
 use colour_math::{
-    ColourBasics, HCV, LightLevel,
-    beigui::hue_wheel::{ColouredShape, MakeColouredShape, Shape},
-    mixing::SubtractiveMixer,
+    ColourBasics, ColouredShape, HCV, LightLevel, MakeColouredShape, Shape, SubtractiveMixer,
 };
 
 use colour_math_derive::Colour;

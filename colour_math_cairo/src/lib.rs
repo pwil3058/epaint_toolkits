@@ -6,8 +6,29 @@ use gtk3_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, Prop, RGBConstants, UFDRNumber, HCV, RGB,
+    ColourBasics, Prop, UFDRNumber, HCV,
 };
+
+#[derive(Debug, Default, Copy, Clone)]
+pub struct FRGB([f64; 3]);
+
+impl From<[Prop; 3]> for FRGB {
+    fn from(props: [Prop; 3]) -> Self {
+        Self([props[0].into(), props[1].into(), props[2].into()])
+    }
+}
+
+impl std::ops::Index<usize> for FRGB {
+    type Output = f64;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.0[index]
+    }
+}
+
+impl FRGB {
+    const BLACK: Self = Self([0.0, 0.0, 0.0]);
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Point {
@@ -114,15 +135,15 @@ impl From<beigui::TextPosn> for TextPosn {
 
 pub trait CairoSetColour {
     fn set_source_colour(&self, colour: &impl ColourBasics) {
-        let rgb = colour.rgb::<f64>();
+        let rgb: FRGB = colour.proportions().into();
         self.set_source_colour_rgb(&rgb);
     }
 
-    fn set_source_colour_rgb(&self, rgb: &RGB<f64>);
+    fn set_source_colour_rgb(&self, rgb: &FRGB);
 }
 
 impl CairoSetColour for cairo::Context {
-    fn set_source_colour_rgb(&self, rgb: &RGB<f64>) {
+    fn set_source_colour_rgb(&self, rgb: &FRGB) {
         self.set_source_rgb(rgb[0], rgb[1], rgb[2]);
     }
 }
@@ -130,9 +151,9 @@ impl CairoSetColour for cairo::Context {
 pub struct Drawer<'a> {
     pub cairo_context: &'a cairo::Context,
     size: Size,
-    fill_colour: Cell<RGB<f64>>,
-    line_colour: Cell<RGB<f64>>,
-    text_colour: Cell<RGB<f64>>,
+    fill_colour: Cell<FRGB>,
+    line_colour: Cell<FRGB>,
+    text_colour: Cell<FRGB>,
 }
 
 impl<'a> Drawer<'a> {
@@ -140,9 +161,9 @@ impl<'a> Drawer<'a> {
         Self {
             cairo_context,
             size,
-            fill_colour: Cell::new(RGB::<f64>::BLACK),
-            line_colour: Cell::new(RGB::<f64>::BLACK),
-            text_colour: Cell::new(RGB::<f64>::BLACK),
+            fill_colour: Cell::new(FRGB::BLACK),
+            line_colour: Cell::new(FRGB::BLACK),
+            text_colour: Cell::new(FRGB::BLACK),
         }
     }
 
@@ -183,15 +204,15 @@ impl<'a> Draw for Drawer<'a> {
     }
 
     fn set_fill_colour(&self, colour: &impl ColourBasics) {
-        self.fill_colour.set(colour.rgb());
+        self.fill_colour.set(colour.proportions().into());
     }
 
     fn set_line_colour(&self, colour: &impl ColourBasics) {
-        self.line_colour.set(colour.rgb());
+        self.line_colour.set(colour.proportions().into());
     }
 
     fn set_text_colour(&self, colour: &impl ColourBasics) {
-        self.text_colour.set(colour.rgb());
+        self.text_colour.set(colour.proportions().into());
     }
 
     fn set_line_width(&self, width: UFDRNumber) {
@@ -258,7 +279,7 @@ impl<'a> Draw for Drawer<'a> {
             0.5 * f64::from(size.height),
         );
         for colour_stop in colour_stops.iter() {
-            let rgb = colour_stop.0.rgb::<f64>();
+            let rgb: FRGB = colour_stop.0.proportions().into();
             linear_gradient.add_color_stop_rgb(colour_stop.1.into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
@@ -279,7 +300,7 @@ impl<'a> DrawIsosceles for Drawer<'a> {}
 impl<'a> DrawShapes for Drawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.cairo_context
-            .set_source_colour_rgb(&colour.rgb::<f64>());
+            .set_source_colour_rgb(&colour.proportions().into());
         self.cairo_context.paint().expect("couldn't paint");
     }
 

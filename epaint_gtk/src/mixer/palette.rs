@@ -988,7 +988,7 @@ impl TargetPaintEntry {
         self.notes_entry.text().to_string()
     }
 
-    fn rgb(&self) -> RGB<f64> {
+    fn rgb(&self) -> RGB<u64> {
         self.colour_editor.rgb()
     }
 }

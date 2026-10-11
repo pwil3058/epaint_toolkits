@@ -2,27 +2,16 @@
 
 use std::{cell::RefCell, rc::Rc};
 
+pub use gtk3_ext::gtkx::entry::Hexable;
 use gtk3_ext::{
     gtk::{self, prelude::*},
     gtkx::entry::HexEntry,
     wrapper::*,
 };
-use num_traits::Num;
-use num_traits_plus::NumberConstants;
 
-use colour_math::{UnsignedLightLevel, HCV, RGB};
+use colour_math::{LightLevel, HCV, RGB};
 
 use crate::colour::GdkColour;
-
-pub trait Hexable:
-    UnsignedLightLevel + NumberConstants + Num + std::ops::Shr<u8, Output = Self> + 'static
-{
-}
-
-impl Hexable for u8 {}
-impl Hexable for u16 {}
-impl Hexable for u32 {}
-impl Hexable for u64 {}
 
 type BoxedChangeCallback<U> = Box<dyn Fn(U)>;
 
@@ -33,7 +22,7 @@ pub struct RGBHexEntry<U: Hexable> {
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
 
-impl<U: Hexable> RGBHexEntry<U> {
+impl<U: Hexable + LightLevel> RGBHexEntry<U> {
     pub fn builder() -> RGBHexEntryBuilder<U> {
         RGBHexEntryBuilder::<U>::new()
     }
@@ -72,12 +61,12 @@ impl<U: Hexable> RGBHexEntry<U> {
 }
 
 #[derive(Default)]
-pub struct RGBHexEntryBuilder<U: Hexable> {
+pub struct RGBHexEntryBuilder<U: Hexable + LightLevel> {
     initial_rgb: RGB<U>,
     editable: bool,
 }
 
-impl<U: Hexable> RGBHexEntryBuilder<U> {
+impl<U: Hexable + LightLevel> RGBHexEntryBuilder<U> {
     pub fn new() -> Self {
         Self::default()
     }

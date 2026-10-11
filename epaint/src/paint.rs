@@ -3,7 +3,7 @@
 use serde::{Deserialize, Serialize};
 
 use colour_math::{ColouredShape, MakeColouredShape, Shape};
-use colour_math::{HCV, LightLevel, RGB};
+use colour_math::{LightLevel, RGB};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property};

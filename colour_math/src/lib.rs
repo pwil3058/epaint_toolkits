@@ -2,10 +2,9 @@
 #[macro_use]
 extern crate serde_derive;
 
-use std::fmt::{Debug, LowerExp, LowerHex, UpperExp, UpperHex};
+use std::fmt::{Debug, UpperHex};
 
-use num_traits::{Signed, Unsigned};
-use num_traits_plus::float_plus::*;
+use num_traits::Unsigned;
 
 use hue::HueIfce;
 
@@ -30,6 +29,7 @@ pub use crate::{
     },
     mixing::SubtractiveMixer,
     rgb::RGB,
+    useful_consts::UsefulFloatConstants,
 };
 
 pub mod attributes;
@@ -42,36 +42,16 @@ pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
 pub mod rgba;
-
-pub trait Float: FloatPlus + std::iter::Sum + FloatApproxEq<Self> {}
-
-impl Float for f32 {}
-impl Float for f64 {}
+pub mod useful_consts;
 
 pub trait LightLevel:
-    Clone + Copy + From<Prop> + Into<Prop> + PartialEq + Debug + Default + PartialOrd
+    Unsigned + Clone + Copy + From<Prop> + Into<Prop> + PartialEq + Debug + Default + PartialOrd
 {
     const ZERO: Self;
     const ONE: Self;
     const ONE_QUARTER: Self;
     const HALF: Self;
     const THREE_QUARTERS: Self;
-}
-
-impl LightLevel for f32 {
-    const ZERO: Self = 0.0;
-    const ONE: Self = 1.0;
-    const ONE_QUARTER: Self = 0.25;
-    const HALF: Self = 0.5;
-    const THREE_QUARTERS: Self = 0.75;
-}
-
-impl LightLevel for f64 {
-    const ZERO: Self = 0.0;
-    const ONE: Self = 1.0;
-    const ONE_QUARTER: Self = 0.25;
-    const HALF: Self = 0.5;
-    const THREE_QUARTERS: Self = 0.75;
 }
 
 impl LightLevel for u8 {
@@ -105,18 +85,6 @@ impl LightLevel for u64 {
     const HALF: Self = Self::MAX / 2;
     const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
-
-pub trait FloatLightLevel: LightLevel + Signed + Float + LowerExp + UpperExp {}
-
-impl FloatLightLevel for f32 {}
-impl FloatLightLevel for f64 {}
-
-pub trait UnsignedLightLevel: LightLevel + Unsigned + Ord + Eq + UpperHex + LowerHex {}
-
-impl UnsignedLightLevel for u8 {}
-impl UnsignedLightLevel for u16 {}
-impl UnsignedLightLevel for u32 {}
-impl UnsignedLightLevel for u64 {}
 
 pub trait HueConstants: Sized + Copy {
     const RED: Self;
@@ -247,6 +215,10 @@ pub trait ColourBasics {
             rgb.0[0], rgb.0[1], rgb.0[2], hex_digits_per_item
         )
     }
+
+    fn proportions(&self) -> [Prop; 3] {
+        self.rgb::<u64>().into()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -364,14 +336,14 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
     fn pango_string(&self) -> String {
         match self {
             Colour::Rgb(rgb) => rgb.pango_string(),
-            Colour::Hc(hc) => hc.pango_string(),
+            Colour::Hc(hcv) => hcv.pango_string(),
         }
     }
 
     fn hex_string<T: LightLevel + Unsigned + UpperHex>(&self) -> String {
         match self {
             Colour::Rgb(rgb) => rgb.hex_string::<T>(),
-            Colour::Hc(hc) => hc.hex_string::<T>(),
+            Colour::Hc(hcv) => hcv.hex_string::<T>(),
         }
     }
 }

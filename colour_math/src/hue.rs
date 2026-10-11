@@ -7,8 +7,6 @@ use std::{
     ops::{Add, Sub},
 };
 
-use num_traits_plus::float_plus::FloatPlus;
-
 pub mod angle;
 
 use crate::{
@@ -1083,6 +1081,7 @@ impl From<(Sextant, &[Prop; 3])> for SextantHue {
 
 impl HueIfce for SextantHue {
     fn angle(&self) -> Angle {
+        use crate::UsefulFloatConstants;
         match self {
             SextantHue(Sextant::BlueCyan, Prop::HALF) => Angle::BLUE_CYAN,
             SextantHue(Sextant::BlueMagenta, Prop::HALF) => Angle::BLUE_MAGENTA,

@@ -27,7 +27,7 @@ pub struct ColourEditor<U: Hexable> {
     default_colour: HCV,
 }
 
-impl<U: Hexable> ColourEditor<U> {
+impl<U: Hexable + LightLevel> ColourEditor<U> {
     pub fn builder() -> ColourEditorBuilder {
         ColourEditorBuilder::new()
     }
@@ -89,7 +89,7 @@ impl ColourEditorBuilder {
         self
     }
 
-    pub fn build<U: Hexable>(&self) -> Rc<ColourEditor<U>> {
+    pub fn build<U: Hexable + LightLevel>(&self) -> Rc<ColourEditor<U>> {
         let cads = ColourAttributeDisplayStack::builder()
             .scalar_attributes(&self.attributes)
             .build();

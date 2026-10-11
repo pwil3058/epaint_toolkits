@@ -70,7 +70,7 @@ fn main() {
         // #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
         name: "Paint Name".to_string(),
-        colour: HCV::MAGENTA,
+        colour: HCV::MAGENTA.into(),
         notes: "Notes".to_string(),
         properties: Properties::from(&property_types),
     };
