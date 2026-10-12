@@ -42,6 +42,7 @@ pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
 pub mod rgba;
+pub mod ryb;
 pub mod subtractive_mixing;
 pub mod useful_consts;
 

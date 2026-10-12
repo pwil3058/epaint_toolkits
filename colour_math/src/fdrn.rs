@@ -434,6 +434,34 @@ impl Prop {
 
     pub(crate) const ALMOST_ONE: Self = Self(u64::MAX - 1);
     pub(crate) const HALF: Self = Self(u64::MAX / 2);
+
+    pub fn comp(self) -> Self {
+        Self(u64::MAX - self.0)
+    }
+
+    pub fn linear_interpolation(self, other: Self, p: Self) -> Self {
+        Prop(self.mul(p.comp()).0 + other.mul(p).0)
+    }
+
+    /// Return the square root of our value.
+    ///
+    /// Example:
+    /// ```
+    /// use colour_math::{Prop, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_approx_eq!((Prop::ONE / 4).sqrt(), Prop::ONE / 2);
+    /// ```
+    pub fn sqrt(self) -> Self {
+        match self.0 {
+            0 => Self(0),
+            u64::MAX => Self(u64::MAX),
+            _ => {
+                let scaled = self.0 as u128 * u64::MAX as u128;
+                Self(scaled.isqrt() as u64)
+            }
+        }
+    }
 }
 
 impl AbsDiff for Prop {}

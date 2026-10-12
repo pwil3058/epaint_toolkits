@@ -10,7 +10,7 @@ use colour_math::{
 use eframe::egui;
 use std::cell::Cell;
 
-/// Bridges your core domain traits with an immediate-mode egui Viewport Painter.
+/// Bridges core domain traits with an immediate-mode egui Viewport Painter.
 pub struct EguiDrawer<'a> {
     pub painter: &'a egui::Painter,
     pub rect: egui::Rect,
@@ -47,7 +47,6 @@ impl<'a> EguiDrawer<'a> {
     fn to_egui_pos(&self, point: colour_math::beigui::Point) -> egui::Pos2 {
         let center = self.rect.center();
 
-        // 🌟 FIX A: If we are handling a short slider row, the X coordinate represents an
         // absolute horizontal pixel offset fraction across the bar instead of a scaled Cartesian point.
         let (target_x, target_y) = if self.rect.height() < 32.0 {
             let x_pixel = self.rect.left() + (f64::from(point.x) as f32);
