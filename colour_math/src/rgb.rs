@@ -3,8 +3,8 @@ use std::{
     cmp::Ordering,
     convert::TryInto,
     convert::{From, TryFrom},
-    ops::Index,
     ops::{Add, Mul},
+    ops::{Index, IndexMut},
     str::FromStr,
     sync::LazyLock,
 };
@@ -229,6 +229,13 @@ impl<T: LightLevel> Index<usize> for RGB<T> {
     fn index(&self, index: usize) -> &T {
         debug_assert!(index < 3);
         self.0.index(index)
+    }
+}
+
+impl<T: LightLevel> IndexMut<usize> for RGB<T> {
+    fn index_mut(&mut self, index: usize) -> &mut T {
+        debug_assert!(index < 3);
+        self.0.index_mut(index)
     }
 }
 

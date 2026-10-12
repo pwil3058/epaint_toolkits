@@ -16,7 +16,7 @@ use crate::{
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,
-    ColourBasics, FromProps, HueConstants, LightLevel,
+    ColourBasics, HueConstants, LightLevel,
 };
 
 pub(crate) trait HueBasics: Copy + Debug + Sized + Into<Hue> {
@@ -159,8 +159,8 @@ pub(crate) trait HueIfce:
             sum => {
                 let max_c_prop = self.max_chroma_prop_for_sum(sum)?;
                 match self.try_rgb_ordered_triplet(sum, max_c_prop)? {
-                    Ok(triplet) => Some(Ok(RGB::<L>::from(triplet))),
-                    Err(triplet) => Some(Err(RGB::<L>::from(triplet))),
+                    Ok(triplet) => Some(Ok(RGB::<L>::from_proportions(triplet))),
+                    Err(triplet) => Some(Err(RGB::<L>::from_proportions(triplet))),
                 }
             }
         }
@@ -229,8 +229,8 @@ pub(crate) trait HueIfce:
     ) -> Option<Result<RGB<T>, RGB<T>>> {
         debug_assert!(sum.is_valid_sum());
         match self.try_rgb_ordered_triplet(sum, c_prop)? {
-            Ok(triplet) => Some(Ok(RGB::<T>::from(triplet))),
-            Err(triplet) => Some(Err(RGB::<T>::from(triplet))),
+            Ok(triplet) => Some(Ok(RGB::<T>::from_proportions(triplet))),
+            Err(triplet) => Some(Err(RGB::<T>::from_proportions(triplet))),
         }
     }
 

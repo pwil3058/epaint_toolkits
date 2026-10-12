@@ -68,7 +68,7 @@ impl Debug for FDRNumber {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let int = self.0 / u64::MAX as i128;
         let frac = self.0 % u64::MAX as i128;
-        formatter.write_fmt(format_args!("UFDRNumber({:X}.{:016X})", int, frac.abs()))
+        formatter.write_fmt(format_args!("FDRNumber({:X}.{:016X})", int, frac.abs()))
         //formatter.write_fmt(format_args!("UFDRNumber({:?})", f64::from(*self)))
     }
 }
@@ -432,7 +432,6 @@ impl Prop {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(u64::MAX);
 
-    //pub(crate) const ALMOST_ZERO: Self = Self(1);
     pub(crate) const ALMOST_ONE: Self = Self(u64::MAX - 1);
     pub(crate) const HALF: Self = Self(u64::MAX / 2);
 }
@@ -449,9 +448,7 @@ impl ApproxEq for Prop {}
 
 impl Debug for Prop {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        let int = self.0 / u64::MAX;
-        let frac = self.0 % u64::MAX;
-        formatter.write_fmt(format_args!("Prop({int:X}.{frac:016X})"))
+        write!(formatter, "Prop(0.{:016x})", self.0)
     }
 }
 

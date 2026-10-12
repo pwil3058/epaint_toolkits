@@ -9,7 +9,7 @@ use crate::{
     attributes::Chroma,
     hue::{Hue, Sextant::*},
     rgb::RGB,
-    ColourBasics, RGBConstants,
+    ColourBasics, IntoRGB, RGBConstants,
 };
 
 const NON_ZERO_CHROMA_PROPS: [f64; 7] = [0.01, 0.025, 0.5, 0.75, 0.9, 0.99, 1.0];
@@ -267,25 +267,25 @@ fn rgb_ordered_triplet() {
             if others < first {
                 for rgb_hue in &[RGBHue::Red, RGBHue::Green, RGBHue::Blue] {
                     let rgb = match rgb_hue {
-                        RGBHue::Red => RGB::<u64>::from([*first, *others, *others]),
-                        RGBHue::Green => RGB::<u64>::from([*others, *first, *others]),
-                        RGBHue::Blue => RGB::<u64>::from([*others, *others, *first]),
+                        RGBHue::Red => RGB::<u64>::from_proportions([*first, *others, *others]),
+                        RGBHue::Green => RGB::<u64>::from_proportions([*others, *first, *others]),
+                        RGBHue::Blue => RGB::<u64>::from_proportions([*others, *others, *first]),
                     };
                     let array = rgb_hue
                         .rgb_ordered_triplet(rgb.sum(), rgb.chroma_prop())
                         .expect("should be legal");
-                    assert_eq!(RGB::<u64>::from(array), rgb);
+                    assert_eq!(RGB::<u64>::from_proportions(array), rgb);
                 }
                 for cmy_hue in &[CMYHue::Cyan, CMYHue::Magenta, CMYHue::Yellow] {
                     let rgb = match cmy_hue {
-                        CMYHue::Cyan => RGB::<u64>::from([*others, *first, *first]),
-                        CMYHue::Magenta => RGB::<u64>::from([*first, *others, *first]),
-                        CMYHue::Yellow => RGB::<u64>::from([*first, *first, *others]),
+                        CMYHue::Cyan => RGB::<u64>::from_proportions([*others, *first, *first]),
+                        CMYHue::Magenta => RGB::<u64>::from_proportions([*first, *others, *first]),
+                        CMYHue::Yellow => RGB::<u64>::from_proportions([*first, *first, *others]),
                     };
                     let array = cmy_hue
                         .rgb_ordered_triplet(rgb.sum(), rgb.chroma_prop())
                         .expect("should be legal");
-                    assert_eq!(RGB::<u64>::from(array), rgb);
+                    assert_eq!(RGB::<u64>::from_proportions(array), rgb);
                 }
                 let second = others;
                 for third in &light_levels {
@@ -300,12 +300,22 @@ fn rgb_ordered_triplet() {
                             BlueCyan,
                         ] {
                             let rgb = match sextant {
-                                RedMagenta => RGB::<u64>::from([*first, *third, *second]),
-                                RedYellow => RGB::<u64>::from([*first, *second, *third]),
-                                GreenYellow => RGB::<u64>::from([*second, *first, *third]),
-                                GreenCyan => RGB::<u64>::from([*third, *first, *second]),
-                                BlueCyan => RGB::<u64>::from([*third, *second, *first]),
-                                BlueMagenta => RGB::<u64>::from([*second, *third, *first]),
+                                RedMagenta => {
+                                    RGB::<u64>::from_proportions([*first, *third, *second])
+                                }
+                                RedYellow => {
+                                    RGB::<u64>::from_proportions([*first, *second, *third])
+                                }
+                                GreenYellow => {
+                                    RGB::<u64>::from_proportions([*second, *first, *third])
+                                }
+                                GreenCyan => {
+                                    RGB::<u64>::from_proportions([*third, *first, *second])
+                                }
+                                BlueCyan => RGB::<u64>::from_proportions([*third, *second, *first]),
+                                BlueMagenta => {
+                                    RGB::<u64>::from_proportions([*second, *third, *first])
+                                }
                             };
                             let hue = match sextant {
                                 RedMagenta => Hue::try_from([*first, *third, *second]).unwrap(),
@@ -320,13 +330,13 @@ fn rgb_ordered_triplet() {
                                     let array = sextant_hue
                                         .rgb_ordered_triplet(rgb.sum(), rgb.chroma_prop())
                                         .expect("should be legal");
-                                    assert_eq!(RGB::<u64>::from(array), rgb);
+                                    assert_eq!(RGB::<u64>::from_proportions(array), rgb);
                                     let rgb = sextant_hue.max_chroma_rgb();
                                     // make sure we hit Chroma::Neither at least once
                                     let array = sextant_hue
                                         .rgb_ordered_triplet(rgb.sum(), rgb.chroma_prop())
                                         .expect("should be legal");
-                                    assert_eq!(RGB::<u64>::from(array), rgb);
+                                    assert_eq!(RGB::<u64>::from_proportions(array), rgb);
                                 }
                                 _ => panic!("should have been a SextantHue"),
                             }
@@ -341,13 +351,13 @@ fn rgb_ordered_triplet() {
             for blue in light_levels.iter() {
                 let array = [*red, *green, *blue];
                 if let Ok(hue) = Hue::try_from(array) {
-                    let rgb = RGB::<u64>::from(array);
+                    let rgb = RGB::<u64>::from_proportions(array);
                     let sum = rgb.sum();
                     let chroma = rgb.chroma();
                     let array_out = hue.rgb_ordered_triplet(sum, chroma.into_prop()).unwrap();
                     assert_eq!(array, array_out);
                 } else {
-                    assert!(RGB::<u64>::from(array).is_grey());
+                    assert!(RGB::<u64>::from_proportions(array).is_grey());
                 }
             }
         }
@@ -360,7 +370,7 @@ fn darkest_rgb_for_chroma_prop() {
         for c_prop in NON_ZERO_CHROMA_PROPS.iter().map(|v| Prop::from(*v)).rev() {
             let min_sum = rgb_hue.min_sum_for_chroma_prop(c_prop).unwrap();
             let array = rgb_hue.rgb_ordered_triplet(min_sum, c_prop).unwrap();
-            let rgb = RGB::<u64>::from(array);
+            let rgb = RGB::<u64>::from_proportions(array);
             assert_eq!(min_sum, rgb.sum());
             assert_eq!(c_prop, rgb.chroma_prop());
             let hue = Hue::try_from(rgb).unwrap();
@@ -371,7 +381,7 @@ fn darkest_rgb_for_chroma_prop() {
         for c_prop in NON_ZERO_CHROMA_PROPS.iter().map(|v| Prop::from(*v)).rev() {
             let min_sum = cmy_hue.min_sum_for_chroma_prop(c_prop).unwrap();
             let array = cmy_hue.rgb_ordered_triplet(min_sum, c_prop).unwrap();
-            let rgb = RGB::<u64>::from(array);
+            let rgb = RGB::<u64>::from_proportions(array);
             assert_eq!(min_sum, rgb.sum());
             assert_eq!(c_prop, rgb.chroma_prop());
             let hue = Hue::try_from(rgb).unwrap();
@@ -388,14 +398,14 @@ fn darkest_rgb_for_chroma_prop() {
                     .unwrap()
                 {
                     Ok(array) => {
-                        let rgb = RGB::<u64>::from(array);
+                        let rgb = RGB::<u64>::from_proportions(array);
                         assert_eq!(min_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
                         assert_eq!(hue, Hue::Sextant(sextant_hue));
                     }
                     Err(array) => {
-                        let rgb = RGB::<u64>::from(array);
+                        let rgb = RGB::<u64>::from_proportions(array);
                         assert_eq!(min_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
@@ -413,7 +423,7 @@ fn lightest_rgb_for_chroma_prop() {
         for c_prop in NON_ZERO_CHROMA_PROPS.iter().map(|v| Prop::from(*v)).rev() {
             let max_sum = rgb_hue.max_sum_for_chroma_prop(c_prop).unwrap();
             let array = rgb_hue.rgb_ordered_triplet(max_sum, c_prop).unwrap();
-            let rgb = RGB::<u64>::from(array);
+            let rgb = RGB::<u64>::from_proportions(array);
             assert_eq!(max_sum, rgb.sum());
             assert_eq!(c_prop, rgb.chroma_prop());
             let hue = Hue::try_from(rgb).unwrap();
@@ -424,7 +434,7 @@ fn lightest_rgb_for_chroma_prop() {
         for c_prop in NON_ZERO_CHROMA_PROPS.iter().map(|v| Prop::from(*v)).rev() {
             let max_sum = cmy_hue.max_sum_for_chroma_prop(c_prop).unwrap();
             let array = cmy_hue.rgb_ordered_triplet(max_sum, c_prop).unwrap();
-            let rgb = RGB::<u64>::from(array);
+            let rgb = RGB::<u64>::from_proportions(array);
             assert_eq!(max_sum, rgb.sum());
             assert_eq!(c_prop, rgb.chroma_prop());
             let hue = Hue::try_from(rgb).unwrap();
@@ -441,14 +451,14 @@ fn lightest_rgb_for_chroma_prop() {
                     .unwrap()
                 {
                     Ok(array) => {
-                        let rgb = RGB::<u64>::from(array);
+                        let rgb = RGB::<u64>::from_proportions(array);
                         assert_eq!(max_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
                         assert_eq!(hue, Hue::Sextant(sextant_hue));
                     }
                     Err(array) => {
-                        let rgb = RGB::<u64>::from(array);
+                        let rgb = RGB::<u64>::from_proportions(array);
                         assert_eq!(max_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
@@ -550,7 +560,7 @@ fn primary_max_chroma_rgbs() {
         {
             let mut array = [Prop::ZERO, Prop::ZERO, Prop::ZERO];
             array[hue.indices().0 as usize] = (*sum).into();
-            let expected: RGB<u64> = array.into();
+            let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
                     assert_eq!(rgb.sum(), *sum);
@@ -579,7 +589,7 @@ fn primary_max_chroma_rgbs() {
             let mut array = [Prop::ONE, Prop::ONE, Prop::ONE];
             array[hue.indices().1 as usize] = ((*sum - UFDRNumber::ONE) / 2).into();
             array[hue.indices().2 as usize] = ((*sum - UFDRNumber::ONE) / 2).into();
-            let expected: RGB<u64> = array.into();
+            let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
                     assert_eq!(rgb.sum(), *sum);
@@ -623,7 +633,7 @@ fn secondary_max_chroma_rgbs() {
             let mut array = [Prop::ZERO, Prop::ZERO, Prop::ZERO];
             array[hue.indices().0 as usize] = (*sum / 2).into();
             array[hue.indices().1 as usize] = (*sum / 2).into();
-            let expected: RGB<u64> = array.into();
+            let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
                     assert_eq!(rgb.sum(), *sum);
@@ -648,7 +658,7 @@ fn secondary_max_chroma_rgbs() {
         {
             let mut array = [Prop::ONE, Prop::ONE, Prop::ONE];
             array[hue.indices().2 as usize] = (*sum - UFDRNumber::TWO).into();
-            let expected: RGB<u64> = array.into();
+            let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
                     assert_eq!(rgb.sum(), *sum);

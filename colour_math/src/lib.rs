@@ -4,7 +4,7 @@ extern crate serde_derive;
 
 use std::fmt::{Debug, LowerHex, UpperHex};
 
-use num_traits::{Num, Unsigned};
+use num_traits::Unsigned;
 
 use hue::HueIfce;
 
@@ -42,6 +42,7 @@ pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
 pub mod rgba;
+pub mod subtractive_mixing;
 pub mod useful_consts;
 
 pub trait LightLevel:
@@ -152,6 +153,16 @@ pub trait RGBConstants: HueConstants + Copy {
 
 pub trait FromProps {
     fn from_proportions(props: [Prop; 3]) -> Self;
+}
+
+pub trait IntoRGB {
+    fn into_rgb<L: LightLevel>(&self) -> RGB<L>;
+}
+
+impl IntoRGB for [Prop; 3] {
+    fn into_rgb<L: LightLevel>(&self) -> RGB<L> {
+        RGB::<L>::from_proportions(*self)
+    }
 }
 
 pub trait ColourBasics {

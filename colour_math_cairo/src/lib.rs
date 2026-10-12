@@ -6,7 +6,7 @@ use gtk3_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, FromProps, Prop, UFDRNumber, HCV,
+    ColourBasics, Prop, UFDRNumber, HCV,
 };
 
 #[derive(Debug, Default, Copy, Clone)]

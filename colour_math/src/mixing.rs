@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::{
     fdrn::{Prop, UFDRNumber},
@@ -65,7 +65,8 @@ mod mixing_tests {
         assert_eq!(subtractve_mixer.mixed_colour(), Some(HCV::RED));
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), Some(RGB::<u16>::RED));
         subtractve_mixer.add(&RGB::<u8>::GREEN, 10);
-        let expected = RGB::<u16>::from([Prop::ONE / 3, (Prop::ONE * 2 / 3).into(), Prop::ZERO]);
+        let expected =
+            RGB::<u16>::from_proportions([Prop::ONE / 3, (Prop::ONE * 2 / 3).into(), Prop::ZERO]);
         assert_eq!(subtractve_mixer.mixed_colour(), Some(expected.into()));
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), Some(expected));
     }

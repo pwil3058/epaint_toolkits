@@ -80,12 +80,12 @@ fn round_trip_from_to_rgb_constants() {
         .chain(RGB::<u64>::SECONDARIES.iter())
         .chain(RGB::<u64>::IN_BETWEENS.iter())
     {
-        let [red, green, blue] = <[Prop; 3]>::from(rgb);
-        let rgb_in: RGB<u64> = [red, green, blue].into();
+        let [red, green, blue] = rgb.into_proportions(); //<[Prop; 3]>::from(rgb);
+        let rgb_in: RGB<u64> = rgb.rgb::<u64>(); //[red, green, blue].into();
         let hcv = HCV::from(&rgb_in);
         let rgb_out = RGB::<u64>::from(&hcv);
         assert_eq!(rgb_in, rgb_out);
-        let rgb_in: RGB<u8> = [red, green, blue].into();
+        let rgb_in: RGB<u8> = rgb.rgb::<u8>(); //[red, green, blue].into();
         let hcv = HCV::from(&rgb_in);
         let rgb_out = RGB::<u8>::from(&hcv);
         assert_eq!(rgb_in, rgb_out);
@@ -118,13 +118,15 @@ fn round_trip_from_to_rgb() {
         for green in values.iter().map(|l| Prop::from(*l)) {
             for blue in values.iter().map(|l| Prop::from(*l)) {
                 let expect_grey = red == green && green == blue;
-                let rgb_in: RGB<u64> = [red, green, blue].into();
+                // let rgb_in: RGB<u64> = [red, green, blue].into();
+                let rgb_in = RGB::<u64>::from_proportions([red, green, blue]);
                 assert_eq!(rgb_in.is_grey(), expect_grey);
                 let hcv = HCV::from(&rgb_in);
                 assert_eq!(hcv.is_grey(), expect_grey);
                 let rgb_out = RGB::<u64>::from(&hcv);
                 assert_eq!(rgb_in, rgb_out);
-                let rgb_in: RGB<u8> = [red, green, blue].into();
+                // let rgb_in: RGB<u8> = [red, green, blue].into();
+                let rgb_in = RGB::<u8>::from_proportions([red, green, blue]);
                 let hcv = HCV::from(&rgb_in);
                 let rgb_out = RGB::<u8>::from(&hcv);
                 assert_eq!(rgb_in, rgb_out);
@@ -148,16 +150,16 @@ fn warmth() {
     assert_eq!(HCV::WHITE.warmth(), Warmth::HALF);
     assert_eq!(HCV::BLACK.warmth(), Warmth::HALF);
     assert_eq!(
-        RGB::<u8>::from([Prop::ONE, Prop::ONE / 2, Prop::ONE / 2]).warmth(),
+        RGB::<u8>::from_proportions([Prop::ONE, Prop::ONE / 2, Prop::ONE / 2]).warmth(),
         Warmth::ONE,
     );
     assert_approx_eq!(
-        RGB::<u8>::from([Prop::ONE, Prop::HALF, Prop::ZERO]).warmth(),
+        RGB::<u8>::from_proportions([Prop::ONE, Prop::HALF, Prop::ZERO]).warmth(),
         Warmth::FIVE_SIXTHS,
         Prop(0x100000000000000)
     );
     assert_approx_eq!(
-        RGB::<u8>::from([Prop::ZERO, Prop::HALF, Prop::ONE]).warmth(),
+        RGB::<u8>::from_proportions([Prop::ZERO, Prop::HALF, Prop::ONE]).warmth(),
         Warmth::ONE_SIXTH,
         Prop(0x100000000000000)
     );
