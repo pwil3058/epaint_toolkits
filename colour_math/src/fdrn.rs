@@ -258,6 +258,26 @@ impl UFDRNumber {
         debug_assert!(self.is_proportion());
         Prop(self.0 as u64)
     }
+
+    /// Return the square root of our value.
+    ///
+    /// Example:
+    /// ```
+    /// use colour_math::{UFDRNumber, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// let four: UFDRNumber = UFDRNumber::ONE * 4;
+    /// let two: UFDRNumber = UFDRNumber::ONE * 2;
+    /// assert_approx_eq!(four.sqrt(), two);
+    /// let twenty_five: UFDRNumber = UFDRNumber::ONE * 25;
+    /// let five: UFDRNumber = UFDRNumber::ONE * 5;
+    /// assert_approx_eq!(twenty_five.sqrt(), five);
+    /// ```
+    pub fn sqrt(self) -> Self {
+        let half_shift = self.0.leading_zeros() / 2;
+        let temp = (self.0 << (half_shift as usize * 2)).isqrt();
+        Self(temp << (u64::BITS / 2 - half_shift))
+    }
 }
 
 impl Debug for UFDRNumber {
