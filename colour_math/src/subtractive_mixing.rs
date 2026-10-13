@@ -1,147 +1,103 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::{ColourBasics, LightLevel, Prop, HCV, RGB};
+use crate::{ColourBasics, FromProps, LightLevel, Prop, RGBConstants, UFDRNumber, CMY, HCV, RGB};
+use approximately_equal::*;
+use std::ops::{Add, AddAssign, Index, IndexMut};
 
-#[derive(Clone, PartialEq, Debug, Default)]
-pub struct SubtractiveMixer {
-    colours: Vec<RGB<Prop>>,
-}
+#[derive(Copy, Clone, PartialEq, Debug, Default)]
+struct UnsignedTriple([UFDRNumber; 3]);
 
-impl SubtractiveMixer {
-    pub fn new() -> Self {
-        Self::default()
-    }
+impl Index<usize> for UnsignedTriple {
+    type Output = UFDRNumber;
 
-    pub fn add_colour(&mut self, colour: impl ColourBasics) {
-        self.colours.push(colour.rgb::<Prop>());
-    }
-
-    pub fn mixed_colour<L: LightLevel>(&mut self) -> RGB<L> {
-        let mut rgb = RGB::<Prop>([Prop::ONE, Prop::ONE, Prop::ONE]);
-
-        for colour in &self.colours {
-            for i in 0..3 {
-                rgb[i] = rgb[i] * colour[i];
-            }
-        }
-
-        rgb.rgb::<L>()
+    fn index(&self, i: usize) -> &Self::Output {
+        &self.0[i]
     }
 }
-pub fn mix_colors(c1: Rgb, c2: Rgb, bias: Prop) -> Rgb {
-    // 1. Calculate the standard linear light mix (base gradient direction)
-    let lin_r = c1.r.linear_interpolation(c2.r, bias);
-    let lin_g = c1.g.linear_interpolation(c2.g, bias);
-    let lin_b = c1.b.linear_interpolation(c2.b, bias);
 
-    // 2. Detect if we are mixing complementary/opposite subtractive components.
-    // In a pure subtractive space, Magenta lacks Green, while Yellow lacks Blue.
-    // If one color has Blue but no Green, and the other has Green but no Blue,
-    // they must extinguish each other subtractively.
-    let c1_has_b_no_g = c1.b.0 > 0 && c1.g.0 == 0;
-    let c2_has_g_no_b = c2.g.0 > 0 && c2.b.0 == 0;
+impl IndexMut<usize> for UnsignedTriple {
+    fn index_mut(&mut self, i: usize) -> &mut Self::Output {
+        &mut self.0[i]
+    }
+}
 
-    let c1_has_g_no_b = c1.g.0 > 0 && c1.b.0 == 0;
-    let c2_has_b_no_g = c2.b.0 > 0 && c2.g.0 == 0;
-
-    let is_subtractive_clash = (c1_has_b_no_g && c2_has_g_no_b) || (c1_has_g_no_b && c2_has_b_no_g);
-
-    // 3. Apply conditional masking based on the structural mixing context
-    if is_subtractive_clash {
-        // Magenta + Yellow mix: Mutually extinguish Green and Blue to get pure Red
-        Rgb {
-            r: lin_r,
-            g: Prop::ZERO,
-            b: Prop::ZERO,
-        }
-    } else {
-        // Red + Yellow mix: Behave linearly to let Green bloom into pure Orange
-        Rgb {
-            r: lin_r,
-            g: lin_g,
-            b: lin_b,
+impl<C: ColourBasics> AddAssign<C> for UnsignedTriple {
+    fn add_assign(&mut self, rhs: C) {
+        for (i, prop) in rhs.into_proportions().iter().enumerate() {
+            self[i] = self[i] + *prop;
         }
     }
 }
 
-/// Mix an arbitrary slice of colors based on their relative integer parts.
-/// The proportion of each color is automatically calculated as: parts / total_parts.
-pub fn mix_n_colors_parts(mixes: &[(Rgb, u32)]) -> Rgb {
+impl Add for UnsignedTriple {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        Self([self[0] + rhs[0], self[1] + rhs[1], self[2] + rhs[2]])
+    }
+}
+
+impl UnsignedTriple {
+    pub fn cross_mask(self) -> Self {
+        Self([
+            self[1].min(self[2]),
+            self[0].min(self[2]),
+            self[0].min(self[1]),
+        ])
+    }
+
+    pub fn into_proportions(self) -> [Prop; 3] {
+        debug_assert!(
+            self.0.iter().all(|v| v.is_proportion()),
+            "{:?}:{:?}:{:?}",
+            self[0],
+            self[1],
+            self[2]
+        );
+        [self[0].into(), self[1].into(), self[2].into()]
+    }
+}
+
+/// Universally mixes an arbitrary slice of colors and their relative parts
+/// using a fully generalized CMY pigment-mass and chroma-preservation model.
+pub fn mix_n_colors_parts(mixes: &[(RGB<Prop>, u64)]) -> Option<RGB<Prop>> {
     if mixes.is_empty() {
-        return Rgb {
-            r: Prop::ZERO,
-            g: Prop::ZERO,
-            b: Prop::ZERO,
-        };
-    }
-    if mixes.len() == 1 {
-        return mixes[0].0;
+        return None;
     }
 
-    // 1. Calculate the sum of all parts
-    let total_parts: u128 = mixes.iter().map(|&(_, parts)| parts as u128).sum();
+    // 1. Calculate the total volumetric parts across the entire mixing vessel
+    let total_parts: u64 = mixes.iter().map(|&(_, parts)| parts as u64).sum();
     if total_parts == 0 {
-        return Rgb {
-            r: Prop::ZERO,
-            g: Prop::ZERO,
-            b: Prop::ZERO,
-        };
+        return None;
     }
 
-    let mut lin_r = 0_u128;
-    let mut lin_g = 0_u128;
-    let mut lin_b = 0_u128;
+    let divisor = u64::MAX as u128;
 
-    // Volumetric weight tracking for structural clashing profiles
-    let mut total_has_b_no_g_parts = 0_u128;
-    let mut total_has_g_no_b_parts = 0_u128;
+    // Linear pigment ink mass accumulators
+    let mut total_cmy = UnsignedTriple::default();
 
-    let divisor = 0xFFFF_FFFF_FFFF_FFFF_u128;
-
-    // 2. Accumulate linear light values and track pigment characteristics
-    for &(color, parts) in mixes {
+    // 2. Accumulate the pure subtractive ink masses for all n colors weighted by their volume
+    for &(colour, parts) in mixes {
         if parts == 0 {
             continue;
         }
-        let p = parts as u128;
+        let w = Prop::from([parts, total_parts]);
 
-        // Calculate the color's absolute fractional weight scaled into Prop space
-        // weight = (parts * u64::MAX) / total_parts
-        let w = (p * divisor) / total_parts;
-
-        // Standard linear light accumulation
-        lin_r += (color.r.0 as u128 * w) / divisor;
-        lin_g += (color.g.0 as u128 * w) / divisor;
-        lin_b += (color.b.0 as u128 * w) / divisor;
-
-        // Categorize individual structural color properties by their parts volume
-        if color.b.0 > 0 && color.g.0 == 0 {
-            total_has_b_no_g_parts += p; // e.g., Magenta / Blue component volume
-        }
-        if color.g.0 > 0 && color.b.0 == 0 {
-            total_has_g_no_b_parts += p; // e.g., Yellow / Green component volume
-        }
+        // Convert incoming additive RGB light into subtractive CMY ink masses
+        let cmy_ink: CMY<Prop> = colour.into();
+        total_cmy += (cmy_ink * w);
     }
+    // Replace Step 3 and 4 with this universally complete intersection math:
+    let cross_mask = total_cmy.cross_mask();
 
-    // 3. Determine and apply the subtractive clash penalty
-    let clash_parts = total_has_b_no_g_parts.min(total_has_g_no_b_parts);
+    // Apply the mutual physical masking constraints
+    let final_cmy = CMY::from_proportions((total_cmy + cross_mask).into_proportions());
 
-    if clash_parts > 0 {
-        // Normalize the clash volume against the total active clashing profiles
-        let total_clash_zone = total_has_b_no_g_parts + total_has_g_no_b_parts;
-        let clash_factor = (clash_parts * divisor) / total_clash_zone;
-        let mask = divisor - clash_factor; // Remaining light allowed through
+    Some(final_cmy.into())
+}
 
-        // Apply the subtractive mask to the green and blue leakage channels
-        lin_g = (lin_g * mask) / divisor;
-        lin_b = (lin_b * mask) / divisor;
-    }
-
-    Rgb {
-        r: Prop(lin_r.min(0xFFFF_FFFF_FFFF_FFFF) as u64),
-        g: Prop(lin_g.min(0xFFFF_FFFF_FFFF_FFFF) as u64),
-        b: Prop(lin_b.min(0xFFFF_FFFF_FFFF_FFFF) as u64),
-    }
+fn add_two_colours(rgb1: RGB<Prop>, rgb2: RGB<Prop>) -> RGB<Prop> {
+    RGB::WHITE
 }
 
 #[cfg(test)]
@@ -149,16 +105,15 @@ mod subtractive_add_tests {
     use super::*;
     use crate::HueConstants;
 
-    // #[test]
+    #[test]
     fn equal_parts_two_colours() {
-        let mut subtractive_mixer = SubtractiveMixer::new();
-        subtractive_mixer.add_colour(HCV::YELLOW);
-        subtractive_mixer.add_colour(HCV::MAGENTA);
-        assert_eq!(subtractive_mixer.mixed_colour::<u8>(), HCV::RED.rgb::<u8>());
-        subtractive_mixer.add_colour(HCV::YELLOW);
-        assert_eq!(
-            subtractive_mixer.mixed_colour::<u8>(),
-            HCV::RED_YELLOW.rgb::<u8>()
+        assert_approx_eq!(
+            mix_n_colors_parts(&[(RGB::<Prop>::YELLOW, 1), (RGB::<Prop>::RED, 1)]).unwrap(),
+            RGB::<Prop>::RED_YELLOW
+        );
+        assert_approx_eq!(
+            mix_n_colors_parts(&[(RGB::<Prop>::YELLOW, 1), (RGB::<Prop>::MAGENTA, 1)]).unwrap(),
+            RGB::<Prop>::RED
         );
     }
 }
