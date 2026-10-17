@@ -21,6 +21,7 @@ pub use crate::{
         },
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
+    cmy::CMY,
     fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
@@ -34,6 +35,7 @@ pub use crate::{
 
 pub mod attributes;
 pub mod beigui;
+pub mod cmy;
 pub mod debug;
 pub mod fdrn;
 pub mod hcv;
@@ -42,8 +44,7 @@ pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
 pub mod rgba;
-pub mod ryb;
-pub mod subtractive_mixing;
+// pub mod subtractive_mixing;
 pub mod useful_consts;
 
 pub trait LightLevel:
@@ -60,6 +61,8 @@ pub trait LightLevel:
     + Ord
     + UpperHex
     + LowerHex
+    + std::ops::Sub<Output = Self>
+    + std::ops::Div<Output = Self>
 {
     const ZERO: Self;
     const ONE: Self;
@@ -198,6 +201,7 @@ pub trait ColourBasics {
 
     fn hcv(&self) -> HCV;
     fn rgb<L: LightLevel>(&self) -> RGB<L>;
+    fn cmy<L: LightLevel>(&self) -> CMY<L>;
 
     fn monochrome_hcv(&self) -> HCV {
         HCV::new_grey(self.value())
@@ -343,6 +347,13 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
         match self {
             Colour::Rgb(rgb) => rgb.rgb::<T>(),
             Colour::Hc(hc) => hc.rgb::<T>(),
+        }
+    }
+
+    fn cmy<T: LightLevel>(&self) -> CMY<T> {
+        match self {
+            Colour::Rgb(rgb) => rgb.cmy::<T>(),
+            Colour::Hc(hc) => hc.cmy::<T>(),
         }
     }
 

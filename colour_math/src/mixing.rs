@@ -66,7 +66,7 @@ mod mixing_tests {
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), Some(RGB::<u16>::RED));
         subtractve_mixer.add(&RGB::<u8>::GREEN, 10);
         let expected =
-            RGB::<u16>::from_proportions([Prop::ONE / 3, (Prop::ONE * 2 / 3).into(), Prop::ZERO]);
+            RGB::<u16>::from_proportions([Prop::from([1, 3]), Prop::from([2, 3]), Prop::ZERO]);
         assert_eq!(subtractve_mixer.mixed_colour(), Some(expected.into()));
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), Some(expected));
     }

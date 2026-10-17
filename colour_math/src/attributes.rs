@@ -276,7 +276,7 @@ impl Warmth {
     pub const ONE: Self = Self(u64::MAX);
 
     pub fn calculate_monochrome(value: Value) -> Self {
-        ((Prop::ONE - Prop::from(value)) / 2).into()
+        ((Prop::ONE - Prop::from(value)) / 2_u32).into()
     }
 
     pub fn abs_diff(&self, other: &Self) -> Warmth {

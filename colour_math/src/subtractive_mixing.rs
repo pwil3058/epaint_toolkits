@@ -2,7 +2,7 @@
 
 use crate::{ColourBasics, FromProps, LightLevel, Prop, RGBConstants, UFDRNumber, CMY, HCV, RGB};
 use approximately_equal::*;
-use std::ops::{Add, AddAssign, Index, IndexMut};
+use std::ops::{Add, AddAssign, Index, IndexMut, Mul};
 
 #[derive(Copy, Clone, PartialEq, Debug, Default)]
 struct UnsignedTriple([UFDRNumber; 3]);
@@ -59,7 +59,7 @@ impl UnsignedTriple {
 }
 
 /// Universally mixes an arbitrary slice of colors and their relative parts
-/// using a fully generalized CMY pigment-mass and chroma-preservation model.
+/// using a generalized array-based Kubelka-Munk absorption and scattering model.
 pub fn mix_n_colors_parts(mixes: &[(RGB<Prop>, u64)]) -> Option<RGB<Prop>> {
     if mixes.is_empty() {
         return None;
@@ -71,27 +71,92 @@ pub fn mix_n_colors_parts(mixes: &[(RGB<Prop>, u64)]) -> Option<RGB<Prop>> {
         return None;
     }
 
-    let divisor = u64::MAX as u128;
+    // Linear accumulators for the physical pigment properties across [0..3]
+    let mut mixed_k = [UFDRNumber::ZERO; 3];
+    let mut mixed_s = [UFDRNumber::ZERO; 3];
 
-    // Linear pigment ink mass accumulators
-    let mut total_cmy = UnsignedTriple::default();
-
-    // 2. Accumulate the pure subtractive ink masses for all n colors weighted by their volume
+    // 2. Synthesize and accumulate K and S arrays for all n colors based on their parts volume
     for &(colour, parts) in mixes {
         if parts == 0 {
             continue;
         }
-        let w = Prop::from([parts, total_parts]);
 
-        // Convert incoming additive RGB light into subtractive CMY ink masses
-        let cmy_ink: CMY<Prop> = colour.into();
-        total_cmy += (cmy_ink * w);
+        // Represent parts and total volume as a native fractional Prop or weight factor
+        let weight = Prop::from([parts, total_parts]);
+        let props = colour.into_proportions(); // Yields [Prop; 3]
+
+        for i in 0..3 {
+            let r = props[i];
+
+            // Safely clamp the boundaries to avoid division-by-zero on absolute pure states
+            let r_clamped = if r == Prop::ZERO {
+                Prop(1)
+            } else if r == Prop::ONE {
+                Prop(u64::MAX - 1)
+            } else {
+                r
+            };
+
+            // Calculate 1.0 - R using your native complement mapping
+            let one_minus_r = r_clamped.comp();
+
+            // Compute the Kubelka-Munk K/S ratio using UFDRNumber: (1 - R)^2 / (2 * R)
+            // This can easily yield a ratio > 1.0, which UFDRNumber handles natively.
+            let numerator = UFDRNumber::from(one_minus_r).mul(UFDRNumber::from(one_minus_r));
+            let denominator = UFDRNumber::from(r_clamped).mul(UFDRNumber::from(Prop(2)));
+            eprintln!("numerator: {:?}, denominator: {:?}", numerator, denominator);
+            let ks_ratio = numerator / denominator;
+
+            // Define the primary scattering coefficient profile (S)
+            // Highly reflective channels scatter light; dark channels absorb it.
+            let s_base = UFDRNumber::from(r_clamped);
+
+            // Derive the pure absorption constant (K) via K = (K/S) * S
+            let k_base = ks_ratio.mul(s_base);
+
+            // Accumulate physical properties linearly weighted by their parts volume factor
+            mixed_k[i] = mixed_k[i] + k_base.mul(UFDRNumber::from(weight));
+            mixed_s[i] = mixed_s[i] + s_base.mul(UFDRNumber::from(weight));
+        }
     }
-    // Replace Step 3 and 4 with this universally complete intersection math:
-    let cross_mask = total_cmy.cross_mask();
 
-    // Apply the mutual physical masking constraints
-    let final_cmy = CMY::from_proportions((total_cmy + cross_mask).into_proportions());
+    // 3. Reconstruct final composite reflectance channels from aggregated properties
+    let mut final_cmy_props = [Prop::ZERO; 3];
+
+    for i in 0..3 {
+        let total_k = mixed_k[i];
+        let total_s = mixed_s[i];
+
+        if total_s == UFDRNumber::ZERO {
+            final_cmy_props[i] = Prop::ONE; // Total absorption if no scattering occurs
+            continue;
+        }
+
+        // Compute final K/S ratio for this channel = total_k / total_s
+        let final_ks = total_k / total_s;
+
+        // Invert the KM formula back to visible light: R = 1 + K/S - sqrt((K/S)^2 + 2*(K/S))
+        let term_sq = final_ks.mul(final_ks);
+        let term_2ks = final_ks.mul(UFDRNumber::from(Prop(2)));
+        let radical_input = term_sq + term_2ks;
+
+        let val_1 = UFDRNumber::from(Prop::ONE) + final_ks;
+        let val_2 = radical_input.sqrt(); // Uses your new native integer sqrt operation
+
+        // Compute remaining light reflection
+        let out_light_ufdr = val_1 - val_2;
+
+        // Convert the UFDRNumber back to a strict Prop.
+        // If the math breaks out of bounds, this will trigger your built-in panic.
+        let out_light = Prop::from(out_light_ufdr);
+
+        // Convert light reflection levels directly into subtractive CMY ink masses
+        // Ink_Mass = 1.0 - Light
+        final_cmy_props[i] = out_light.comp();
+    }
+
+    // 4. Construct the final CMY struct and convert it natively back into RGB light space
+    let final_cmy = CMY::from_proportions(final_cmy_props);
 
     Some(final_cmy.into())
 }

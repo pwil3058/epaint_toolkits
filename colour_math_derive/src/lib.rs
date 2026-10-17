@@ -88,6 +88,10 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.rgb::<L>()
             }
 
+            fn cmy<L: LightLevel>(&self) -> colour_math::CMY<L> {
+                self.#colour.cmy::<L>()
+            }
+
             fn monochrome_hcv(&self) -> colour_math::HCV {
                 self.#colour.monochrome_hcv()
             }

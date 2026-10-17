@@ -1,0 +1,346 @@
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
+
+use std::ops::{AddAssign, Neg};
+use std::{
+    cmp::Ordering,
+    fmt::{self, Debug, Formatter},
+    ops::{Add, Div, Mul, Rem, Sub},
+};
+
+use crate::{
+    debug::{AbsDiff, ApproxEq, PropDiff},
+    FDRNumber, UFDRNumber,
+};
+
+#[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
+pub struct Prop(pub(crate) u64);
+
+impl Prop {
+    pub const ZERO: Self = Self(0);
+    pub const ONE: Self = Self(u64::MAX);
+
+    pub(crate) const ALMOST_ONE: Self = Self(u64::MAX - 1);
+    pub(crate) const HALF: Self = Self(u64::MAX / 2);
+
+    pub fn weighted_average(props: &[(Self, u32)]) -> Self {
+        let mut total = UFDRNumber::default();
+        let mut count = 0i32;
+
+        for (prop, parts) in props {
+            total += *prop * *parts;
+            count += *parts as i32;
+        }
+        (total / count).into()
+    }
+
+    pub fn comp(self) -> Self {
+        Self(u64::MAX - self.0)
+    }
+
+    pub fn linear_interpolation(self, other: Self, p: Self) -> Self {
+        Prop(self.mul(p.comp()).0 + other.mul(p).0)
+    }
+
+    /// Return the square root of our value.
+    ///
+    /// Example:
+    /// ```
+    /// use colour_math::{Prop, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// let one_quarter: Prop = Prop::ONE / 4;
+    /// assert_approx_eq!(one_quarter.sqrt(), Prop::ONE / 2);
+    /// ```
+    pub fn sqrt(self) -> Self {
+        match self.0 {
+            0 => Self(0),
+            u64::MAX => Self(u64::MAX),
+            _ => {
+                let scaled = self.0 as u128 * u64::MAX as u128;
+                Self(scaled.isqrt() as u64)
+            }
+        }
+    }
+}
+
+impl AbsDiff for Prop {}
+
+impl PropDiff for Prop {
+    fn prop_diff(&self, other: &Self) -> Option<Prop> {
+        Some(self.abs_diff(other))
+    }
+}
+
+impl ApproxEq for Prop {}
+
+impl Debug for Prop {
+    fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
+        write!(formatter, "Prop(0.{:016x})", self.0)
+    }
+}
+
+impl fmt::UpperHex for Prop {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        fmt::UpperHex::fmt(&self.0, formatter)
+    }
+}
+
+impl fmt::LowerHex for Prop {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        fmt::LowerHex::fmt(&self.0, formatter)
+    }
+}
+
+impl fmt::Display for Prop {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(formatter, "0.{:016x}", self.0)
+    }
+}
+
+pub trait IntoProp: Sized + Copy + Into<Prop> {
+    fn into_prop(self) -> Prop {
+        self.into()
+    }
+}
+
+impl From<[u64; 2]> for Prop {
+    fn from(fraction: [u64; 2]) -> Self {
+        debug_assert!(fraction[1] >= fraction[0]);
+        Self(((fraction[0] as u128 * u64::MAX as u128) / fraction[1] as u128) as u64)
+    }
+}
+
+#[macro_export]
+macro_rules! impl_prop_to_from_float {
+    ($float:ty, $number:ty) => {
+        impl From<$float> for $number {
+            fn from(arg: $float) -> Self {
+                debug_assert!((0.0..=1.0).contains(&arg));
+                // NB: watch out for floating point not being proper reals
+                Self((arg * u64::MAX as $float) as u64)
+            }
+        }
+
+        impl From<$number> for $float {
+            fn from(arg: $number) -> Self {
+                arg.0 as $float / u64::MAX as $float
+            }
+        }
+    };
+}
+
+impl IntoProp for f32 {}
+
+impl IntoProp for f64 {}
+
+impl_prop_to_from_float!(f32, Prop);
+impl_prop_to_from_float!(f64, Prop);
+
+#[macro_export]
+macro_rules! impl_to_from_number {
+    ($number:ty, $core:ty, $proportion:ty) => {
+        impl From<$number> for $proportion {
+            #[allow(unused_comparisons)]
+            fn from(arg: $number) -> Self {
+                debug_assert!(arg.0 >= 0 && arg.0 <= u64::MAX as $core);
+                Self(arg.0 as u64)
+            }
+        }
+
+        impl From<$proportion> for $number {
+            fn from(arg: $proportion) -> Self {
+                Self(arg.0 as $core)
+            }
+        }
+    };
+}
+
+impl_to_from_number!(UFDRNumber, u128, Prop);
+impl_to_from_number!(FDRNumber, i128, Prop);
+
+impl IntoProp for UFDRNumber {}
+
+impl IntoProp for FDRNumber {}
+
+#[macro_export]
+macro_rules! impl_unsigned_to_from_prop {
+    (u64) => {
+        impl From<u64> for Prop {
+            fn from(arg: u64) -> Self {
+                Self(arg as u64)
+            }
+        }
+
+        impl From<Prop> for u64 {
+            fn from(arg: Prop) -> Self {
+                arg.0 as u64
+            }
+        }
+
+        impl IntoProp for u64 {}
+    };
+    ($unsigned:ty) => {
+        impl From<$unsigned> for Prop {
+            fn from(arg: $unsigned) -> Self {
+                let val = arg as u128 * u64::MAX as u128 / <$unsigned>::MAX as u128;
+                Self(val as u64)
+            }
+        }
+
+        impl From<Prop> for $unsigned {
+            fn from(arg: Prop) -> Self {
+                let val = arg.0 as u128 * <$unsigned>::MAX as u128 / u64::MAX as u128;
+                val as $unsigned
+            }
+        }
+
+        impl IntoProp for $unsigned {}
+    };
+}
+
+impl_unsigned_to_from_prop!(u8);
+impl_unsigned_to_from_prop!(u16);
+impl_unsigned_to_from_prop!(u32);
+impl_unsigned_to_from_prop!(u64);
+
+impl Mul for Prop {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self {
+        Self(((self.0 as u128 * rhs.0 as u128) / u64::MAX as u128) as u64)
+    }
+}
+
+impl Mul<u8> for Prop {
+    type Output = UFDRNumber;
+
+    fn mul(self, rhs: u8) -> UFDRNumber {
+        UFDRNumber(self.0 as u128 * rhs as u128)
+    }
+}
+
+impl Mul<u32> for Prop {
+    type Output = UFDRNumber;
+
+    fn mul(self, rhs: u32) -> UFDRNumber {
+        UFDRNumber(self.0 as u128 * rhs as u128)
+    }
+}
+
+impl Mul<i32> for Prop {
+    type Output = UFDRNumber;
+
+    fn mul(self, rhs: i32) -> UFDRNumber {
+        UFDRNumber(self.0 as u128 * TryInto::<u32>::try_into(rhs).unwrap() as u128)
+    }
+}
+
+impl Div for Prop {
+    type Output = Self;
+
+    fn div(self, rhs: Self) -> Self {
+        if rhs == Self::ONE {
+            self
+        } else {
+            Self((((u128::MAX / rhs.0 as u128) * self.0 as u128) / u64::MAX as u128) as u64)
+        }
+    }
+}
+
+impl Div<u8> for Prop {
+    type Output = Self;
+
+    fn div(self, rhs: u8) -> Self {
+        Prop(self.0 / rhs as u64)
+    }
+}
+
+impl Div<u32> for Prop {
+    type Output = Self;
+
+    fn div(self, rhs: u32) -> Self {
+        Prop(self.0 / rhs as u64)
+    }
+}
+
+impl Div<i32> for Prop {
+    type Output = Self;
+
+    fn div(self, rhs: i32) -> Self {
+        Prop(self.0 / TryInto::<u32>::try_into(rhs).unwrap() as u64)
+    }
+}
+
+impl Add for Prop {
+    type Output = UFDRNumber;
+
+    fn add(self, rhs: Self) -> UFDRNumber {
+        UFDRNumber(self.0 as u128 + rhs.0 as u128)
+    }
+}
+
+impl Sub for Prop {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        debug_assert!(self.0 >= rhs.0);
+        Self(self.0 - rhs.0)
+    }
+}
+
+impl Add<Prop> for UFDRNumber {
+    type Output = Self;
+
+    fn add(self, rhs: Prop) -> UFDRNumber {
+        UFDRNumber(self.0 + rhs.0 as u128)
+    }
+}
+
+impl Sub<Prop> for UFDRNumber {
+    type Output = Self;
+
+    fn sub(self, rhs: Prop) -> Self {
+        debug_assert!(self.0 >= rhs.0 as u128);
+        Self(self.0 - rhs.0 as u128)
+    }
+}
+
+impl Div<Prop> for UFDRNumber {
+    type Output = Self;
+
+    fn div(self, rhs: Prop) -> Self {
+        if rhs == Prop::ONE {
+            self
+        } else {
+            match self.0.cmp(&(rhs.0 as u128)) {
+                Ordering::Equal => Self::ONE,
+                Ordering::Less | Ordering::Greater => self.mul(Self(u128::MAX / rhs.0 as u128)),
+            }
+        }
+    }
+}
+
+impl Mul<Prop> for UFDRNumber {
+    type Output = Self;
+
+    fn mul(self, rhs: Prop) -> Self {
+        if rhs.0 == u64::MAX {
+            self
+        } else if self.0 >= u64::MAX as u128 {
+            let one = u64::MAX as u128;
+            let l_int = self.0 / one;
+            let l_rem = self.0 % one;
+            Self(l_int * rhs.0 as u128 + rhs.0 as u128 * l_rem / one)
+        } else {
+            Self((self.0 * rhs.0 as u128) / u64::MAX as u128)
+        }
+    }
+}
+
+impl Mul<u8> for UFDRNumber {
+    type Output = Self;
+
+    fn mul(self, rhs: u8) -> Self {
+        Self(self.0 * rhs as u128)
+    }
+}

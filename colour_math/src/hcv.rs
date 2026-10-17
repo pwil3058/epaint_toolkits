@@ -5,6 +5,7 @@ use std::{
     ops::{Add, Sub},
 };
 
+use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     fdrn::{IntoProp, Prop, UFDRNumber},
@@ -371,6 +372,10 @@ impl ColourBasics for HCV {
 
     fn hcv(&self) -> HCV {
         *self
+    }
+
+    fn cmy<L: LightLevel>(&self) -> CMY<L> {
+        self.rgb::<L>().into()
     }
 
     fn into_proportions(&self) -> [Prop; 3] {

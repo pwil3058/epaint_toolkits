@@ -3,7 +3,7 @@ use std::{
     cmp::Ordering,
     convert::TryInto,
     convert::{From, TryFrom},
-    ops::{Add, Mul},
+    ops::{Div, Mul},
     ops::{Index, IndexMut},
     str::FromStr,
     sync::LazyLock,
@@ -11,16 +11,17 @@ use std::{
 
 use regex::Regex;
 
+use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    debug::ApproxEq,
+    debug::{ApproxEq, PropDiff},
     fdrn::{Prop, UFDRNumber},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
 };
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct RGB<T: LightLevel>(pub(crate) [T; 3]);
 
 impl<T: LightLevel> AsRef<[T]> for RGB<T> {
@@ -29,7 +30,15 @@ impl<T: LightLevel> AsRef<[T]> for RGB<T> {
     }
 }
 
-impl<T: LightLevel> Eq for RGB<T> where T: Eq {}
+impl<L: LightLevel> PropDiff for RGB<L> {}
+
+impl<L: LightLevel + ApproxEq> ApproxEq for RGB<L> {
+    fn approx_eq(&self, other: &Self, max_diff: Option<Prop>) -> bool {
+        self[0].approx_eq(&other[0], max_diff)
+            && self[1].approx_eq(&other[1], max_diff)
+            && self[2].approx_eq(&other[2], max_diff)
+    }
+}
 
 impl<T: LightLevel> HueConstants for RGB<T> {
     const RED: Self = Self([T::ONE, T::ZERO, T::ZERO]);
@@ -50,9 +59,9 @@ impl<T: LightLevel> HueConstants for RGB<T> {
 
 impl<T: LightLevel> RGBConstants for RGB<T> {
     const WHITE: Self = Self([T::ONE, T::ONE, T::ONE]);
-    const LIGHT_GREY: Self = Self([T::ONE_QUARTER, T::ONE_QUARTER, T::ONE_QUARTER]);
+    const LIGHT_GREY: Self = Self([T::THREE_QUARTERS, T::THREE_QUARTERS, T::THREE_QUARTERS]);
     const MEDIUM_GREY: Self = Self([T::HALF, T::HALF, T::HALF]);
-    const DARK_GREY: Self = Self([T::THREE_QUARTERS, T::THREE_QUARTERS, T::THREE_QUARTERS]);
+    const DARK_GREY: Self = Self([T::ONE_QUARTER, T::ONE_QUARTER, T::ONE_QUARTER]);
     const BLACK: Self = Self([T::ZERO, T::ZERO, T::ZERO]);
 }
 
@@ -175,6 +184,11 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
 
     fn rgb<L: LightLevel>(&self) -> RGB<L> {
         RGB::<L>::from_proportions(self.into_proportions())
+    }
+
+    fn cmy<L: LightLevel>(&self) -> CMY<L> {
+        let props = CMY::<T>::from(*self).into_proportions();
+        CMY::<L>::from_proportions(props)
     }
 
     fn into_proportions(&self) -> [Prop; 3] {
@@ -366,21 +380,44 @@ impl<L: LightLevel + From<Prop>> Mul<Prop> for RGB<L> {
     }
 }
 
-impl<L: LightLevel + From<Prop>> Add<RGB<L>> for RGB<L> {
-    // TODO: get rid of RGB addition
+/// Divide all components by `scalar`
+///
+/// Example:
+///
+/// ```
+/// use colour_math::{HueConstants, RGB};
+///
+/// assert_eq!((RGB::<u8>::RED / 2), RGB::<u8>::from([127, 0, 0]));
+/// assert_eq!((RGB::<u8>::MAGENTA / 2), RGB::<u8>::from([127, 0, 127]));
+/// ```
+impl<L: LightLevel> Div<i32> for RGB<L> {
     type Output = Self;
 
-    fn add(self, rhs: Self) -> Self {
-        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
-        let [rhs_red, rhs_green, rhs_blue] = rhs.into_proportions(); //<[Prop; 3]>::from(rhs);
-        let array: [Prop; 3] = [
-            (red / 2 + rhs_red / 2).into(),
-            (green / 2 + rhs_green / 2).into(),
-            (blue / 2 + rhs_blue / 2).into(),
-        ];
-        Self::from_proportions(array)
+    fn div(self, scalar: i32) -> Self {
+        let [red, green, blue] = self.into_proportions();
+        Self([
+            (red / scalar).into(),
+            (green / scalar).into(),
+            (blue / scalar).into(),
+        ])
     }
 }
+
+// impl<L: LightLevel + From<Prop>> Add<RGB<L>> for RGB<L> {
+/////TODO: get rid of RGB addition
+// type Output = Self;
+//
+// fn add(self, rhs: Self) -> Self {
+//     let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
+//     let [rhs_red, rhs_green, rhs_blue] = rhs.into_proportions(); //<[Prop; 3]>::from(rhs);
+//     let array: [Prop; 3] = [
+//         (red / 2 + rhs_red / 2).into(),
+//         (green / 2 + rhs_green / 2).into(),
+//         (blue / 2 + rhs_blue / 2).into(),
+//     ];
+//     Self::from_proportions(array)
+// }
+// }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RGBError {
