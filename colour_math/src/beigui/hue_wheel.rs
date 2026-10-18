@@ -252,7 +252,7 @@ pub trait Graticule {
         draw_shapes.set_line_colour(&HCV::WHITE); // * UFDRNumber::from(0.25));
         let centre = Point::default();
         for num in 1..=num_rings {
-            let radius: UFDRNum = UFDRNum::ONE * num as i32 / num_rings as i32;
+            let radius: UFDRNum = UFDRNum::ONE * num as u32 / num_rings as u32;
             draw_shapes.draw_circle(centre, radius * zoom.scale(), false);
         }
     }

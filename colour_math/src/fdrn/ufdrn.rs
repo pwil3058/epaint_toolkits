@@ -48,11 +48,11 @@ impl UFDRNum {
     /// use colour_math::{UFDRNum, debug::*};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// let four: UFDRNum = UFDRNum::ONE * 4;
-    /// let two: UFDRNum = UFDRNum::ONE * 2;
+    /// let four: UFDRNum = UFDRNum::ONE * 4u32;
+    /// let two: UFDRNum = UFDRNum::ONE * 2u32;
     /// assert_approx_eq!(four.sqrt(), two);
-    /// let twenty_five: UFDRNum = UFDRNum::ONE * 25;
-    /// let five: UFDRNum = UFDRNum::ONE * 5;
+    /// let twenty_five: UFDRNum = UFDRNum::ONE * 25u32;
+    /// let five: UFDRNum = UFDRNum::ONE * 5u32;
     /// assert_approx_eq!(twenty_five.sqrt(), five);
     /// ```
     pub fn sqrt(self) -> Self {
@@ -183,11 +183,10 @@ impl Mul for UFDRNum {
     }
 }
 
-impl Mul<i32> for UFDRNum {
+impl Mul<u32> for UFDRNum {
     type Output = Self;
 
-    fn mul(self, rhs: i32) -> Self {
-        debug_assert!(rhs >= 0);
+    fn mul(self, rhs: u32) -> Self {
         Self(self.0.mul(rhs as u128))
     }
 }
@@ -207,11 +206,10 @@ impl Div for UFDRNum {
     }
 }
 
-impl Div<i32> for UFDRNum {
+impl Div<u32> for UFDRNum {
     type Output = Self;
 
-    fn div(self, rhs: i32) -> Self {
-        debug_assert!(rhs >= 0);
+    fn div(self, rhs: u32) -> Self {
         Self(self.0.div(rhs as u128))
     }
 }

@@ -24,11 +24,11 @@ impl Prop {
 
     pub fn weighted_average(props: &[(Self, u32)]) -> Self {
         let mut total = UFDRNum::default();
-        let mut count = 0i32;
+        let mut count = 0u32;
 
         for (prop, parts) in props {
             total += *prop * *parts;
-            count += *parts as i32;
+            count += *parts;
         }
         (total / count).into()
     }

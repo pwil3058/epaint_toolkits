@@ -88,8 +88,8 @@ fn main() {
     let cads = ColourAttributeDisplayStack::builder()
         .scalar_attributes(&attributes)
         .build();
-    cads.set_colour(Some(&RGB::from([0.1, 0.4, 0.7])));
-    cads.set_target_colour(Some(&RGB::from([0.7, 0.4, 0.7])));
+    cads.set_colour(Some(&RGB::from([26u8, 102u8, 178u8])));
+    cads.set_target_colour(Some(&RGB::from([178u8, 102_u8, 178_u8])));
     vbox.pack_start(cads.pwo(), true, true, 0);
 
     let gtk_hue_wheel = GtkHueWheel::builder()

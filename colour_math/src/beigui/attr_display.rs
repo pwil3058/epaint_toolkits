@@ -46,10 +46,10 @@ pub trait ColourAttributeDisplayIfce {
             let indicator_x = size.width * attr_value;
             drawer.set_fill_colour(&self.attr_value_fg_colour());
             drawer.set_line_colour(&self.attr_value_fg_colour());
-            let base: UFDRNum = UFDRNum::ONE * 8;
-            let height: UFDRNum = UFDRNum::ONE * 6;
+            let base: UFDRNum = UFDRNum::ONE * 8u32;
+            let height: UFDRNum = UFDRNum::ONE * 6u32;
             drawer.draw_isosceles(
-                [indicator_x.into(), (height / 2).into()].into(),
+                [indicator_x.into(), (height / 2u32).into()].into(),
                 Dirn::Up,
                 base,
                 height,
@@ -69,7 +69,7 @@ pub trait ColourAttributeDisplayIfce {
         if let Some(attr_value) = self.attr_target_value() {
             let size = drawer.size();
             let indicator_x: FDRNum = (size.width * attr_value).into();
-            drawer.set_line_width(UFDRNum::ONE * 2);
+            drawer.set_line_width(UFDRNum::ONE * 2u32);
             drawer.set_line_colour(&self.attr_target_value_fg_colour());
             drawer.draw_line(&[
                 [indicator_x, FDRNum::ONE].into(),
@@ -81,7 +81,7 @@ pub trait ColourAttributeDisplayIfce {
     fn draw_label(&self, drawer: &impl Draw) {
         if !Self::LABEL.is_empty() {
             let posn = TextPosn::Centre(drawer.size().centre());
-            let font_size = UFDRNum::ONE * 15;
+            let font_size = UFDRNum::ONE * 15u32;
             drawer.set_text_colour(&self.label_colour());
             drawer.draw_text(Self::LABEL, posn, font_size);
         }
