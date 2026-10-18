@@ -156,12 +156,12 @@ fn warmth() {
     assert_approx_eq!(
         RGB::<u8>::from_proportions([Prop::ONE, Prop::HALF, Prop::ZERO]).warmth(),
         Warmth::FIVE_SIXTHS,
-        Prop(0x100000000000000)
+        0x100000000000000
     );
     assert_approx_eq!(
         RGB::<u8>::from_proportions([Prop::ZERO, Prop::HALF, Prop::ONE]).warmth(),
         Warmth::ONE_SIXTH,
-        Prop(0x100000000000000)
+        0x100000000000000
     );
 }
 

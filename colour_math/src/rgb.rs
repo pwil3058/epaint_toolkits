@@ -34,7 +34,7 @@ impl<T: LightLevel> AsRef<[T]> for RGB<T> {
 impl<L: LightLevel> PropDiff for RGB<L> {}
 
 impl<L: LightLevel + ApproxEq> ApproxEq for RGB<L> {
-    fn approx_eq(&self, other: &Self, max_diff: Option<Prop>) -> bool {
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
         self[0].approx_eq(&other[0], max_diff)
             && self[1].approx_eq(&other[1], max_diff)
             && self[2].approx_eq(&other[2], max_diff)
@@ -295,7 +295,7 @@ where
 }
 
 impl<T: LightLevel + ApproxEq> RGB<T> {
-    pub fn approx_eq(&self, other: &Self, max_diff: Option<Prop>) -> bool {
+    pub fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
         for i in 0..3 {
             if !self.0[i].approx_eq(&other.0[i], max_diff) {
                 return false;

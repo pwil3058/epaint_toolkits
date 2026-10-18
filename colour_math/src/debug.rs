@@ -1,4 +1,4 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{cmp::PartialOrd, ops::Sub};
 
 use crate::fdrn::Prop;
@@ -82,12 +82,12 @@ impl_prop_diff_for_float!(f64);
 pub trait ApproxEq: Copy + PropDiff + PartialEq {
     const DEFAULT_MAX_DIFF: Prop = Prop(0x0000000000001000);
 
-    fn approx_eq(&self, other: &Self, max_diff: Option<Prop>) -> bool {
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
         if self.eq(other) {
             true
         } else {
             let max_diff = if let Some(max_diff) = max_diff {
-                max_diff
+                Prop(max_diff)
             } else {
                 Self::DEFAULT_MAX_DIFF
             };

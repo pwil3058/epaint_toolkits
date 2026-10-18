@@ -339,10 +339,10 @@ impl Mul<Prop> for UFDRNum {
     }
 }
 
-impl Mul<u8> for UFDRNum {
-    type Output = Self;
-
-    fn mul(self, rhs: u8) -> Self {
-        Self(self.0 * rhs as u128)
-    }
-}
+// impl Mul<u8> for UFDRNum {
+//     type Output = Self;
+//
+//     fn mul(self, rhs: u8) -> Self {
+//         Self(self.0 * rhs as u128)
+//     }
+// }

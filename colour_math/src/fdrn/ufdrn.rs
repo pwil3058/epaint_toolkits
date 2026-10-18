@@ -11,15 +11,21 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    impl_to_from_float, FDRNum, Prop,
+    impl_to_from_float, FDRNum, Prop, Unsigned, UnsignedInteger,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UFDRNum(pub(crate) u128);
 
+impl Unsigned for UFDRNum {
+    const MAX: Self = UFDRNum(u128::MAX);
+    const ZERO: Self = UFDRNum(0);
+}
+
 impl UFDRNum {
+    pub const DENOMINATOR: u128 = u64::MAX as u128;
     pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(u64::MAX as u128);
+    pub const ONE: Self = Self(Self::DENOMINATOR);
     pub const TWO: Self = Self(u64::MAX as u128 * 2);
     pub const THREE: Self = Self(u64::MAX as u128 * 3);
 
@@ -41,6 +47,38 @@ impl UFDRNum {
     pub fn to_prop(&self) -> Prop {
         debug_assert!(self.is_proportion());
         Prop(self.0 as u64)
+    }
+
+    /// Generate an UFDRNum from a rational number
+    ///
+    /// Example:
+    /// ```
+    /// use colour_math::{assert_approx_eq, UFDRNum, Prop};
+    /// use colour_math::debug::ApproxEq;
+    ///
+    /// assert_eq!(UFDRNum::from_rational_num(4, 2), UFDRNum::ONE * 2_u8);
+    /// assert_approx_eq!(UFDRNum::from_rational_num(5, 2), UFDRNum::from(2.5), 2);
+    /// assert_eq!(UFDRNum::from_rational_num(17, 17), UFDRNum::ONE);
+    /// assert_approx_eq!(UFDRNum::from_rational_num(5, 10), UFDRNum::ONE / 2, 1);
+    /// assert_eq!(UFDRNum::from_rational_num(u64::MAX as u128 * 2, u64::MAX as u128), UFDRNum::ONE * 2u8);
+    /// ```
+    pub fn from_rational_num(enumerator: u128, denominator: u128) -> Self {
+        if enumerator == 0 {
+            return Self::ZERO;
+        }
+        use Ordering::*;
+        match denominator.cmp(&enumerator) {
+            Equal => Self::ONE,
+            Greater => {
+                let shift = enumerator.leading_zeros();
+                let result = (enumerator << shift) / denominator;
+                Self(result >> (shift - 64))
+            }
+            Less => {
+                let int = Self(enumerator / denominator * Self::DENOMINATOR);
+                int + Self::from_rational_num(enumerator % denominator, denominator)
+            }
+        }
     }
 
     /// Return the square root of our value.
@@ -185,11 +223,30 @@ impl Mul for UFDRNum {
     }
 }
 
-impl Mul<u32> for UFDRNum {
+// impl Mul<u32> for UFDRNum {
+//     type Output = Self;
+//
+//     fn mul(self, rhs: u32) -> Self {
+//         Self(self.0.mul(rhs as u128))
+//     }
+// }
+
+impl<U: UnsignedInteger> Mul<U> for UFDRNum {
     type Output = Self;
 
-    fn mul(self, rhs: u32) -> Self {
-        Self(self.0.mul(rhs as u128))
+    /// Multiply an UFDRnum by an unsigned integer
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use colour_math::{UFDRNum};
+    ///
+    /// assert_eq!(UFDRNum::ONE * 5_u32, UFDRNum::from(5_u32));
+    /// ```
+    fn mul(self, rhs: U) -> Self::Output {
+        // N.B. Do this separately to avoid ambiguity with U::into::<UFDRNum>().
+        let rhs: u128 = rhs.into();
+        Self(self.0 * rhs)
     }
 }
 

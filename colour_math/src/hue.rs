@@ -1049,7 +1049,7 @@ impl SextantHue {
 
 #[cfg(test)]
 impl SextantHue {
-    pub fn approx_eq(&self, other: &Self, acceptable_rounding_error: Option<Prop>) -> bool {
+    pub fn approx_eq(&self, other: &Self, acceptable_rounding_error: Option<u64>) -> bool {
         if self.0 == other.0 {
             self.1.approx_eq(&other.1, acceptable_rounding_error)
         } else {

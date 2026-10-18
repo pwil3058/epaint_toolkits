@@ -59,7 +59,7 @@ impl<L: LightLevel> CMY<L> {
 impl<L: LightLevel> PropDiff for CMY<L> {}
 
 impl<L: LightLevel + ApproxEq> ApproxEq for CMY<L> {
-    fn approx_eq(&self, other: &Self, max_diff: Option<Prop>) -> bool {
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
         self[0].approx_eq(&other[0], max_diff)
             && self[1].approx_eq(&other[1], max_diff)
             && self[2].approx_eq(&other[2], max_diff)

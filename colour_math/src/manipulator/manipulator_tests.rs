@@ -119,7 +119,7 @@ fn decr_chroma() {
         if !clamped {
             assert!(manipulator.hcv.is_grey());
             assert_eq!(manipulator.hcv.chroma(), Chroma::ZERO);
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, Prop(0x10));
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, Prop(0x10).into());
             assert_eq!(manipulator.hcv.hue(), None);
             assert_eq!(manipulator.saved_hue, saved_hue.unwrap());
         }
@@ -238,7 +238,11 @@ fn incr_decr_sum_clamped() {
     assert!(!manipulator.incr_value(0.1.into()));
     let cur_sum = manipulator.hcv.sum;
     manipulator.decr_chroma(0.5.into());
-    assert_approx_eq!(cur_sum, manipulator.hcv.sum, Prop(0x0000000000000010));
+    assert_approx_eq!(
+        cur_sum,
+        manipulator.hcv.sum,
+        Prop(0x0000000000000010).into()
+    );
     while manipulator.decr_value(0.1.into()) {}
     // assert_approx_eq!(manipulator.rgb(), [0.5, 0.5, 0.0].into());
     // while manipulator.incr_value(0.1.into()) {}
@@ -383,10 +387,10 @@ fn rotate_rgb_favouring_value() {
             assert!(manipulator.rotate((*delta).into()));
             let max_c_prop = manipulator.hcv.max_chroma_prop_for_current_sum();
             assert!(
-                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010)))
-                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010)))
+                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010).into()))
+                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010).into()))
             );
-            assert_approx_eq!(cur_sum, manipulator.hcv.sum, Prop(0x10));
+            assert_approx_eq!(cur_sum, manipulator.hcv.sum, Prop(0x10).into());
             let expected_angle = cur_angle + (*delta).into();
             assert_approx_eq!(expected_angle, manipulator.hcv.hue_angle().unwrap(), 0x1000);
         }
@@ -418,8 +422,8 @@ fn rotate_rgb_favouring_value() {
             assert!(manipulator.rotate((*delta).into()));
             let max_c_prop = manipulator.hcv.max_chroma_prop_for_current_sum();
             assert!(
-                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1)))
-                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1)))
+                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
+                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
             );
             assert_approx_eq!(cur_sum, manipulator.hcv.sum);
             let expected_angle = cur_angle + (*delta).into();

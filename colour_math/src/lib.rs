@@ -4,8 +4,6 @@ use std::fmt::{Debug, LowerHex, UpperHex};
 
 use serde::{Deserialize, Serialize};
 
-use num_traits::Unsigned;
-
 use hue::HueIfce;
 
 pub use crate::{
@@ -22,7 +20,7 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
+    fdrn::{FDRNum, IntoProp, Prop, UFDRNum, Unsigned, UnsignedInteger},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{
@@ -104,7 +102,7 @@ impl LightLevel for u64 {
 }
 
 impl LightLevel for Prop {
-    const ZERO: Self = Self(u64::ZERO);
+    const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
     const ONE: Self = Self(u64::ONE);
     const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
     const HALF: Self = Self(u64::HALF);
