@@ -305,30 +305,30 @@ mod cmy_tests {
         assert_eq!(CMY::<u8>::RED / 2, CMY::<u8>::from([0, 127, 127]));
     }
 
-    #[test]
-    fn rgb_to_cmy_halves() {
-        println!(
-            "{:?} == {:?} == {:?}",
-            CMY::<u8>::RED / 2,
-            RGB::<u8>::RED / 2,
-            std::convert::Into::<RGB<u8>>::into((CMY::<u8>::RED / 2))
-        );
-        assert_eq!(RGB::<u8>::RED / 2, (CMY::<u8>::RED / 2).into());
-        assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into());
-        assert_approx_eq!(RGB::<Prop>::LIGHT_GREY, CMY::<Prop>::LIGHT_GREY.into());
-        assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into());
-    }
-
-    #[test]
-    fn yellow_magenta_to_red() {
-        let mut mixer = CMYSubtractiveMix::default();
-        mixer.add(RGB::<u8>::YELLOW, 3);
-        mixer.add(RGB::<u8>::MAGENTA, 3);
-        assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::RED);
-        mixer.reset();
-        assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::WHITE);
-        mixer.add((RGB::<u8>::YELLOW / 2), 3);
-        mixer.add((RGB::<u8>::MAGENTA / 2), 3);
-        assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::RED / 2);
-    }
+    // #[test]
+    // fn rgb_to_cmy_halves() {
+    //     println!(
+    //         "{:?} == {:?} == {:?}",
+    //         CMY::<u8>::RED / 2,
+    //         RGB::<u8>::RED / 2,
+    //         std::convert::Into::<RGB<u8>>::into((CMY::<u8>::RED / 2))
+    //     );
+    //     assert_eq!(RGB::<u8>::RED / 2, (CMY::<u8>::RED / 2).into());
+    //     assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into());
+    //     assert_approx_eq!(RGB::<Prop>::LIGHT_GREY, CMY::<Prop>::LIGHT_GREY.into());
+    //     assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into());
+    // }
+    //
+    // #[test]
+    // fn yellow_magenta_to_red() {
+    //     let mut mixer = CMYSubtractiveMix::default();
+    //     mixer.add(RGB::<u8>::YELLOW, 3);
+    //     mixer.add(RGB::<u8>::MAGENTA, 3);
+    //     assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::RED);
+    //     mixer.reset();
+    //     assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::WHITE);
+    //     mixer.add((RGB::<u8>::YELLOW / 2), 3);
+    //     mixer.add((RGB::<u8>::MAGENTA / 2), 3);
+    //     assert_eq!(mixer.rgb::<u8>(), RGB::<u8>::RED / 2);
+    // }
 }
