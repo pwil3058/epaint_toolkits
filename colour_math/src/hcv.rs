@@ -5,6 +5,8 @@ use std::{
     ops::{Add, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},

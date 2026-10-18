@@ -7,6 +7,8 @@ use std::{
     ops::{Add, Div, Mul, Rem, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
     UFDRNum,

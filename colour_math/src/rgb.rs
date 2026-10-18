@@ -10,6 +10,7 @@ use std::{
 };
 
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 
 use crate::cmy::CMY;
 use crate::{

@@ -1,17 +1,19 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
 use std::{
     cmp::Ordering,
     fmt::Debug,
     ops::{Add, Div, Mul, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
     fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
     hue::{Hue, HueBasics},
 };
+use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {

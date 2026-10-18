@@ -1,8 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
-#[macro_use]
-extern crate serde_derive;
 
 use std::fmt::{Debug, LowerHex, UpperHex};
+
+use serde::{Deserialize, Serialize};
 
 use num_traits::Unsigned;
 

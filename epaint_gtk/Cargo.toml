@@ -14,7 +14,7 @@ paints_have_ids = []
 
 [dependencies]
 serde.workspace = true
-serde_derive.workspace = true
+#serde_derive.workspace = true
 
 gcd.workspace = true
 

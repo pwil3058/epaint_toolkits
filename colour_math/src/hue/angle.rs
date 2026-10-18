@@ -5,6 +5,8 @@ use std::{
     ops::{Add, Neg, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::{fdrn::FDRNum, HueConstants};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]

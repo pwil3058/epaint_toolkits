@@ -7,6 +7,8 @@ use std::{
     ops::{Add, Div, Mul, Rem, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
     impl_to_from_float, FDRNum, Prop,
@@ -222,11 +224,10 @@ impl Rem for UFDRNum {
     }
 }
 
-impl Rem<i32> for UFDRNum {
+impl Rem<u32> for UFDRNum {
     type Output = Self;
 
-    fn rem(self, rhs: i32) -> Self {
-        debug_assert!(rhs >= 0);
+    fn rem(self, rhs: u32) -> Self {
         Self(self.0 % rhs as u128)
     }
 }

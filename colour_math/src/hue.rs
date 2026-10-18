@@ -7,6 +7,8 @@ use std::{
     ops::{Add, Sub},
 };
 
+use serde::{Deserialize, Serialize};
+
 pub mod angle;
 
 use crate::{

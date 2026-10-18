@@ -9,6 +9,8 @@ use std::{
     // sync::LazyLock,
 };
 
+use serde::{Deserialize, Serialize};
+
 // use regex::Regex;
 
 // use crate::attributes::Family;
