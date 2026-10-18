@@ -15,7 +15,7 @@ use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     debug::{ApproxEq, PropDiff},
-    fdrn::{Prop, UFDRNumber},
+    fdrn::{Prop, UFDRNum},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
@@ -85,7 +85,7 @@ impl<T: LightLevel + Into<Prop>> RGB<T> {
         Self([red, green, blue])
     }
 
-    pub fn sum(&self) -> UFDRNumber {
+    pub fn sum(&self) -> UFDRNum {
         let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
         red + green + blue
     }

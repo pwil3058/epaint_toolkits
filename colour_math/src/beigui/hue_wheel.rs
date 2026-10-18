@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 use crate::{
     attributes::Value,
     beigui::{DrawShapes, Point},
-    fdrn::{FDRNumber, UFDRNumber},
+    fdrn::{FDRNum, UFDRNum},
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,
@@ -13,22 +13,22 @@ use crate::{
 
 #[derive(Debug)]
 pub struct Zoom {
-    scale: UFDRNumber,
+    scale: UFDRNum,
 }
 
 impl Zoom {
-    const DELTA: UFDRNumber = UFDRNumber(UFDRNumber::ONE.0 * 25 / 1000);
-    const MAX: UFDRNumber = UFDRNumber(UFDRNumber::ONE.0 * 10);
+    const DELTA: UFDRNum = UFDRNum(UFDRNum::ONE.0 * 25 / 1000);
+    const MAX: UFDRNum = UFDRNum(UFDRNum::ONE.0 * 10);
 
     pub fn decr(&mut self) {
-        self.scale = (self.scale - Self::DELTA).max(UFDRNumber::ONE);
+        self.scale = (self.scale - Self::DELTA).max(UFDRNum::ONE);
     }
 
     pub fn incr(&mut self) {
         self.scale = (self.scale + Self::DELTA).min(Self::MAX);
     }
 
-    pub fn scale(&self) -> UFDRNumber {
+    pub fn scale(&self) -> UFDRNum {
         self.scale
     }
 }
@@ -36,7 +36,7 @@ impl Zoom {
 impl Default for Zoom {
     fn default() -> Self {
         Self {
-            scale: UFDRNumber::ONE,
+            scale: UFDRNum::ONE,
         }
     }
 }
@@ -51,8 +51,8 @@ pub enum Shape {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Proximity {
-    Enclosed(UFDRNumber),
-    NotEnclosed(UFDRNumber),
+    Enclosed(UFDRNum),
+    NotEnclosed(UFDRNum),
 }
 
 impl PartialOrd for Proximity {
@@ -83,14 +83,14 @@ pub trait ShapeConsts {
     const SHAPE_RADIUS: Self;
 }
 
-impl ShapeConsts for UFDRNumber {
+impl ShapeConsts for UFDRNum {
     const SIN_45: Self = Self(Self::SQRT_2.0 / 2);
     const SHAPE_SIDE: Self = Self(Self::ONE.0 * 6 / 100);
     const SHAPE_HALF_SIDE: Self = Self(Self::SHAPE_SIDE.0 / 2);
     const SHAPE_RADIUS: Self = Self::SHAPE_HALF_SIDE;
 }
 
-impl ShapeConsts for FDRNumber {
+impl ShapeConsts for FDRNum {
     const SIN_45: Self = Self(Self::SQRT_2.0 / 2);
     const SHAPE_SIDE: Self = Self(Self::ONE.0 * 6 / 100);
     const SHAPE_HALF_SIDE: Self = Self(Self::SHAPE_SIDE.0 / 2);
@@ -115,11 +115,11 @@ pub struct ColouredShape {
 impl ColouredShape {
     pub fn new(colour: &impl ColourBasics, id: &str, tooltip_text: &str, shape: Shape) -> Self {
         let cached_point = if let Some(hue_angle) = colour.hue_angle() {
-            CachedPoint::Hued(Point::from((hue_angle, UFDRNumber::ONE)))
+            CachedPoint::Hued(Point::from((hue_angle, UFDRNum::ONE)))
         } else {
             CachedPoint::Grey(Point {
-                x: FDRNumber::from(-1.05),
-                y: FDRNumber::ONE - FDRNumber::from(colour.value()) * 2,
+                x: FDRNum::from(-1.05),
+                y: FDRNum::ONE - FDRNum::from(colour.value()) * 2,
             })
         };
         Self {
@@ -152,25 +152,25 @@ impl ColouredShape {
     ) {
         draw_shapes.set_fill_colour(&self.colour);
         draw_shapes.set_line_colour(&self.colour.best_foreground());
-        draw_shapes.set_line_width(UFDRNumber::from(0.01));
+        draw_shapes.set_line_width(UFDRNum::from(0.01));
         let xy = self.xy(scalar_attribute, zoom);
         match self.shape {
             Shape::Circle => {
-                draw_shapes.draw_circle(xy, UFDRNumber::SHAPE_RADIUS, true);
-                draw_shapes.draw_circle(xy, UFDRNumber::SHAPE_RADIUS, false);
+                draw_shapes.draw_circle(xy, UFDRNum::SHAPE_RADIUS, true);
+                draw_shapes.draw_circle(xy, UFDRNum::SHAPE_RADIUS, false);
             }
             Shape::Diamond => {
-                draw_shapes.draw_diamond(xy, UFDRNumber::SHAPE_SIDE, true);
-                draw_shapes.draw_diamond(xy, UFDRNumber::SHAPE_SIDE, false);
+                draw_shapes.draw_diamond(xy, UFDRNum::SHAPE_SIDE, true);
+                draw_shapes.draw_diamond(xy, UFDRNum::SHAPE_SIDE, false);
             }
             Shape::Square => {
-                draw_shapes.draw_square(xy, UFDRNumber::SHAPE_SIDE, true);
-                draw_shapes.draw_square(xy, UFDRNumber::SHAPE_SIDE, false);
+                draw_shapes.draw_square(xy, UFDRNum::SHAPE_SIDE, true);
+                draw_shapes.draw_square(xy, UFDRNum::SHAPE_SIDE, false);
             }
             Shape::BackSight => {
-                draw_shapes.draw_circle(xy, UFDRNumber::SHAPE_RADIUS, true);
-                draw_shapes.draw_circle(xy, UFDRNumber::SHAPE_RADIUS, false);
-                draw_shapes.draw_plus_sign(xy, UFDRNumber::SHAPE_SIDE);
+                draw_shapes.draw_circle(xy, UFDRNum::SHAPE_RADIUS, true);
+                draw_shapes.draw_circle(xy, UFDRNum::SHAPE_RADIUS, false);
+                draw_shapes.draw_plus_sign(xy, UFDRNum::SHAPE_SIDE);
             }
         }
     }
@@ -185,7 +185,7 @@ impl ColouredShape {
         let distance = delta.hypot();
         match self.shape {
             Shape::Circle | Shape::BackSight => {
-                if distance < UFDRNumber::SHAPE_RADIUS {
+                if distance < UFDRNum::SHAPE_RADIUS {
                     Proximity::Enclosed(distance)
                 } else {
                     Proximity::NotEnclosed(distance)
@@ -194,7 +194,7 @@ impl ColouredShape {
             Shape::Square => {
                 let x = delta.x.abs();
                 let y = delta.y.abs();
-                if x < FDRNumber::SHAPE_HALF_SIDE && y < FDRNumber::SHAPE_HALF_SIDE {
+                if x < FDRNum::SHAPE_HALF_SIDE && y < FDRNum::SHAPE_HALF_SIDE {
                     Proximity::Enclosed(distance)
                 } else {
                     Proximity::NotEnclosed(distance)
@@ -202,9 +202,9 @@ impl ColouredShape {
             }
             Shape::Diamond => {
                 // Rotate 45 degrees
-                let x = ((delta.x - delta.y) * FDRNumber::SIN_45).abs();
-                let y = ((delta.x + delta.y) * FDRNumber::SIN_45).abs();
-                if x < FDRNumber::SHAPE_HALF_SIDE && y < FDRNumber::SHAPE_HALF_SIDE {
+                let x = ((delta.x - delta.y) * FDRNum::SIN_45).abs();
+                let y = ((delta.x + delta.y) * FDRNum::SIN_45).abs();
+                if x < FDRNum::SHAPE_HALF_SIDE && y < FDRNum::SHAPE_HALF_SIDE {
                     Proximity::Enclosed(distance)
                 } else {
                     Proximity::NotEnclosed(distance)
@@ -248,17 +248,17 @@ impl Eq for ColouredShape {}
 
 pub trait Graticule {
     fn draw_rings(num_rings: u8, zoom: &Zoom, draw_shapes: &impl DrawShapes) {
-        draw_shapes.set_line_width(UFDRNumber::from(0.01));
+        draw_shapes.set_line_width(UFDRNum::from(0.01));
         draw_shapes.set_line_colour(&HCV::WHITE); // * UFDRNumber::from(0.25));
         let centre = Point::default();
         for num in 1..=num_rings {
-            let radius: UFDRNumber = UFDRNumber::ONE * num as i32 / num_rings as i32;
+            let radius: UFDRNum = UFDRNum::ONE * num as i32 / num_rings as i32;
             draw_shapes.draw_circle(centre, radius * zoom.scale(), false);
         }
     }
 
-    fn draw_spokes(start_ring: UFDRNumber, zoom: &Zoom, draw_shapes: &impl DrawShapes) {
-        draw_shapes.set_line_width(UFDRNumber::from(0.015));
+    fn draw_spokes(start_ring: UFDRNum, zoom: &Zoom, draw_shapes: &impl DrawShapes) {
+        draw_shapes.set_line_width(UFDRNum::from(0.015));
         for hue in Hue::PRIMARIES
             .iter()
             .chain(Hue::SECONDARIES.iter())
@@ -267,14 +267,14 @@ pub trait Graticule {
             draw_shapes.set_line_colour(&hue.max_chroma_hcv());
             let angle = hue.angle();
             let start: Point = (angle, start_ring).into();
-            let end: Point = (angle, UFDRNumber::ONE).into();
+            let end: Point = (angle, UFDRNum::ONE).into();
             draw_shapes.draw_line(&[start * zoom.scale(), end * zoom.scale()]);
         }
     }
 
     fn draw_graticule(&self, zoom: &Zoom, draw_shapes: &impl DrawShapes) {
         draw_shapes.set_background_colour(&HCV::new_grey(Value::ONE / 2));
-        Self::draw_spokes(UFDRNumber::from(0.1), zoom, draw_shapes);
+        Self::draw_spokes(UFDRNum::from(0.1), zoom, draw_shapes);
         Self::draw_rings(10, zoom, draw_shapes);
     }
 }

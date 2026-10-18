@@ -9,7 +9,7 @@ use std::{
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
+    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
     hue::{Hue, HueBasics},
 };
 
@@ -49,7 +49,7 @@ impl Chroma {
         }
     }
 
-    pub fn is_valid_re(self, hue: Hue, sum: UFDRNumber) -> bool {
+    pub fn is_valid_re(self, hue: Hue, sum: UFDRNum) -> bool {
         debug_assert!(sum.is_valid_sum());
         match self {
             Chroma::Neither(_) => sum == hue.sum_for_max_chroma(),
@@ -84,8 +84,8 @@ impl Default for Chroma {
     }
 }
 
-impl From<(Prop, Hue, UFDRNumber)> for Chroma {
-    fn from((prop, hue, sum): (Prop, Hue, UFDRNumber)) -> Self {
+impl From<(Prop, Hue, UFDRNum)> for Chroma {
+    fn from((prop, hue, sum): (Prop, Hue, UFDRNum)) -> Self {
         match prop {
             Prop::ZERO => Chroma::ZERO,
             Prop::ONE => Chroma::ONE,
@@ -354,8 +354,8 @@ impl From<Warmth> for Prop {
 
 impl IntoProp for Warmth {}
 
-impl_to_from_number!(UFDRNumber, u128, Warmth);
-impl_to_from_number!(FDRNumber, i128, Warmth);
+impl_to_from_number!(UFDRNum, u128, Warmth);
+impl_to_from_number!(FDRNum, i128, Warmth);
 
 #[derive(
     Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default, Debug,
@@ -393,11 +393,11 @@ impl Div<i32> for Value {
 }
 
 impl Mul<i32> for Value {
-    type Output = UFDRNumber;
+    type Output = UFDRNum;
 
-    fn mul(self, rhs: i32) -> UFDRNumber {
+    fn mul(self, rhs: i32) -> UFDRNum {
         debug_assert!(rhs >= 0);
-        UFDRNumber(self.0 as u128 * rhs as u128)
+        UFDRNum(self.0 as u128 * rhs as u128)
     }
 }
 
@@ -418,8 +418,8 @@ impl From<Value> for Prop {
 
 impl IntoProp for Value {}
 
-impl_to_from_number!(UFDRNumber, u128, Value);
-impl_to_from_number!(FDRNumber, i128, Value);
+impl_to_from_number!(UFDRNum, u128, Value);
+impl_to_from_number!(FDRNum, i128, Value);
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Family {

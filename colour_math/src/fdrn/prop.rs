@@ -9,7 +9,7 @@ use std::{
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNumber, UFDRNumber,
+    FDRNum, UFDRNum,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -23,7 +23,7 @@ impl Prop {
     pub(crate) const HALF: Self = Self(u64::MAX / 2);
 
     pub fn weighted_average(props: &[(Self, u32)]) -> Self {
-        let mut total = UFDRNumber::default();
+        let mut total = UFDRNum::default();
         let mut count = 0i32;
 
         for (prop, parts) in props {
@@ -155,12 +155,12 @@ macro_rules! impl_to_from_number {
     };
 }
 
-impl_to_from_number!(UFDRNumber, u128, Prop);
-impl_to_from_number!(FDRNumber, i128, Prop);
+impl_to_from_number!(UFDRNum, u128, Prop);
+impl_to_from_number!(FDRNum, i128, Prop);
 
-impl IntoProp for UFDRNumber {}
+impl IntoProp for UFDRNum {}
 
-impl IntoProp for FDRNumber {}
+impl IntoProp for FDRNum {}
 
 #[macro_export]
 macro_rules! impl_unsigned_to_from_prop {
@@ -212,26 +212,26 @@ impl Mul for Prop {
 }
 
 impl Mul<u8> for Prop {
-    type Output = UFDRNumber;
+    type Output = UFDRNum;
 
-    fn mul(self, rhs: u8) -> UFDRNumber {
-        UFDRNumber(self.0 as u128 * rhs as u128)
+    fn mul(self, rhs: u8) -> UFDRNum {
+        UFDRNum(self.0 as u128 * rhs as u128)
     }
 }
 
 impl Mul<u32> for Prop {
-    type Output = UFDRNumber;
+    type Output = UFDRNum;
 
-    fn mul(self, rhs: u32) -> UFDRNumber {
-        UFDRNumber(self.0 as u128 * rhs as u128)
+    fn mul(self, rhs: u32) -> UFDRNum {
+        UFDRNum(self.0 as u128 * rhs as u128)
     }
 }
 
 impl Mul<i32> for Prop {
-    type Output = UFDRNumber;
+    type Output = UFDRNum;
 
-    fn mul(self, rhs: i32) -> UFDRNumber {
-        UFDRNumber(self.0 as u128 * TryInto::<u32>::try_into(rhs).unwrap() as u128)
+    fn mul(self, rhs: i32) -> UFDRNum {
+        UFDRNum(self.0 as u128 * TryInto::<u32>::try_into(rhs).unwrap() as u128)
     }
 }
 
@@ -272,10 +272,10 @@ impl Div<i32> for Prop {
 }
 
 impl Add for Prop {
-    type Output = UFDRNumber;
+    type Output = UFDRNum;
 
-    fn add(self, rhs: Self) -> UFDRNumber {
-        UFDRNumber(self.0 as u128 + rhs.0 as u128)
+    fn add(self, rhs: Self) -> UFDRNum {
+        UFDRNum(self.0 as u128 + rhs.0 as u128)
     }
 }
 
@@ -288,15 +288,15 @@ impl Sub for Prop {
     }
 }
 
-impl Add<Prop> for UFDRNumber {
+impl Add<Prop> for UFDRNum {
     type Output = Self;
 
-    fn add(self, rhs: Prop) -> UFDRNumber {
-        UFDRNumber(self.0 + rhs.0 as u128)
+    fn add(self, rhs: Prop) -> UFDRNum {
+        UFDRNum(self.0 + rhs.0 as u128)
     }
 }
 
-impl Sub<Prop> for UFDRNumber {
+impl Sub<Prop> for UFDRNum {
     type Output = Self;
 
     fn sub(self, rhs: Prop) -> Self {
@@ -305,7 +305,7 @@ impl Sub<Prop> for UFDRNumber {
     }
 }
 
-impl Div<Prop> for UFDRNumber {
+impl Div<Prop> for UFDRNum {
     type Output = Self;
 
     fn div(self, rhs: Prop) -> Self {
@@ -320,7 +320,7 @@ impl Div<Prop> for UFDRNumber {
     }
 }
 
-impl Mul<Prop> for UFDRNumber {
+impl Mul<Prop> for UFDRNum {
     type Output = Self;
 
     fn mul(self, rhs: Prop) -> Self {
@@ -337,7 +337,7 @@ impl Mul<Prop> for UFDRNumber {
     }
 }
 
-impl Mul<u8> for UFDRNumber {
+impl Mul<u8> for UFDRNum {
     type Output = Self;
 
     fn mul(self, rhs: u8) -> Self {

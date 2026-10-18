@@ -3,7 +3,7 @@
 use crate::{
     attributes::Chroma,
     debug::ApproxEq,
-    fdrn::{IntoProp, Prop, UFDRNumber},
+    fdrn::{IntoProp, Prop, UFDRNum},
     hcv::*,
     hue::{angle::*, Hue, HueBasics},
     manipulator::{ColourManipulator, SetHuePolicy},
@@ -111,7 +111,7 @@ fn decr_chroma() {
             } else {
                 Prop::ZERO
             };
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNumber::TWO);
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO);
             if manipulator.hcv.chroma() > Chroma::ZERO {
                 assert_eq!(manipulator.hcv.hue(), saved_hue);
             }
@@ -119,7 +119,7 @@ fn decr_chroma() {
         if !clamped {
             assert!(manipulator.hcv.is_grey());
             assert_eq!(manipulator.hcv.chroma(), Chroma::ZERO);
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNumber::TWO, Prop(0x10));
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, Prop(0x10));
             assert_eq!(manipulator.hcv.hue(), None);
             assert_eq!(manipulator.saved_hue, saved_hue.unwrap());
         }

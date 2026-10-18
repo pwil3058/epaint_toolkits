@@ -6,7 +6,7 @@ use gtk3_ext::cairo;
 
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, Prop, UFDRNumber, HCV,
+    ColourBasics, Prop, UFDRNum, HCV,
 };
 
 #[derive(Debug, Default, Copy, Clone)]
@@ -215,7 +215,7 @@ impl<'a> Draw for Drawer<'a> {
         self.text_colour.set(colour.into_proportions().into());
     }
 
-    fn set_line_width(&self, width: UFDRNumber) {
+    fn set_line_width(&self, width: UFDRNum) {
         self.cairo_context.set_line_width(width.into());
     }
 
@@ -232,7 +232,7 @@ impl<'a> Draw for Drawer<'a> {
         }
     }
 
-    fn draw_text(&self, text: &str, posn: beigui::TextPosn, font_size: UFDRNumber) {
+    fn draw_text(&self, text: &str, posn: beigui::TextPosn, font_size: UFDRNum) {
         if text.is_empty() {
             return;
         }
@@ -304,7 +304,7 @@ impl<'a> DrawShapes for Drawer<'a> {
         self.cairo_context.paint().expect("couldn't paint");
     }
 
-    fn draw_circle(&self, centre: beigui::Point, radius: UFDRNumber, fill: bool) {
+    fn draw_circle(&self, centre: beigui::Point, radius: UFDRNum, fill: bool) {
         const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
         self.cairo_context
             .arc(centre.x.into(), centre.y.into(), radius.into(), 0.0, TWO_PI);

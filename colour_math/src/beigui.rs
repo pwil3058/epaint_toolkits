@@ -1,8 +1,8 @@
-// Copyright 2021 Peter Williams <pwil3058@gmail.com> <pwil3058@bigpond.net.au>
+// Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::ops::{Add, Mul, Sub};
 
 use crate::{
-    fdrn::{FDRNumber, Prop, UFDRNumber},
+    fdrn::{FDRNum, Prop, UFDRNum},
     hcv::HCV,
     hue::angle::Angle,
     ColourBasics,
@@ -16,14 +16,14 @@ pub mod hue_wheel;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Point {
-    pub x: FDRNumber,
-    pub y: FDRNumber,
+    pub x: FDRNum,
+    pub y: FDRNum,
 }
 
 impl Point {
-    pub fn hypot(self) -> UFDRNumber {
+    pub fn hypot(self) -> UFDRNum {
         let arg = self.x * self.x + self.y * self.y;
-        UFDRNumber::from(f64::from(arg).sqrt())
+        UFDRNum::from(f64::from(arg).sqrt())
     }
 }
 
@@ -49,11 +49,11 @@ impl Sub for Point {
     }
 }
 
-impl Mul<UFDRNumber> for Point {
+impl Mul<UFDRNum> for Point {
     type Output = Self;
 
-    fn mul(self, uscale: UFDRNumber) -> Self {
-        let scale: FDRNumber = uscale.into();
+    fn mul(self, uscale: UFDRNum) -> Self {
+        let scale: FDRNum = uscale.into();
         Self {
             x: self.x.mul(scale),
             y: self.y.mul(scale),
@@ -61,8 +61,8 @@ impl Mul<UFDRNumber> for Point {
     }
 }
 
-impl From<[FDRNumber; 2]> for Point {
-    fn from(array: [FDRNumber; 2]) -> Self {
+impl From<[FDRNum; 2]> for Point {
+    fn from(array: [FDRNum; 2]) -> Self {
         Self {
             x: array[0],
             y: array[1],
@@ -70,19 +70,19 @@ impl From<[FDRNumber; 2]> for Point {
     }
 }
 
-impl From<(Angle, UFDRNumber)> for Point {
-    fn from((angle, radius): (Angle, UFDRNumber)) -> Self {
+impl From<(Angle, UFDRNum)> for Point {
+    fn from((angle, radius): (Angle, UFDRNum)) -> Self {
         Self {
-            x: FDRNumber::from(radius) * angle.cos(),
-            y: FDRNumber::from(radius) * angle.sin(),
+            x: FDRNum::from(radius) * angle.cos(),
+            y: FDRNum::from(radius) * angle.sin(),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Size {
-    pub width: UFDRNumber,
-    pub height: UFDRNumber,
+    pub width: UFDRNum,
+    pub height: UFDRNum,
 }
 
 impl Size {
@@ -91,8 +91,8 @@ impl Size {
     }
 }
 
-impl From<[UFDRNumber; 2]> for Size {
-    fn from(array: [UFDRNumber; 2]) -> Self {
+impl From<[UFDRNum; 2]> for Size {
+    fn from(array: [UFDRNum; 2]) -> Self {
         Self {
             width: array[0],
             height: array[1],
@@ -124,10 +124,10 @@ pub trait Draw {
     fn set_line_colour(&self, colour: &impl ColourBasics);
     fn set_text_colour(&self, colour: &impl ColourBasics);
 
-    fn set_line_width(&self, width: UFDRNumber);
+    fn set_line_width(&self, width: UFDRNum);
 
     fn draw_line(&self, line: &[Point]);
-    fn draw_text(&self, text: &str, posn: TextPosn, font_size: UFDRNumber);
+    fn draw_text(&self, text: &str, posn: TextPosn, font_size: UFDRNum);
 
     fn paint_linear_gradient(&self, posn: Point, size: Size, colour_stops: &[(HCV, Prop)]);
 }
@@ -137,12 +137,12 @@ pub trait DrawIsosceles: Draw {
         &self,
         centre: Point,
         dirn: Dirn,
-        base: UFDRNumber,
-        height: UFDRNumber,
+        base: UFDRNum,
+        height: UFDRNum,
         fill: bool,
     ) {
-        let half_base = FDRNumber::from(base / 2);
-        let half_height = FDRNumber::from(height / 2);
+        let half_base = FDRNum::from(base / 2);
+        let half_height = FDRNum::from(height / 2);
         let points = match dirn {
             Dirn::Up => vec![
                 Point {
@@ -207,10 +207,10 @@ pub trait DrawIsosceles: Draw {
 
 pub trait DrawShapes: DrawIsosceles {
     fn set_background_colour(&self, colour: &impl ColourBasics);
-    fn draw_circle(&self, centre: Point, radius: UFDRNumber, fill: bool);
+    fn draw_circle(&self, centre: Point, radius: UFDRNum, fill: bool);
 
-    fn draw_diamond(&self, centre: Point, side_length: UFDRNumber, fill: bool) {
-        let dist = FDRNumber::from(side_length / 2);
+    fn draw_diamond(&self, centre: Point, side_length: UFDRNum, fill: bool) {
+        let dist = FDRNum::from(side_length / 2);
         let points = vec![
             Point {
                 x: centre.x,
@@ -232,8 +232,8 @@ pub trait DrawShapes: DrawIsosceles {
         self.draw_polygon(&points, fill);
     }
 
-    fn draw_square(&self, centre: Point, side_length: UFDRNumber, fill: bool) {
-        let half_side = FDRNumber::from(side_length / 2);
+    fn draw_square(&self, centre: Point, side_length: UFDRNum, fill: bool) {
+        let half_side = FDRNum::from(side_length / 2);
         let points = vec![
             Point {
                 x: centre.x - half_side,
@@ -255,9 +255,9 @@ pub trait DrawShapes: DrawIsosceles {
         self.draw_polygon(&points, fill);
     }
 
-    fn draw_equilateral(&self, centre: Point, dirn: Dirn, side_length: UFDRNumber, fill: bool) {
-        let half_base = FDRNumber::from(side_length / 2);
-        let half_height = FDRNumber::from(side_length * UFDRNumber::SQRT_3 / 4);
+    fn draw_equilateral(&self, centre: Point, dirn: Dirn, side_length: UFDRNum, fill: bool) {
+        let half_base = FDRNum::from(side_length / 2);
+        let half_height = FDRNum::from(side_length * UFDRNum::SQRT_3 / 4);
         let points = match dirn {
             Dirn::Up => vec![
                 Point {
@@ -319,8 +319,8 @@ pub trait DrawShapes: DrawIsosceles {
         self.draw_polygon(&points, fill);
     }
 
-    fn draw_plus_sign(&self, centre: Point, side_length: UFDRNumber) {
-        let half_side = FDRNumber::from(side_length / 2);
+    fn draw_plus_sign(&self, centre: Point, side_length: UFDRNum) {
+        let half_side = FDRNum::from(side_length / 2);
         let points = vec![
             Point {
                 x: centre.x,

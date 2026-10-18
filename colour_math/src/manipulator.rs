@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use crate::{
-    fdrn::{Prop, UFDRNumber},
+    fdrn::{Prop, UFDRNum},
     hcv::HCV,
     hue::Hue,
     hue::{angle::Angle, ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility},
@@ -310,7 +310,7 @@ impl ColourManipulator {
         }
     }
 
-    pub fn set_sum(&mut self, new_sum: UFDRNumber, policy: SetScalarPolicy) -> Outcome {
+    pub fn set_sum(&mut self, new_sum: UFDRNum, policy: SetScalarPolicy) -> Outcome {
         debug_assert!(self.hcv.is_valid());
         debug_assert!(new_sum.is_valid_sum());
         let cur_sum = self.hcv.sum;
@@ -377,13 +377,13 @@ impl ColourManipulator {
 
     pub fn decr_value(&mut self, delta: Prop) -> bool {
         debug_assert!(self.hcv.is_valid());
-        if self.hcv.sum == UFDRNumber::ZERO {
+        if self.hcv.sum == UFDRNum::ZERO {
             false
         } else {
             let new_sum = if delta * 3 < self.hcv.sum {
                 self.hcv.sum - delta * 3
             } else {
-                UFDRNumber::ZERO
+                UFDRNum::ZERO
             };
             let policy = if self.clamped {
                 SetScalarPolicy::Clamp
@@ -402,13 +402,13 @@ impl ColourManipulator {
 
     pub fn incr_value(&mut self, delta: Prop) -> bool {
         debug_assert!(self.hcv.is_valid());
-        if self.hcv.sum == UFDRNumber::THREE {
+        if self.hcv.sum == UFDRNum::THREE {
             false
         } else {
-            let new_sum = if delta * 3 < UFDRNumber::THREE - self.hcv.sum {
+            let new_sum = if delta * 3 < UFDRNum::THREE - self.hcv.sum {
                 self.hcv.sum + delta * 3
             } else {
-                UFDRNumber::THREE
+                UFDRNum::THREE
             };
             let policy = if self.clamped {
                 SetScalarPolicy::Clamp
@@ -456,7 +456,7 @@ impl ColourManipulator {
                                 new_hue.sum_range_for_chroma_prop(c_prop)
                             {
                                 if self.hcv.sum < min_sum {
-                                    new_hue.trim_overs(min_sum + UFDRNumber(2), c_prop)
+                                    new_hue.trim_overs(min_sum + UFDRNum(2), c_prop)
                                 } else if self.hcv.sum > max_sum {
                                     new_hue.trim_overs(max_sum, c_prop)
                                 } else {

@@ -5,7 +5,7 @@
 use colour_math::{
     ColourBasics,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fdrn::UFDRNumber,
+    fdrn::UFDRNum,
 };
 use eframe::egui;
 use std::cell::Cell;
@@ -85,11 +85,7 @@ impl<'a> EguiDrawer<'a> {
 impl<'a> Draw for EguiDrawer<'a> {
     fn size(&self) -> colour_math::beigui::Size {
         let size = self.rect.size();
-        [
-            UFDRNumber::from(size.x as f64),
-            UFDRNumber::from(size.y as f64),
-        ]
-        .into()
+        [UFDRNum::from(size.x as f64), UFDRNum::from(size.y as f64)].into()
     }
 
     fn set_fill_colour(&self, colour: &impl ColourBasics) {
@@ -104,7 +100,7 @@ impl<'a> Draw for EguiDrawer<'a> {
         self.text_colour.set(Self::to_egui_color(colour));
     }
 
-    fn set_line_width(&self, width: UFDRNumber) {
+    fn set_line_width(&self, width: UFDRNum) {
         if self.rect.height() < 32.0 {
             self.line_width.set(f64::from(width) as f32);
         } else {
@@ -137,7 +133,7 @@ impl<'a> Draw for EguiDrawer<'a> {
         }
     }
 
-    fn draw_text(&self, text: &str, posn: TextPosn, font_size: UFDRNumber) {
+    fn draw_text(&self, text: &str, posn: TextPosn, font_size: UFDRNum) {
         if text.is_empty() {
             return;
         }
@@ -229,7 +225,7 @@ impl<'a> DrawShapes for EguiDrawer<'a> {
             .rect_filled(self.canvas_rect, 0.0, Self::to_egui_color(colour));
     }
 
-    fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNumber, fill: bool) {
+    fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNum, fill: bool) {
         let screen_center = self.to_egui_pos(centre);
         let screen_radius = if self.rect.height() < 32.0 {
             f64::from(radius)

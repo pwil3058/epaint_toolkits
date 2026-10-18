@@ -22,7 +22,7 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
+    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{

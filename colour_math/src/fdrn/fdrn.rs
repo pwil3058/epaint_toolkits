@@ -9,7 +9,7 @@ use std::{
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    UFDRNumber,
+    UFDRNum,
 };
 
 #[macro_export]
@@ -30,10 +30,10 @@ macro_rules! impl_to_from_float {
 }
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct FDRNumber(pub(crate) i128);
+pub struct FDRNum(pub(crate) i128);
 
 // NB: ONE is the same value as for UFDRNumber
-impl FDRNumber {
+impl FDRNum {
     pub const ZERO: Self = Self(0);
     // u64::MAX: 18446744073709551615
     pub const ONE: Self = Self(u64::MAX as i128);
@@ -59,16 +59,16 @@ impl FDRNumber {
         self >= Self::ZERO && self <= Self::ONE
     }
 
-    pub fn abs_diff(&self, other: &Self) -> FDRNumber {
+    pub fn abs_diff(&self, other: &Self) -> FDRNum {
         match self.cmp(other) {
-            Ordering::Greater => FDRNumber(self.0 - other.0),
-            Ordering::Less => FDRNumber(other.0 - self.0),
-            Ordering::Equal => FDRNumber(0),
+            Ordering::Greater => FDRNum(self.0 - other.0),
+            Ordering::Less => FDRNum(other.0 - self.0),
+            Ordering::Equal => FDRNum(0),
         }
     }
 }
 
-impl Debug for FDRNumber {
+impl Debug for FDRNum {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let int = self.0 / u64::MAX as i128;
         let frac = self.0 % u64::MAX as i128;
@@ -77,14 +77,14 @@ impl Debug for FDRNumber {
     }
 }
 
-impl fmt::UpperHex for FDRNumber {
+impl fmt::UpperHex for FDRNum {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         fmt::UpperHex::fmt(&self.0, formatter)
     }
 }
 
 #[cfg(test)]
-impl FDRNumber {
+impl FDRNum {
     pub fn approx_eq(&self, other: &Self, acceptable_rounding_error: Option<u64>) -> bool {
         let abs_diff = self.abs_diff(other);
         let scaled_diff = if self.0.abs() >= other.0.abs() {
@@ -104,15 +104,15 @@ impl FDRNumber {
     }
 }
 
-impl Div for FDRNumber {
+impl Div for FDRNum {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self {
         if rhs == Self::ONE {
             self
         } else {
-            let val: Self = UFDRNumber::from(self.abs())
-                .div(UFDRNumber::from(rhs.abs()))
+            let val: Self = UFDRNum::from(self.abs())
+                .div(UFDRNum::from(rhs.abs()))
                 .into();
             if self.0.is_negative() {
                 if rhs.0.is_negative() {
@@ -129,7 +129,7 @@ impl Div for FDRNumber {
     }
 }
 
-impl Div<i32> for FDRNumber {
+impl Div<i32> for FDRNum {
     type Output = Self;
 
     fn div(self, rhs: i32) -> Self {
@@ -137,7 +137,7 @@ impl Div<i32> for FDRNumber {
     }
 }
 
-impl Add for FDRNumber {
+impl Add for FDRNum {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
@@ -145,7 +145,7 @@ impl Add for FDRNumber {
     }
 }
 
-impl Sub for FDRNumber {
+impl Sub for FDRNum {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
@@ -153,7 +153,7 @@ impl Sub for FDRNumber {
     }
 }
 
-impl Neg for FDRNumber {
+impl Neg for FDRNum {
     type Output = Self;
 
     fn neg(self) -> Self {
@@ -161,12 +161,12 @@ impl Neg for FDRNumber {
     }
 }
 
-impl Mul for FDRNumber {
+impl Mul for FDRNum {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
-        let val: Self = UFDRNumber::from(self.abs())
-            .mul(UFDRNumber::from(rhs.abs()))
+        let val: Self = UFDRNum::from(self.abs())
+            .mul(UFDRNum::from(rhs.abs()))
             .into();
         if self.0.is_negative() {
             if rhs.0.is_negative() {
@@ -182,7 +182,7 @@ impl Mul for FDRNumber {
     }
 }
 
-impl Mul<i32> for FDRNumber {
+impl Mul<i32> for FDRNum {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self {
@@ -190,38 +190,38 @@ impl Mul<i32> for FDRNumber {
     }
 }
 
-impl From<UFDRNumber> for FDRNumber {
-    fn from(unsigned: UFDRNumber) -> Self {
+impl From<UFDRNum> for FDRNum {
+    fn from(unsigned: UFDRNum) -> Self {
         Self(unsigned.0 as i128)
     }
 }
 
-impl_to_from_float!(f64, i128, FDRNumber);
-impl_to_from_float!(f32, i128, FDRNumber);
+impl_to_from_float!(f64, i128, FDRNum);
+impl_to_from_float!(f32, i128, FDRNum);
 
 macro_rules! impl_to_from_signed {
     (i128) => {
-        impl From<i128> for FDRNumber {
+        impl From<i128> for FDRNum {
             fn from(signed: i128) -> Self {
                 Self(signed)
             }
         }
 
-        impl From<FDRNumber> for i128 {
-            fn from(arg: FDRNumber) -> Self {
+        impl From<FDRNum> for i128 {
+            fn from(arg: FDRNum) -> Self {
                 arg.0
             }
         }
     };
     ($signed:ty) => {
-        impl From<$signed> for FDRNumber {
+        impl From<$signed> for FDRNum {
             fn from(signed: $signed) -> Self {
                 Self(signed as i128 * u64::MAX as *const () as i128)
             }
         }
 
-        impl From<FDRNumber> for $signed {
-            fn from(arg: FDRNumber) -> Self {
+        impl From<FDRNum> for $signed {
+            fn from(arg: FDRNum) -> Self {
                 (arg.0 / u64::MAX as i128) as $signed
             }
         }

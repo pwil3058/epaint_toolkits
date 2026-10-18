@@ -3,7 +3,7 @@
 use crate::{
     attributes::{Chroma, Greyness, Value, Warmth},
     beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
-    fdrn::{FDRNumber, IntoProp, Prop, UFDRNumber},
+    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
     hcv::HCV,
     hue::{Hue, HueIfce},
     ColourBasics, HueConstants, RGBConstants, ScalarAttribute,
@@ -46,8 +46,8 @@ pub trait ColourAttributeDisplayIfce {
             let indicator_x = size.width * attr_value;
             drawer.set_fill_colour(&self.attr_value_fg_colour());
             drawer.set_line_colour(&self.attr_value_fg_colour());
-            let base: UFDRNumber = UFDRNumber::ONE * 8;
-            let height: UFDRNumber = UFDRNumber::ONE * 6;
+            let base: UFDRNum = UFDRNum::ONE * 8;
+            let height: UFDRNum = UFDRNum::ONE * 6;
             drawer.draw_isosceles(
                 [indicator_x.into(), (height / 2).into()].into(),
                 Dirn::Up,
@@ -68,12 +68,12 @@ pub trait ColourAttributeDisplayIfce {
     fn draw_target_attr_value_indicator(&self, drawer: &impl Draw) {
         if let Some(attr_value) = self.attr_target_value() {
             let size = drawer.size();
-            let indicator_x: FDRNumber = (size.width * attr_value).into();
-            drawer.set_line_width(UFDRNumber::ONE * 2);
+            let indicator_x: FDRNum = (size.width * attr_value).into();
+            drawer.set_line_width(UFDRNum::ONE * 2);
             drawer.set_line_colour(&self.attr_target_value_fg_colour());
             drawer.draw_line(&[
-                [indicator_x, FDRNumber::ONE].into(),
-                [indicator_x, FDRNumber::from(size.height) - FDRNumber::ONE].into(),
+                [indicator_x, FDRNum::ONE].into(),
+                [indicator_x, FDRNum::from(size.height) - FDRNum::ONE].into(),
             ]);
         }
     }
@@ -81,7 +81,7 @@ pub trait ColourAttributeDisplayIfce {
     fn draw_label(&self, drawer: &impl Draw) {
         if !Self::LABEL.is_empty() {
             let posn = TextPosn::Centre(drawer.size().centre());
-            let font_size = UFDRNumber::ONE * 15;
+            let font_size = UFDRNum::ONE * 15;
             drawer.set_text_colour(&self.label_colour());
             drawer.draw_text(Self::LABEL, posn, font_size);
         }
@@ -173,7 +173,7 @@ impl HueCAD {
     }
 
     fn calc_hue_value(hue: Hue, target_hue: Hue) -> Prop {
-        ((FDRNumber::ONE + FDRNumber::from(target_hue - hue) / 180) / 2).into()
+        ((FDRNum::ONE + FDRNum::from(target_hue - hue) / 180) / 2).into()
     }
 }
 

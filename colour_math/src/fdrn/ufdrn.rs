@@ -9,20 +9,20 @@ use std::{
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    impl_to_from_float, FDRNumber, Prop,
+    impl_to_from_float, FDRNum, Prop,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct UFDRNumber(pub(crate) u128);
+pub struct UFDRNum(pub(crate) u128);
 
-impl UFDRNumber {
+impl UFDRNum {
     pub const ZERO: Self = Self(0);
     pub const ONE: Self = Self(u64::MAX as u128);
     pub const TWO: Self = Self(u64::MAX as u128 * 2);
     pub const THREE: Self = Self(u64::MAX as u128 * 3);
 
-    pub const SQRT_2: Self = Self(FDRNumber::SQRT_2.0 as u128);
-    pub const SQRT_3: Self = Self(FDRNumber::SQRT_3.0 as u128);
+    pub const SQRT_2: Self = Self(FDRNum::SQRT_2.0 as u128);
+    pub const SQRT_3: Self = Self(FDRNum::SQRT_3.0 as u128);
 
     pub fn is_valid_sum(self) -> bool {
         self <= Self::THREE
@@ -45,14 +45,14 @@ impl UFDRNumber {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{UFDRNumber, debug::*};
+    /// use colour_math::{UFDRNum, debug::*};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// let four: UFDRNumber = UFDRNumber::ONE * 4;
-    /// let two: UFDRNumber = UFDRNumber::ONE * 2;
+    /// let four: UFDRNum = UFDRNum::ONE * 4;
+    /// let two: UFDRNum = UFDRNum::ONE * 2;
     /// assert_approx_eq!(four.sqrt(), two);
-    /// let twenty_five: UFDRNumber = UFDRNumber::ONE * 25;
-    /// let five: UFDRNumber = UFDRNumber::ONE * 5;
+    /// let twenty_five: UFDRNum = UFDRNum::ONE * 25;
+    /// let five: UFDRNum = UFDRNum::ONE * 5;
     /// assert_approx_eq!(twenty_five.sqrt(), five);
     /// ```
     pub fn sqrt(self) -> Self {
@@ -62,7 +62,7 @@ impl UFDRNumber {
     }
 }
 
-impl Debug for UFDRNumber {
+impl Debug for UFDRNum {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let int = self.0 / u64::MAX as u128;
         let frac = self.0 % u64::MAX as u128;
@@ -70,21 +70,21 @@ impl Debug for UFDRNumber {
     }
 }
 
-impl fmt::UpperHex for UFDRNumber {
+impl fmt::UpperHex for UFDRNum {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         fmt::UpperHex::fmt(&self.0, formatter)
     }
 }
 
-impl AbsDiff for UFDRNumber {}
+impl AbsDiff for UFDRNum {}
 
-impl PropDiff for UFDRNumber {
+impl PropDiff for UFDRNum {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
         if self.is_proportion() && other.is_proportion() {
             Some(self.abs_diff(other).into())
         } else {
             let denom = self.max(other);
-            if *denom == UFDRNumber::ZERO {
+            if *denom == UFDRNum::ZERO {
                 Some(Prop::ZERO)
             } else {
                 Some(Prop::from(self.abs_diff(other) / *denom))
@@ -93,19 +93,19 @@ impl PropDiff for UFDRNumber {
     }
 }
 
-impl ApproxEq for UFDRNumber {}
+impl ApproxEq for UFDRNum {}
 
-impl From<FDRNumber> for UFDRNumber {
-    fn from(signed: FDRNumber) -> Self {
+impl From<FDRNum> for UFDRNum {
+    fn from(signed: FDRNum) -> Self {
         debug_assert!(signed.0 >= 0);
         Self(signed.0 as u128)
     }
 }
 
-impl_to_from_float!(f64, u128, UFDRNumber);
-impl_to_from_float!(f32, u128, UFDRNumber);
+impl_to_from_float!(f64, u128, UFDRNum);
+impl_to_from_float!(f32, u128, UFDRNum);
 
-impl From<i32> for UFDRNumber {
+impl From<i32> for UFDRNum {
     fn from(signed: i32) -> Self {
         debug_assert!(signed > 0);
         Self(signed as u128 * u64::MAX as u128)
@@ -114,27 +114,27 @@ impl From<i32> for UFDRNumber {
 
 macro_rules! impl_to_from_unsigned {
     (u128) => {
-        impl From<u128> for UFDRNumber {
+        impl From<u128> for UFDRNum {
             fn from(unsigned: u128) -> Self {
                 Self(unsigned)
             }
         }
 
-        impl From<UFDRNumber> for u128 {
-            fn from(arg: UFDRNumber) -> Self {
+        impl From<UFDRNum> for u128 {
+            fn from(arg: UFDRNum) -> Self {
                 arg.0
             }
         }
     };
     ($unsigned:ty) => {
-        impl From<$unsigned> for UFDRNumber {
+        impl From<$unsigned> for UFDRNum {
             fn from(unsigned: $unsigned) -> Self {
                 Self(unsigned as u128 * u64::MAX as *const () as u128)
             }
         }
 
-        impl From<UFDRNumber> for $unsigned {
-            fn from(arg: UFDRNumber) -> Self {
+        impl From<UFDRNum> for $unsigned {
+            fn from(arg: UFDRNum) -> Self {
                 (arg.0 / u64::MAX as u128) as $unsigned
             }
         }
@@ -147,7 +147,7 @@ impl_to_from_unsigned!(u32);
 impl_to_from_unsigned!(u64);
 impl_to_from_unsigned!(u128);
 
-impl Add for UFDRNumber {
+impl Add for UFDRNum {
     type Output = Self;
 
     fn add(self, rhs: Self) -> Self {
@@ -155,13 +155,13 @@ impl Add for UFDRNumber {
     }
 }
 
-impl AddAssign for UFDRNumber {
+impl AddAssign for UFDRNum {
     fn add_assign(&mut self, rhs: Self) {
         *self = (*self + rhs).into()
     }
 }
 
-impl Sub for UFDRNumber {
+impl Sub for UFDRNum {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self {
@@ -170,7 +170,7 @@ impl Sub for UFDRNumber {
     }
 }
 
-impl Mul for UFDRNumber {
+impl Mul for UFDRNum {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
@@ -183,7 +183,7 @@ impl Mul for UFDRNumber {
     }
 }
 
-impl Mul<i32> for UFDRNumber {
+impl Mul<i32> for UFDRNum {
     type Output = Self;
 
     fn mul(self, rhs: i32) -> Self {
@@ -192,7 +192,7 @@ impl Mul<i32> for UFDRNumber {
     }
 }
 
-impl Div for UFDRNumber {
+impl Div for UFDRNum {
     type Output = Self;
 
     fn div(self, rhs: Self) -> Self {
@@ -207,7 +207,7 @@ impl Div for UFDRNumber {
     }
 }
 
-impl Div<i32> for UFDRNumber {
+impl Div<i32> for UFDRNum {
     type Output = Self;
 
     fn div(self, rhs: i32) -> Self {
@@ -216,7 +216,7 @@ impl Div<i32> for UFDRNumber {
     }
 }
 
-impl Rem for UFDRNumber {
+impl Rem for UFDRNum {
     type Output = Self;
 
     fn rem(self, rhs: Self) -> Self {
@@ -224,7 +224,7 @@ impl Rem for UFDRNumber {
     }
 }
 
-impl Rem<i32> for UFDRNumber {
+impl Rem<i32> for UFDRNum {
     type Output = Self;
 
     fn rem(self, rhs: i32) -> Self {

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::{
-    fdrn::{Prop, UFDRNumber},
+    fdrn::{Prop, UFDRNum},
     hcv::HCV,
     rgb::RGB,
     ColourBasics, LightLevel,
@@ -9,9 +9,9 @@ use crate::{
 
 #[derive(Default, Debug)]
 pub struct SubtractiveMixer {
-    red: UFDRNumber,
-    green: UFDRNumber,
-    blue: UFDRNumber,
+    red: UFDRNum,
+    green: UFDRNum,
+    blue: UFDRNum,
     total_parts: u64,
 }
 
@@ -22,9 +22,9 @@ impl SubtractiveMixer {
 
     pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
         let [red, green, blue] = <[Prop; 3]>::from(colour.hcv());
-        self.red = self.red + UFDRNumber(red.0 as u128 * parts as u128);
-        self.green = self.green + UFDRNumber(green.0 as u128 * parts as u128);
-        self.blue = self.blue + UFDRNumber(blue.0 as u128 * parts as u128);
+        self.red = self.red + UFDRNum(red.0 as u128 * parts as u128);
+        self.green = self.green + UFDRNum(green.0 as u128 * parts as u128);
+        self.blue = self.blue + UFDRNum(blue.0 as u128 * parts as u128);
         self.total_parts += parts;
     }
 
@@ -44,9 +44,9 @@ impl SubtractiveMixer {
     }
 
     pub fn reset(&mut self) {
-        self.red = UFDRNumber::ZERO;
-        self.green = UFDRNumber::ZERO;
-        self.blue = UFDRNumber::ZERO;
+        self.red = UFDRNum::ZERO;
+        self.green = UFDRNum::ZERO;
+        self.blue = UFDRNum::ZERO;
         self.total_parts = 0;
     }
 }
