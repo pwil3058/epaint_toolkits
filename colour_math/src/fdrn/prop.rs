@@ -1,10 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::ops::{AddAssign, Neg};
 use std::{
     cmp::Ordering,
     fmt::{self, Debug, Formatter},
-    ops::{Add, Div, Mul, Rem, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Serialize};
@@ -23,6 +22,10 @@ impl Prop {
 
     pub(crate) const ALMOST_ONE: Self = Self(u64::MAX - 1);
     pub(crate) const HALF: Self = Self(u64::MAX / 2);
+
+    pub fn from_fraction(enumerator: u64, denominator: u64) -> Self {
+        Self(((enumerator as u128) * (u64::MAX as u128) / (denominator as u128)) as u64)
+    }
 
     pub fn weighted_average(props: &[(Self, u32)]) -> Self {
         let mut total = UFDRNum::default();
@@ -47,7 +50,7 @@ impl Prop {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{Prop, debug::*};
+    /// use colour_math::{Prop, debug::ApproxEq};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// let one_quarter: Prop = Prop::ONE / 4;
@@ -338,11 +341,3 @@ impl Mul<Prop> for UFDRNum {
         }
     }
 }
-
-// impl Mul<u8> for UFDRNum {
-//     type Output = Self;
-//
-//     fn mul(self, rhs: u8) -> Self {
-//         Self(self.0 * rhs as u128)
-//     }
-// }

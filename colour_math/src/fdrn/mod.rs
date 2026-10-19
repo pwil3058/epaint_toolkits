@@ -2,6 +2,7 @@
 
 pub mod macros;
 
+pub mod debug;
 pub mod fdrn;
 pub mod prop;
 pub mod ufdrn;

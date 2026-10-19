@@ -420,7 +420,7 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
 /// ```
 /// use colour_math::{UFDRNum, FDRNum};
 ///
-/// // assert_eq!(-UFDRNum::ONE, FDRNum::MINUS_ONE);
+/// assert_eq!(-UFDRNum::ONE, FDRNum::MINUS_ONE);
 /// ```
 impl Neg for UFDRNum {
     type Output = FDRNum;

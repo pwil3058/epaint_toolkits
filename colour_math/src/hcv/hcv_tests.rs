@@ -81,11 +81,11 @@ fn round_trip_from_to_rgb_constants() {
         .chain(RGB::<u64>::IN_BETWEENS.iter())
     {
         let [red, green, blue] = rgb.into_proportions(); //<[Prop; 3]>::from(rgb);
-        let rgb_in: RGB<u64> = rgb.rgb::<u64>(); //[red, green, blue].into();
+        let rgb_in: RGB<u64> = RGB::<u64>::from_proportions([red, green, blue]); //[red, green, blue].into();
         let hcv = HCV::from(&rgb_in);
         let rgb_out = RGB::<u64>::from(&hcv);
         assert_eq!(rgb_in, rgb_out);
-        let rgb_in: RGB<u8> = rgb.rgb::<u8>(); //[red, green, blue].into();
+        let rgb_in: RGB<u8> = RGB::<u8>::from_proportions([red, green, blue]); //[red, green, blue].into();
         let hcv = HCV::from(&rgb_in);
         let rgb_out = RGB::<u8>::from(&hcv);
         assert_eq!(rgb_in, rgb_out);

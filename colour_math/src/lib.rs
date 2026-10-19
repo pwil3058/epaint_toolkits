@@ -20,7 +20,10 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{FDRNum, Float, IntoProp, Prop, UFDRNum, Unsigned, UnsignedInteger},
+    fdrn::{
+        debug, FDRNum, Float, IntoProp, Prop, Signed, SignedInteger, UFDRNum, Unsigned,
+        UnsignedInteger,
+    },
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{
@@ -34,7 +37,6 @@ pub use crate::{
 pub mod attributes;
 pub mod beigui;
 pub mod cmy;
-pub mod debug;
 pub mod fdrn;
 pub mod hcv;
 pub mod hue;
