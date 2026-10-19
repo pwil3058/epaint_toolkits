@@ -20,7 +20,7 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum, Unsigned, UnsignedInteger},
+    fdrn::{FDRNum, Float, IntoProp, Prop, UFDRNum, Unsigned, UnsignedInteger},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{

@@ -139,7 +139,7 @@ impl ColourManipulator {
                                 hue.adjusted_favouring_sum(self.hcv.sum, clamped_new_c_prop)
                             {
                                 if c_prop == Prop::ZERO {
-                                    HCV::new_grey((sum / 3).into())
+                                    HCV::new_grey((sum / 3u8).into())
                                 } else {
                                     match HCV::try_new(Some((hue, c_prop)), sum) {
                                         Ok(hcv) => hcv,
@@ -147,7 +147,7 @@ impl ColourManipulator {
                                     }
                                 }
                             } else {
-                                HCV::new_grey((self.hcv.sum / 3).into())
+                                HCV::new_grey((self.hcv.sum / 3u8).into())
                             };
                             if cur_c_prop == self.hcv.c_prop {
                                 Outcome::NoChange
@@ -163,7 +163,7 @@ impl ColourManipulator {
                             hue.adjusted_favouring_chroma(self.hcv.sum, new_c_prop)
                         {
                             if c_prop == Prop::ZERO {
-                                self.hcv = HCV::new_grey((self.hcv.sum / 3).into());
+                                self.hcv = HCV::new_grey((self.hcv.sum / 3u8).into());
                             } else {
                                 self.hcv = match HCV::try_new(Some((hue, c_prop)), sum) {
                                     Ok(hcv) => hcv,
@@ -171,7 +171,7 @@ impl ColourManipulator {
                                 };
                             }
                         } else {
-                            self.hcv = HCV::new_grey((self.hcv.sum / 3).into())
+                            self.hcv = HCV::new_grey((self.hcv.sum / 3u8).into())
                         }
                         if cur_c_prop == self.hcv.c_prop {
                             Outcome::NoChange
@@ -238,7 +238,7 @@ impl ColourManipulator {
                             Err(hcv) => hcv,
                         };
                     } else {
-                        self.hcv = HCV::new_grey((self.hcv.sum / 3).into())
+                        self.hcv = HCV::new_grey((self.hcv.sum / 3u8).into())
                     }
                     if cur_c_prop == self.hcv.c_prop {
                         Outcome::NoChange
@@ -337,7 +337,7 @@ impl ColourManipulator {
                                 Err(hcv) => hcv,
                             };
                         } else {
-                            self.hcv = HCV::new_grey((new_sum / 3).into());
+                            self.hcv = HCV::new_grey((new_sum / 3u8).into());
                         };
                         if cur_sum == self.hcv.sum {
                             Outcome::NoChange
@@ -354,7 +354,7 @@ impl ColourManipulator {
                                 Err(hcv) => hcv,
                             };
                         } else {
-                            self.hcv = HCV::new_grey((new_sum / 3).into());
+                            self.hcv = HCV::new_grey((new_sum / 3u8).into());
                         }
                         if cur_sum == self.hcv.sum {
                             Outcome::NoChange
@@ -366,7 +366,7 @@ impl ColourManipulator {
                 }
             }
         } else {
-            self.hcv = HCV::new_grey((new_sum / 3).into());
+            self.hcv = HCV::new_grey((new_sum / 3u8).into());
             if cur_sum == self.hcv.sum {
                 Outcome::NoChange
             } else {
@@ -471,7 +471,7 @@ impl ColourManipulator {
                                 }
                             } else {
                                 self.saved_hue = new_hue;
-                                HCV::new_grey((self.hcv.sum / 3).into())
+                                HCV::new_grey((self.hcv.sum / 3u8).into())
                             }
                         }
                         SetHuePolicy::FavourValue => {

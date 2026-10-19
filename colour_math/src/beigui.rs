@@ -87,7 +87,7 @@ pub struct Size {
 
 impl Size {
     pub fn centre(&self) -> Point {
-        [(self.width / 2).into(), (self.height / 2).into()].into()
+        [(self.width / 2u8).into(), (self.height / 2u8).into()].into()
     }
 }
 
@@ -141,8 +141,8 @@ pub trait DrawIsosceles: Draw {
         height: UFDRNum,
         fill: bool,
     ) {
-        let half_base = FDRNum::from(base / 2);
-        let half_height = FDRNum::from(height / 2);
+        let half_base = FDRNum::from(base / 2u8);
+        let half_height = FDRNum::from(height / 2u8);
         let points = match dirn {
             Dirn::Up => vec![
                 Point {
@@ -210,7 +210,7 @@ pub trait DrawShapes: DrawIsosceles {
     fn draw_circle(&self, centre: Point, radius: UFDRNum, fill: bool);
 
     fn draw_diamond(&self, centre: Point, side_length: UFDRNum, fill: bool) {
-        let dist = FDRNum::from(side_length / 2);
+        let dist = FDRNum::from(side_length / 2u8);
         let points = vec![
             Point {
                 x: centre.x,
@@ -233,7 +233,7 @@ pub trait DrawShapes: DrawIsosceles {
     }
 
     fn draw_square(&self, centre: Point, side_length: UFDRNum, fill: bool) {
-        let half_side = FDRNum::from(side_length / 2);
+        let half_side = FDRNum::from(side_length / 2u8);
         let points = vec![
             Point {
                 x: centre.x - half_side,
@@ -256,8 +256,8 @@ pub trait DrawShapes: DrawIsosceles {
     }
 
     fn draw_equilateral(&self, centre: Point, dirn: Dirn, side_length: UFDRNum, fill: bool) {
-        let half_base = FDRNum::from(side_length / 2);
-        let half_height = FDRNum::from(side_length * UFDRNum::SQRT_3 / 4);
+        let half_base = FDRNum::from(side_length / 2u8);
+        let half_height = FDRNum::from(side_length * UFDRNum::SQRT_3 / 4u8);
         let points = match dirn {
             Dirn::Up => vec![
                 Point {
@@ -320,7 +320,7 @@ pub trait DrawShapes: DrawIsosceles {
     }
 
     fn draw_plus_sign(&self, centre: Point, side_length: UFDRNum) {
-        let half_side = FDRNum::from(side_length / 2);
+        let half_side = FDRNum::from(side_length / 2u8);
         let points = vec![
             Point {
                 x: centre.x,

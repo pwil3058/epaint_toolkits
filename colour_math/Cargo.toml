@@ -11,7 +11,6 @@ edition = "2021"
 num-traits.workspace = true
 regex.workspace = true
 serde.workspace = true
-#serde_derive.workspace = true
 
 # crates from my github account
 approximately_equal.workspace = true

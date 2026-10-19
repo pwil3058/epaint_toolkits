@@ -168,7 +168,7 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
     }
 
     fn value(&self) -> Value {
-        (self.sum() / 3).into()
+        (self.sum() / 3u8).into()
     }
 
     fn warmth(&self) -> Warmth {

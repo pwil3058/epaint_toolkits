@@ -65,7 +65,7 @@ pub(crate) trait SumChromaCompatibility: HueBasics {
         if let Some((min_sum, max_sum)) = self.sum_range_for_chroma_prop(c_prop) {
             sum >= min_sum
                 && sum <= max_sum
-                && (sum - self.sum_for_max_chroma() * c_prop) % 3 == UFDRNum::ZERO
+                && (sum - self.sum_for_max_chroma() * c_prop) % 3u8 == UFDRNum::ZERO
         } else {
             false
         }
@@ -101,7 +101,7 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
         match self.sum_for_max_chroma() * c_prop {
             min_sum if sum >= min_sum => {
                 debug_assert!(self.sum_and_chroma_prop_are_compatible(sum, c_prop));
-                let third = (sum - min_sum) / 3;
+                let third = (sum - min_sum) / 3u8;
                 let first = third + c_prop;
                 if first.is_proportion() {
                     let second = sum - first - third;
@@ -260,7 +260,7 @@ pub(crate) trait ColourModificationHelpers: HueBasics + Debug + Sized {
         match self.sum_for_max_chroma() * c_prop {
             UFDRNum::ZERO => None,
             min_sum if sum < min_sum => Some((c_prop, min_sum)),
-            min_sum => match sum - (sum - min_sum) % 3 {
+            min_sum => match sum - (sum - min_sum) % 3u8 {
                 UFDRNum::ZERO => None,
                 sum => Some((c_prop, sum)),
             },
@@ -415,7 +415,7 @@ impl HueBasics for RGBHue {
                 Ordering::Less => Some(Chroma::Shade(sum.into_prop())),
                 Ordering::Greater => {
                     // NB: make sure it doesn't round to one or zero
-                    let c_prop = ((UFDRNum::THREE - sum) / 2)
+                    let c_prop = ((UFDRNum::THREE - sum) / 2u8)
                         .into_prop()
                         .min(Prop::ALMOST_ONE)
                         .max(Prop(1));
@@ -451,7 +451,7 @@ impl OrderedTriplets for RGBHue {
         match c_prop {
             Prop::ZERO => None,
             min_sum if sum >= min_sum.into() => {
-                let third = (sum - min_sum) / 3;
+                let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if first > UFDRNum::ONE => None,
                     first => {
@@ -607,7 +607,7 @@ impl HueBasics for CMYHue {
             match sum.cmp(&UFDRNum::TWO) {
                 Ordering::Equal => Some(Chroma::ONE),
                 // TODO: fix max chroma for sum (more complicated for uneven sums)
-                Ordering::Less => Some(Chroma::Shade((sum / 2).into_prop().max(Prop(1)))),
+                Ordering::Less => Some(Chroma::Shade((sum / 2u8).into_prop().max(Prop(1)))),
                 Ordering::Greater => Some(Chroma::Tint((UFDRNum::THREE - sum).into_prop())),
             }
         } else {
@@ -640,7 +640,7 @@ impl OrderedTriplets for CMYHue {
         match c_prop * 2 {
             UFDRNum::ZERO => None,
             min_sum if sum >= min_sum => {
-                let third = (sum - min_sum) / 3;
+                let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if first > UFDRNum::ONE => None,
                     first => match sum - first - third {
@@ -933,7 +933,7 @@ impl OrderedTriplets for SextantHue {
         match self.sum_for_max_chroma() * c_prop {
             UFDRNum::ZERO => None,
             min_sum if sum >= min_sum => {
-                let third = (sum - min_sum) / 3;
+                let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if !first.is_proportion() => None,
                     first => {
@@ -985,7 +985,7 @@ impl SumChromaCompatibility for SextantHue {
         match c_prop + self.1 * c_prop {
             min_sum if sum < min_sum || min_sum == UFDRNum::ZERO => false,
             min_sum => {
-                let third = (sum - min_sum) / 3;
+                let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if first.is_proportion() => {
                         let second = sum - first - third;
@@ -1034,13 +1034,13 @@ impl SextantHue {
             sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
         }
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
-            && (first + second + third - sum_for_max_chroma * (first - third)) / 3 < third.into()
+            && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8 < third.into()
         {
             sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
         }
         debug_assert!(sum_for_max_chroma > UFDRNum::ONE && sum_for_max_chroma < UFDRNum::TWO);
         debug_assert_eq!(
-            (first + second + third - sum_for_max_chroma * (first - third)) / 3,
+            (first + second + third - sum_for_max_chroma * (first - third)) / 3u8,
             third.into()
         );
         (sum_for_max_chroma - UFDRNum::ONE).into_prop()

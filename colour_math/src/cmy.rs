@@ -8,7 +8,6 @@ use crate::{
     debug::*, Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, LightLevel, Prop,
     RGBConstants, Value, Warmth, HCV, RGB,
 };
-use approximately_equal::*;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct CMY<L: LightLevel>([L; 3]);
@@ -294,6 +293,7 @@ impl CMYSubtractiveMix {
 #[cfg(test)]
 mod cmy_tests {
     use super::*;
+    use approximately_equal::assert_approx_eq;
 
     #[test]
     fn rgb_to_cmy() {

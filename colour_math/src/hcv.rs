@@ -41,7 +41,7 @@ impl HCV {
                     Err(triplet) => Err(HCV::from(triplet)),
                 },
                 None => {
-                    debug_assert!(c_prop == Prop::ZERO && sum % 3 == UFDRNum::ZERO);
+                    debug_assert!(c_prop == Prop::ZERO && sum % 3u8 == UFDRNum::ZERO);
                     Ok(Self {
                         hue: None,
                         c_prop: Prop::ZERO,
@@ -50,7 +50,7 @@ impl HCV {
                 }
             }
         } else {
-            debug_assert!(sum % 3 == UFDRNum::ZERO);
+            debug_assert!(sum % 3u8 == UFDRNum::ZERO);
             Ok(Self {
                 hue: None,
                 c_prop: Prop::ZERO,
@@ -60,7 +60,7 @@ impl HCV {
     }
 
     pub(crate) fn new_grey_sum(sum: UFDRNum) -> Self {
-        debug_assert!(sum % 3 == UFDRNum::ZERO);
+        debug_assert!(sum % 3u8 == UFDRNum::ZERO);
         Self {
             hue: None,
             c_prop: Prop::ZERO,
@@ -282,7 +282,7 @@ impl From<HCV> for [Prop; 3] {
             hue.rgb_ordered_triplet(hcv.sum, hcv.c_prop)
                 .expect("Invalid Hue")
         } else {
-            let value: Prop = (hcv.sum / 3).into();
+            let value: Prop = (hcv.sum / 3u8).into();
             [value, value, value]
         }
     }
@@ -355,7 +355,7 @@ impl ColourBasics for HCV {
     }
 
     fn value(&self) -> Value {
-        (self.sum / 3).into()
+        (self.sum / 3u8).into()
     }
 
     fn warmth(&self) -> Warmth {
@@ -431,7 +431,7 @@ impl ManipulatedColour for HCV {
                     Err(hcv) => hcv,
                 }
             } else {
-                HCV::new_grey((new_sum / 3).into())
+                HCV::new_grey((new_sum / 3u8).into())
             }
         } else {
             *self
@@ -460,7 +460,7 @@ impl ManipulatedColour for HCV {
                     Err(hcv) => hcv,
                 }
             } else {
-                HCV::new_grey((new_sum / 3).into())
+                HCV::new_grey((new_sum / 3u8).into())
             }
         } else {
             *self

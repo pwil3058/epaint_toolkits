@@ -56,7 +56,7 @@ pub trait ColourAttributeDisplayIfce {
                 true,
             );
             drawer.draw_isosceles(
-                [indicator_x.into(), (size.height - height / 2).into()].into(),
+                [indicator_x.into(), (size.height - height / 2u8).into()].into(),
                 Dirn::Down,
                 base,
                 height,
