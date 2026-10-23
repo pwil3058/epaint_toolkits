@@ -9,12 +9,15 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+use fixed_denominator_rational_numbers::{
+    debug::{AbsDiff, ApproxEq, PropDiff},
+    FDRNum, IntoAsProp, Prop, UFDRNum,
+};
+
 pub mod angle;
 
 use crate::{
     attributes::{Chroma, Family, Warmth},
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,

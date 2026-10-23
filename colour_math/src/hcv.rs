@@ -7,10 +7,11 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
+use fixed_denominator_rational_numbers::{IntoAsProp, Prop, UFDRNum};
+
 use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    fdrn::{IntoProp, Prop, UFDRNum},
     hue::{
         angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
         RGBHue, Sextant, SumChromaCompatibility,

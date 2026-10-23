@@ -8,12 +8,19 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
-    hue::{Hue, HueBasics},
+    impl_into_as_prop, impl_into_from_as_prop_number, AsProportion, FDRNum, FromAsProp, IntoAsProp,
+    Prop, UFDRNum,
 };
-use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
+
+use crate::HueConstants;
+use crate::{
+    // debug::{AbsDiff, ApproxEq, PropDiff},
+    // fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
+    hue::{Hue, HueBasics},
+    IsValidSum,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {
@@ -27,7 +34,7 @@ impl Chroma {
     pub const ONE: Self = Self::Neither(Prop::ONE);
 
     pub fn is_zero(self) -> bool {
-        self.into_prop() == Prop::ZERO
+        self.into_as_prop() == Prop::ZERO
     }
 
     pub fn is_shade(self) -> bool {
@@ -65,20 +72,19 @@ impl Chroma {
     }
 
     pub fn abs_diff(&self, other: &Self) -> Prop {
-        self.into_prop().abs_diff(&other.into_prop())
+        self.into_as_prop().abs_diff(&other.into_as_prop())
     }
 }
 
-impl From<Chroma> for Prop {
-    fn from(chroma: Chroma) -> Prop {
+impl FromAsProp<Chroma> for Prop {
+    fn from_as_prop(chroma: Chroma) -> Prop {
         use Chroma::*;
         match chroma {
             Shade(proportion) | Tint(proportion) | Neither(proportion) => proportion,
         }
     }
 }
-
-impl IntoProp for Chroma {}
+impl_into_as_prop!(Prop, Chroma);
 
 impl Default for Chroma {
     fn default() -> Self {
@@ -173,24 +179,23 @@ impl Greyness {
     }
 
     pub fn is_zero(&self) -> bool {
-        self.into_prop() == Prop::ZERO
+        self.into_as_prop() == Prop::ZERO
     }
 
     pub fn abs_diff(&self, other: &Self) -> Prop {
-        self.into_prop().abs_diff(&other.into_prop())
+        self.into_as_prop().abs_diff(&other.into_as_prop())
     }
 }
 
-impl From<Greyness> for Prop {
-    fn from(greyness: Greyness) -> Prop {
+impl FromAsProp<Greyness> for Prop {
+    fn from_as_prop(greyness: Greyness) -> Prop {
         use Greyness::*;
         match greyness {
             Shade(proportion) | Tint(proportion) | Neither(proportion) => proportion,
         }
     }
 }
-
-impl IntoProp for Greyness {}
+impl_into_as_prop!(Prop, Greyness);
 
 impl Default for Greyness {
     fn default() -> Self {
@@ -278,7 +283,7 @@ impl Warmth {
     pub const ONE: Self = Self(u64::MAX);
 
     pub fn calculate_monochrome(value: Value) -> Self {
-        ((Prop::ONE - Prop::from(value)) / 2_u32).into()
+        ((Prop::ONE - Prop::from_as_prop(value)) / 2_u32).into_as_prop()
     }
 
     pub fn abs_diff(&self, other: &Self) -> Warmth {
@@ -309,7 +314,8 @@ impl Mul<Prop> for Warmth {
     type Output = Self;
 
     fn mul(self, rhs: Prop) -> Self::Output {
-        Self(((self.0 as u128 * rhs.0 as u128) / u64::MAX as u128) as u64)
+        Self((Prop::from_as_prop(self) * rhs).into_as_prop())
+        // Self(((self.0 as u128 * rhs.0 as u128) / u64::MAX as u128) as u64)
     }
 }
 
@@ -333,31 +339,43 @@ impl Add for Warmth {
 
 impl PropDiff for Warmth {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
-        Some(self.abs_diff(other).into_prop())
+        Some(self.abs_diff(other).into_as_prop())
     }
 }
 
 impl ApproxEq for Warmth {}
 
-impl_prop_to_from_float!(f32, Warmth);
-impl_prop_to_from_float!(f64, Warmth);
-
-impl From<Prop> for Warmth {
-    fn from(prop: Prop) -> Self {
-        Self(prop.0)
+impl FromAsProp<f64> for Warmth {
+    fn from_as_prop(value: f64) -> Self {
+        debug_assert!(value >= 0.0 && value <= 1.0);
+        Self((value * u64::MAX as f64) as u64)
     }
 }
+impl_into_as_prop!(Warmth, f64);
 
-impl From<Warmth> for Prop {
-    fn from(warmth: Warmth) -> Self {
-        Self(warmth.0)
+impl FromAsProp<Warmth> for f64 {
+    fn from_as_prop(warmth: Warmth) -> Self {
+        warmth.0 as f64 / u64::MAX as f64
     }
 }
+impl_into_as_prop!(f64, Warmth);
 
-impl IntoProp for Warmth {}
+impl FromAsProp<Prop> for Warmth {
+    fn from_as_prop(prop: Prop) -> Self {
+        Self(u64::from_as_prop(prop))
+    }
+}
+impl_into_as_prop!(Warmth, Prop);
 
-impl_to_from_number!(UFDRNum, u128, Warmth);
-impl_to_from_number!(FDRNum, i128, Warmth);
+impl FromAsProp<Warmth> for Prop {
+    fn from_as_prop(warmth: Warmth) -> Self {
+        Self::from_as_prop(warmth.0)
+    }
+}
+impl_into_as_prop!(Prop, Warmth);
+
+impl_into_from_as_prop_number!(UFDRNum, u128, Warmth);
+impl_into_from_as_prop_number!(FDRNum, i128, Warmth);
 
 #[derive(
     Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default, Debug,
@@ -403,25 +421,37 @@ impl Mul<i32> for Value {
     }
 }
 
-impl_prop_to_from_float!(f32, Value);
-impl_prop_to_from_float!(f64, Value);
+impl FromAsProp<f64> for Value {
+    fn from_as_prop(value: f64) -> Self {
+        debug_assert!(value >= 0.0 && value <= 1.0);
+        Self((value * u64::MAX as f64) as u64)
+    }
+}
+impl_into_as_prop!(Value, f64);
 
-impl From<Prop> for Value {
-    fn from(prop: Prop) -> Self {
+impl FromAsProp<Value> for f64 {
+    fn from_as_prop(value: Value) -> Self {
+        value.0 as f64 / u64::MAX as f64
+    }
+}
+impl_into_as_prop!(f64, Value);
+
+impl FromAsProp<Prop> for Value {
+    fn from_as_prop(prop: Prop) -> Self {
         Self(prop.0)
     }
 }
+impl_into_as_prop!(Value, Prop);
 
-impl From<Value> for Prop {
-    fn from(value: Value) -> Self {
+impl FromAsProp<Value> for Prop {
+    fn from_as_prop(value: Value) -> Self {
         Self(value.0)
     }
 }
+impl_into_as_prop!(Prop, Value);
 
-impl IntoProp for Value {}
-
-impl_to_from_number!(UFDRNum, u128, Value);
-impl_to_from_number!(FDRNum, i128, Value);
+impl_into_from_as_prop_number!(UFDRNum, u128, Value);
+impl_into_from_as_prop_number!(FDRNum, i128, Value);
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Family {

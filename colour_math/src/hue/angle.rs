@@ -7,7 +7,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{fdrn::FDRNum, HueConstants};
+use fixed_denominator_rational_numbers::{debug::*, FDRNum, Prop, UFDRNum};
+
+use crate::HueConstants;
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Angle(i64);
@@ -197,8 +199,8 @@ impl From<Angle> for FDRNum {
 #[cfg(test)]
 mod angle_tests {
     use super::*;
-    use crate::debug::ApproxEq;
     use approximately_equal::assert_approx_eq;
+    use fixed_denominator_rational_numbers::debug::ApproxEq;
 
     #[test]
     fn convert() {

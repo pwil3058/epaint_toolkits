@@ -4,6 +4,10 @@ use std::fmt::{Debug, LowerHex, UpperHex};
 
 use serde::{Deserialize, Serialize};
 
+use fixed_denominator_rational_numbers::{
+    AsProportion, FDRNum, FromAsProp, IntoAsProp, Prop, UFDRNum, Unsigned,
+};
+
 use hue::HueIfce;
 
 pub use crate::{
@@ -20,10 +24,10 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{
-        debug, FDRNum, Float, IntoProp, Prop, Signed, SignedInteger, UFDRNum, Unsigned,
-        UnsignedInteger,
-    },
+    // fdrn::{
+    //     debug, FDRNum, Float, FromAsProp, IntoAsProp, IntoProp, Prop, Signed, SignedInteger,
+    //     UFDRNum, Unsigned, UnsignedInteger,
+    // },
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{
@@ -37,7 +41,7 @@ pub use crate::{
 pub mod attributes;
 pub mod beigui;
 pub mod cmy;
-pub mod fdrn;
+// pub mod fdrn;
 pub mod hcv;
 pub mod hue;
 pub mod manipulator;
@@ -50,8 +54,8 @@ pub mod useful_consts;
 pub trait LightLevel:
     Clone
     + Copy
-    + From<Prop>
-    + Into<Prop>
+    + FromAsProp<Prop>
+    + IntoAsProp<Prop>
     + PartialEq
     + Debug
     + Default
@@ -61,8 +65,7 @@ pub trait LightLevel:
     + Ord
     + UpperHex
     + LowerHex
-    + std::ops::Sub<Output = Self>
-    + std::ops::Div<Output = Self>
+    + std::ops::Sub<Output = Self> // + std::ops::Div<Output = Self>
 {
     const ZERO: Self;
     const ONE: Self;
@@ -153,6 +156,36 @@ pub trait RGBConstants: HueConstants + Copy {
         Self::LIGHT_GREY,
         Self::WHITE,
     ];
+}
+
+pub trait IsValidSum {
+    fn is_valid_sum(self) -> bool {
+        self >= Self::ZERO && self <= Self::ONE * 3
+    }
+
+    fn is_hue_valid(self) -> bool {
+        self > Self::ZERO && self < Self::ONE * 3
+    }
+}
+
+impl IsValidSum for UFDRNum {
+    fn is_valid_sum(self) -> bool {
+        self >= Self::ZERO && self <= Self::ONE * 3
+    }
+
+    fn is_hue_valid(self) -> bool {
+        self > Self::ZERO && self < Self::ONE * 3
+    }
+}
+
+impl IsValidSum for FDRNum {
+    fn is_valid_sum(self) -> bool {
+        self >= Self::ZERO && self <= Self::ONE * 3
+    }
+
+    fn is_hue_valid(self) -> bool {
+        self > Self::ZERO && self < Self::ONE * 3
+    }
 }
 
 pub trait FromProps {

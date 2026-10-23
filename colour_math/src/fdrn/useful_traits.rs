@@ -8,7 +8,9 @@ pub trait Unsigned: Copy + Debug {
     const ZERO: Self;
     const MIN: Self = Self::ZERO;
 }
-pub trait UnsignedInteger: Unsigned + Into<u128> {}
+pub trait UnsignedInteger: Unsigned + Into<u128> + Into<u64> {
+    fn from_u64(val: u64) -> Option<Self>;
+}
 
 impl Unsigned for u8 {
     const MAX: Self = u8::MAX;
@@ -30,16 +32,51 @@ impl Unsigned for u64 {
     const ZERO: Self = 0;
 }
 
-impl Unsigned for u128 {
-    const MAX: Self = u128::MAX;
-    const ZERO: Self = 0;
+// impl Unsigned for u128 {
+//     const MAX: Self = u128::MAX;
+//     const ZERO: Self = 0;
+// }
+
+impl UnsignedInteger for u8 {
+    fn from_u64(val: u64) -> Option<Self> {
+        if val > Self::MAX.into() {
+            None
+        } else {
+            Some(val as Self)
+        }
+    }
 }
 
-impl UnsignedInteger for u8 {}
-impl UnsignedInteger for u16 {}
-impl UnsignedInteger for u32 {}
-impl UnsignedInteger for u64 {}
-impl UnsignedInteger for u128 {}
+impl UnsignedInteger for u16 {
+    fn from_u64(val: u64) -> Option<Self> {
+        if val > Self::MAX.into() {
+            None
+        } else {
+            Some(val as Self)
+        }
+    }
+}
+
+impl UnsignedInteger for u32 {
+    fn from_u64(val: u64) -> Option<Self> {
+        if val > Self::MAX.into() {
+            None
+        } else {
+            Some(val as Self)
+        }
+    }
+}
+
+impl UnsignedInteger for u64 {
+    fn from_u64(val: u64) -> Option<Self> {
+        if val > Self::MAX.into() {
+            None
+        } else {
+            Some(val as Self)
+        }
+    }
+}
+// impl UnsignedInteger for u128 {}
 
 pub trait Signed: Copy + Debug {}
 pub trait SignedInteger: Signed + Into<i128> {}
@@ -119,10 +156,10 @@ impl Float for f64 {
 //     }
 // }
 
-pub trait AlmostZero {
-    fn almost_zero() -> Self;
-    fn times_almost_zero(times: u128) -> Self;
-}
+// pub trait AlmostZero {
+//     fn almost_zero() -> Self;
+//     fn times_almost_zero(times: u128) -> Self;
+// }
 
 // pub trait ApproxEq: Copy + PartialEq + PartialOrd + Ord + AlmostZero + Sub<Output = Self> {
 //     fn approx_eq(&self, other: &Self, max_diff: Option<u128>) -> bool {

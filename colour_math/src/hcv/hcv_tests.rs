@@ -2,11 +2,9 @@
 use std::convert::From;
 
 use approximately_equal::assert_approx_eq;
+use fixed_denominator_rational_numbers::debug::{ApproxEq, Prop};
 
-use crate::{
-    attributes::Warmth, debug::ApproxEq, hcv::*, ColourBasics, HueConstants, Prop, RGBConstants,
-    RGB,
-};
+use crate::{attributes::Warmth, hcv::*, ColourBasics, HueConstants, RGBConstants, RGB};
 
 #[test]
 fn default_hcv_is_black() {

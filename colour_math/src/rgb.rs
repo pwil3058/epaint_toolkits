@@ -12,11 +12,14 @@ use std::{
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use fixed_denominator_rational_numbers::{
+    debug::{AbsDiff, ApproxEq, PropDiff},
+    FDRNum, FromAsProp, IntoAsProp, Prop, UFDRNum,
+};
+
 use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    debug::{ApproxEq, PropDiff},
-    fdrn::{Prop, UFDRNum},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
@@ -104,7 +107,7 @@ impl<T: LightLevel + Into<Prop>> RGB<T> {
     }
 }
 
-impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
+impl<T: LightLevel> ColourBasics for RGB<T> {
     fn hue(&self) -> Option<Hue> {
         self.try_into().ok()
     }

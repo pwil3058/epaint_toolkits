@@ -44,6 +44,8 @@ gtk3_ext = { git = "https://github.com/pwil3058/rs_pw_gix" }
 approximately_equal = { git = "https://github.com/pwil3058/approximately_equal" }
 path_utilities = { git = "https://github.com/pwil3058/rust_utilities" }
 recollections = { git = "https://github.com/pwil3058/rust_utilities" }
+#fixed_denominator_rational_numbers = { git = "https://github.com/pwil3058/rust_utilities" }
+fixed_denominator_rational_numbers = { path = "../rust_utilities/fixed_denominator_rational_numbers" }
 
 # local crates
 colour_math = { path = "./colour_math" }

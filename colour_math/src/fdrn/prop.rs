@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, UFDRNum,
+    FDRNum, UFDRNum, UnsignedInteger,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -108,12 +108,77 @@ pub trait IntoProp: Sized + Copy + Into<Prop> {
     }
 }
 
+// impl<U: UnsignedInteger> IntoProp for U {
+//     fn into_prop(self) -> Prop {
+//         let val = self.into_u128() * u64::MAX as u128 / Self::MAX as u128;
+//         Self(val as u64)
+//     }
+// }
+
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
         debug_assert!(fraction[1] >= fraction[0]);
         Self(((fraction[0] as u128 * u64::MAX as u128) / fraction[1] as u128) as u64)
     }
 }
+
+pub trait FromAsProp<T: Sized> {
+    fn from_as_prop(value: T) -> Self;
+}
+
+pub trait IntoAsProp<T: FromAsProp<Self>>: Sized {
+    fn into_as_prop(self) -> T {
+        T::from_as_prop(self)
+    }
+}
+
+impl<U: UnsignedInteger> FromAsProp<U> for Prop {
+    /// Convert from an unsigned integer treated as a proportion
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{Prop, UnsignedInteger, FromAsProp, IntoAsProp};
+    ///
+    /// assert_eq!(Prop::from_as_prop(u8::MAX), Prop::ONE);
+    /// assert_eq!(Prop::from_as_prop(0u8), Prop::ZERO);
+    /// let half = Prop::from_as_prop(u8::MAX/ 2);
+    /// assert_eq!(u8::from_as_prop(half), u8::MAX / 2);
+    /// ```
+    fn from_as_prop(unsigned: U) -> Self {
+        let multiplier = u64::MAX / Into::<u64>::into(U::MAX);
+        let val: u64 = Into::<u64>::into(unsigned) * multiplier;
+        Self(val as u64)
+    }
+}
+impl<U: UnsignedInteger> IntoAsProp<Prop> for U {}
+
+impl<U: UnsignedInteger> FromAsProp<Prop> for U {
+    /// Convert to an unsigned integer treated as a Prop
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{Prop, UnsignedInteger, FromAsProp, IntoAsProp};
+    ///
+    /// assert_eq!(u8::from_as_prop(Prop::ONE), u8::MAX);
+    /// assert_eq!(u8::from_as_prop(Prop::ZERO), 0u8);
+    /// let half = u8::from_as_prop(Prop::ONE / 2);
+    /// assert_eq!(Prop::from_as_prop(half), Prop::ONE / 2);
+    /// ```
+    fn from_as_prop(prop: Prop) -> Self {
+        let divisor = u64::MAX / Into::<u64>::into(U::MAX);
+        let val = prop.0 / divisor;
+        U::from_u64(val).expect("value is too large")
+    }
+}
+impl<U: UnsignedInteger> IntoAsProp<U> for Prop {}
+
+// impl<U: UnsignedInteger> FromAsProp<Prop> for U {
+//     fn from_as_prop(prop: Prop) -> Self {
+//         prop.0 as u128 * Self::MAX as u128 / u64::MAX as u128;
+//     }
+// }
 
 #[macro_export]
 macro_rules! impl_prop_to_from_float {

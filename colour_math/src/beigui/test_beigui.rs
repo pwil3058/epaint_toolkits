@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::fdrn::FDRNum;
+use fixed_denominator_rational_numbers::FDRNum;
 
 #[test]
 fn div_by_u8() {

@@ -12,3 +12,6 @@ pub use fdrn::*;
 pub use prop::*;
 pub use ufdrn::*;
 pub use useful_traits::*;
+
+#[cfg(test)]
+mod fdrn_tests;

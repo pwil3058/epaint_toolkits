@@ -159,7 +159,7 @@ impl<U: UnsignedInteger> From<U> for UFDRNum {
     /// assert_eq!(UFDRNum::from(5_u32), UFDRNum::ONE * 5_u8);
     /// ```
     fn from(unsigned: U) -> Self {
-        Self(unsigned.into() * Self::DENOMINATOR)
+        Self(Into::<u128>::into(unsigned) * Self::DENOMINATOR)
     }
 }
 

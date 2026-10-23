@@ -1,9 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use fixed_denominator_rational_numbers::{debug::ApproxEq, IntoAsProp, Prop, UFDRNum};
+
 use crate::{
     attributes::Chroma,
-    debug::ApproxEq,
-    fdrn::{IntoProp, Prop, UFDRNum},
     hcv::*,
     hue::{angle::*, Hue, HueBasics},
     manipulator::{ColourManipulator, SetHuePolicy},
