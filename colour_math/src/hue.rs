@@ -888,7 +888,7 @@ impl HueBasics for SextantHue {
                     let mut temp = sum / (UFDRNum::ONE + self.1);
                     // NB: check for and fix rounding error
                     while sum < (UFDRNum::ONE + self.1) * temp {
-                        temp = temp - UFDRNum(1);
+                        temp -= UFDRNum(1);
                     }
                     Some(Chroma::Shade(temp.into_prop()))
                 }
@@ -1031,12 +1031,12 @@ impl SextantHue {
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
             && sum_for_max_chroma * (first - third) > first + second + third
         {
-            sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
+            sum_for_max_chroma -= UFDRNum(1);
         }
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
             && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8 < third.into()
         {
-            sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
+            sum_for_max_chroma -= UFDRNum(1);
         }
         debug_assert!(sum_for_max_chroma > UFDRNum::ONE && sum_for_max_chroma < UFDRNum::TWO);
         debug_assert_eq!(

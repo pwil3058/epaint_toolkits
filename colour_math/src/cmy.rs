@@ -25,7 +25,7 @@ impl Deref for ComponentMask {
 
 impl ComponentMask {
     pub fn is_valid(&self) -> bool {
-        (self.0 & u8::MAX - 7) == 0
+        (self.0 & (u8::MAX - 7)) == 0
     }
 
     pub fn intersection(self, other: ComponentMask) -> Self {
@@ -173,7 +173,7 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
         CMY::<LO>::from_proportions(self.into_proportions())
     }
 
-    fn into_proportions(&self) -> [Prop; 3] {
+    fn into_proportions(self) -> [Prop; 3] {
         [self[0].into(), self[1].into(), self[2].into()]
     }
 }
@@ -210,7 +210,7 @@ impl CMYSubtractiveMix {
         let triplet: [Prop; 3] = (0..3)
             .map(|i| {
                 Prop::weighted_average(&[
-                    (self.colour[i], self.accumulated_parts as u32),
+                    (self.colour[i], self.accumulated_parts),
                     (colour[i], parts),
                 ])
             })

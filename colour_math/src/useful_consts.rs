@@ -80,7 +80,7 @@ impl UsefulFloatConstants for f32 {
     const SQRT_2: Self = std::f32::consts::SQRT_2;
 
     /// Other values useful in generic float code
-    const SQRT_3: Self = 1.73205_08075_68878;
+    const SQRT_3: Self = 1.73205_08;
     const TWO_PI: Self = std::f32::consts::PI * 2.0;
 }
 

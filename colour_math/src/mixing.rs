@@ -22,9 +22,9 @@ impl SubtractiveMixer {
 
     pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
         let [red, green, blue] = <[Prop; 3]>::from(colour.hcv());
-        self.red = self.red + UFDRNum(red.0 as u128 * parts as u128);
-        self.green = self.green + UFDRNum(green.0 as u128 * parts as u128);
-        self.blue = self.blue + UFDRNum(blue.0 as u128 * parts as u128);
+        self.red += UFDRNum(red.0 as u128 * parts as u128);
+        self.green += UFDRNum(green.0 as u128 * parts as u128);
+        self.blue += UFDRNum(blue.0 as u128 * parts as u128);
         self.total_parts += parts;
     }
 

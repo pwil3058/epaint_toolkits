@@ -192,7 +192,7 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
         CMY::<L>::from_proportions(props)
     }
 
-    fn into_proportions(&self) -> [Prop; 3] {
+    fn into_proportions(self) -> [Prop; 3] {
         [self.0[0].into(), self.0[1].into(), self.0[2].into()]
     }
 }
@@ -255,42 +255,41 @@ impl<T: LightLevel> IndexMut<usize> for RGB<T> {
 }
 
 // Comparisons
-impl<T: LightLevel> PartialOrd for RGB<T>
+impl<T: LightLevel> Ord for RGB<T>
 where
     T: PartialOrd,
 {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+    fn cmp(&self, other: &Self) -> Ordering {
         if self.0 == other.0 {
-            Some(Ordering::Equal)
+            Ordering::Equal
         } else if let Ok(hue) = Hue::try_from(self) {
             if let Ok(other_hue) = Hue::try_from(other) {
                 // This orders via hue from CYAN to CYAN via GREEN, RED, BLUE in that order
                 match hue.cmp(&other_hue) {
                     Ordering::Equal => match self.chroma().cmp(&other.chroma()) {
-                        Ordering::Equal => Some(self.sum().cmp(&self.sum())),
-                        order => Some(order),
+                        Ordering::Equal => self.sum().cmp(&self.sum()),
+                        order => order,
                     },
-                    order => Some(order),
+                    order => order,
                 }
             } else {
-                Some(Ordering::Greater)
+                Ordering::Greater
             }
         } else if Hue::try_from(other).is_ok() {
-            Some(Ordering::Less)
+            Ordering::Less
         } else {
             // No need to look a chroma as it will be zero for both
-            self.sum().partial_cmp(&other.sum())
+            self.sum().cmp(&other.sum())
         }
     }
 }
 
-impl<T: LightLevel> Ord for RGB<T>
+impl<T: LightLevel> PartialOrd for RGB<T>
 where
     T: PartialOrd + Eq,
 {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other)
-            .expect("restricted range of values means this is OK")
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
