@@ -3,7 +3,7 @@
 use crate::{
     attributes::{Chroma, Greyness, Value, Warmth},
     beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
+    fixed_denominator_rational_numbers::{FDRNum, IntoProp, Prop, UFDRNum},
     hcv::HCV,
     hue::{Hue, HueIfce},
     ColourBasics, HueConstants, RGBConstants, ScalarAttribute,

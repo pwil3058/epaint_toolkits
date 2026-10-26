@@ -4,7 +4,7 @@ use std::cmp::Ordering;
 use crate::{
     attributes::Value,
     beigui::{DrawShapes, Point},
-    fdrn::{FDRNum, UFDRNum},
+    fixed_denominator_rational_numbers::{FDRNum, UFDRNum},
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,

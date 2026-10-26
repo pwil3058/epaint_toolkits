@@ -6,7 +6,7 @@ pub mod egui_drawer;
 pub mod widgets;
 
 use colour_math::ColourBasics;
-use colour_math::fdrn::Prop;
+use colour_math::fixed_denominator_rational_numbers::Prop;
 use colour_math::rgb::RGB;
 use eframe::egui;
 

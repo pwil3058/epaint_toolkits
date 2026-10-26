@@ -3,7 +3,7 @@
 use crate::{
     attributes::Chroma,
     debug::ApproxEq,
-    fdrn::{IntoProp, Prop, UFDRNum},
+    fixed_denominator_rational_numbers::{IntoProp, Prop, UFDRNum},
     hcv::*,
     hue::{angle::*, Hue, HueBasics},
     manipulator::{ColourManipulator, SetHuePolicy},

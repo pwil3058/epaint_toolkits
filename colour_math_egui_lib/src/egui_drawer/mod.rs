@@ -5,7 +5,7 @@
 use colour_math::{
     ColourBasics,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fdrn::UFDRNum,
+    fixed_denominator_rational_numbers::UFDRNum,
 };
 use eframe::egui;
 use std::cell::Cell;
@@ -69,7 +69,8 @@ impl<'a> EguiDrawer<'a> {
     }
 
     fn to_egui_color(colour: &impl ColourBasics) -> egui::Color32 {
-        let prop_array = <[colour_math::fdrn::Prop; 3]>::from(colour.hcv());
+        let prop_array =
+            <[colour_math::fixed_denominator_rational_numbers::Prop; 3]>::from(colour.hcv());
         let r_f64 = f64::from(prop_array[0]);
         let g_f64 = f64::from(prop_array[1]);
         let b_f64 = f64::from(prop_array[2]);
@@ -168,7 +169,10 @@ impl<'a> Draw for EguiDrawer<'a> {
         &self,
         _posn: colour_math::beigui::Point,
         _size: colour_math::beigui::Size,
-        colour_stops: &[(colour_math::hcv::HCV, colour_math::fdrn::Prop)],
+        colour_stops: &[(
+            colour_math::hcv::HCV,
+            colour_math::fixed_denominator_rational_numbers::Prop,
+        )],
     ) {
         if colour_stops.is_empty() {
             return;

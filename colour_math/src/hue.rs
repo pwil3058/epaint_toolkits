@@ -14,7 +14,7 @@ pub mod angle;
 use crate::{
     attributes::{Chroma, Family, Warmth},
     debug::{AbsDiff, ApproxEq, PropDiff},
-    fdrn::{FDRNum, IntoProp, Prop, UFDRNum},
+    fixed_denominator_rational_numbers::{FDRNum, IntoProp, Prop, UFDRNum},
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,

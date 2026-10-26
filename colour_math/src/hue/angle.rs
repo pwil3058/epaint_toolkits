@@ -7,7 +7,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{fdrn::FDRNum, HueConstants};
+use crate::{fixed_denominator_rational_numbers::FDRNum, HueConstants};
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Angle(i64);

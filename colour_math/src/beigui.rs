@@ -2,7 +2,7 @@
 use std::ops::{Add, Mul, Sub};
 
 use crate::{
-    fdrn::{FDRNum, Prop, UFDRNum},
+    fixed_denominator_rational_numbers::{FDRNum, Prop, UFDRNum},
     hcv::HCV,
     hue::angle::Angle,
     ColourBasics,

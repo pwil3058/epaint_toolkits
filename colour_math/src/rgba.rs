@@ -17,7 +17,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     // attributes::{Chroma, Value, Warmth},
     // debug::ApproxEq,
-    // fdrn::{Prop, UFDRNumber},
+    // fixed_denominator_rational_numbers::{Prop, UFDRNumber},
     // hcv::HCV,
     // hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     // ColourBasics, , ManipulatedColour,

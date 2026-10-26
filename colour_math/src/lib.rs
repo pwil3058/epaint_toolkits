@@ -20,7 +20,7 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fdrn::{
+    fixed_denominator_rational_numbers::{
         debug, FDRNum, Float, IntoProp, Prop, Signed, SignedInteger, UFDRNum, Unsigned,
         UnsignedInteger,
     },
@@ -37,7 +37,7 @@ pub use crate::{
 pub mod attributes;
 pub mod beigui;
 pub mod cmy;
-pub mod fdrn;
+pub mod fixed_denominator_rational_numbers;
 pub mod hcv;
 pub mod hue;
 pub mod manipulator;
