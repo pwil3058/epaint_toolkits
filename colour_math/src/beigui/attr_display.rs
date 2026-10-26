@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use fixed_denominator_rational_numbers::{FDRNum, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::{
+    AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UFDRNum,
+};
 
 use crate::{
     attributes::{Chroma, Greyness, Value, Warmth},
@@ -116,27 +118,29 @@ pub struct HueCAD {
 impl HueCAD {
     const LABEL: &'static str = "Hue";
 
-    const DEFAULT_COLOUR_STOPS: [(HCV, Prop); 13] = [
-        (HCV::CYAN, Prop::ONE),
-        (HCV::BLUE_CYAN, Prop(u64::MAX / 12 * 11)),
-        (HCV::BLUE, Prop(u64::MAX / 12 * 10)),
-        (HCV::BLUE_MAGENTA, Prop(u64::MAX / 12 * 9)),
-        (HCV::MAGENTA, Prop(u64::MAX / 12 * 8)),
-        (HCV::RED_MAGENTA, Prop(u64::MAX / 12 * 7)),
-        (HCV::RED, Prop(u64::MAX / 12 * 6)),
-        (HCV::RED_YELLOW, Prop(u64::MAX / 12 * 5)),
-        (HCV::YELLOW, Prop(u64::MAX / 12 * 4)),
-        (HCV::GREEN_YELLOW, Prop(u64::MAX / 12 * 3)),
-        (HCV::GREEN, Prop(u64::MAX / 12 * 2)),
-        (HCV::GREEN_CYAN, Prop(u64::MAX / 12)),
-        (HCV::CYAN, Prop::ZERO),
-    ];
+    fn default_colour_stops() -> impl Iterator<Item = (HCV, Prop)> {
+        [
+            (HCV::CYAN, Prop::ONE),
+            (HCV::BLUE_CYAN, Prop::from_fraction(11, 12)),
+            (HCV::BLUE, Prop::from_fraction(10, 12)),
+            (HCV::BLUE_MAGENTA, Prop::from_fraction(9, 12)),
+            (HCV::MAGENTA, Prop::from_fraction(8, 12)),
+            (HCV::RED_MAGENTA, Prop::from_fraction(7, 12)),
+            (HCV::RED, Prop::from_fraction(6, 12)),
+            (HCV::RED_YELLOW, Prop::from_fraction(5, 12)),
+            (HCV::YELLOW, Prop::from_fraction(4, 12)),
+            (HCV::GREEN_YELLOW, Prop::from_fraction(3, 12)),
+            (HCV::GREEN, Prop::from_fraction(2, 12)),
+            (HCV::GREEN_CYAN, Prop::from_fraction(1, 12)),
+            (HCV::CYAN, Prop::ZERO),
+        ]
+        .into_iter()
+    }
 
     fn set_colour_stops_for_hue(&mut self, hue: Hue) {
         let hue_angle = hue.angle();
-        let stops: Vec<(HCV, Prop)> = Self::DEFAULT_COLOUR_STOPS
-            .iter()
-            .map(|(hcv, prop)| (*hcv + hue_angle, *prop))
+        let stops: Vec<(HCV, Prop)> = Self::default_colour_stops()
+            .map(|(hcv, prop)| (hcv + hue_angle, prop))
             .collect();
         self.colour_stops = stops
     }
@@ -146,10 +150,10 @@ impl HueCAD {
             if let Some(hue) = colour.hue() {
                 self.set_colour_stops_for_hue(hue);
             } else {
-                self.colour_stops = Self::DEFAULT_COLOUR_STOPS.to_vec();
+                self.colour_stops = Self::default_colour_stops().collect();
             }
         } else {
-            self.colour_stops = Self::DEFAULT_COLOUR_STOPS.to_vec();
+            self.colour_stops = Self::default_colour_stops().collect();
         }
     }
 
@@ -159,7 +163,7 @@ impl HueCAD {
         if let Some(target_hue) = self.target_hue {
             self.set_colour_stops_for_hue(target_hue);
         } else {
-            self.colour_stops = Self::DEFAULT_COLOUR_STOPS.to_vec();
+            self.colour_stops = Self::default_colour_stops().collect();
         }
     }
 
@@ -167,14 +171,14 @@ impl HueCAD {
         self.target_hue = None;
         if let Some(hue) = self.hue {
             self.set_colour_stops_for_hue(hue);
-            self.hue_value = Some(Prop::ONE / 2);
+            self.hue_value = Some(Prop::ONE / 2u8);
         } else {
-            self.colour_stops = Self::DEFAULT_COLOUR_STOPS.to_vec();
+            self.colour_stops = Self::default_colour_stops().collect();
         }
     }
 
     fn calc_hue_value(hue: Hue, target_hue: Hue) -> Prop {
-        ((FDRNum::ONE + FDRNum::from(target_hue - hue) / 180) / 2).into()
+        ((FDRNum::ONE + FDRNum::from(target_hue - hue) / 180) / 2).into_prop()
     }
 }
 
@@ -188,7 +192,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
             hue_value: None,
             hue_fg_colour: HCV::WHITE,
             target_hue_fg_colour: HCV::BLACK,
-            colour_stops: Self::DEFAULT_COLOUR_STOPS.to_vec(),
+            colour_stops: Self::default_colour_stops().collect(),
         }
     }
 
@@ -201,7 +205,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
                     self.hue_value = Some(Self::calc_hue_value(hue, target_hue));
                 } else {
                     self.set_colour_stops(Some(colour));
-                    self.hue_value = Some(Prop::ONE / 2);
+                    self.hue_value = Some(Prop::ONE / 2u8);
                 }
             } else {
                 self.set_defaults_for_no_hue()
@@ -238,7 +242,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
 
     fn attr_target_value(&self) -> Option<Prop> {
         if self.target_hue.is_some() {
-            Some(Prop::ONE / 2)
+            Some(Prop::ONE / 2u8)
         } else {
             None
         }
@@ -279,7 +283,7 @@ impl ChromaCAD {
     }
 
     fn default_colour_stops() -> Vec<(HCV, Prop)> {
-        let grey = HCV::new_grey(Value::ONE / 2);
+        let grey = HCV::new_grey(Value::ONE / 2u64);
         vec![(grey, Prop::ZERO), (grey, Prop::ONE)]
     }
 }
@@ -288,7 +292,7 @@ impl ColourAttributeDisplayIfce for ChromaCAD {
     const LABEL: &'static str = "Chroma";
 
     fn new() -> Self {
-        let grey = HCV::new_grey(Value::ONE / 2);
+        let grey = HCV::new_grey(Value::ONE / 2u64);
         Self {
             chroma: None,
             target_chroma: None,
@@ -396,7 +400,7 @@ impl ColourAttributeDisplayIfce for ValueCAD {
     }
 
     fn attr_value(&self) -> Option<Prop> {
-        Some(self.value?.into())
+        Some(self.value?.into_prop())
     }
 
     fn attr_value_fg_colour(&self) -> HCV {
@@ -414,7 +418,7 @@ impl ColourAttributeDisplayIfce for ValueCAD {
     }
 
     fn attr_target_value(&self) -> Option<Prop> {
-        Some(self.target_value?.into())
+        Some(self.target_value?.into_prop())
     }
 
     fn attr_target_value_fg_colour(&self) -> HCV {
@@ -452,7 +456,7 @@ impl GreynessCAD {
     }
 
     fn default_colour_stops() -> Vec<(HCV, Prop)> {
-        let grey = HCV::new_grey(Value::ONE / 2);
+        let grey = HCV::new_grey(Value::ONE / 2u64);
         vec![(grey, Prop::ZERO), (grey, Prop::ONE)]
     }
 }
@@ -461,7 +465,7 @@ impl ColourAttributeDisplayIfce for GreynessCAD {
     const LABEL: &'static str = "Greyness";
 
     fn new() -> Self {
-        let grey = HCV::new_grey(Value::ONE / 2);
+        let grey = HCV::new_grey(Value::ONE / 2u64);
         Self {
             greyness: None,
             target_greyness: None,
@@ -569,7 +573,7 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
     }
 
     fn attr_value(&self) -> Option<Prop> {
-        self.warmth.map(|warmth| warmth.into())
+        self.warmth.map(|warmth| warmth.into_prop())
     }
 
     fn attr_value_fg_colour(&self) -> HCV {
@@ -587,7 +591,8 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
     }
 
     fn attr_target_value(&self) -> Option<Prop> {
-        self.target_warmth.map(|target_warmth| target_warmth.into())
+        self.target_warmth
+            .map(|target_warmth| target_warmth.into_prop())
     }
 
     fn attr_target_value_fg_colour(&self) -> HCV {
@@ -601,8 +606,8 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
     fn colour_stops(&self) -> Vec<(HCV, Prop)> {
         vec![
             (HCV::WHITE, Prop::ZERO),
-            (HCV::CYAN, Prop::ONE / 4),
-            (HCV::new_grey(Value::ONE / 2), Prop::HALF),
+            (HCV::CYAN, Prop::ONE / 4u64),
+            (HCV::new_grey(Value::ONE / 2u64), Prop::HALF),
             (HCV::RED, Prop::ONE),
         ]
     }

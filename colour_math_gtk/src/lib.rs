@@ -10,12 +10,19 @@ pub mod rgb_entry;
 pub mod colour {
     use gtk3_ext::gdk;
 
+    use fixed_denominator_rational_numbers::*;
+
     use colour_math::{ColourBasics, LightLevel, ManipulatedColour, HCV, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
             let rgb = self.rgb::<u64>().into_proportions();
-            gdk::RGBA::new(rgb[0].into(), rgb[1].into(), rgb[2].into(), 1.0)
+            gdk::RGBA::new(
+                f64::from_as_prop(rgb[0]),
+                f64::from_as_prop(rgb[1]),
+                f64::from_as_prop(rgb[2]),
+                1.0,
+            )
         }
     }
 

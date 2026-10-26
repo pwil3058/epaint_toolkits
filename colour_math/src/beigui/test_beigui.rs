@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use fixed_denominator_rational_numbers::FDRNum;
+use fixed_denominator_rational_numbers::{FDRNum, NumberConstants};
 
 #[test]
 fn div_by_u8() {

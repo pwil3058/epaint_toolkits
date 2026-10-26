@@ -1,9 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, IntoAsProp, Prop, UFDRNum,
-};
+use fixed_denominator_rational_numbers::*;
 
 use crate::{hcv::HCV, rgb::RGB, ColourBasics, LightLevel};
 
@@ -22,17 +19,17 @@ impl SubtractiveMixer {
 
     pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
         let [red, green, blue] = <[Prop; 3]>::from(colour.hcv());
-        self.red = self.red + UFDRNum(red.0 as u128 * parts as u128);
-        self.green = self.green + UFDRNum(green.0 as u128 * parts as u128);
-        self.blue = self.blue + UFDRNum(blue.0 as u128 * parts as u128);
+        self.red += red * parts;
+        self.green += green * parts;
+        self.blue += blue * parts;
         self.total_parts += parts;
     }
 
     pub fn mixed_colour(&self) -> Option<HCV> {
         if self.total_parts > 0 {
-            let red = Prop((self.red.0 / self.total_parts as u128) as u64);
-            let green = Prop((self.green.0 / self.total_parts as u128) as u64);
-            let blue = Prop((self.blue.0 / self.total_parts as u128) as u64);
+            let red = (self.red / self.total_parts).into_prop();
+            let green = (self.green / self.total_parts).into_prop();
+            let blue = (self.blue / self.total_parts).into_prop();
             Some(HCV::from(&[red, green, blue]))
         } else {
             None

@@ -16,6 +16,8 @@ use gtk3_ext::{
 };
 use path_utilities::expand_home_dir_or_mine;
 
+use fixed_denominator_rational_numbers::*;
+
 use colour_math::{
     beigui::hue_wheel::{ColouredShape, Shape},
     HueConstants, ScalarAttribute, Value, HCV, RGB,
@@ -110,7 +112,7 @@ fn main() {
         Shape::Diamond,
     ));
     gtk_hue_wheel.add_item(ColouredShape::new(
-        &HCV::new_grey(Value::ONE / 2),
+        &HCV::new_grey(Value::ONE / 2u64),
         "Grey",
         "Middle Grey",
         Shape::Circle,

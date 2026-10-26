@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use fixed_denominator_rational_numbers::{debug::ApproxEq, IntoAsProp, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::{self::*, debug::ApproxEq};
 
 use crate::{
     attributes::Chroma,
@@ -98,11 +98,11 @@ fn decr_chroma() {
     for clamped in &[true, false] {
         let mut manipulator = ColourManipulator::builder().clamped(*clamped).build();
         assert_eq!(manipulator.hcv, HCV::BLACK);
-        assert!(!manipulator.decr_chroma(0.1_f64.into()));
+        assert!(!manipulator.decr_chroma(0.1_f64.into_prop()));
         manipulator.set_colour(&RGB::<u64>::YELLOW);
         assert_eq!(manipulator.hcv.chroma(), Chroma::ONE);
         let saved_hue = manipulator.hcv.hue();
-        let decr = Prop::from(0.1);
+        let decr = Prop::from_as_prop(0.1);
         let mut expected = manipulator.hcv.chroma_prop() - decr;
         while manipulator.decr_chroma(decr) {
             assert_approx_eq!(manipulator.hcv.chroma_prop(), expected);
@@ -111,7 +111,7 @@ fn decr_chroma() {
             } else {
                 Prop::ZERO
             };
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO);
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, 0x10);
             if manipulator.hcv.chroma() > Chroma::ZERO {
                 assert_eq!(manipulator.hcv.hue(), saved_hue);
             }
@@ -119,7 +119,7 @@ fn decr_chroma() {
         if !clamped {
             assert!(manipulator.hcv.is_grey());
             assert_eq!(manipulator.hcv.chroma(), Chroma::ZERO);
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, Prop(0x10).into());
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, 0x10);
             assert_eq!(manipulator.hcv.hue(), None);
             assert_eq!(manipulator.saved_hue, saved_hue.unwrap());
         }
@@ -130,7 +130,7 @@ fn decr_chroma() {
 fn incr_chroma_clamped() {
     let mut manipulator = super::ColourManipulatorBuilder::new().clamped(true).build();
     assert_eq!(manipulator.hcv, HCV::BLACK);
-    assert!(!manipulator.incr_chroma(0.1_f64.into()));
+    assert!(!manipulator.incr_chroma(0.1_f64.into_prop()));
     // Test where clamping makes a difference and where it doesn't
     // for array in &[[0.0_f64, 0.0, 0.0], [0.55, 0.5, 0.0], [0.55, 0.5, 0.55]] {
     //     let rgb = RGB::from(*array);
@@ -179,7 +179,7 @@ fn incr_chroma_unclamped() {
         .clamped(false)
         .build();
     assert_eq!(manipulator.hcv, HCV::BLACK);
-    assert!(manipulator.incr_chroma(0.1_f64.into()));
+    assert!(manipulator.incr_chroma(0.1_f64.into_prop()));
     // Test where clamping makes a difference and where it doesn't
     // for array in &[[0.75_f64, 0.5, 0.0], [0.75, 0.5, 0.75]] {
     //     let rgb = RGB::from(*array);
@@ -219,31 +219,31 @@ fn incr_chroma_unclamped() {
 fn round_trip_chroma() {
     let mut manipulator = super::ColourManipulatorBuilder::new().clamped(true).build();
     manipulator.set_colour(&crate::rgb::RGB::<u64>::CYAN);
-    while manipulator.decr_chroma(0.01.into()) {}
+    while manipulator.decr_chroma(0.01.into_prop()) {}
     assert!(manipulator.hcv.is_grey());
-    while manipulator.incr_chroma(0.01.into()) {}
-    assert_approx_eq!(manipulator.rgb::<u64>(), crate::rgb::RGB::<u64>::CYAN,);
+    while manipulator.incr_chroma(0.01.into_prop()) {}
+    assert_approx_eq!(
+        manipulator.rgb::<u64>(),
+        crate::rgb::RGB::<u64>::CYAN,
+        0x100
+    );
 }
 
 #[test]
 fn incr_decr_sum_clamped() {
     let mut manipulator = super::ColourManipulatorBuilder::new().clamped(true).build();
-    assert!(!manipulator.decr_value(0.1.into()));
-    while manipulator.incr_value(0.1.into()) {}
+    assert!(!manipulator.decr_value(0.1.into_prop()));
+    while manipulator.incr_value(0.1.into_prop()) {}
     assert_eq!(manipulator.hcv, crate::hcv::HCV::WHITE);
-    while manipulator.decr_value(0.1.into()) {}
+    while manipulator.decr_value(0.1.into_prop()) {}
     assert_eq!(manipulator.hcv, crate::hcv::HCV::BLACK);
     manipulator.set_colour(&crate::rgb::RGB::<u64>::YELLOW);
-    assert!(!manipulator.decr_value(0.1.into()));
-    assert!(!manipulator.incr_value(0.1.into()));
+    assert!(!manipulator.decr_value(0.1.into_prop()));
+    assert!(!manipulator.incr_value(0.1.into_prop()));
     let cur_sum = manipulator.hcv.sum;
-    manipulator.decr_chroma(0.5.into());
-    assert_approx_eq!(
-        cur_sum,
-        manipulator.hcv.sum,
-        Prop(0x0000000000000010).into()
-    );
-    while manipulator.decr_value(0.1.into()) {}
+    manipulator.decr_chroma(0.5.into_prop());
+    assert_approx_eq!(cur_sum, manipulator.hcv.sum, 0x0000000000000010);
+    while manipulator.decr_value(0.1.into_prop()) {}
     // assert_approx_eq!(manipulator.rgb(), [0.5, 0.5, 0.0].into());
     // while manipulator.incr_value(0.1.into()) {}
     // assert_approx_eq!(manipulator.rgb(), [1.0, 1.0, 0.5].into());
@@ -254,18 +254,18 @@ fn incr_decr_sum_unclamped() {
     let mut manipulator = super::ColourManipulatorBuilder::new()
         .clamped(false)
         .build();
-    assert!(!manipulator.decr_value(0.1.into()));
-    while manipulator.incr_value(0.1.into()) {}
+    assert!(!manipulator.decr_value(0.1.into_prop()));
+    while manipulator.incr_value(0.1.into_prop()) {}
     assert_eq!(manipulator.hcv, crate::hcv::HCV::WHITE);
-    while manipulator.decr_value(0.1.into()) {}
+    while manipulator.decr_value(0.1.into_prop()) {}
     assert_eq!(manipulator.hcv, crate::hcv::HCV::BLACK);
     for rgb in &crate::rgb::RGB::<u64>::SECONDARIES {
         manipulator.set_colour(rgb);
-        while manipulator.incr_value(0.1.into()) {}
+        while manipulator.incr_value(0.1.into_prop()) {}
         assert_eq!(manipulator.hcv, crate::hcv::HCV::WHITE);
-        while manipulator.decr_value(0.1.into()) {}
+        while manipulator.decr_value(0.1.into_prop()) {}
         assert_eq!(manipulator.hcv, crate::hcv::HCV::BLACK);
-        assert!(manipulator.incr_chroma(1.0.into()));
+        assert!(manipulator.incr_chroma(1.0.into_prop()));
         assert_eq!(manipulator.hcv, HCV::from(rgb));
     }
 }
@@ -387,10 +387,10 @@ fn rotate_rgb_favouring_value() {
             assert!(manipulator.rotate((*delta).into()));
             let max_c_prop = manipulator.hcv.max_chroma_prop_for_current_sum();
             assert!(
-                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010).into()))
-                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x00010).into()))
+                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(0x00010))
+                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(0x00010u64))
             );
-            assert_approx_eq!(cur_sum, manipulator.hcv.sum, Prop(0x10).into());
+            assert_approx_eq!(cur_sum, manipulator.hcv.sum, 0x10);
             let expected_angle = cur_angle + (*delta).into();
             assert_approx_eq!(expected_angle, manipulator.hcv.hue_angle().unwrap(), 0x1000);
         }
@@ -422,10 +422,10 @@ fn rotate_rgb_favouring_value() {
             assert!(manipulator.rotate((*delta).into()));
             let max_c_prop = manipulator.hcv.max_chroma_prop_for_current_sum();
             assert!(
-                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
-                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
+                cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(0x1))
+                    || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(0x1))
             );
-            assert_approx_eq!(cur_sum, manipulator.hcv.sum);
+            assert_approx_eq!(cur_sum, manipulator.hcv.sum, 2);
             let expected_angle = cur_angle + (*delta).into();
             assert_approx_eq!(expected_angle, manipulator.hcv.hue_angle().unwrap(), 0x1000);
         }

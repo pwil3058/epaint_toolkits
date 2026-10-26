@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::ops::{Add, Mul, Sub};
 
-use fixed_denominator_rational_numbers::{FDRNum, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::{FDRNum, NumberConstants, Prop, UFDRNum};
 
 use crate::{
     // fdrn::{FDRNum, Prop, UFDRNum},

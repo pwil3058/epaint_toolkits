@@ -7,9 +7,11 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use fixed_denominator_rational_numbers::{IntoAsProp, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::{
+    AsProportion, FromAsProp, IntoProp, NumberConstants, Prop, UFDRNum,
+};
 
-use crate::cmy::CMY;
+// use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hue::{
@@ -17,7 +19,7 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::RGB,
-    ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, IsValidSum, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -81,7 +83,9 @@ impl HCV {
         if let Some(hue) = self.hue {
             hue.sum_and_chroma_prop_are_compatible(self.sum, self.c_prop)
         } else {
-            self.c_prop == Prop::ZERO && self.sum <= UFDRNum::THREE && self.sum.0.is_multiple_of(3)
+            self.c_prop == Prop::ZERO
+                && self.sum <= UFDRNum::THREE
+                && self.sum % 3u8 == UFDRNum::ZERO
         }
     }
 
@@ -122,7 +126,7 @@ impl HCV {
     }
 }
 
-const ONE_PT_5: UFDRNum = UFDRNum(u64::MAX as u128 + u64::MAX as u128 / 2);
+const ONE_PT_5: UFDRNum = UFDRNum(UFDRNum::DENOMINATOR / 2 * 3);
 
 impl HueConstants for HCV {
     const RED: Self = Self {
@@ -208,19 +212,21 @@ impl RGBConstants for HCV {
     const LIGHT_GREY: Self = Self {
         hue: None,
         c_prop: Prop::ZERO,
-        sum: UFDRNum(u64::MAX as u128 / 4 * 3),
+        // N.B. done this way to ensure sum is a multiple of 3
+        // sum: UFDRNum::from_rational_num(3, 4) * 3u8,
+        sum: UFDRNum(UFDRNum::DENOMINATOR / 4 * 9),
     };
 
     const MEDIUM_GREY: Self = Self {
         hue: None,
         c_prop: Prop::ZERO,
-        sum: UFDRNum(u64::MAX as u128 + u64::MAX as u128 / 6 * 3),
+        sum: UFDRNum(UFDRNum::DENOMINATOR / 2 * 3),
     };
 
     const DARK_GREY: Self = Self {
         hue: None,
         c_prop: Prop::ZERO,
-        sum: UFDRNum(u64::MAX as u128 * 2 + u64::MAX as u128 / 12 * 3),
+        sum: UFDRNum(UFDRNum::DENOMINATOR / 4 * 3),
     };
 
     const BLACK: Self = Self {
@@ -283,7 +289,7 @@ impl From<HCV> for [Prop; 3] {
             hue.rgb_ordered_triplet(hcv.sum, hcv.c_prop)
                 .expect("Invalid Hue")
         } else {
-            let value: Prop = (hcv.sum / 3u8).into();
+            let value: Prop = (hcv.sum / 3u8).into_prop();
             [value, value, value]
         }
     }
@@ -356,7 +362,7 @@ impl ColourBasics for HCV {
     }
 
     fn value(&self) -> Value {
-        (self.sum / 3u8).into()
+        Value::from_as_prop(self.sum / 3u8)
     }
 
     fn warmth(&self) -> Warmth {
@@ -375,12 +381,12 @@ impl ColourBasics for HCV {
         *self
     }
 
-    fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        self.rgb::<L>().into()
-    }
+    // fn cmy<L: LightLevel>(&self) -> CMY<L> {
+    //     self.rgb::<L>().into()
+    // }
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        let rgb: RGB<Prop> = (*self).into();
+    fn into_proportions(self) -> [Prop; 3] {
+        let rgb: RGB<Prop> = (self).into();
         [rgb[0], rgb[1], rgb[2]]
     }
 }
@@ -396,7 +402,7 @@ impl ManipulatedColour for HCV {
         let compl = Prop::ONE - prop;
         let mut array = <[Prop; 3]>::from(*self);
         for item in &mut array {
-            *item = (*item * compl + prop).into();
+            *item = (*item * compl + prop).into_prop();
         }
         HCV::from(array)
     }
@@ -405,7 +411,7 @@ impl ManipulatedColour for HCV {
         let compl = Prop::ONE - prop;
         let mut array = <[Prop; 3]>::from(*self);
         for item in &mut array {
-            *item = *item * compl;
+            *item *= compl;
         }
         HCV::from(array)
     }
@@ -432,7 +438,7 @@ impl ManipulatedColour for HCV {
                     Err(hcv) => hcv,
                 }
             } else {
-                HCV::new_grey((new_sum / 3u8).into())
+                HCV::new_grey(Value::from_as_prop(new_sum / 3u8))
             }
         } else {
             *self
@@ -461,7 +467,7 @@ impl ManipulatedColour for HCV {
                     Err(hcv) => hcv,
                 }
             } else {
-                HCV::new_grey((new_sum / 3u8).into())
+                HCV::new_grey(Value::from_as_prop(new_sum / 3u8))
             }
         } else {
             *self

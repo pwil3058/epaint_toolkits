@@ -10,6 +10,7 @@ edition = "2021"
 num-traits.workspace = true
 
 gtk3_ext.workspace = true
+fixed_denominator_rational_numbers.workspace = true
 
 colour_math.workspace = true
 colour_math_cairo.workspace = true

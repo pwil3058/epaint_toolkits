@@ -13,11 +13,11 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, FromAsProp, IntoAsProp, Prop, UFDRNum,
+    self::*,
+    debug::{ApproxEq, PropDiff},
 };
 
-use crate::cmy::CMY;
+// use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
@@ -69,23 +69,23 @@ impl<T: LightLevel> RGBConstants for RGB<T> {
     const BLACK: Self = Self([T::ZERO, T::ZERO, T::ZERO]);
 }
 
-impl<T: LightLevel + Copy + From<Prop>> RGB<T> {
+impl<T: LightLevel + Copy> RGB<T> {
     pub fn new_grey(value: Value) -> Self {
-        let value: Prop = value.into();
+        let value: Prop = value.into_prop();
         Self::from_proportions([value, value, value])
     }
 
     pub fn new_warmth_rgb(warmth: Warmth) -> Self {
-        let prop: Prop = warmth.into();
-        Self::from_proportions([prop, Prop::ONE - prop, Prop::ONE - prop])
+        let prop: Prop = warmth.into_prop();
+        Self::from_proportions([prop, prop.complement(), prop.complement()])
     }
 }
 
-impl<T: LightLevel + Into<Prop>> RGB<T> {
+impl<T: LightLevel> RGB<T> {
     pub fn from_proportions(array: [Prop; 3]) -> Self {
-        let red: T = array[0].into();
-        let green: T = array[1].into();
-        let blue: T = array[2].into();
+        let red = T::from_as_prop(array[0]);
+        let green = T::from_as_prop(array[1]);
+        let blue = T::from_as_prop(array[2]);
         Self([red, green, blue])
     }
 
@@ -171,7 +171,7 @@ impl<T: LightLevel> ColourBasics for RGB<T> {
     }
 
     fn value(&self) -> Value {
-        (self.sum() / 3u8).into()
+        Value::from_as_prop(self.sum() / 3u8)
     }
 
     fn warmth(&self) -> Warmth {
@@ -190,19 +190,27 @@ impl<T: LightLevel> ColourBasics for RGB<T> {
         RGB::<L>::from_proportions(self.into_proportions())
     }
 
-    fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        let props = CMY::<T>::from(*self).into_proportions();
-        CMY::<L>::from_proportions(props)
-    }
+    // fn cmy<L: LightLevel>(&self) -> CMY<L> {
+    //     let props = CMY::<T>::from(*self).into_proportions();
+    //     CMY::<L>::from_proportions(props)
+    // }
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        [self.0[0].into(), self.0[1].into(), self.0[2].into()]
+    fn into_proportions(self) -> [Prop; 3] {
+        [
+            self.0[0].into_prop(),
+            self.0[1].into_prop(),
+            self.0[2].into_prop(),
+        ]
     }
 }
 
 impl<L: LightLevel> FromProps for RGB<L> {
     fn from_proportions(props: [Prop; 3]) -> Self {
-        Self([props[0].into(), props[1].into(), props[2].into()])
+        Self([
+            L::from_as_prop(props[0]),
+            L::from_as_prop(props[1]),
+            L::from_as_prop(props[2]),
+        ])
     }
 }
 
@@ -211,7 +219,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         let compl = Prop::ONE - prop;
         let mut array = self.into_proportions(); //<[Prop; 3]>::from(self);
         for item in &mut array {
-            *item = (*item * compl + prop).into();
+            *item = (*item * compl + prop).into_prop();
         }
         RGB::<L>::from_proportions(array)
     }
@@ -220,7 +228,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         let compl = Prop::ONE - prop;
         let mut array = self.into_proportions(); // <[Prop; 3]>::from(self);
         for item in &mut array {
-            *item = *item * compl;
+            *item *= compl;
         }
         RGB::<L>::from_proportions(array)
     }
@@ -258,42 +266,35 @@ impl<T: LightLevel> IndexMut<usize> for RGB<T> {
 }
 
 // Comparisons
-impl<T: LightLevel> PartialOrd for RGB<T>
-where
-    T: PartialOrd,
-{
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+impl<T: LightLevel> Ord for RGB<T> {
+    fn cmp(&self, other: &Self) -> Ordering {
         if self.0 == other.0 {
-            Some(Ordering::Equal)
+            Ordering::Equal
         } else if let Ok(hue) = Hue::try_from(self) {
             if let Ok(other_hue) = Hue::try_from(other) {
                 // This orders via hue from CYAN to CYAN via GREEN, RED, BLUE in that order
                 match hue.cmp(&other_hue) {
                     Ordering::Equal => match self.chroma().cmp(&other.chroma()) {
-                        Ordering::Equal => Some(self.sum().cmp(&self.sum())),
-                        order => Some(order),
+                        Ordering::Equal => self.sum().cmp(&self.sum()),
+                        order => order,
                     },
-                    order => Some(order),
+                    order => order,
                 }
             } else {
-                Some(Ordering::Greater)
+                Ordering::Greater
             }
         } else if Hue::try_from(other).is_ok() {
-            Some(Ordering::Less)
+            Ordering::Less
         } else {
             // No need to look a chroma as it will be zero for both
-            self.sum().partial_cmp(&other.sum())
+            self.sum().cmp(&other.sum())
         }
     }
 }
 
-impl<T: LightLevel> Ord for RGB<T>
-where
-    T: PartialOrd + Eq,
-{
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other)
-            .expect("restricted range of values means this is OK")
+impl<T: LightLevel> PartialOrd for RGB<T> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
     }
 }
 
@@ -374,7 +375,7 @@ impl<L: LightLevel> From<RGB<L>> for (L, L, L) {
 // }
 
 // Arithmetic
-impl<L: LightLevel + From<Prop>> Mul<Prop> for RGB<L> {
+impl<L: LightLevel> Mul<Prop> for RGB<L> {
     type Output = Self;
 
     fn mul(self, scalar: Prop) -> Self {
@@ -394,15 +395,15 @@ impl<L: LightLevel + From<Prop>> Mul<Prop> for RGB<L> {
 /// assert_eq!((RGB::<u8>::RED / 2), RGB::<u8>::from([127, 0, 0]));
 /// assert_eq!((RGB::<u8>::MAGENTA / 2), RGB::<u8>::from([127, 0, 127]));
 /// ```
-impl<L: LightLevel> Div<i32> for RGB<L> {
+impl<L: LightLevel> Div<u32> for RGB<L> {
     type Output = Self;
 
-    fn div(self, scalar: i32) -> Self {
+    fn div(self, scalar: u32) -> Self {
         let [red, green, blue] = self.into_proportions();
         Self([
-            (red / scalar).into(),
-            (green / scalar).into(),
-            (blue / scalar).into(),
+            L::from_as_prop(red / scalar),
+            L::from_as_prop(green / scalar),
+            L::from_as_prop(blue / scalar),
         ])
     }
 }

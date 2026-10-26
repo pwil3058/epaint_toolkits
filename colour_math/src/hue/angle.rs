@@ -7,7 +7,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use fixed_denominator_rational_numbers::{debug::*, FDRNum, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::*;
 
 use crate::HueConstants;
 

@@ -2,7 +2,7 @@
 use std::convert::From;
 
 use approximately_equal::assert_approx_eq;
-use fixed_denominator_rational_numbers::debug::{ApproxEq, Prop};
+use fixed_denominator_rational_numbers::{debug::ApproxEq, Prop};
 
 use crate::{attributes::Warmth, hcv::*, ColourBasics, HueConstants, RGBConstants, RGB};
 
@@ -148,7 +148,7 @@ fn warmth() {
     assert_eq!(HCV::WHITE.warmth(), Warmth::HALF);
     assert_eq!(HCV::BLACK.warmth(), Warmth::HALF);
     assert_eq!(
-        RGB::<u8>::from_proportions([Prop::ONE, Prop::ONE / 2, Prop::ONE / 2]).warmth(),
+        RGB::<u8>::from_proportions([Prop::ONE, Prop::ONE / 2u64, Prop::ONE / 2u64]).warmth(),
         Warmth::ONE,
     );
     assert_approx_eq!(

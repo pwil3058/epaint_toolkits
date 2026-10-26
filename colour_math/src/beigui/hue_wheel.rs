@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::cmp::Ordering;
 
-use fixed_denominator_rational_numbers::{FDRNum, UFDRNum};
+use fixed_denominator_rational_numbers::{
+    AsProportion, FDRNum, FromAsProp, NumberConstants, UFDRNum,
+};
 
 use crate::{
     attributes::Value,
@@ -18,8 +20,8 @@ pub struct Zoom {
 }
 
 impl Zoom {
-    const DELTA: UFDRNum = UFDRNum(UFDRNum::ONE.0 * 25 / 1000);
-    const MAX: UFDRNum = UFDRNum(UFDRNum::ONE.0 * 10);
+    const DELTA: UFDRNum = UFDRNum(UFDRNum::DENOMINATOR * 25 / 1000);
+    const MAX: UFDRNum = UFDRNum(UFDRNum::DENOMINATOR * 10);
 
     pub fn decr(&mut self) {
         self.scale = (self.scale - Self::DELTA).max(UFDRNum::ONE);
@@ -86,16 +88,16 @@ pub trait ShapeConsts {
 
 impl ShapeConsts for UFDRNum {
     const SIN_45: Self = Self(Self::SQRT_2.0 / 2);
-    const SHAPE_SIDE: Self = Self(Self::ONE.0 * 6 / 100);
+    const SHAPE_SIDE: Self = Self(Self::DENOMINATOR * 6 / 100);
     const SHAPE_HALF_SIDE: Self = Self(Self::SHAPE_SIDE.0 / 2);
-    const SHAPE_RADIUS: Self = Self::SHAPE_HALF_SIDE;
+    const SHAPE_RADIUS: Self = Self(Self::SHAPE_HALF_SIDE.0);
 }
 
 impl ShapeConsts for FDRNum {
     const SIN_45: Self = Self(Self::SQRT_2.0 / 2);
-    const SHAPE_SIDE: Self = Self(Self::ONE.0 * 6 / 100);
+    const SHAPE_SIDE: Self = Self(Self::DENOMINATOR * 6 / 100);
     const SHAPE_HALF_SIDE: Self = Self(Self::SHAPE_SIDE.0 / 2);
-    const SHAPE_RADIUS: Self = Self::SHAPE_HALF_SIDE;
+    const SHAPE_RADIUS: Self = Self(Self::SHAPE_HALF_SIDE.0);
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -120,7 +122,7 @@ impl ColouredShape {
         } else {
             CachedPoint::Grey(Point {
                 x: FDRNum::from(-1.05),
-                y: FDRNum::ONE - FDRNum::from(colour.value()) * 2,
+                y: FDRNum::ONE - FDRNum::from_as_prop(colour.value()) * 2,
             })
         };
         Self {
@@ -139,7 +141,9 @@ impl ColouredShape {
     fn xy(&self, scalar_attribute: ScalarAttribute, zoom: &Zoom) -> Point {
         match self.cached_point {
             CachedPoint::Hued(point) => {
-                point * self.colour.scalar_attribute(scalar_attribute).into() * zoom.scale()
+                point
+                    * UFDRNum::from_as_prop(self.colour.scalar_attribute(scalar_attribute))
+                    * zoom.scale()
             }
             CachedPoint::Grey(point) => point * zoom.scale(),
         }
@@ -274,7 +278,7 @@ pub trait Graticule {
     }
 
     fn draw_graticule(&self, zoom: &Zoom, draw_shapes: &impl DrawShapes) {
-        draw_shapes.set_background_colour(&HCV::new_grey(Value::ONE / 2));
+        draw_shapes.set_background_colour(&HCV::new_grey(Value::ONE / 2u64));
         Self::draw_spokes(UFDRNum::from(0.1), zoom, draw_shapes);
         Self::draw_rings(10, zoom, draw_shapes);
     }

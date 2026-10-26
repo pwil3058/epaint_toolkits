@@ -4,7 +4,7 @@ use std::ops::{Deref, Div, Index, IndexMut, Mul};
 
 use serde::{Deserialize, Serialize};
 
-use fixed_denominator_rational_numbers::{debug::*, FDRNum, Prop, UFDRNum};
+use fixed_denominator_rational_numbers::{debug::*, AsProportion, Prop, UnsignedInteger};
 
 use crate::{
     Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, LightLevel, RGBConstants, Value,
@@ -27,7 +27,7 @@ impl Deref for ComponentMask {
 
 impl ComponentMask {
     pub fn is_valid(&self) -> bool {
-        (self.0 & u8::MAX - 7) == 0
+        (self.0 & (u8::MAX - 7)) == 0
     }
 
     pub fn intersection(self, other: ComponentMask) -> Self {
@@ -69,7 +69,11 @@ impl<L: LightLevel + ApproxEq> ApproxEq for CMY<L> {
 
 impl<L: LightLevel> FromProps for CMY<L> {
     fn from_proportions(props: [Prop; 3]) -> Self {
-        Self([props[0].into(), props[1].into(), props[2].into()])
+        Self([
+            L::from_as_prop(props[0]),
+            L::from_as_prop(props[1]),
+            L::from_as_prop(props[2]),
+        ])
     }
 }
 
@@ -171,12 +175,22 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
         RGB::<LO>::from_proportions(rgb.into_proportions())
     }
 
-    fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
-        CMY::<LO>::from_proportions(self.into_proportions())
-    }
+    // fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
+    //     CMY::<LO>::from_proportions(self.into_proportions())
+    // }
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        [self[0].into(), self[1].into(), self[2].into()]
+    fn into_proportions(self) -> [Prop; 3] {
+        self.0
+            .iter()
+            .map(|c| c.into_prop())
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("Array conversion failed")
+        // [
+        //     self[0].into_prop(),
+        //     self[1].into_prop(),
+        //     self[2].into_prop(),
+        // ]
     }
 }
 
@@ -188,109 +202,116 @@ impl Mul<Prop> for CMY<Prop> {
     }
 }
 
-impl<L: LightLevel> Div<L> for CMY<L> {
+impl<L: LightLevel + Div<U, Output = L>, U: AsProportion + UnsignedInteger> Div<U> for CMY<L> {
     type Output = Self;
 
-    fn div(self, rhs: L) -> Self {
-        Self([self[0] / rhs, self[1] / rhs, self[2] / rhs])
+    fn div(self, rhs: U) -> Self {
+        Self(
+            self.0
+                .iter()
+                .map(|c| *c / rhs)
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("failed array conversion"),
+        )
     }
 }
 
-#[derive(Copy, Clone, Debug, Default)]
-pub struct CMYSubtractiveMix {
-    colour: CMY<Prop>,
-    accumulated_parts: u32,
-    component_mask: ComponentMask,
-}
-
-impl CMYSubtractiveMix {
-    pub fn reset(&mut self) {
-        *self = Self::default();
-    }
-
-    fn use_weighted_average(&mut self, colour: CMY<Prop>, parts: u32) {
-        let triplet: [Prop; 3] = (0..3)
-            .map(|i| {
-                Prop::weighted_average(&[
-                    (self.colour[i], self.accumulated_parts as u32),
-                    (colour[i], parts),
-                ])
-            })
-            .collect::<Vec<_>>()
-            .try_into()
-            .expect("Should never fail");
-        self.colour = CMY::<Prop>::from_proportions(triplet);
-        self.component_mask = self.colour.component_mask();
-    }
-
-    pub fn add<C: ColourBasics>(&mut self, colour: C, parts: u32) {
-        if self.accumulated_parts == 0 {
-            self.colour = colour.cmy::<Prop>();
-            self.accumulated_parts = parts;
-            self.component_mask = self.colour.component_mask();
-            println!("add colour: {:?} : {}", self.colour, parts);
-        } else {
-            let colour = colour.cmy::<Prop>();
-            println!("add colour: {:?} : {}", colour, parts);
-            match self.component_mask.count_ones() {
-                1 => {
-                    let component_mask = colour.component_mask();
-                    match component_mask.count_ones() {
-                        1 => {
-                            let overlap = self.component_mask.intersection(component_mask);
-                            if overlap.count_ones() == 1 {
-                                self.use_weighted_average(colour, parts);
-                            } else {
-                                use std::cmp::Ordering::*;
-                                let mut new_colour = CMY::<Prop>::default();
-                                match self.accumulated_parts.cmp(&parts) {
-                                    Less => {
-                                        let ratio = Prop::from([
-                                            self.accumulated_parts as u64,
-                                            parts as u64,
-                                        ]);
-                                        let i = self.component_mask.indices()[0];
-                                        new_colour[i] = self.colour[i] * ratio;
-                                        let i = component_mask.indices()[0];
-                                        new_colour[i] = colour[i];
-                                    }
-                                    Equal => {
-                                        let i = self.component_mask.indices()[0];
-                                        new_colour[i] = self.colour[i];
-                                        let i = component_mask.indices()[0];
-                                        new_colour[i] = colour[i];
-                                    }
-                                    Greater => {
-                                        let i = self.component_mask.indices()[0];
-                                        new_colour[i] = self.colour[i];
-                                        let ratio = Prop::from([
-                                            parts as u64,
-                                            self.accumulated_parts as u64,
-                                        ]);
-                                        let i = component_mask.indices()[0];
-                                        new_colour[i] = colour[i] * ratio;
-                                    }
-                                }
-                                self.colour = new_colour;
-                                self.component_mask = colour.component_mask();
-                            }
-                        }
-                        _ => self.use_weighted_average(colour, parts),
-                    }
-                }
-                2 => {
-                    let _component_mask = colour.component_mask();
-                }
-                _ => self.use_weighted_average(colour, parts),
-            }
-            self.accumulated_parts += parts;
-        }
-    }
-
-    pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.colour.rgb::<L>()
-    }
-}
+// #[derive(Copy, Clone, Debug, Default)]
+// pub struct CMYSubtractiveMix {
+//     colour: CMY<Prop>,
+//     accumulated_parts: u32,
+//     component_mask: ComponentMask,
+// }
+//
+// impl CMYSubtractiveMix {
+//     pub fn reset(&mut self) {
+//         *self = Self::default();
+//     }
+//
+//     fn use_weighted_average(&mut self, colour: CMY<Prop>, parts: u32) {
+//         let triplet: [Prop; 3] = (0..3)
+//             .map(|i| {
+//                 Prop::weighted_average(&[
+//                     (self.colour[i], self.accumulated_parts as u32),
+//                     (colour[i], parts),
+//                 ])
+//             })
+//             .collect::<Vec<_>>()
+//             .try_into()
+//             .expect("Should never fail");
+//         self.colour = CMY::<Prop>::from_proportions(triplet);
+//         self.component_mask = self.colour.component_mask();
+//     }
+//
+//     pub fn add<C: ColourBasics>(&mut self, colour: C, parts: u32) {
+//         if self.accumulated_parts == 0 {
+//             self.colour = colour.cmy::<Prop>();
+//             self.accumulated_parts = parts;
+//             self.component_mask = self.colour.component_mask();
+//             println!("add colour: {:?} : {}", self.colour, parts);
+//         } else {
+//             let colour = colour.cmy::<Prop>();
+//             println!("add colour: {:?} : {}", colour, parts);
+//             match self.component_mask.count_ones() {
+//                 1 => {
+//                     let component_mask = colour.component_mask();
+//                     match component_mask.count_ones() {
+//                         1 => {
+//                             let overlap = self.component_mask.intersection(component_mask);
+//                             if overlap.count_ones() == 1 {
+//                                 self.use_weighted_average(colour, parts);
+//                             } else {
+//                                 use std::cmp::Ordering::*;
+//                                 let mut new_colour = CMY::<Prop>::default();
+//                                 match self.accumulated_parts.cmp(&parts) {
+//                                     Less => {
+//                                         let ratio = Prop::from([
+//                                             self.accumulated_parts as u64,
+//                                             parts as u64,
+//                                         ]);
+//                                         let i = self.component_mask.indices()[0];
+//                                         new_colour[i] = self.colour[i] * ratio;
+//                                         let i = component_mask.indices()[0];
+//                                         new_colour[i] = colour[i];
+//                                     }
+//                                     Equal => {
+//                                         let i = self.component_mask.indices()[0];
+//                                         new_colour[i] = self.colour[i];
+//                                         let i = component_mask.indices()[0];
+//                                         new_colour[i] = colour[i];
+//                                     }
+//                                     Greater => {
+//                                         let i = self.component_mask.indices()[0];
+//                                         new_colour[i] = self.colour[i];
+//                                         let ratio = Prop::from([
+//                                             parts as u64,
+//                                             self.accumulated_parts as u64,
+//                                         ]);
+//                                         let i = component_mask.indices()[0];
+//                                         new_colour[i] = colour[i] * ratio;
+//                                     }
+//                                 }
+//                                 self.colour = new_colour;
+//                                 self.component_mask = colour.component_mask();
+//                             }
+//                         }
+//                         _ => self.use_weighted_average(colour, parts),
+//                     }
+//                 }
+//                 2 => {
+//                     let _component_mask = colour.component_mask();
+//                 }
+//                 _ => self.use_weighted_average(colour, parts),
+//             }
+//             self.accumulated_parts += parts;
+//         }
+//     }
+//
+//     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
+//         self.colour.rgb::<L>()
+//     }
+// }
 
 #[cfg(test)]
 mod cmy_tests {

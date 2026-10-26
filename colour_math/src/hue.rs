@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, IntoAsProp, Prop, UFDRNum,
+    AsProportion, FDRNum, FromAsProp, IntoProp, NumberConstants, Prop, UFDRNum,
 };
 
 pub mod angle;
@@ -21,7 +21,7 @@ use crate::{
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,
-    ColourBasics, HueConstants, LightLevel,
+    ColourBasics, HueConstants, IsValidSum, LightLevel,
 };
 
 pub(crate) trait HueBasics: Copy + Debug + Sized + Into<Hue> {
@@ -109,8 +109,8 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
                 if first.is_proportion() {
                     let second = sum - first - third;
                     debug_assert_eq!(first + second + third, sum);
-                    debug_assert_eq!(first - third, c_prop.into());
-                    let triplet = [first.to_prop(), second.to_prop(), third.to_prop()];
+                    debug_assert_eq!(first - third, UFDRNum::from_as_prop(c_prop));
+                    let triplet = [first.into_prop(), second.into_prop(), third.into_prop()];
                     debug_assert!(Self::has_valid_value_order(&triplet));
                     debug_assert_eq!(
                         Hue::try_from(self.triplet_to_rgb_order(&triplet)).unwrap(),
@@ -377,14 +377,14 @@ impl HueBasics for RGBHue {
     fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match c_prop {
             Prop::ZERO => None,
-            c_prop => Some(c_prop.into()),
+            c_prop => Some(UFDRNum::from_as_prop(c_prop)),
         }
     }
 
     fn max_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match c_prop {
             Prop::ZERO => None,
-            c_prop => Some(UFDRNum::THREE - c_prop * 2),
+            c_prop => Some(UFDRNum::THREE - c_prop * 2u8),
         }
     }
 
@@ -393,9 +393,9 @@ impl HueBasics for RGBHue {
         match chroma {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::ONE),
-            Chroma::Shade(c_prop) => Some(c_prop.into()),
+            Chroma::Shade(c_prop) => Some(UFDRNum::from_as_prop(c_prop)),
             Chroma::Tint(c_prop) => {
-                Some(UFDRNum::ONE + UFDRNum(3 - (u64::MAX - c_prop.0) as u128 % 3))
+                Some(UFDRNum::ONE + UFDRNum(3 - (u64::MAX - u64::from_as_prop(c_prop)) as u128 % 3))
             }
         }
     }
@@ -421,7 +421,7 @@ impl HueBasics for RGBHue {
                     let c_prop = ((UFDRNum::THREE - sum) / 2u8)
                         .into_prop()
                         .min(Prop::ALMOST_ONE)
-                        .max(Prop(1));
+                        .max(Prop::ALMOST_ZERO);
                     Some(Chroma::Tint(c_prop))
                 }
             }
@@ -453,13 +453,13 @@ impl OrderedTriplets for RGBHue {
         debug_assert!(sum.is_valid_sum());
         match c_prop {
             Prop::ZERO => None,
-            min_sum if sum >= min_sum.into() => {
+            min_sum if sum >= UFDRNum::from_as_prop(min_sum) => {
                 let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if first > UFDRNum::ONE => None,
                     first => {
                         let second = sum - first - third;
-                        debug_assert_eq!(first - third, c_prop.into());
+                        debug_assert_eq!(first - third, UFDRNum::from_as_prop(c_prop));
                         debug_assert_eq!(first + second + third, sum);
                         if second == third {
                             debug_assert!(first > second);
@@ -571,7 +571,7 @@ impl HueBasics for CMYHue {
     fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match c_prop {
             Prop::ZERO => None,
-            c_prop => Some(c_prop * 2),
+            c_prop => Some(c_prop * 2u64),
         }
     }
 
@@ -587,8 +587,10 @@ impl HueBasics for CMYHue {
         match chroma {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::TWO),
-            Chroma::Shade(c_prop) => Some(c_prop * 2),
-            Chroma::Tint(c_prop) => Some(UFDRNum::TWO + UFDRNum(3 - c_prop.0 as u128 % 3)),
+            Chroma::Shade(c_prop) => Some(c_prop * 2u64),
+            Chroma::Tint(c_prop) => {
+                Some(UFDRNum::TWO + UFDRNum(3 - u64::from_as_prop(c_prop) as u128 % 3))
+            }
         }
     }
 
@@ -598,7 +600,7 @@ impl HueBasics for CMYHue {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::TWO),
             Chroma::Shade(c_prop) => {
-                Some(UFDRNum::TWO - UFDRNum(3 - (u64::MAX - c_prop.0) as u128 % 3))
+                Some(UFDRNum::TWO - UFDRNum(3 - (u64::MAX - u64::from_as_prop(c_prop)) as u128 % 3))
             }
             Chroma::Tint(c_prop) => self.max_sum_for_chroma_prop(c_prop),
         }
@@ -610,7 +612,9 @@ impl HueBasics for CMYHue {
             match sum.cmp(&UFDRNum::TWO) {
                 Ordering::Equal => Some(Chroma::ONE),
                 // TODO: fix max chroma for sum (more complicated for uneven sums)
-                Ordering::Less => Some(Chroma::Shade((sum / 2u8).into_prop().max(Prop(1)))),
+                Ordering::Less => Some(Chroma::Shade(
+                    (sum / 2u8).into_prop().max(Prop::ALMOST_ZERO),
+                )),
                 Ordering::Greater => Some(Chroma::Tint((UFDRNum::THREE - sum).into_prop())),
             }
         } else {
@@ -640,7 +644,7 @@ impl OrderedTriplets for CMYHue {
         c_prop: Prop,
     ) -> Option<Result<[Prop; 3], [Prop; 3]>> {
         debug_assert!(sum.is_valid_sum());
-        match c_prop * 2 {
+        match c_prop * 2u64 {
             UFDRNum::ZERO => None,
             min_sum if sum >= min_sum => {
                 let third = (sum - min_sum) / 3u8;
@@ -649,7 +653,11 @@ impl OrderedTriplets for CMYHue {
                     first => match sum - first - third {
                         second if second == first => {
                             debug_assert!(second > third);
-                            Some(Ok([first.to_prop(), second.to_prop(), third.to_prop()]))
+                            Some(Ok([
+                                first.into_prop(),
+                                second.into_prop(),
+                                third.into_prop(),
+                            ]))
                         }
                         second => {
                             debug_assert!(second > first && first > third);
@@ -660,21 +668,29 @@ impl OrderedTriplets for CMYHue {
                                     let first = first - UFDRNum(1);
                                     let third = third + UFDRNum(1);
                                     debug_assert!(second > third && first > third);
-                                    debug_assert_eq!(second - third, c_prop.into());
+                                    debug_assert_eq!(second - third, UFDRNum::from_as_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([second.to_prop(), first.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        second.into_prop(),
+                                        first.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }
                             } else {
-                                let first = first + UFDRNum(1);
+                                let first = first + UFDRNum::from_as_prop(1u64);
                                 if first.is_proportion() {
-                                    let third = third + UFDRNum(1);
-                                    let second = second - UFDRNum(2);
+                                    let third = third + UFDRNum::from_as_prop(1u64);
+                                    let second = second - UFDRNum::from_as_prop(2u64);
                                     debug_assert!(second > third);
-                                    debug_assert_eq!(first - third, c_prop.into());
+                                    debug_assert_eq!(first - third, UFDRNum::from_as_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([first.to_prop(), second.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        first.into_prop(),
+                                        second.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }
@@ -868,7 +884,7 @@ impl HueBasics for SextantHue {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::ONE + self.1),
             Chroma::Shade(c_prop) => Some(c_prop + self.1 * c_prop),
-            Chroma::Tint(_) => Some(UFDRNum::ONE + self.1 + UFDRNum(1)),
+            Chroma::Tint(_) => Some(UFDRNum::ONE + self.1 + UFDRNum::from_as_prop(1u64)),
         }
     }
 
@@ -877,7 +893,7 @@ impl HueBasics for SextantHue {
         match chroma {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::ONE + self.1),
-            Chroma::Shade(_) => Some(UFDRNum::ONE + self.1 - UFDRNum(1)),
+            Chroma::Shade(_) => Some(UFDRNum::ONE + self.1 - UFDRNum::from_as_prop(1u64)),
             Chroma::Tint(c_prop) => self.max_sum_for_chroma_prop(c_prop),
         }
     }
@@ -891,7 +907,8 @@ impl HueBasics for SextantHue {
                     let mut temp = sum / (UFDRNum::ONE + self.1);
                     // NB: check for and fix rounding error
                     while sum < (UFDRNum::ONE + self.1) * temp {
-                        temp = temp - UFDRNum(1);
+                        eprintln!("MCFS");
+                        temp -= UFDRNum(1);
                     }
                     Some(Chroma::Shade(temp.into_prop()))
                 }
@@ -944,8 +961,9 @@ impl OrderedTriplets for SextantHue {
                         match second.cmp(&first) {
                             Ordering::Less => {
                                 debug_assert_eq!(first + second + third, sum);
-                                debug_assert_eq!(first - third, c_prop.into());
-                                let triplet = [first.to_prop(), second.to_prop(), third.to_prop()];
+                                debug_assert_eq!(first - third, UFDRNum::from_as_prop(c_prop));
+                                let triplet =
+                                    [first.into_prop(), second.into_prop(), third.into_prop()];
                                 debug_assert!(first > second && second > third);
                                 if Self::calculate_hue_parameter(triplet) == self.1 {
                                     Some(Ok(triplet))
@@ -955,18 +973,26 @@ impl OrderedTriplets for SextantHue {
                             }
                             Ordering::Equal => {
                                 debug_assert_eq!(first + second + third, sum);
-                                debug_assert_eq!(first - third, c_prop.into());
+                                debug_assert_eq!(first - third, UFDRNum::from_as_prop(c_prop));
                                 debug_assert!(second > third);
-                                Some(Err([first.to_prop(), second.to_prop(), third.to_prop()]))
+                                Some(Err([
+                                    first.into_prop(),
+                                    second.into_prop(),
+                                    third.into_prop(),
+                                ]))
                             }
                             Ordering::Greater => {
                                 if second.is_proportion() {
                                     let first = first - UFDRNum(1);
                                     let third = third + UFDRNum(1);
                                     debug_assert!(second > third && first > third);
-                                    debug_assert_eq!(second - third, c_prop.into());
+                                    debug_assert_eq!(second - third, UFDRNum::from_as_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([second.to_prop(), first.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        second.into_prop(),
+                                        first.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }
@@ -1034,17 +1060,20 @@ impl SextantHue {
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
             && sum_for_max_chroma * (first - third) > first + second + third
         {
-            sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
+            eprintln!("LOOP ONE");
+            sum_for_max_chroma -= UFDRNum(1);
         }
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
-            && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8 < third.into()
+            && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8
+                < UFDRNum::from_as_prop(third)
         {
-            sum_for_max_chroma = sum_for_max_chroma - UFDRNum(1);
+            eprintln!("LOOP TWO");
+            sum_for_max_chroma -= UFDRNum(1);
         }
         debug_assert!(sum_for_max_chroma > UFDRNum::ONE && sum_for_max_chroma < UFDRNum::TWO);
         debug_assert_eq!(
             (first + second + third - sum_for_max_chroma * (first - third)) / 3u8,
-            third.into()
+            UFDRNum::from_as_prop(third)
         );
         (sum_for_max_chroma - UFDRNum::ONE).into_prop()
     }
@@ -1092,7 +1121,7 @@ impl HueIfce for SextantHue {
             SextantHue(Sextant::GreenYellow, Prop::HALF) => Angle::GREEN_YELLOW,
             SextantHue(Sextant::GreenCyan, Prop::HALF) => Angle::GREEN_CYAN,
             _ => {
-                let second: f64 = self.1.into();
+                let second: f64 = f64::from_as_prop(self.1);
                 let sin = f64::SQRT_3 * second / 2.0 / (1.0 - second + second.powi(2)).sqrt();
                 let angle = Angle::asin(FDRNum::from(sin));
                 match self.0 {
@@ -1304,7 +1333,7 @@ impl From<Angle> for Hue {
             Angle::GREEN_CYAN => Hue::GREEN_CYAN,
             _ => {
                 fn f(angle: Angle) -> Prop {
-                    (angle.sin() / (Angle::GREEN - angle).sin()).into()
+                    (angle.sin() / (Angle::GREEN - angle).sin()).into_prop()
                 }
                 if angle >= Angle::RED {
                     if angle < Angle::YELLOW {

@@ -5,7 +5,7 @@ use std::fmt::{Debug, LowerHex, UpperHex};
 use serde::{Deserialize, Serialize};
 
 use fixed_denominator_rational_numbers::{
-    AsProportion, FDRNum, FromAsProp, IntoAsProp, Prop, UFDRNum, Unsigned,
+    AsProportion, FDRNum, FromAsProp, IntoProp, NumberConstants, Prop, UFDRNum, Unsigned,
 };
 
 use hue::HueIfce;
@@ -23,7 +23,7 @@ pub use crate::{
         },
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
-    cmy::CMY,
+    // cmy::CMY,
     // fdrn::{
     //     debug, FDRNum, Float, FromAsProp, IntoAsProp, IntoProp, Prop, Signed, SignedInteger,
     //     UFDRNum, Unsigned, UnsignedInteger,
@@ -54,9 +54,9 @@ pub mod useful_consts;
 pub trait LightLevel:
     Clone
     + Copy
+    + AsProportion
     + FromAsProp<Prop>
-    + IntoAsProp<Prop>
-    + PartialEq
+    + IntoProp
     + Debug
     + Default
     + PartialOrd
@@ -67,51 +67,51 @@ pub trait LightLevel:
     + LowerHex
     + std::ops::Sub<Output = Self> // + std::ops::Div<Output = Self>
 {
-    const ZERO: Self;
-    const ONE: Self;
-    const ONE_QUARTER: Self;
-    const HALF: Self;
-    const THREE_QUARTERS: Self;
+    // const ZERO: Self;
+    // const ONE: Self;
+    // const ONE_QUARTER: Self;
+    // const HALF: Self;
+    // const THREE_QUARTERS: Self;
 }
 
 impl LightLevel for u8 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u16 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u32 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u64 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for Prop {
-    const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
-    const ONE: Self = Self(u64::ONE);
-    const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
-    const HALF: Self = Self(u64::HALF);
-    const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
+    // const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
+    // const ONE: Self = Self(u64::ONE);
+    // const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
+    // const HALF: Self = Self(u64::HALF);
+    // const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
 }
 
 pub trait HueConstants: Sized + Copy {
@@ -158,33 +158,28 @@ pub trait RGBConstants: HueConstants + Copy {
     ];
 }
 
-pub trait IsValidSum {
-    fn is_valid_sum(self) -> bool {
-        self >= Self::ZERO && self <= Self::ONE * 3
-    }
-
-    fn is_hue_valid(self) -> bool {
-        self > Self::ZERO && self < Self::ONE * 3
-    }
+pub trait IsValidSum: Sized {
+    fn is_valid_sum(&self) -> bool;
+    fn is_hue_valid(&self) -> bool;
 }
 
 impl IsValidSum for UFDRNum {
-    fn is_valid_sum(self) -> bool {
-        self >= Self::ZERO && self <= Self::ONE * 3
+    fn is_valid_sum(&self) -> bool {
+        *self >= Self(0) && *self <= Self::ONE * 3u64
     }
 
-    fn is_hue_valid(self) -> bool {
-        self > Self::ZERO && self < Self::ONE * 3
+    fn is_hue_valid(&self) -> bool {
+        *self > Self(0) && *self < Self::ONE * 3u64
     }
 }
 
 impl IsValidSum for FDRNum {
-    fn is_valid_sum(self) -> bool {
-        self >= Self::ZERO && self <= Self::ONE * 3
+    fn is_valid_sum(&self) -> bool {
+        *self >= Self(0) && *self <= Self::ONE * 3
     }
 
-    fn is_hue_valid(self) -> bool {
-        self > Self::ZERO && self < Self::ONE * 3
+    fn is_hue_valid(&self) -> bool {
+        *self > Self(0) && *self < Self::ONE * 3
     }
 }
 
@@ -193,12 +188,12 @@ pub trait FromProps {
 }
 
 pub trait IntoRGB {
-    fn into_rgb<L: LightLevel>(&self) -> RGB<L>;
+    fn into_rgb<L: LightLevel>(self) -> RGB<L>;
 }
 
 impl IntoRGB for [Prop; 3] {
-    fn into_rgb<L: LightLevel>(&self) -> RGB<L> {
-        RGB::<L>::from_proportions(*self)
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        RGB::<L>::from_proportions(self)
     }
 }
 
@@ -234,7 +229,7 @@ pub trait ColourBasics {
 
     fn hcv(&self) -> HCV;
     fn rgb<L: LightLevel>(&self) -> RGB<L>;
-    fn cmy<L: LightLevel>(&self) -> CMY<L>;
+    // fn cmy<L: LightLevel>(&self) -> CMY<L>;
 
     fn monochrome_hcv(&self) -> HCV {
         HCV::new_grey(self.value())
@@ -250,7 +245,7 @@ pub trait ColourBasics {
                 if let Some(family) = self.family() {
                     match family {
                         Family::Yellows | Family::Cyans => {
-                            if self.value() < Value::ONE / 4 {
+                            if self.value() < Value::ONE / 4u64 {
                                 HCV::WHITE
                             } else {
                                 HCV::BLACK
@@ -264,7 +259,7 @@ pub trait ColourBasics {
             }
             Chroma::Tint(_) => HCV::BLACK,
             _ => {
-                if self.value() < Value::ONE / 2 {
+                if self.value() < Value::ONE / 2u64 {
                     HCV::WHITE
                 } else {
                     HCV::BLACK
@@ -289,7 +284,7 @@ pub trait ColourBasics {
         )
     }
 
-    fn into_proportions(&self) -> [Prop; 3];
+    fn into_proportions(self) -> [Prop; 3];
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -383,12 +378,12 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
         }
     }
 
-    fn cmy<T: LightLevel>(&self) -> CMY<T> {
-        match self {
-            Colour::Rgb(rgb) => rgb.cmy::<T>(),
-            Colour::Hc(hc) => hc.cmy::<T>(),
-        }
-    }
+    // fn cmy<T: LightLevel>(&self) -> CMY<T> {
+    //     match self {
+    //         Colour::Rgb(rgb) => rgb.cmy::<T>(),
+    //         Colour::Hc(hc) => hc.cmy::<T>(),
+    //     }
+    // }
 
     fn monochrome_hcv(&self) -> HCV {
         match self {
@@ -425,7 +420,7 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
         }
     }
 
-    fn into_proportions(&self) -> [Prop; 3] {
+    fn into_proportions(self) -> [Prop; 3] {
         match self {
             Colour::Rgb(rgb) => rgb.into_proportions(),
             Colour::Hc(hc) => hc.into_proportions(),
@@ -463,8 +458,8 @@ pub trait ColourAttributes: ColourBasics {
         match attr {
             ScalarAttribute::Chroma => self.chroma().into_prop(),
             ScalarAttribute::Greyness => Prop::ONE - self.chroma().into_prop(),
-            ScalarAttribute::Value => self.value().into(),
-            ScalarAttribute::Warmth => self.warmth().into(),
+            ScalarAttribute::Value => self.value().into_prop(),
+            ScalarAttribute::Warmth => self.warmth().into_prop(),
         }
     }
 

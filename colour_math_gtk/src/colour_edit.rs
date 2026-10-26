@@ -6,6 +6,8 @@ use gtk3_ext::{
     wrapper::*,
 };
 
+use fixed_denominator_rational_numbers::*;
+
 use colour_math::{hcv::HCV, LightLevel, ScalarAttribute, Value, RGB};
 
 use crate::{
@@ -117,7 +119,7 @@ impl ColourEditorBuilder {
             default_colour: if let Some(rgb) = self.default_colour {
                 rgb
             } else {
-                HCV::new_grey(Value::ONE / 2)
+                HCV::new_grey(Value::ONE / 2u64)
             },
         });
 

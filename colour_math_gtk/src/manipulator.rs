@@ -12,8 +12,9 @@ use gtk3_ext::{
     wrapper::*,
 };
 
+use fixed_denominator_rational_numbers::*;
+
 use colour_math::{
-    fdrn::Prop,
     hcv::HCV,
     hue::angle::Angle,
     manipulator::{ColourManipulator, DeltaSize},
@@ -78,7 +79,7 @@ impl ColourManipulatorGUI {
 
     pub fn set_colour(&self, colour: &impl ManipGdkColour) {
         self.colour_manipulator.borrow_mut().set_colour(colour);
-        let offset: Prop = ((Prop::ONE / 10u32) * 2u32).into();
+        let offset: Prop = ((Prop::ONE / 10u32) * 2u32).into_prop();
         self.incr_value_btn
             .set_widget_colour(&colour.lightened(offset));
         self.decr_value_btn
@@ -164,7 +165,7 @@ impl ColourManipulatorGUI {
 
     pub fn reset(&self) {
         self.delete_samples();
-        self.set_colour_and_inform(&(HCV::new_grey(Value::ONE / 2)));
+        self.set_colour_and_inform(&(HCV::new_grey(Value::ONE / 2u64)));
     }
 
     pub fn delete_samples(&self) {

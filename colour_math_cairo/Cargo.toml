@@ -10,3 +10,4 @@ edition = "2021"
 gtk3_ext.workspace = true
 
 colour_math.workspace = true
+fixed_denominator_rational_numbers.workspace = true
