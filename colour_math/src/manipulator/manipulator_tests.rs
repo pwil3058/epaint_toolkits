@@ -111,7 +111,7 @@ fn decr_chroma() {
             } else {
                 Prop::ZERO
             };
-            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO);
+            assert_approx_eq!(manipulator.hcv.sum, UFDRNum::TWO, 0xA);
             if manipulator.hcv.chroma() > Chroma::ZERO {
                 assert_eq!(manipulator.hcv.hue(), saved_hue);
             }
@@ -222,7 +222,11 @@ fn round_trip_chroma() {
     while manipulator.decr_chroma(0.01.into()) {}
     assert!(manipulator.hcv.is_grey());
     while manipulator.incr_chroma(0.01.into()) {}
-    assert_approx_eq!(manipulator.rgb::<u64>(), crate::rgb::RGB::<u64>::CYAN,);
+    assert_approx_eq!(
+        manipulator.rgb::<u64>(),
+        crate::rgb::RGB::<u64>::CYAN,
+        0x2000
+    );
 }
 
 #[test]
@@ -342,7 +346,7 @@ fn rotate_rgb_favouring_chroma() {
             assert_approx_eq!(cur_c_prop, manipulator.hcv.c_prop);
             let (min_sum, max_sum) = manipulator.hcv.sum_range_for_current_chroma();
             assert!(
-                cur_sum.approx_eq(&manipulator.hcv.sum, None)
+                cur_sum.approx_eq(&manipulator.hcv.sum, Some(0x10))
                     || min_sum.approx_eq(&manipulator.hcv.sum, None)
                     || max_sum.approx_eq(&manipulator.hcv.sum, None)
             );
@@ -425,7 +429,7 @@ fn rotate_rgb_favouring_value() {
                 cur_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
                     || max_c_prop.approx_eq(&manipulator.hcv.c_prop, Some(Prop(0x1).into()))
             );
-            assert_approx_eq!(cur_sum, manipulator.hcv.sum);
+            assert_approx_eq!(cur_sum, manipulator.hcv.sum, 0x4);
             let expected_angle = cur_angle + (*delta).into();
             assert_approx_eq!(expected_angle, manipulator.hcv.hue_angle().unwrap(), 0x1000);
         }

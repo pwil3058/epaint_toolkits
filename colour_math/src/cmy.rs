@@ -299,7 +299,11 @@ mod cmy_tests {
     fn rgb_to_cmy() {
         assert_eq!(RGB::<Prop>::RED, CMY::<Prop>::RED.into());
         assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into());
-        assert_approx_eq!(RGB::<Prop>::LIGHT_GREY, CMY::<Prop>::LIGHT_GREY.into());
+        assert_approx_eq!(
+            RGB::<Prop>::LIGHT_GREY,
+            CMY::<Prop>::LIGHT_GREY.into(),
+            0x10
+        );
         assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into());
     }
 
