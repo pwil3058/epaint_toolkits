@@ -16,10 +16,7 @@ use crate::{
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UFDRNum(pub(crate) u128);
 
-impl Unsigned for UFDRNum {
-    const MAX: Self = UFDRNum(u128::MAX);
-    const ZERO: Self = UFDRNum(0);
-}
+impl Unsigned for UFDRNum {}
 
 impl UFDRNum {
     pub const DENOMINATOR: u128 = u64::MAX as u128;
