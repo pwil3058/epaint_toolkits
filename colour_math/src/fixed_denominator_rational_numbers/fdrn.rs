@@ -164,7 +164,7 @@ impl From<UFDRNum> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, UFDRNum};
+    /// use colour_math::{FDRNum, UFDRNum, NumberConstants};
     ///
     /// assert_eq!(FDRNum::ONE, UFDRNum::ONE.into());
     /// assert_eq!(FDRNum::ONE / 2, (UFDRNum::ONE / 2u8).into());
@@ -180,7 +180,7 @@ impl<S: SignedInteger> From<S> for FDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::FDRNum;
+    /// use colour_math::{FDRNum, NumberConstants};
     ///
     /// assert_eq!(FDRNum::from(1_i32), FDRNum::ONE);
     /// assert_eq!(FDRNum::from(0_i64), FDRNum::ZERO);

@@ -8,9 +8,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, UFDRNum,
+    FDRNum, NumberConstants, UFDRNum,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]

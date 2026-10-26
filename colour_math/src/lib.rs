@@ -21,8 +21,8 @@ pub use crate::{
     },
     cmy::CMY,
     fixed_denominator_rational_numbers::{
-        debug, FDRNum, Float, IntoProp, Prop, Signed, SignedInteger, UFDRNum, Unsigned,
-        UnsignedInteger,
+        debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
+        Unsigned, UnsignedInteger,
     },
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},

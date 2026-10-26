@@ -6,27 +6,33 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Rem, RemAssign, Sub, SubAssign},
 };
 
+use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
 use crate::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, Float, Prop, Unsigned, UnsignedInteger,
+    FDRNum, Float, NumberConstants, Prop, Unsigned, UnsignedInteger,
 };
 
+/// Fixed denominator rational number as an approximate representation of real numbers
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct UFDRNum(pub(crate) u128);
+pub struct UFDRNum(pub u128);
 
 impl Unsigned for UFDRNum {}
 
+impl NumberConstants for UFDRNum {
+    const ZERO: Self = Self(0);
+    const ONE: Self = Self(Self::DENOMINATOR);
+    const ALMOST_ONE: Self = Self(Self::DENOMINATOR - 1);
+    const TWO: Self = Self(Self::DENOMINATOR * 2);
+    const THREE: Self = Self(Self::DENOMINATOR * 3);
+
+    const SQRT_2: Self = UFDRNum(0x16A09E667F3BCC906);
+    const SQRT_3: Self = UFDRNum(0x1BB67AE8584CAA73A);
+}
+
 impl UFDRNum {
     pub const DENOMINATOR: u128 = u64::MAX as u128;
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(Self::DENOMINATOR);
-    pub const TWO: Self = Self(u64::MAX as u128 * 2);
-    pub const THREE: Self = Self(u64::MAX as u128 * 3);
-
-    pub const SQRT_2: Self = Self(FDRNum::SQRT_2.0 as u128);
-    pub const SQRT_3: Self = Self(FDRNum::SQRT_3.0 as u128);
 
     pub fn is_valid_sum(self) -> bool {
         self <= Self::THREE
@@ -49,30 +55,45 @@ impl UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{assert_approx_eq, UFDRNum, Prop};
+    /// use colour_math::{assert_approx_eq, UFDRNum, Prop, NumberConstants};
     /// use colour_math::debug::ApproxEq;
     ///
     /// assert_eq!(UFDRNum::from_rational_num(4, 2), UFDRNum::ONE * 2_u8);
-    /// assert_approx_eq!(UFDRNum::from_rational_num(5, 2), UFDRNum::from(2.5), 2);
+    /// assert_eq!(UFDRNum::from_rational_num(5, 2), UFDRNum::from(2.5));
     /// assert_eq!(UFDRNum::from_rational_num(17, 17), UFDRNum::ONE);
-    /// assert_approx_eq!(UFDRNum::from_rational_num(5, 10), UFDRNum::ONE / 2u8, 1);
-    /// assert_eq!(UFDRNum::from_rational_num(u64::MAX as u128 * 2, u64::MAX as u128), UFDRNum::ONE * 2u8);
+    /// assert_eq!(UFDRNum::from_rational_num(5, 10), UFDRNum::from(0.5));
+    /// assert_eq!(UFDRNum::from_rational_num(u64::MAX as u128 * 2, u64::MAX as u128), UFDRNum::ONE * 2_u8);
     /// ```
     pub fn from_rational_num(enumerator: u128, denominator: u128) -> Self {
+        assert_ne!(denominator, 0);
         if enumerator == 0 {
-            return Self::ZERO;
-        }
-        use Ordering::*;
-        match denominator.cmp(&enumerator) {
-            Equal => Self::ONE,
-            Greater => {
+            Self::ZERO
+        } else {
+            let gcd = enumerator.gcd(denominator);
+            let enumerator = enumerator / gcd;
+            let denominator = denominator / gcd;
+            if enumerator == denominator {
+                Self::ONE
+            } else if denominator == 1 {
+                let internal_val = enumerator
+                    .checked_mul(Self::DENOMINATOR)
+                    .expect("Logic Error: Rational number scale exceeds max u128 capacity");
+                Self(internal_val)
+            } else {
                 let shift = enumerator.leading_zeros();
-                let result = (enumerator << shift) / denominator;
-                Self(result >> (shift - 64))
-            }
-            Less => {
-                let int = Self(enumerator / denominator * Self::DENOMINATOR);
-                int + Self::from_rational_num(enumerator % denominator, denominator)
+                let temp = (enumerator << shift) / denominator;
+                use Ordering::*;
+                match shift.cmp(&64) {
+                    Less => {
+                        let shift_amount = 64 - shift;
+                        let final_val = temp.checked_shl(shift_amount).expect(
+                            "Logic Error: Left-shift overflowed! Fraction exceeds capacity.",
+                        );
+                        UFDRNum(final_val)
+                    }
+                    Equal => UFDRNum(temp),
+                    Greater => UFDRNum(temp >> (shift - 64)),
+                }
             }
         }
     }
@@ -81,7 +102,7 @@ impl UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{UFDRNum, debug::*};
+    /// use colour_math::{UFDRNum, debug::*, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// let four: UFDRNum = UFDRNum::ONE * 4_u8;
@@ -149,7 +170,7 @@ impl<U: UnsignedInteger> From<U> for UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::UFDRNum;
+    /// use colour_math::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::from(1_u32), UFDRNum::ONE);
     /// assert_eq!(UFDRNum::from(0_u64), UFDRNum::ZERO);
@@ -166,7 +187,7 @@ impl From<f64> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{Float,UFDRNum, debug::ApproxEq};
+    /// use colour_math::{Float,UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(1.0), UFDRNum::ONE);
@@ -215,7 +236,7 @@ impl Add for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq,};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::ONE * 2_u8 + UFDRNum::ONE, UFDRNum::ONE * 3_u8);
@@ -241,7 +262,7 @@ impl Sub for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::ONE * 2_u8 - UFDRNum::ONE, UFDRNum::ONE);
@@ -268,7 +289,7 @@ impl Mul for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(0.5) * UFDRNum::from(2_u8), UFDRNum::ONE);
@@ -301,7 +322,7 @@ impl<U: UnsignedInteger> Mul<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum};
+    /// use colour_math::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::ONE * 5_u32, UFDRNum::from(5_u32));
     /// ```
@@ -321,7 +342,7 @@ impl Div for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq,};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(5_u64) / UFDRNum::from(2_u8), UFDRNum::from(2.5_f64), 3);
@@ -353,7 +374,7 @@ impl<U: UnsignedInteger> Div<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq,};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::ONE / 4_u32, UFDRNum::from(0.25), 2);
@@ -373,7 +394,7 @@ impl Rem for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::UFDRNum;
+    /// use colour_math::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::ONE % (UFDRNum::ONE * 4_u8), UFDRNum::ONE);
     /// assert_eq!((UFDRNum::ONE * 5u8) % (UFDRNum::ONE * 4_u8), UFDRNum::ONE);
@@ -397,7 +418,7 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq};
+    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::ONE / 4_u32, UFDRNum::from(0.25), 2);
@@ -415,7 +436,7 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
 /// Example:
 ///
 /// ```
-/// use colour_math::{UFDRNum, FDRNum};
+/// use colour_math::{UFDRNum, FDRNum, NumberConstants};
 ///
 /// assert_eq!(-UFDRNum::ONE, FDRNum::MINUS_ONE);
 /// ```

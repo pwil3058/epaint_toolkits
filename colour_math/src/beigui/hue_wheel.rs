@@ -1,10 +1,11 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::cmp::Ordering;
 
+use crate::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, UFDRNum};
+
 use crate::{
     attributes::Value,
     beigui::{DrawShapes, Point},
-    fixed_denominator_rational_numbers::{FDRNum, UFDRNum},
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,

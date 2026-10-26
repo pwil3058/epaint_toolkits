@@ -12,3 +12,14 @@ pub use fdrn::*;
 pub use prop::*;
 pub use ufdrn::*;
 pub use useful_traits::*;
+
+pub trait NumberConstants {
+    const ZERO: Self;
+    const ONE: Self;
+    const ALMOST_ONE: Self;
+    const TWO: Self;
+    const THREE: Self;
+
+    const SQRT_2: Self;
+    const SQRT_3: Self;
+}

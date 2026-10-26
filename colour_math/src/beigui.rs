@@ -1,12 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::ops::{Add, Mul, Sub};
 
-use crate::{
-    fixed_denominator_rational_numbers::{FDRNum, Prop, UFDRNum},
-    hcv::HCV,
-    hue::angle::Angle,
-    ColourBasics,
-};
+use crate::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, Prop, UFDRNum};
+
+use crate::{hcv::HCV, hue::angle::Angle, ColourBasics};
 
 #[cfg(test)]
 mod test_beigui;
