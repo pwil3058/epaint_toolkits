@@ -3,7 +3,7 @@
 use std::{
     cmp::Ordering,
     fmt::{self, Debug, Formatter},
-    ops::{Add, Div, Mul, Sub},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Serialize};
@@ -83,8 +83,23 @@ impl Prop {
             }
         }
     }
+
+    /// Return the complement of this proportion
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{AsProportion, Prop, debug::ApproxEq};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(Prop::ONE_QUARTER.complement(), Prop::THREE_QUARTERS)
+    /// ```
+    pub fn complement(self) -> Self {
+        Self::ONE - self
+    }
 }
 
+// Debug stuff
 impl AbsDiff for Prop {}
 
 impl PropDiff for Prop {
@@ -119,6 +134,7 @@ impl fmt::Display for Prop {
     }
 }
 
+// Conversions
 pub trait IntoProp: Sized + Copy + Into<Prop> {
     fn into_prop(self) -> Prop {
         self.into()
@@ -127,10 +143,16 @@ pub trait IntoProp: Sized + Copy + Into<Prop> {
 
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
-        debug_assert!(fraction[1] >= fraction[0]);
-        Self(((fraction[0] as u128 * u64::MAX as u128) / fraction[1] as u128) as u64)
+        Self::from_fraction(fraction[0], fraction[1])
     }
 }
+
+impl FromAsProp<Prop> for Prop {
+    fn from_as_prop(prop: Prop) -> Self {
+        prop
+    }
+}
+// impl_into_as_prop!(Prop, Prop);
 
 impl FromAsProp<f64> for Prop {
     fn from_as_prop(arg: f64) -> Self {
@@ -145,6 +167,7 @@ impl FromAsProp<Prop> for f64 {
         arg.0 as f64 / u64::MAX as f64
     }
 }
+// impl_into_as_prop!(f64, Prop);
 
 #[macro_export]
 macro_rules! impl_prop_to_from_float {
@@ -318,17 +341,42 @@ impl Add for Prop {
 impl Sub for Prop {
     type Output = Self;
 
+    /// Subtract a Prop yielding a Prop.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(Prop::from_fraction(1, 2) - Prop::from_fraction(1, 4), Prop::from_fraction(1, 4));
+    /// assert_eq!(Prop::from_fraction(3, 5) - Prop::from_fraction(6, 10), Prop::ZERO);
+    /// ```
     fn sub(self, rhs: Self) -> Self {
-        debug_assert!(self.0 >= rhs.0);
+        assert!(self.0 >= rhs.0);
         Self(self.0 - rhs.0)
     }
 }
 
+impl SubAssign for Prop {
+    fn sub_assign(&mut self, rhs: Self) {
+        debug_assert!(self.0 >= rhs.0);
+        self.0 -= rhs.0;
+    }
+}
+
+// Ops with UFDRNum
 impl Add<Prop> for UFDRNum {
     type Output = Self;
 
     fn add(self, rhs: Prop) -> UFDRNum {
         UFDRNum(self.0 + rhs.0 as u128)
+    }
+}
+
+impl AddAssign<Prop> for UFDRNum {
+    fn add_assign(&mut self, rhs: Prop) {
+        self.0 += rhs.0 as u128;
     }
 }
 
@@ -341,10 +389,18 @@ impl Sub<Prop> for UFDRNum {
     }
 }
 
+impl SubAssign<Prop> for UFDRNum {
+    fn sub_assign(&mut self, rhs: Prop) {
+        debug_assert!(self.0 >= rhs.0 as u128);
+        self.0 -= rhs.0 as u128;
+    }
+}
+
 impl Div<Prop> for UFDRNum {
     type Output = Self;
 
     fn div(self, rhs: Prop) -> Self {
+        assert_ne!(rhs.0, 0);
         if rhs == Prop::ONE {
             self
         } else {
@@ -356,19 +412,38 @@ impl Div<Prop> for UFDRNum {
     }
 }
 
+impl DivAssign<Prop> for UFDRNum {
+    fn div_assign(&mut self, rhs: Prop) {
+        *self = self.div(rhs);
+    }
+}
+
 impl Mul<Prop> for UFDRNum {
     type Output = Self;
 
+    /// Multiply by a Prop
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(UFDRNum::from(2.5) * Prop::ONE, UFDRNum::from(2.5));
+    /// assert_eq!(UFDRNum::ONE * Prop::ZERO, UFDRNum::ZERO);
+    /// assert_eq!(UFDRNum::ONE * Prop::from_as_prop(0.5), UFDRNum::from(0.5));
+    /// ```
     fn mul(self, rhs: Prop) -> Self {
-        if rhs.0 == u64::MAX {
-            self
-        } else if self.0 >= u64::MAX as u128 {
-            let one = u64::MAX as u128;
-            let l_int = self.0 / one;
-            let l_rem = self.0 % one;
-            Self(l_int * rhs.0 as u128 + rhs.0 as u128 * l_rem / one)
-        } else {
-            Self((self.0 * rhs.0 as u128) / u64::MAX as u128)
+        match rhs {
+            Prop::ZERO => Self::ZERO,
+            Prop::ONE => self,
+            _ => self.mul(Self(rhs.0 as u128)),
         }
+    }
+}
+
+impl MulAssign<Prop> for UFDRNum {
+    fn mul_assign(&mut self, rhs: Prop) {
+        *self = self.mul(rhs);
     }
 }

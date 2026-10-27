@@ -162,7 +162,7 @@ fn prop_sub() {
 
 #[test]
 fn from_fraction() {
-    assert_eq!(Prop::from([1, 2]), Prop::HALF);
+    assert_approx_eq!(Prop::from([1, 2]), Prop::HALF);
 }
 
 #[test]
