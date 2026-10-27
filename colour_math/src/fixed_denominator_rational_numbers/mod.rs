@@ -23,3 +23,6 @@ pub trait NumberConstants {
     const SQRT_2: Self;
     const SQRT_3: Self;
 }
+
+#[cfg(test)]
+mod tests;

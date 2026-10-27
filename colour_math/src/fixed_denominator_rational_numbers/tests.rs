@@ -2,15 +2,12 @@
 
 use approximately_equal::assert_approx_eq;
 
-use crate::{
-    debug::ApproxEq,
-    fdrn::{FDRNumber, Prop, UFDRNumber},
-};
+use crate::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq};
 
 #[test]
 fn sqrt_2() {
-    assert_eq!(f64::from(FDRNumber::SQRT_2), std::f64::consts::SQRT_2);
-    assert_eq!(f64::from(UFDRNumber::SQRT_2), std::f64::consts::SQRT_2);
+    assert_eq!(f64::from(FDRNum::SQRT_2), std::f64::consts::SQRT_2);
+    assert_eq!(f64::from(UFDRNum::SQRT_2), std::f64::consts::SQRT_2);
 }
 
 #[test]
@@ -24,9 +21,9 @@ fn ufdrn_mul() {
         [1.0, 1.001],
         [25.0, 5.0],
     ] {
-        let expected = UFDRNumber::from(lhs * rhs);
-        let result = UFDRNumber::from(*lhs) * UFDRNumber::from(*rhs);
-        assert_approx_eq!(result, expected);
+        let expected = UFDRNum::from(lhs * rhs);
+        let result = UFDRNum::from(*lhs) * UFDRNum::from(*rhs);
+        assert_approx_eq!(result, expected, 0x5b00);
     }
 }
 
@@ -41,11 +38,11 @@ fn ufdrn_div() {
         [1.0, 1.001],
         [25.0, 5.0],
     ] {
-        let expected = UFDRNumber::from(lhs / rhs);
-        let result = UFDRNumber::from(*lhs) / UFDRNumber::from(*rhs);
-        assert_approx_eq!(result, expected, Prop(0x0000000000001000));
-        let go_back = result * UFDRNumber::from(*rhs);
-        assert_approx_eq!(go_back, UFDRNumber::from(*lhs), Prop(0x0000000000000002));
+        let expected = UFDRNum::from(lhs / rhs);
+        let result = UFDRNum::from(*lhs) / UFDRNum::from(*rhs);
+        assert_approx_eq!(result, expected, 0x1000);
+        let go_back = result * UFDRNum::from(*rhs);
+        assert_approx_eq!(go_back, UFDRNum::from(*lhs), 0x2);
     }
 }
 
@@ -58,10 +55,10 @@ fn ufdrn_add() {
         [0.5, 0.8],
         [1.5, 0.6],
     ] {
-        let expected = UFDRNumber::from(a + b);
-        let result = UFDRNumber::from(*a) + UFDRNumber::from(*b);
-        assert_approx_eq!(result, expected, Prop(0x801));
-        assert_approx_eq!(f64::from(result), &(a + b), Prop::from(0.000_000_01));
+        let expected = UFDRNum::from(a + b);
+        let result = UFDRNum::from(*a) + UFDRNum::from(*b);
+        assert_approx_eq!(result, expected, 0x801);
+        assert_approx_eq!(f64::from(result), &(a + b));
     }
 }
 
@@ -74,24 +71,20 @@ fn ufdrn_sub() {
         [0.5, 0.08],
         [1.2, 1.1],
     ] {
-        let expected = UFDRNumber::from(a - b);
-        let result = UFDRNumber::from(*a) - UFDRNumber::from(*b);
-        assert_approx_eq!(result, expected);
-        assert_approx_eq!(f64::from(result), &(a - b), Prop::from(0.000_000_01));
+        let expected = UFDRNum::from(a - b);
+        let result = UFDRNum::from(*a) - UFDRNum::from(*b);
+        assert_approx_eq!(result, expected, 0x150);
+        assert_approx_eq!(f64::from(result), &(a - b));
     }
 }
 
 #[test]
 fn ufdrn_div_u8() {
-    for (a, b) in &[(0.9_f64, 3), (0.6, 2), (0.3, 2)] {
-        let expected = UFDRNumber::from(*a / *b as f64);
-        let result = UFDRNumber::from(*a) / *b;
-        assert_approx_eq!(result, expected, Prop(0x0000000000005000));
-        assert_approx_eq!(
-            f64::from(result),
-            &(a / *b as f64),
-            Prop::from(0.000_000_01)
-        );
+    for (a, b) in &[(0.9_f64, 3u32), (0.6, 2), (0.3, 2)] {
+        let expected = UFDRNum::from(*a / *b as f64);
+        let result = UFDRNum::from(*a) / *b;
+        assert_approx_eq!(result, expected, 0x5000);
+        assert_approx_eq!(f64::from(result), &(a / *b as f64),);
     }
 }
 
@@ -101,8 +94,8 @@ fn composition() {
         let prop = Prop::from(*a);
         for b in &[0.001_f64] {
             let second = Prop::from(*b);
-            let left = UFDRNumber::THREE - (UFDRNumber::TWO - second) * prop;
-            let right = UFDRNumber::THREE + second * prop - prop * 2;
+            let left = UFDRNum::THREE - (UFDRNum::TWO - second) * prop;
+            let right = UFDRNum::THREE + second * prop - prop * 2;
             assert!(left > right);
             assert_approx_eq!(left, right);
         }
@@ -114,22 +107,18 @@ fn prop_mul() {
     for [a, b] in &[[0.0f64, 0.3], [0.024, 0.5], [0.8, 0.5]] {
         let expected = Prop::from(a * b);
         let result = Prop::from(*a) * Prop::from(*b);
-        assert_approx_eq!(result, expected, Prop(10));
-        assert_approx_eq!(f64::from(result), &(a * b), Prop::from(0.000_000_01));
+        assert_approx_eq!(result, expected, 0xA);
+        assert_approx_eq!(f64::from(result), &(a * b));
     }
 }
 
 #[test]
 fn prop_mul_u8() {
     for (a, b) in &[(0.9_f64, 3_u8), (0.6, 2), (0.3, 2)] {
-        let expected = UFDRNumber::from(*a * *b as f64);
+        let expected = UFDRNum::from(*a * *b as f64);
         let result = Prop::from(*a) * *b;
-        assert_approx_eq!(result, expected, Prop(0x801));
-        assert_approx_eq!(
-            f64::from(result),
-            &(a * *b as f64),
-            Prop::from(0.000_000_01)
-        );
+        assert_approx_eq!(result, expected, 0x801);
+        assert_approx_eq!(f64::from(result), &(a * *b as f64));
     }
 }
 
@@ -154,10 +143,10 @@ fn prop_add() {
         [0.5, 0.8],
         [0.9, 0.04],
     ] {
-        let expected = UFDRNumber::from(a + b);
+        let expected = UFDRNum::from(a + b);
         let result = Prop::from(*a) + Prop::from(*b);
-        assert_approx_eq!(result, expected, Prop(0x0000000000005000));
-        assert_approx_eq!(f64::from(result), &(a + b), Prop::from(0.000_000_01));
+        assert_approx_eq!(result, expected, 0x5000);
+        assert_approx_eq!(f64::from(result), &(a + b));
     }
 }
 
@@ -166,8 +155,8 @@ fn prop_sub() {
     for [a, b] in &[[0.5f64, 0.3], [0.524, 0.5], [0.18, 0.15], [0.5, 0.08]] {
         let expected = Prop::from(a - b);
         let result = Prop::from(*a) - Prop::from(*b);
-        assert_approx_eq!(result, expected, Prop(0x101));
-        assert_approx_eq!(f64::from(result), &(a - b), Prop::from(0.000_000_01));
+        assert_approx_eq!(result, expected, 0x101);
+        assert_approx_eq!(f64::from(result), &(a - b));
     }
 }
 
