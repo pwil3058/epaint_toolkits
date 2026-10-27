@@ -11,11 +11,13 @@ use serde::{Deserialize, Serialize};
 
 pub mod angle;
 
-use crate::fixed_denominator_rational_numbers::{FDRNum, IntoProp, NumberConstants, Prop, UFDRNum};
+use crate::fixed_denominator_rational_numbers::{
+    debug::{AbsDiff, ApproxEq, PropDiff},
+    AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UFDRNum,
+};
 
 use crate::{
     attributes::{Chroma, Family, Warmth},
-    debug::{AbsDiff, ApproxEq, PropDiff},
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,

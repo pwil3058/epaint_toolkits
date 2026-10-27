@@ -4,9 +4,11 @@ use std::ops::{Deref, Div, Index, IndexMut, Mul};
 
 use serde::{Deserialize, Serialize};
 
+use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
+
 use crate::{
-    debug::*, Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, LightLevel, Prop,
-    RGBConstants, Value, Warmth, HCV, RGB,
+    Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, LightLevel, RGBConstants, Value,
+    Warmth, HCV, RGB,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]

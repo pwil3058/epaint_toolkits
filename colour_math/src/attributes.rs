@@ -8,11 +8,12 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    fixed_denominator_rational_numbers::{FDRNum, IntoProp, Prop, UFDRNum},
-    hue::{Hue, HueBasics},
+    AsProportion, FDRNum, IntoProp, Prop, UFDRNum,
 };
+
+use crate::hue::{Hue, HueBasics};
 use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]

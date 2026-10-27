@@ -9,9 +9,9 @@ use std::{
 use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, Float, NumberConstants, Prop, Unsigned, UnsignedInteger,
+    AsProportion, FDRNum, Float, NumberConstants, Prop, Unsigned, UnsignedInteger,
 };
 
 /// Fixed denominator rational number as an approximate representation of real numbers
@@ -55,8 +55,10 @@ impl UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{assert_approx_eq, UFDRNum, Prop, NumberConstants};
-    /// use colour_math::debug::ApproxEq;
+    /// use colour_math::fixed_denominator_rational_numbers::{
+    ///     UFDRNum, Prop, NumberConstants, debug::ApproxEq
+    /// };
+    /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::from_rational_num(4, 2), UFDRNum::ONE * 2_u8);
     /// assert_eq!(UFDRNum::from_rational_num(5, 2), UFDRNum::from(2.5));
@@ -102,7 +104,7 @@ impl UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{UFDRNum, debug::*, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::*, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// let four: UFDRNum = UFDRNum::ONE * 4_u8;
@@ -170,7 +172,7 @@ impl<U: UnsignedInteger> From<U> for UFDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{UFDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::from(1_u32), UFDRNum::ONE);
     /// assert_eq!(UFDRNum::from(0_u64), UFDRNum::ZERO);
@@ -187,7 +189,7 @@ impl From<f64> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{Float,UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{Float,UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(1.0), UFDRNum::ONE);
@@ -236,7 +238,7 @@ impl Add for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::ONE * 2_u8 + UFDRNum::ONE, UFDRNum::ONE * 3_u8);
@@ -262,7 +264,7 @@ impl Sub for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::ONE * 2_u8 - UFDRNum::ONE, UFDRNum::ONE);
@@ -289,7 +291,7 @@ impl Mul for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(0.5) * UFDRNum::from(2_u8), UFDRNum::ONE);
@@ -322,7 +324,7 @@ impl<U: UnsignedInteger> Mul<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::ONE * 5_u32, UFDRNum::from(5_u32));
     /// ```
@@ -348,7 +350,7 @@ impl Div for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(UFDRNum::from(5_u64) / UFDRNum::from(10_u64), UFDRNum::from_rational_num(1,2));
@@ -378,7 +380,7 @@ impl<U: UnsignedInteger> Div<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::ONE / 4_u32, UFDRNum::from(0.25), 2);
@@ -405,7 +407,7 @@ impl Rem for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, NumberConstants};
     ///
     /// assert_eq!(UFDRNum::ONE % (UFDRNum::ONE * 4_u8), UFDRNum::ONE);
     /// assert_eq!((UFDRNum::ONE * 5u8) % (UFDRNum::ONE * 4_u8), UFDRNum::ONE);
@@ -429,7 +431,7 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::ONE / 4_u32, UFDRNum::from(0.25), 2);

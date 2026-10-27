@@ -1,6 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::fixed_denominator_rational_numbers::{FDRNum, IntoProp, NumberConstants, Prop, UFDRNum};
+use crate::fixed_denominator_rational_numbers::{
+    AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UFDRNum,
+};
 
 use crate::{
     attributes::{Chroma, Greyness, Value, Warmth},

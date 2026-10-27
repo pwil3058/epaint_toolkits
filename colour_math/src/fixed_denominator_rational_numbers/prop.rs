@@ -10,21 +10,38 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    FDRNum, NumberConstants, UFDRNum,
+    AsProportion, FDRNum, FromAsProp, NumberConstants, UFDRNum,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Prop(pub(crate) u64);
 
+impl AsProportion for Prop {
+    const ZERO: Self = Self(0);
+    const ALMOST_ZERO: Self = Self(1);
+    const ONE: Self = Self(u64::MAX);
+    const ALMOST_ONE: Self = Self(u64::MAX - 1);
+    const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
+    const HALF: Self = Self(u64::HALF);
+    const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
+}
+
 impl Prop {
-    pub const ZERO: Self = Self(0);
-    pub const ONE: Self = Self(u64::MAX);
-
-    pub(crate) const ALMOST_ONE: Self = Self(u64::MAX - 1);
-    pub(crate) const HALF: Self = Self(u64::MAX / 2);
-
+    /// Create from a fraction
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{Prop, debug::ApproxEq, FromAsProp};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(Prop::from_fraction(1, 2), Prop::from_as_prop(0.5));
+    /// assert_approx_eq!(Prop::from_fraction(3, 5), Prop::from_as_prop(0.6), 1000);
+    /// ```
     pub fn from_fraction(enumerator: u64, denominator: u64) -> Self {
-        Self(((enumerator as u128) * (u64::MAX as u128) / (denominator as u128)) as u64)
+        debug_assert!(denominator >= enumerator);
+        let ufdrn = UFDRNum::from_rational_num(enumerator as u128, denominator as u128);
+        Self(ufdrn.0 as u64)
     }
 
     pub fn weighted_average(props: &[(Self, u32)]) -> Self {
@@ -50,7 +67,7 @@ impl Prop {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{Prop, debug::ApproxEq};
+    /// use colour_math::fixed_denominator_rational_numbers::{Prop, debug::ApproxEq, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// let one_quarter: Prop = Prop::ONE / 4;
@@ -112,6 +129,20 @@ impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
         debug_assert!(fraction[1] >= fraction[0]);
         Self(((fraction[0] as u128 * u64::MAX as u128) / fraction[1] as u128) as u64)
+    }
+}
+
+impl FromAsProp<f64> for Prop {
+    fn from_as_prop(arg: f64) -> Self {
+        debug_assert!((0.0..=1.0).contains(&arg));
+        Self((arg * u64::MAX as f64) as u64)
+    }
+}
+// impl_into_as_prop!(Prop, f64);
+
+impl FromAsProp<Prop> for f64 {
+    fn from_as_prop(arg: Prop) -> Self {
+        arg.0 as f64 / u64::MAX as f64
     }
 }
 

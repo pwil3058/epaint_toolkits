@@ -198,7 +198,7 @@ impl From<Angle> for FDRNum {
 #[cfg(test)]
 mod angle_tests {
     use super::*;
-    use crate::debug::ApproxEq;
+    use crate::fixed_denominator_rational_numbers::debug::ApproxEq;
     use approximately_equal::assert_approx_eq;
 
     #[test]

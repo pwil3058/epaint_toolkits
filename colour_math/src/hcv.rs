@@ -7,7 +7,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::fixed_denominator_rational_numbers::{IntoProp, NumberConstants, Prop, UFDRNum};
+use crate::fixed_denominator_rational_numbers::{
+    AsProportion, IntoProp, NumberConstants, Prop, UFDRNum,
+};
 
 use crate::cmy::CMY;
 use crate::{

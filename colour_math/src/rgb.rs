@@ -12,11 +12,14 @@ use std::{
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
+use crate::fixed_denominator_rational_numbers::{
+    debug::{ApproxEq, PropDiff},
+    AsProportion, Prop, UFDRNum,
+};
+
 use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    debug::{ApproxEq, PropDiff},
-    fixed_denominator_rational_numbers::{Prop, UFDRNum},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,

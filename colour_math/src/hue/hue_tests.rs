@@ -178,7 +178,7 @@ fn hue_from_rgb() {
     }
 }
 
-#[test]
+// #[test]
 // fn hue_max_chroma_rgb() {
 //     for (hue, rgb) in Hue::PRIMARIES.iter().zip(RGB::<f64>::PRIMARIES.iter()) {
 //         assert_eq!(hue.max_chroma_rgb(), *rgb);

@@ -8,9 +8,9 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::{
+use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
+    AsProportion, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
 };
 
 #[macro_export]
@@ -84,7 +84,7 @@ impl FDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(FDRNum::from_rational_num(4, 2), FDRNum::ONE * 2);
@@ -112,7 +112,7 @@ impl FDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// let four: FDRNum = FDRNum::ONE * 4;
@@ -170,7 +170,7 @@ impl From<UFDRNum> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, UFDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, UFDRNum, NumberConstants};
     ///
     /// assert_eq!(FDRNum::ONE, UFDRNum::ONE.into());
     /// assert_eq!(FDRNum::ONE / 2, (UFDRNum::ONE / 2u8).into());
@@ -186,7 +186,7 @@ impl<S: SignedInteger> From<S> for FDRNum {
     ///
     /// Example:
     /// ```
-    /// use colour_math::{FDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants};
     ///
     /// assert_eq!(FDRNum::from(1_i32), FDRNum::ONE);
     /// assert_eq!(FDRNum::from(0_i64), FDRNum::ZERO);
@@ -231,7 +231,7 @@ impl Add for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_eq!(FDRNum::ONE * 2 + FDRNum::ONE, FDRNum::ONE * 3);
@@ -257,7 +257,7 @@ impl Sub for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, AsProportion};
     ///
     /// assert_eq!(FDRNum::ONE * 2 - FDRNum::ONE, FDRNum::ONE);
     /// assert_eq!(FDRNum::from(7.5_f64) - FDRNum::from(5.2_f64), FDRNum::from(2.3_f64));
@@ -282,7 +282,7 @@ impl Mul for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(FDRNum::from(0.5_f64) * FDRNum::from(2), FDRNum::ONE);
@@ -312,7 +312,7 @@ impl<S: SignedInteger> Mul<S> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, AsProportion};
     ///
     /// assert_eq!(FDRNum::ONE * 5, FDRNum::from(5_i32));
     /// assert_eq!(FDRNum::ONE * -5, FDRNum::from(-5_i32));
@@ -339,7 +339,7 @@ impl Div for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(FDRNum::from(5) / FDRNum::from(2), FDRNum::from(2.5_f64), 3);
@@ -371,7 +371,7 @@ impl<S: SignedInteger> Div<S> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(FDRNum::ONE / 4, FDRNum::from(0.25), 4);
@@ -398,7 +398,7 @@ impl Rem for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::{FDRNum, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, AsProportion};
     ///
     /// assert_eq!(FDRNum::ONE % (FDRNum::ONE * 4), FDRNum::ONE);
     /// assert_eq!((FDRNum::ONE * 5) % (FDRNum::ONE * 4), FDRNum::ONE);
@@ -422,7 +422,7 @@ impl<S: SignedInteger> Rem<S> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq, NumberConstants, AsProportion};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(FDRNum::ONE / 4, FDRNum::from(0.25), 4);

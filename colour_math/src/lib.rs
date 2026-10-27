@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 
 use hue::HueIfce;
 
+use crate::fixed_denominator_rational_numbers::*;
+
 pub use crate::{
     attributes::{Chroma, Family, Greyness, Value, Warmth},
     beigui::{
@@ -20,10 +22,10 @@ pub use crate::{
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::CMY,
-    fixed_denominator_rational_numbers::{
-        debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
-        Unsigned, UnsignedInteger,
-    },
+    // fixed_denominator_rational_numbers::{
+    //     debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
+    //     Unsigned, UnsignedInteger,
+    // },
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulator::{
@@ -50,6 +52,7 @@ pub mod useful_consts;
 pub trait LightLevel:
     Clone
     + Copy
+    + AsProportion
     + From<Prop>
     + Into<Prop>
     + PartialEq
@@ -64,51 +67,51 @@ pub trait LightLevel:
     + std::ops::Sub<Output = Self>
     + std::ops::Div<Output = Self>
 {
-    const ZERO: Self;
-    const ONE: Self;
-    const ONE_QUARTER: Self;
-    const HALF: Self;
-    const THREE_QUARTERS: Self;
+    // const ZERO: Self;
+    // const ONE: Self;
+    // const ONE_QUARTER: Self;
+    // const HALF: Self;
+    // const THREE_QUARTERS: Self;
 }
 
 impl LightLevel for u8 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u16 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u32 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for u64 {
-    const ZERO: Self = 0;
-    const ONE: Self = Self::MAX;
-    const ONE_QUARTER: Self = Self::MAX / 4;
-    const HALF: Self = Self::MAX / 2;
-    const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
+    // const ZERO: Self = 0;
+    // const ONE: Self = Self::MAX;
+    // const ONE_QUARTER: Self = Self::MAX / 4;
+    // const HALF: Self = Self::MAX / 2;
+    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
 }
 
 impl LightLevel for Prop {
-    const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
-    const ONE: Self = Self(u64::ONE);
-    const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
-    const HALF: Self = Self(u64::HALF);
-    const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
+    // const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
+    // const ONE: Self = Self(u64::ONE);
+    // const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
+    // const HALF: Self = Self(u64::HALF);
+    // const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
 }
 
 pub trait HueConstants: Sized + Copy {
