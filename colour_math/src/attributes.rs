@@ -8,13 +8,16 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, IntoProp, Prop, UFDRNum,
+use crate::{
+    fixed_denominator_rational_numbers::{
+        debug::{AbsDiff, ApproxEq, PropDiff},
+        AsProportion, FDRNum, FromAsProp, IntoAsProp, IntoProp, Prop, UFDRNum,
+    },
+    impl_into_as_prop,
 };
 
 use crate::hue::{Hue, HueBasics};
-use crate::{impl_prop_to_from_float, impl_to_from_number, HueConstants};
+use crate::{impl_into_from_float_as_prop, impl_to_from_number, HueConstants};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {
@@ -79,7 +82,11 @@ impl From<Chroma> for Prop {
     }
 }
 
-impl IntoProp for Chroma {}
+impl IntoProp for Chroma {
+    fn into_prop(self) -> Prop {
+        self.into()
+    }
+}
 
 impl Default for Chroma {
     fn default() -> Self {
@@ -191,7 +198,11 @@ impl From<Greyness> for Prop {
     }
 }
 
-impl IntoProp for Greyness {}
+impl IntoProp for Greyness {
+    fn into_prop(self) -> Prop {
+        self.into()
+    }
+}
 
 impl Default for Greyness {
     fn default() -> Self {
@@ -340,8 +351,8 @@ impl PropDiff for Warmth {
 
 impl ApproxEq for Warmth {}
 
-impl_prop_to_from_float!(f32, Warmth);
-impl_prop_to_from_float!(f64, Warmth);
+impl_into_from_float_as_prop!(f32, Warmth);
+impl_into_from_float_as_prop!(f64, Warmth);
 
 impl From<Prop> for Warmth {
     fn from(prop: Prop) -> Self {
@@ -355,7 +366,11 @@ impl From<Warmth> for Prop {
     }
 }
 
-impl IntoProp for Warmth {}
+impl IntoProp for Warmth {
+    fn into_prop(self) -> Prop {
+        Prop(self.0)
+    }
+}
 
 impl_to_from_number!(UFDRNum, u128, Warmth);
 impl_to_from_number!(FDRNum, i128, Warmth);
@@ -404,8 +419,8 @@ impl Mul<i32> for Value {
     }
 }
 
-impl_prop_to_from_float!(f32, Value);
-impl_prop_to_from_float!(f64, Value);
+impl_into_from_float_as_prop!(f32, Value);
+impl_into_from_float_as_prop!(f64, Value);
 
 impl From<Prop> for Value {
     fn from(prop: Prop) -> Self {
@@ -419,7 +434,11 @@ impl From<Value> for Prop {
     }
 }
 
-impl IntoProp for Value {}
+impl IntoProp for Value {
+    fn into_prop(self) -> Prop {
+        Prop(self.0)
+    }
+}
 
 impl_to_from_number!(UFDRNum, u128, Value);
 impl_to_from_number!(FDRNum, i128, Value);

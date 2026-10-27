@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::{cmp::PartialOrd, ops::Sub};
 
-use crate::fixed_denominator_rational_numbers::{AsProportion, Prop};
+use crate::fixed_denominator_rational_numbers::{AsProportion, IntoProp, Prop};
 
 pub trait AbsDiff: Copy + Sized + PartialOrd + Sub<Output = Self> {
     fn abs_diff(&self, other: &Self) -> Self {
@@ -60,7 +60,7 @@ macro_rules! impl_prop_diff_for_float {
         impl PropDiff for $float {
             fn prop_diff(&self, other: &Self) -> Option<Prop> {
                 if *self >= 0.0 && *self <= 1.0 && *other >= 0.0 && *other < 1.0 {
-                    Some(self.abs_diff(other).into())
+                    Some(self.abs_diff(other).into_prop())
                 } else {
                     let denom = self.max(*other);
                     if denom == 0.0 {

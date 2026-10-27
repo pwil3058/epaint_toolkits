@@ -3,14 +3,17 @@
 use std::{
     cmp::Ordering,
     fmt::{self, Debug, Formatter},
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, RemAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
 use serde::{Deserialize, Serialize};
 
-use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, FromAsProp, NumberConstants, UFDRNum,
+use crate::{
+    fixed_denominator_rational_numbers::{
+        debug::{AbsDiff, ApproxEq, PropDiff},
+        AsProportion, FDRNum, FromAsProp, IntoAsProp, NumberConstants, UFDRNum,
+    },
+    impl_into_as_prop,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -35,8 +38,8 @@ impl Prop {
     /// use colour_math::fixed_denominator_rational_numbers::{Prop, debug::ApproxEq, FromAsProp};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_eq!(Prop::from_fraction(1, 2), Prop::from_as_prop(0.5));
-    /// assert_approx_eq!(Prop::from_fraction(3, 5), Prop::from_as_prop(0.6), 1000);
+    /// assert_eq!(Prop::from_fraction(1, 2), Prop::from(0.5));
+    /// assert_approx_eq!(Prop::from_fraction(3, 5), Prop::from(0.6), 1000);
     /// ```
     pub fn from_fraction(enumerator: u64, denominator: u64) -> Self {
         debug_assert!(denominator >= enumerator);
@@ -135,10 +138,8 @@ impl fmt::Display for Prop {
 }
 
 // Conversions
-pub trait IntoProp: Sized + Copy + Into<Prop> {
-    fn into_prop(self) -> Prop {
-        self.into()
-    }
+pub trait IntoProp: Sized + Copy {
+    fn into_prop(self) -> Prop;
 }
 
 impl From<[u64; 2]> for Prop {
@@ -152,48 +153,43 @@ impl FromAsProp<Prop> for Prop {
         prop
     }
 }
-// impl_into_as_prop!(Prop, Prop);
-
-impl FromAsProp<f64> for Prop {
-    fn from_as_prop(arg: f64) -> Self {
-        debug_assert!((0.0..=1.0).contains(&arg));
-        Self((arg * u64::MAX as f64) as u64)
-    }
-}
-// impl_into_as_prop!(Prop, f64);
-
-impl FromAsProp<Prop> for f64 {
-    fn from_as_prop(arg: Prop) -> Self {
-        arg.0 as f64 / u64::MAX as f64
-    }
-}
-// impl_into_as_prop!(f64, Prop);
+impl_into_as_prop!(Prop, Prop);
 
 #[macro_export]
-macro_rules! impl_prop_to_from_float {
+macro_rules! impl_into_from_float_as_prop {
     ($float:ty, $number:ty) => {
         impl From<$float> for $number {
             fn from(arg: $float) -> Self {
                 debug_assert!((0.0..=1.0).contains(&arg));
-                // NB: watch out for floating point not being proper reals
+                //NB: watch out for floating point not being proper reals
                 Self((arg * u64::MAX as $float) as u64)
             }
         }
+        // impl_into_as_prop!($number, $float);
 
         impl From<$number> for $float {
             fn from(arg: $number) -> Self {
                 arg.0 as $float / u64::MAX as $float
             }
         }
+        // impl_into_as_prop!($float, $number);
     };
 }
 
-impl IntoProp for f32 {}
+impl_into_from_float_as_prop!(f32, Prop);
+impl_into_from_float_as_prop!(f64, Prop);
 
-impl IntoProp for f64 {}
+impl IntoProp for f32 {
+    fn into_prop(self) -> Prop {
+        Prop::from(self)
+    }
+}
 
-impl_prop_to_from_float!(f32, Prop);
-impl_prop_to_from_float!(f64, Prop);
+impl IntoProp for f64 {
+    fn into_prop(self) -> Prop {
+        Prop::from(self)
+    }
+}
 
 #[macro_export]
 macro_rules! impl_to_from_number {
@@ -217,9 +213,17 @@ macro_rules! impl_to_from_number {
 impl_to_from_number!(UFDRNum, u128, Prop);
 impl_to_from_number!(FDRNum, i128, Prop);
 
-impl IntoProp for UFDRNum {}
+impl IntoProp for UFDRNum {
+    fn into_prop(self) -> Prop {
+        self.into()
+    }
+}
 
-impl IntoProp for FDRNum {}
+impl IntoProp for FDRNum {
+    fn into_prop(self) -> Prop {
+        self.into()
+    }
+}
 
 #[macro_export]
 macro_rules! impl_unsigned_to_from_prop {
@@ -236,7 +240,11 @@ macro_rules! impl_unsigned_to_from_prop {
             }
         }
 
-        impl IntoProp for u64 {}
+        impl IntoProp for u64 {
+            fn into_prop(self) -> Prop {
+                self.into()
+            }
+        }
     };
     ($unsigned:ty) => {
         impl From<$unsigned> for Prop {
@@ -253,7 +261,11 @@ macro_rules! impl_unsigned_to_from_prop {
             }
         }
 
-        impl IntoProp for $unsigned {}
+        impl IntoProp for $unsigned {
+            fn into_prop(self) -> Prop {
+                self.into()
+            }
+        }
     };
 }
 
@@ -431,7 +443,7 @@ impl Mul<Prop> for UFDRNum {
     ///
     /// assert_eq!(UFDRNum::from(2.5) * Prop::ONE, UFDRNum::from(2.5));
     /// assert_eq!(UFDRNum::ONE * Prop::ZERO, UFDRNum::ZERO);
-    /// assert_eq!(UFDRNum::ONE * Prop::from_as_prop(0.5), UFDRNum::from(0.5));
+    /// assert_eq!(UFDRNum::ONE * Prop::from(0.5), UFDRNum::from(0.5));
     /// ```
     fn mul(self, rhs: Prop) -> Self {
         match rhs {

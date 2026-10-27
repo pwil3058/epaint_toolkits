@@ -7,20 +7,20 @@ pub trait FromAsProp<T: Sized> {
     fn from_as_prop(value: T) -> Self;
 }
 
-// pub trait IntoAsProp<T: Sized> {
-//     fn into_as_prop(self) -> T;
-// }
+pub trait IntoAsProp<T: Sized> {
+    fn into_as_prop(self) -> T;
+}
 
-// #[macro_export]
-// macro_rules! impl_into_as_prop {
-//     ($into_type:ident, $for_type:ty) => {
-//         impl IntoAsProp<$into_type> for $for_type {
-//             fn into_as_prop(self) -> $into_type {
-//                 $into_type::from_as_prop(self)
-//             }
-//         }
-//     };
-// }
+#[macro_export]
+macro_rules! impl_into_as_prop {
+    ($into_type:ty, $for_type:ty) => {
+        impl IntoAsProp<$into_type> for $for_type {
+            fn into_as_prop(self) -> $into_type {
+                <$into_type>::from_as_prop(self)
+            }
+        }
+    };
+}
 
 pub trait AsProportion: Sized + Copy + PartialEq + PartialOrd + Debug {
     const ZERO: Self;
@@ -166,4 +166,3 @@ impl Float for f64 {
         i as Self
     }
 }
-
