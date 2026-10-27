@@ -108,7 +108,7 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
                     let second = sum - first - third;
                     debug_assert_eq!(first + second + third, sum);
                     debug_assert_eq!(first - third, c_prop.into());
-                    let triplet = [first.to_prop(), second.to_prop(), third.to_prop()];
+                    let triplet = [first.into_prop(), second.into_prop(), third.into_prop()];
                     debug_assert!(Self::has_valid_value_order(&triplet));
                     debug_assert_eq!(
                         Hue::try_from(self.triplet_to_rgb_order(&triplet)).unwrap(),
@@ -647,7 +647,11 @@ impl OrderedTriplets for CMYHue {
                     first => match sum - first - third {
                         second if second == first => {
                             debug_assert!(second > third);
-                            Some(Ok([first.to_prop(), second.to_prop(), third.to_prop()]))
+                            Some(Ok([
+                                first.into_prop(),
+                                second.into_prop(),
+                                third.into_prop(),
+                            ]))
                         }
                         second => {
                             debug_assert!(second > first && first > third);
@@ -660,7 +664,11 @@ impl OrderedTriplets for CMYHue {
                                     debug_assert!(second > third && first > third);
                                     debug_assert_eq!(second - third, c_prop.into());
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([second.to_prop(), first.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        second.into_prop(),
+                                        first.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }
@@ -672,7 +680,11 @@ impl OrderedTriplets for CMYHue {
                                     debug_assert!(second > third);
                                     debug_assert_eq!(first - third, c_prop.into());
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([first.to_prop(), second.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        first.into_prop(),
+                                        second.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }
@@ -943,7 +955,8 @@ impl OrderedTriplets for SextantHue {
                             Ordering::Less => {
                                 debug_assert_eq!(first + second + third, sum);
                                 debug_assert_eq!(first - third, c_prop.into());
-                                let triplet = [first.to_prop(), second.to_prop(), third.to_prop()];
+                                let triplet =
+                                    [first.into_prop(), second.into_prop(), third.into_prop()];
                                 debug_assert!(first > second && second > third);
                                 if Self::calculate_hue_parameter(triplet) == self.1 {
                                     Some(Ok(triplet))
@@ -955,7 +968,11 @@ impl OrderedTriplets for SextantHue {
                                 debug_assert_eq!(first + second + third, sum);
                                 debug_assert_eq!(first - third, c_prop.into());
                                 debug_assert!(second > third);
-                                Some(Err([first.to_prop(), second.to_prop(), third.to_prop()]))
+                                Some(Err([
+                                    first.into_prop(),
+                                    second.into_prop(),
+                                    third.into_prop(),
+                                ]))
                             }
                             Ordering::Greater => {
                                 if second.is_proportion() {
@@ -964,7 +981,11 @@ impl OrderedTriplets for SextantHue {
                                     debug_assert!(second > third && first > third);
                                     debug_assert_eq!(second - third, c_prop.into());
                                     debug_assert_eq!(first + second + third, sum);
-                                    Some(Err([second.to_prop(), first.to_prop(), third.to_prop()]))
+                                    Some(Err([
+                                        second.into_prop(),
+                                        first.into_prop(),
+                                        third.into_prop(),
+                                    ]))
                                 } else {
                                     None
                                 }

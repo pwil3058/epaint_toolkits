@@ -46,7 +46,7 @@ impl UFDRNum {
         self <= Self::ONE
     }
 
-    pub fn to_prop(&self) -> Prop {
+    pub fn into_prop(&self) -> Prop {
         debug_assert!(self.is_proportion());
         Prop(self.0 as u64)
     }
@@ -333,6 +333,12 @@ impl<U: UnsignedInteger> Mul<U> for UFDRNum {
     }
 }
 
+impl<U: UnsignedInteger> MulAssign<U> for UFDRNum {
+    fn mul_assign(&mut self, rhs: U) {
+        *self = *self * rhs;
+    }
+}
+
 // Div
 impl Div for UFDRNum {
     type Output = Self;
@@ -345,18 +351,16 @@ impl Div for UFDRNum {
     /// use colour_math::{UFDRNum, debug::ApproxEq, NumberConstants,};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_approx_eq!(UFDRNum::from(5_u64) / UFDRNum::from(2_u8), UFDRNum::from(2.5_f64), 3);
-    /// assert_approx_eq!(UFDRNum::from(6_u64) / UFDRNum::from(2_u8), UFDRNum::from(3_u64), 3);
+    /// assert_eq!(UFDRNum::from(5_u64) / UFDRNum::from(10_u64), UFDRNum::from_rational_num(1,2));
+    /// assert_eq!(UFDRNum::from(5_u64) / UFDRNum::from(2_u8), UFDRNum::from_rational_num(5,2));
+    /// assert_eq!(UFDRNum::from(6_u64) / UFDRNum::from(2_u8), UFDRNum::from(3_u64));
+    /// assert_eq!(UFDRNum::from(6_u64) / UFDRNum::from(6_u8), UFDRNum::ONE);
+    /// assert_eq!(UFDRNum::from(7_u64) / UFDRNum::from(4_u8), UFDRNum::from_rational_num(7, 4));
+    /// assert_eq!(UFDRNum::from_rational_num(1,2) / UFDRNum::from_rational_num(1,4), UFDRNum::from(2u8));
+    /// assert_eq!(UFDRNum::ONE / UFDRNum::from(5u8), UFDRNum::from_rational_num(1,5));
     /// ```
     fn div(self, rhs: Self) -> Self {
-        match rhs.0 % Self::DENOMINATOR {
-            // NB: faster AND more accurate
-            0 => Self(self.0 / (rhs.0 / Self::DENOMINATOR)),
-            _ => match self.0.cmp(&rhs.0) {
-                Ordering::Equal => Self::ONE,
-                Ordering::Less | Ordering::Greater => self.mul(Self(u128::MAX / rhs.0)),
-            },
-        }
+        Self::from_rational_num(self.0, rhs.0)
     }
 }
 
@@ -386,6 +390,13 @@ impl<U: UnsignedInteger> Div<U> for UFDRNum {
     }
 }
 
+impl<U: UnsignedInteger> DivAssign<U> for UFDRNum {
+    fn div_assign(&mut self, rhs: U) {
+        *self = *self / rhs;
+    }
+}
+
+// Rem
 impl Rem for UFDRNum {
     type Output = Self;
 
@@ -430,16 +441,12 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
     }
 }
 
-//Neg
-/// Return the negated value of an UFDRNum as a FDRNum
-///
-/// Example:
-///
-/// ```
-/// use colour_math::{UFDRNum, FDRNum, NumberConstants};
-///
-/// assert_eq!(-UFDRNum::ONE, FDRNum::MINUS_ONE);
-/// ```
+impl<U: UnsignedInteger> RemAssign<U> for UFDRNum {
+    fn rem_assign(&mut self, rhs: U) {
+        *self = *self % rhs;
+    }
+}
+
 impl Neg for UFDRNum {
     type Output = FDRNum;
 
