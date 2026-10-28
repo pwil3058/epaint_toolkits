@@ -167,6 +167,6 @@ fn from_fraction() {
 
 #[test]
 fn from_unsigned() {
-    assert_eq!(Prop::from(u32::MAX), Prop::ONE);
-    assert_eq!(Prop::from(u8::MAX / 2), Prop::from([127, 255]));
+    assert_eq!(Prop::prop_from(u32::MAX), Prop::ONE);
+    assert_eq!(Prop::prop_from(u8::MAX / 2), Prop::from([127, 255]));
 }

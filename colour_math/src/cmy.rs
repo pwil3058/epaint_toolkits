@@ -69,7 +69,14 @@ impl<L: LightLevel + ApproxEq> ApproxEq for CMY<L> {
 
 impl<L: LightLevel> FromProps for CMY<L> {
     fn from_proportions(props: [Prop; 3]) -> Self {
-        Self([props[0].into(), props[1].into(), props[2].into()])
+        Self(
+            props
+                .into_iter()
+                .map(|p| L::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("from proportions failed"),
+        )
     }
 }
 
@@ -176,7 +183,12 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
     }
 
     fn into_proportions(&self) -> [Prop; 3] {
-        [self[0].into(), self[1].into(), self[2].into()]
+        self.0
+            .into_iter()
+            .map(|c| c.into_prop())
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("proportions conversion failed")
     }
 }
 

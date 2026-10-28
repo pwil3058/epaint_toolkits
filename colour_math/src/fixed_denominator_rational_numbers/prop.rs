@@ -260,58 +260,6 @@ impl IntoProp for FDRNum {
 }
 impl PropFrom<FDRNum> for Prop {}
 
-#[macro_export]
-macro_rules! impl_unsigned_to_from_prop {
-    (u64) => {
-        impl From<u64> for Prop {
-            fn from(arg: u64) -> Self {
-                Self(arg as u64)
-            }
-        }
-
-        impl From<Prop> for u64 {
-            fn from(arg: Prop) -> Self {
-                arg.0 as u64
-            }
-        }
-
-        // impl IntoProp for u64 {
-        //     fn into_prop(self) -> Prop {
-        //         self.into()
-        //     }
-        // }
-        // impl PropFrom<u64> for u64 {}
-    };
-    ($unsigned:ty) => {
-        impl From<$unsigned> for Prop {
-            fn from(arg: $unsigned) -> Self {
-                let val = arg as u128 * u64::MAX as u128 / <$unsigned>::MAX as u128;
-                Self(val as u64)
-            }
-        }
-
-        impl From<Prop> for $unsigned {
-            fn from(arg: Prop) -> Self {
-                let val = arg.0 as u128 * <$unsigned>::MAX as u128 / u64::MAX as u128;
-                val as $unsigned
-            }
-        }
-
-        // impl IntoProp for $unsigned {
-        //     fn into_prop(self) -> Prop {
-        //         self.into()
-        //     }
-        // }
-        //
-        // impl PropFrom<$unsigned> for Prop {}
-    };
-}
-
-impl_unsigned_to_from_prop!(u8);
-impl_unsigned_to_from_prop!(u16);
-impl_unsigned_to_from_prop!(u32);
-impl_unsigned_to_from_prop!(u64);
-
 impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
     /// Convert an unsigned type representing a proportion into a Prop (rounding to nearest)
     ///

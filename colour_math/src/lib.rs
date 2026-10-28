@@ -53,8 +53,8 @@ pub trait LightLevel:
     Clone
     + Copy
     + AsProportion
-    + From<Prop>
-    + Into<Prop>
+    + FromProp
+    + IntoProp
     + PartialEq
     + Debug
     + Default

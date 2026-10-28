@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{ApproxEq, PropDiff},
-    AsProportion, Prop, UFDRNum,
+    AsProportion, FromProp, IntoProp, Prop, UFDRNum,
 };
 
 use crate::cmy::CMY;
@@ -69,7 +69,7 @@ impl<T: LightLevel> RGBConstants for RGB<T> {
     const BLACK: Self = Self([T::ZERO, T::ZERO, T::ZERO]);
 }
 
-impl<T: LightLevel + Copy + From<Prop>> RGB<T> {
+impl<T: LightLevel + Copy + FromProp> RGB<T> {
     pub fn new_grey(value: Value) -> Self {
         let value: Prop = value.into();
         Self::from_proportions([value, value, value])
@@ -81,12 +81,16 @@ impl<T: LightLevel + Copy + From<Prop>> RGB<T> {
     }
 }
 
-impl<T: LightLevel + Into<Prop>> RGB<T> {
+impl<T: LightLevel> RGB<T> {
     pub fn from_proportions(array: [Prop; 3]) -> Self {
-        let red: T = array[0].into();
-        let green: T = array[1].into();
-        let blue: T = array[2].into();
-        Self([red, green, blue])
+        Self(
+            array
+                .into_iter()
+                .map(|a| T::from_prop(a))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("conversion failed"),
+        )
     }
 
     pub fn sum(&self) -> UFDRNum {
@@ -107,7 +111,7 @@ impl<T: LightLevel + Into<Prop>> RGB<T> {
     }
 }
 
-impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
+impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
     fn hue(&self) -> Option<Hue> {
         self.try_into().ok()
     }
@@ -196,13 +200,24 @@ impl<T: LightLevel + Into<Prop>> ColourBasics for RGB<T> {
     }
 
     fn into_proportions(&self) -> [Prop; 3] {
-        [self.0[0].into(), self.0[1].into(), self.0[2].into()]
+        [
+            self.0[0].into_prop(),
+            self.0[1].into_prop(),
+            self.0[2].into_prop(),
+        ]
     }
 }
 
 impl<L: LightLevel> FromProps for RGB<L> {
     fn from_proportions(props: [Prop; 3]) -> Self {
-        Self([props[0].into(), props[1].into(), props[2].into()])
+        Self(
+            props
+                .into_iter()
+                .map(|p| L::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("from_proportions failed"),
+        )
     }
 }
 
@@ -373,7 +388,7 @@ impl<L: LightLevel> From<RGB<L>> for (L, L, L) {
 // }
 
 // Arithmetic
-impl<L: LightLevel + From<Prop>> Mul<Prop> for RGB<L> {
+impl<L: LightLevel> Mul<Prop> for RGB<L> {
     type Output = Self;
 
     fn mul(self, scalar: Prop) -> Self {
@@ -397,30 +412,16 @@ impl<L: LightLevel> Div<i32> for RGB<L> {
     type Output = Self;
 
     fn div(self, scalar: i32) -> Self {
-        let [red, green, blue] = self.into_proportions();
-        Self([
-            (red / scalar).into(),
-            (green / scalar).into(),
-            (blue / scalar).into(),
-        ])
+        Self(
+            self.into_proportions()
+                .into_iter()
+                .map(|p| L::from_prop(p / scalar))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("div failed"),
+        )
     }
 }
-
-// impl<L: LightLevel + From<Prop>> Add<RGB<L>> for RGB<L> {
-/////TODO: get rid of RGB addition
-// type Output = Self;
-//
-// fn add(self, rhs: Self) -> Self {
-//     let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
-//     let [rhs_red, rhs_green, rhs_blue] = rhs.into_proportions(); //<[Prop; 3]>::from(rhs);
-//     let array: [Prop; 3] = [
-//         (red / 2 + rhs_red / 2).into(),
-//         (green / 2 + rhs_green / 2).into(),
-//         (blue / 2 + rhs_blue / 2).into(),
-//     ];
-//     Self::from_proportions(array)
-// }
-// }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum RGBError {

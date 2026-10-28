@@ -5,6 +5,8 @@ use super::*;
 
 use approximately_equal::*;
 
+use crate::fixed_denominator_rational_numbers::*;
+
 use crate::{
     attributes::Chroma,
     hue::{Hue, Sextant::*},
@@ -96,18 +98,18 @@ impl Hue {
 fn hue_approx_eq() {
     assert!(Hue::RED.approx_eq(&Hue::RED, None));
     assert!(!Hue::RED.approx_eq(&Hue::BLUE, None));
-    assert!(!Hue::RED.approx_eq(&Hue::BLUE, Some(Prop::ONE.into())));
+    assert!(!Hue::RED.approx_eq(&Hue::BLUE, Some(Prop::ONE.prop_into())));
 
     assert!(Hue::CYAN.approx_eq(&Hue::CYAN, None));
     assert!(!Hue::CYAN.approx_eq(&Hue::MAGENTA, None));
-    assert!(!Hue::CYAN.approx_eq(&Hue::MAGENTA, Some(Prop::ONE.into())));
+    assert!(!Hue::CYAN.approx_eq(&Hue::MAGENTA, Some(Prop::ONE.prop_into())));
 
     for rgb_hue in Hue::PRIMARIES.iter() {
         for cmy_hue in Hue::SECONDARIES.iter() {
             assert!(!rgb_hue.approx_eq(cmy_hue, None));
-            assert!(!rgb_hue.approx_eq(cmy_hue, Some(Prop::ONE.into())));
+            assert!(!rgb_hue.approx_eq(cmy_hue, Some(Prop::ONE.prop_into())));
             assert!(!cmy_hue.approx_eq(rgb_hue, None));
-            assert!(!cmy_hue.approx_eq(rgb_hue, Some(Prop::ONE.into())));
+            assert!(!cmy_hue.approx_eq(rgb_hue, Some(Prop::ONE.prop_into())));
         }
     }
 
@@ -135,7 +137,7 @@ fn hue_approx_eq() {
     assert!(
         Hue::Sextant(SextantHue(RedYellow, Prop(0x1000000000).into())).approx_eq(
             &Hue::Sextant(SextantHue(RedYellow, Prop(0xfffff0000).into())),
-            Some(Prop(0x010000).into())
+            Some(0x010000)
         )
     );
 }
@@ -215,8 +217,8 @@ fn hue_to_from_angle() {
         (-Angle::from((135, 0, 0)), BlueCyan),
     ] {
         let hue = Hue::Sextant(SextantHue(*sextant, second));
-        assert_approx_eq!(Hue::from(*angle), hue, Prop(0x0000000000010000).into());
-        assert_approx_eq!(hue.angle(), *angle, 0x0000000000001000);
+        assert_approx_eq!(Hue::from(*angle), hue, 0x10000);
+        assert_approx_eq!(hue.angle(), *angle, 0x1000);
     }
 }
 
@@ -408,7 +410,7 @@ fn darkest_rgb_for_chroma_prop() {
                         assert_eq!(min_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
-                        assert_approx_eq!(hue, Hue::Sextant(sextant_hue), Prop(0x10000).into());
+                        assert_approx_eq!(hue, Hue::Sextant(sextant_hue), 0x10000);
                     }
                 }
             }
@@ -461,7 +463,7 @@ fn lightest_rgb_for_chroma_prop() {
                         assert_eq!(max_sum, rgb.sum());
                         assert_eq!(c_prop, rgb.chroma_prop());
                         let hue = Hue::try_from(rgb).unwrap();
-                        assert_approx_eq!(hue, Hue::Sextant(sextant_hue), Prop(0x10000).into());
+                        assert_approx_eq!(hue, Hue::Sextant(sextant_hue), 0x10000);
                     }
                 }
             }
@@ -490,9 +492,9 @@ fn max_chroma_and_sum_ranges() {
                 prop => {
                     let range = hue.sum_range_for_chroma_prop(prop).unwrap();
                     let max_chroma = hue.max_chroma_for_sum(range.0).unwrap();
-                    assert_approx_eq!(max_chroma, Chroma::Shade(prop), Prop(0xF).into());
+                    assert_approx_eq!(max_chroma, Chroma::Shade(prop), 0xF);
                     let max_chroma = hue.max_chroma_for_sum(range.1).unwrap();
-                    assert_approx_eq!(max_chroma, Chroma::Tint(prop), Prop(0xF).into());
+                    assert_approx_eq!(max_chroma, Chroma::Tint(prop), 0xF);
                 }
             }
         }
@@ -515,9 +517,9 @@ fn max_chroma_and_sum_ranges() {
                 prop => {
                     let range = hue.sum_range_for_chroma_prop(prop).unwrap();
                     let max_chroma = hue.max_chroma_for_sum(range.0).unwrap();
-                    assert_approx_eq!(max_chroma, Chroma::Shade(prop), Prop(0xF).into());
+                    assert_approx_eq!(max_chroma, Chroma::Shade(prop), 0xF);
                     let max_chroma = hue.max_chroma_for_sum(range.1).unwrap();
-                    assert_approx_eq!(max_chroma, Chroma::Tint(prop), Prop(0xF).into());
+                    assert_approx_eq!(max_chroma, Chroma::Tint(prop), 0xF);
                 }
             }
         }
@@ -593,8 +595,8 @@ fn primary_max_chroma_rgbs() {
                 }
                 Err(rgb) => {
                     assert_eq!(rgb.sum(), *sum);
-                    assert_approx_eq!(rgb, expected, Prop(0x10000).into());
-                    assert_approx_eq!(rgb.hue().unwrap(), *hue, Prop(0x10000).into());
+                    assert_approx_eq!(rgb, expected, 0x10000);
+                    assert_approx_eq!(rgb.hue().unwrap(), *hue, 0x10000);
                 }
             }
         }
@@ -637,8 +639,8 @@ fn secondary_max_chroma_rgbs() {
                 }
                 Err(rgb) => {
                     assert_eq!(rgb.sum(), *sum);
-                    assert_approx_eq!(rgb, expected, Prop(0x100000).into());
-                    assert_approx_eq!(rgb.hue().unwrap(), *hue, Prop(0x10000).into());
+                    assert_approx_eq!(rgb, expected, 0x100000);
+                    assert_approx_eq!(rgb.hue().unwrap(), *hue, 0x10000);
                 }
             }
         }
@@ -690,7 +692,7 @@ fn other_max_chroma_rgbs() {
                     Err(rgb) => {
                         assert_eq!(sum, rgb.sum());
                         assert_eq!(rgb.chroma(), hue.max_chroma_for_sum(sum).unwrap());
-                        assert_approx_eq!(rgb.hue().unwrap(), hue, Prop(0x100000).into());
+                        assert_approx_eq!(rgb.hue().unwrap(), hue, 0x100000);
                     }
                 }
             }
@@ -788,7 +790,7 @@ fn lightest_darkest_hcv_for_chroma() {
                         hcv
                     }
                     Err(hcv) => {
-                        assert_approx_eq!(hcv.hue.unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(hcv.hue.unwrap(), hue, 0xF0000);
                         assert_eq!(hcv.chroma(), shade_chroma);
                         hcv
                     }
@@ -800,7 +802,7 @@ fn lightest_darkest_hcv_for_chroma() {
                         hcv
                     }
                     Err(hcv) => {
-                        assert_approx_eq!(hcv.hue.unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(hcv.hue.unwrap(), hue, 0xF0000);
                         assert_eq!(hcv.chroma_prop(), shade_chroma.into_prop());
                         hcv
                     }
@@ -814,7 +816,7 @@ fn lightest_darkest_hcv_for_chroma() {
                         hcv
                     }
                     Err(hcv) => {
-                        assert_approx_eq!(hcv.hue.unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(hcv.hue.unwrap(), hue, 0xF0000);
                         assert_eq!(hcv.chroma_prop(), tint_chroma.into_prop());
                         hcv
                     }
@@ -826,7 +828,7 @@ fn lightest_darkest_hcv_for_chroma() {
                         hcv
                     }
                     Err(hcv) => {
-                        assert_approx_eq!(hcv.hue.unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(hcv.hue.unwrap(), hue, 0xF0000);
                         assert_eq!(hcv.chroma(), tint_chroma);
                         hcv
                     }
@@ -934,19 +936,17 @@ fn lightest_darkest_rgb_for_chroma() {
             );
             for prop in SHADE_TINT_CHROMA_PROPS.iter().map(|f| Prop::from(*f)) {
                 let shade_chroma = Chroma::Shade(prop);
-                let darkest_shade = match hue
-                    .try_darkest_rgb_for_chroma::<u64>(shade_chroma)
-                    .unwrap()
-                {
-                    Ok(darkest_shade) => {
-                        assert_eq!(darkest_shade.hue(), Some(hue));
-                        darkest_shade
-                    }
-                    Err(darkest_shade) => {
-                        assert_approx_eq!(darkest_shade.hue().unwrap(), hue, Prop(0xF0000).into());
-                        darkest_shade
-                    }
-                };
+                let darkest_shade =
+                    match hue.try_darkest_rgb_for_chroma::<u64>(shade_chroma).unwrap() {
+                        Ok(darkest_shade) => {
+                            assert_eq!(darkest_shade.hue(), Some(hue));
+                            darkest_shade
+                        }
+                        Err(darkest_shade) => {
+                            assert_approx_eq!(darkest_shade.hue().unwrap(), hue, 0xF0000);
+                            darkest_shade
+                        }
+                    };
                 assert_eq!(darkest_shade.chroma(), shade_chroma);
                 let lightest_shade = match hue
                     .try_lightest_rgb_for_chroma::<u64>(shade_chroma)
@@ -958,7 +958,7 @@ fn lightest_darkest_rgb_for_chroma() {
                         lightest_shade
                     }
                     Err(lightest_shade) => {
-                        assert_approx_eq!(lightest_shade.hue().unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(lightest_shade.hue().unwrap(), hue, 0xF0000);
                         assert_eq!(lightest_shade.chroma_prop(), shade_chroma.into_prop());
                         lightest_shade
                     }
@@ -973,24 +973,22 @@ fn lightest_darkest_rgb_for_chroma() {
                         darkest_tint
                     }
                     Err(darkest_tint) => {
-                        assert_approx_eq!(darkest_tint.hue().unwrap(), hue, Prop(0xF0000).into());
+                        assert_approx_eq!(darkest_tint.hue().unwrap(), hue, 0xF0000);
                         assert_eq!(darkest_tint.chroma_prop(), tint_chroma.into_prop());
                         darkest_tint
                     }
                 };
-                let lightest_tint = match hue
-                    .try_lightest_rgb_for_chroma::<u64>(tint_chroma)
-                    .unwrap()
-                {
-                    Ok(lightest_tint) => {
-                        assert_eq!(lightest_tint.hue(), Some(hue));
-                        lightest_tint
-                    }
-                    Err(lightest_tint) => {
-                        assert_approx_eq!(lightest_tint.hue().unwrap(), hue, Prop(0xF0000).into());
-                        lightest_tint
-                    }
-                };
+                let lightest_tint =
+                    match hue.try_lightest_rgb_for_chroma::<u64>(tint_chroma).unwrap() {
+                        Ok(lightest_tint) => {
+                            assert_eq!(lightest_tint.hue(), Some(hue));
+                            lightest_tint
+                        }
+                        Err(lightest_tint) => {
+                            assert_approx_eq!(lightest_tint.hue().unwrap(), hue, 0xF0000);
+                            lightest_tint
+                        }
+                    };
                 assert_eq!(lightest_tint.chroma(), tint_chroma);
                 assert!(darkest_tint.sum() < lightest_tint.sum());
                 assert!(lightest_shade.sum() < darkest_tint.sum());
@@ -1121,7 +1119,7 @@ fn try_rgb_for_sum_and_chroma_prop() {
     for sextant in Sextant::SEXTANTS.iter() {
         for hue in SECOND_VALUES
             .iter()
-            .map(|i| Hue::Sextant(SextantHue(*sextant, Prop::from(*i))))
+            .map(|i| Hue::Sextant(SextantHue(*sextant, Prop::prop_from(*i))))
         {
             for c_prop in NON_ZERO_CHROMA_PROPS.iter().map(|item| Prop::from(*item)) {
                 for sum in VALID_HUE_SUMS.iter().map(|item| UFDRNum::from(*item)) {
@@ -1134,7 +1132,7 @@ fn try_rgb_for_sum_and_chroma_prop() {
                                 assert_eq!(rgb, RGB::from(HCV::from(rgb)));
                             }
                             Err(rgb) => {
-                                assert_approx_eq!(rgb.hue().unwrap(), hue, Prop(0x100000).into());
+                                assert_approx_eq!(rgb.hue().unwrap(), hue, 0x100000);
                                 assert_eq!(rgb.chroma_prop(), c_prop);
                                 assert_eq!(rgb.sum(), sum);
                                 assert_eq!(rgb, RGB::from(HCV::from(rgb)));
@@ -1216,7 +1214,7 @@ fn try_hcv_for_sum_and_chroma_prop() {
                                 assert_eq!(hcv, HCV::from(RGB::<u64>::from(hcv)));
                             }
                             Err(hcv) => {
-                                assert_approx_eq!(hcv.hue().unwrap(), hue, Prop(0x100000).into());
+                                assert_approx_eq!(hcv.hue().unwrap(), hue, 0x100000);
                                 assert_eq!(hcv.chroma_prop(), c_prop);
                                 assert_eq!(hcv.sum, sum);
                                 assert_eq!(hcv, HCV::from(RGB::<u64>::from(hcv)));
@@ -1265,7 +1263,7 @@ fn primary_try_rgb_for_sum_and_chroma() {
                             assert_approx_eq!(rgb.hue().unwrap(), *hue, 0x800);
                             assert_eq!(rgb.sum(), sum);
                             // NB: near the swap over point sum errors can cause a shift in Chroma variant
-                            if sum.approx_eq(&hue.sum_for_max_chroma(), Some(Prop(0x100).into())) {
+                            if sum.approx_eq(&hue.sum_for_max_chroma(), Some(0x100)) {
                                 assert_eq!(rgb.chroma_prop(), chroma.into_prop());
                             } else {
                                 assert_eq!(rgb.chroma(), chroma);
@@ -1312,7 +1310,7 @@ fn secondary_try_rgb_for_sum_and_chroma() {
                             assert_approx_eq!(rgb.hue().unwrap(), *hue, 0x100);
                             assert_eq!(rgb.sum(), sum);
                             // NB: near the swap over point sum errors can cause a shift in Chroma variant
-                            if sum.approx_eq(&hue.sum_for_max_chroma(), Some(Prop(0x100).into())) {
+                            if sum.approx_eq(&hue.sum_for_max_chroma(), Some(0x100)) {
                                 assert_eq!(rgb.chroma_prop(), chroma.into_prop());
                             } else {
                                 assert_eq!(rgb.chroma(), chroma);
@@ -1359,12 +1357,10 @@ fn general_try_rgb_for_sum_and_chroma() {
                                 assert_eq!(rgb, RGB::from(HCV::from(rgb)));
                             }
                             Err(rgb) => {
-                                assert_approx_eq!(rgb.hue().unwrap(), hue, Prop(0x100000).into());
+                                assert_approx_eq!(rgb.hue().unwrap(), hue, 0x100000);
                                 assert_eq!(rgb.sum(), sum);
                                 // NB: near the swap over point sum errors can cause a shift in Chroma variant
-                                if sum
-                                    .approx_eq(&hue.sum_for_max_chroma(), Some(Prop(0x100).into()))
-                                {
+                                if sum.approx_eq(&hue.sum_for_max_chroma(), Some(0x100)) {
                                     assert_eq!(rgb.chroma_prop(), chroma.into_prop());
                                 } else {
                                     assert_eq!(rgb.chroma(), chroma);
