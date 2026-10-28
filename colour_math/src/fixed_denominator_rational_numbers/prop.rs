@@ -11,7 +11,8 @@ use serde::{Deserialize, Serialize};
 use crate::{
     fixed_denominator_rational_numbers::{
         debug::{AbsDiff, ApproxEq, PropDiff},
-        AsProportion, FDRNum, FromAsProp, IntoAsProp, NumberConstants, UFDRNum,
+        AsProportion, FDRNum, FromAsProp, FromU128Checked, IntoAsProp, NumberConstants, UFDRNum,
+        Unsigned,
     },
     impl_into_as_prop,
 };
@@ -148,6 +149,30 @@ pub trait PropFrom<T: IntoProp + Sized + Copy> {
     }
 }
 
+impl IntoProp for Prop {
+    fn into_prop(self) -> Prop {
+        self
+    }
+}
+impl PropFrom<Prop> for Prop {}
+
+pub trait FromProp: Sized + Copy {
+    fn from_prop(prop: Prop) -> Self;
+}
+
+pub trait PropInto<T: FromProp + Sized + Copy>: Sized + Copy + IntoProp {
+    fn prop_into(self) -> T {
+        T::from_prop(self.into_prop())
+    }
+}
+
+impl FromProp for Prop {
+    fn from_prop(prop: Prop) -> Prop {
+        prop
+    }
+}
+impl PropInto<Prop> for Prop {}
+
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
         Self::from_fraction(fraction[0], fraction[1])
@@ -182,15 +207,15 @@ macro_rules! impl_into_from_float_as_prop {
     };
 }
 
-impl_into_from_float_as_prop!(f32, Prop);
+// impl_into_from_float_as_prop!(f32, Prop);
 impl_into_from_float_as_prop!(f64, Prop);
 
-impl IntoProp for f32 {
-    fn into_prop(self) -> Prop {
-        Prop::from(self)
-    }
-}
-impl PropFrom<f32> for Prop {}
+// impl IntoProp for f32 {
+//     fn into_prop(self) -> Prop {
+//         Prop::from(self)
+//     }
+// }
+// impl PropFrom<f32> for Prop {}
 
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
@@ -250,12 +275,12 @@ macro_rules! impl_unsigned_to_from_prop {
             }
         }
 
-        impl IntoProp for u64 {
-            fn into_prop(self) -> Prop {
-                self.into()
-            }
-        }
-        impl PropFrom<u64> for u64 {}
+        // impl IntoProp for u64 {
+        //     fn into_prop(self) -> Prop {
+        //         self.into()
+        //     }
+        // }
+        // impl PropFrom<u64> for u64 {}
     };
     ($unsigned:ty) => {
         impl From<$unsigned> for Prop {
@@ -272,13 +297,13 @@ macro_rules! impl_unsigned_to_from_prop {
             }
         }
 
-        impl IntoProp for $unsigned {
-            fn into_prop(self) -> Prop {
-                self.into()
-            }
-        }
-
-        impl PropFrom<$unsigned> for Prop {}
+        // impl IntoProp for $unsigned {
+        //     fn into_prop(self) -> Prop {
+        //         self.into()
+        //     }
+        // }
+        //
+        // impl PropFrom<$unsigned> for Prop {}
     };
 }
 
@@ -287,6 +312,53 @@ impl_unsigned_to_from_prop!(u16);
 impl_unsigned_to_from_prop!(u32);
 impl_unsigned_to_from_prop!(u64);
 
+impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
+    /// Convert an unsigned type representing a proportion into a Prop (rounding to nearest)
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    ///
+    /// assert_eq!(u8::ONE.into_prop(), Prop::ONE);
+    /// assert_eq!(u8::ZERO.into_prop(), Prop::ZERO);
+    /// assert_eq!(127_u8.into_prop(), Prop::from_fraction(127, 255));
+    /// assert_eq!(Prop::prop_from(u32::ONE), Prop::ONE);
+    /// assert_eq!(Prop::prop_from(u8::MAX - 1), Prop::from_fraction(254, 255));
+    /// ```
+    fn into_prop(self) -> Prop {
+        let dividend: u128 = Into::<u128>::into(self) * u64::MAX as u128;
+        let divisor: u128 = Into::<u128>::into(U::ONE);
+        let val = (dividend + divisor / 2) / divisor;
+        Prop(u64::from_u128_checked(val))
+    }
+}
+impl<U: AsProportion + Into<u128> + Unsigned> PropFrom<U> for Prop {}
+
+impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
+    /// Converts a Prop to a U as a proportion of U::MAX (rounding to nearest)
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    ///
+    /// assert_eq!(u8::from_prop(Prop::prop_from(0.5)), 128);
+    /// assert_eq!(u8::from_prop(Prop::prop_from(0.999)), u8::MAX);
+    /// assert_eq!(u8::from_prop(Prop::prop_from(0.998)), u8::MAX - 1);
+    /// assert_eq!(u8::MAX - 1, Prop::prop_from(0.998).prop_into());
+    /// assert_eq!(23_u64, Prop::prop_from(23_u64).prop_into());
+    /// ```
+    fn from_prop(prop: Prop) -> U {
+        let dividend = prop.0 as u128 * Into::<u128>::into(U::ONE);
+        let divisor = u64::MAX as u128;
+        let val = (dividend + divisor / 2) / divisor;
+        U::from_u128_checked(val)
+    }
+}
+impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> PropInto<U> for Prop {}
+
+// Ops
 impl Mul for Prop {
     type Output = Self;
 

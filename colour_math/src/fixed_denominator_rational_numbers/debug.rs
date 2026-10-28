@@ -76,7 +76,7 @@ macro_rules! impl_prop_diff_for_float {
     };
 }
 
-impl_prop_diff_for_float!(f32);
+// impl_prop_diff_for_float!(f32);
 impl_prop_diff_for_float!(f64);
 
 pub trait ApproxEq: Copy + PropDiff + PartialEq {
@@ -104,5 +104,5 @@ impl ApproxEq for u16 {}
 impl ApproxEq for u32 {}
 impl ApproxEq for u64 {}
 
-impl ApproxEq for f32 {}
+// impl ApproxEq for f32 {}
 impl ApproxEq for f64 {}
