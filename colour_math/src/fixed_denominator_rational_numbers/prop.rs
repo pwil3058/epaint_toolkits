@@ -142,6 +142,12 @@ pub trait IntoProp: Sized + Copy {
     fn into_prop(self) -> Prop;
 }
 
+pub trait PropFrom<T: IntoProp + Sized + Copy> {
+    fn prop_from(arg: T) -> Prop {
+        arg.into_prop()
+    }
+}
+
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
         Self::from_fraction(fraction[0], fraction[1])
@@ -184,12 +190,14 @@ impl IntoProp for f32 {
         Prop::from(self)
     }
 }
+impl PropFrom<f32> for Prop {}
 
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
         Prop::from(self)
     }
 }
+impl PropFrom<f64> for Prop {}
 
 #[macro_export]
 macro_rules! impl_to_from_number {
@@ -218,12 +226,14 @@ impl IntoProp for UFDRNum {
         self.into()
     }
 }
+impl PropFrom<UFDRNum> for Prop {}
 
 impl IntoProp for FDRNum {
     fn into_prop(self) -> Prop {
         self.into()
     }
 }
+impl PropFrom<FDRNum> for Prop {}
 
 #[macro_export]
 macro_rules! impl_unsigned_to_from_prop {
@@ -245,6 +255,7 @@ macro_rules! impl_unsigned_to_from_prop {
                 self.into()
             }
         }
+        impl PropFrom<u64> for u64 {}
     };
     ($unsigned:ty) => {
         impl From<$unsigned> for Prop {
@@ -266,6 +277,8 @@ macro_rules! impl_unsigned_to_from_prop {
                 self.into()
             }
         }
+
+        impl PropFrom<$unsigned> for Prop {}
     };
 }
 
