@@ -1,7 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::colour::Dedans;
-use colour_math::{Angle, ColourBasics, ColourManipulator, ManipulatedColour, Prop, RGB};
+use colour_math::{
+    Angle, AsProportion, ColourBasics, ColourManipulator, ManipulatedColour, Prop, RGB,
+};
 use eframe::egui; // Uses your local un-premultiplied color byte converter trait
 
 #[derive(Clone, Copy, Debug, Default)]

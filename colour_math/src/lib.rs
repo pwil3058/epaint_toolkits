@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use hue::HueIfce;
 
-use crate::fixed_denominator_rational_numbers::*;
+pub use crate::fixed_denominator_rational_numbers::*;
 
 pub use crate::{
     attributes::{Chroma, Family, Greyness, Value, Warmth},

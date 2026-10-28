@@ -3,8 +3,9 @@
 use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
+use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{ColouredShape, MakeColouredShape, Shape};
-use colour_math::{LightLevel, Prop, RGB};
+use colour_math::{LightLevel, RGB};
 use colour_math_derive::Colour;
 
 use crate::properties::{Properties, Property};
