@@ -259,7 +259,7 @@ pub trait ColourBasics {
         )
     }
 
-    fn into_proportions(self) -> [Prop; 3];
+    fn into_proportions(&self) -> [Prop; 3];
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -395,7 +395,7 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
         }
     }
 
-    fn into_proportions(self) -> [Prop; 3] {
+    fn into_proportions(&self) -> [Prop; 3] {
         match self {
             Colour::Rgb(rgb) => rgb.into_proportions(),
             Colour::Hc(hc) => hc.into_proportions(),

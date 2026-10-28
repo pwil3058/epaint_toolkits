@@ -4,9 +4,10 @@ use std::{cell::Cell, ops::Add, ops::Sub};
 
 use gtk3_ext::cairo;
 
+use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, Prop, UFDRNum, HCV,
+    ColourBasics, HCV,
 };
 
 #[derive(Debug, Default, Copy, Clone)]

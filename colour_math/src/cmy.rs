@@ -175,7 +175,7 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
         CMY::<LO>::from_proportions(self.into_proportions())
     }
 
-    fn into_proportions(self) -> [Prop; 3] {
+    fn into_proportions(&self) -> [Prop; 3] {
         [self[0].into(), self[1].into(), self[2].into()]
     }
 }

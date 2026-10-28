@@ -381,7 +381,7 @@ impl ColourBasics for HCV {
         self.rgb::<L>().into()
     }
 
-    fn into_proportions(self) -> [Prop; 3] {
+    fn into_proportions(&self) -> [Prop; 3] {
         let rgb: RGB<Prop> = self.into();
         [rgb[0], rgb[1], rgb[2]]
     }

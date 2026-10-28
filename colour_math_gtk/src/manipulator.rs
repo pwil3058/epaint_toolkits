@@ -13,7 +13,7 @@ use gtk3_ext::{
 };
 
 use colour_math::{
-    fixed_denominator_rational_numbers::Prop,
+    fixed_denominator_rational_numbers::*,
     hcv::HCV,
     hue::angle::Angle,
     manipulator::{ColourManipulator, DeltaSize},
