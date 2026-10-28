@@ -453,6 +453,33 @@ impl From<(PropertyType, &str)> for Property {
     }
 }
 
+impl FromStr for Property {
+    type Err = String;
+
+    fn from_str(string: &str) -> Result<Self, Self::Err> {
+        let mut split = string.split("::");
+        let type_name = split.next().unwrap();
+        let property_type = PropertyType::from_str(type_name).unwrap();
+        let variant = split.next().unwrap();
+        let result = match property_type {
+            PropertyType::Transparency => Property::Transparency(Transparency::from_str(variant)?),
+            PropertyType::Lightfastness => {
+                Property::Lightfastness(Lightfastness::from_str(variant)?)
+            }
+            PropertyType::Fluorescence => Property::Fluorescence(Fluorescence::from_str(variant)?),
+            PropertyType::Finish => Property::Finish(Finish::from_str(variant)?),
+            PropertyType::Staining => Property::Staining(Staining::from_str(variant)?),
+            PropertyType::Opacity => Property::Opacity(Opacity::from_str(variant)?),
+            PropertyType::Permanence => Property::Permanence(Permanence::from_str(variant)?),
+            PropertyType::Luminescence => Property::Luminescence(Luminescence::from_str(variant)?),
+            PropertyType::Granulation => Property::Granulation(Granulation::from_str(variant)?),
+            PropertyType::Metallicness => Property::Metallicness(Metallicness::from_str(variant)?),
+        };
+        debug_assert_eq!(split.next(), None);
+        Ok(result)
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct Properties(pub Vec<Property>);
 
@@ -604,17 +631,11 @@ mod tests {
     fn test_property_from_string() {
         assert_eq!(
             Property::from_str("Lightfastness::Excellent"),
-            Ok(Property {
-                property_type: PropertyType::Lightfastness,
-                value: 1
-            })
+            Ok(Property::Lightfastness(Lightfastness::Excellent))
         );
         assert_eq!(
             Property::from_str("Lightfastness::VeryGood"),
-            Ok(Property {
-                property_type: PropertyType::Lightfastness,
-                value: 2
-            })
+            Ok(Property::Lightfastness(Lightfastness::VeryGood))
         )
     }
 
@@ -655,7 +676,7 @@ mod tests {
         ]);
         let properties: Properties = (&property_types).into();
         for (property, property_type) in properties.iter().zip(property_types.iter()) {
-            assert_eq!(property.property_type, property_type);
+            assert_eq!(property.property_type(), property_type);
         }
     }
 }

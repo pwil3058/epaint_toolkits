@@ -155,7 +155,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
-            colour: HCV::RED,
+            colour: HCV::RED.into(),
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
@@ -163,7 +163,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
-            colour: HCV::YELLOW,
+            colour: HCV::YELLOW.into(),
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),

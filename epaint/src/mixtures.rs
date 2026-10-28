@@ -294,8 +294,8 @@ impl MixtureBuilder {
 
 #[cfg(test)]
 mod test {
-    use colour_math::HCV;
     use colour_math::HueConstants;
+    use colour_math::{HCV, RGB};
 
     use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
@@ -312,7 +312,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
-            colour: HCV::RED,
+            colour: RGB::<u8>::RED,
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
@@ -320,7 +320,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
-            colour: HCV::YELLOW,
+            colour: RGB::<u8>::YELLOW,
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2))]),
