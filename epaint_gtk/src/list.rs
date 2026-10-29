@@ -11,6 +11,7 @@ use epaint::{
     paint::{Paint, RangePaint},
 };
 
+use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{HCV, ScalarAttribute};
 use epaint::properties::PropertyTypes;
 
@@ -142,7 +143,7 @@ impl PaintListRow for Paint {
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {
-            -181.0 + f64::from(self.value())
+            -181.0 + f64::from_prop(self.value().into_prop())
         };
         let hcv_bg = if let Some(hcv) = self.hue_hcv() {
             hcv
@@ -160,7 +161,7 @@ impl PaintListRow for Paint {
             ha.to_value(),
         ];
         for attr in attributes.iter() {
-            let string = format!("{:5.4}", f64::from(self.scalar_attribute(*attr)));
+            let string = format!("{:5.4}", f64::from_prop(self.scalar_attribute(*attr)));
             let attr_rgb = self.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());
             row.push(attr_rgb.pango_string().to_value());
@@ -334,7 +335,7 @@ impl PaintListRow for Mixture {
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {
-            -181.0 + f64::from(self.value())
+            -181.0 + f64::from_prop(self.value().into_prop())
         };
         let hcv_bg = if let Some(hcv) = self.hue_hcv() {
             hcv
@@ -359,7 +360,7 @@ impl PaintListRow for Mixture {
             ha.to_value(),
         ];
         for attr in attributes.iter() {
-            let string = format!("{:5.4}", f64::from(self.scalar_attribute(*attr)));
+            let string = format!("{:5.4}", f64::from_prop(self.scalar_attribute(*attr)));
             let attr_rgb = self.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());
             row.push(attr_rgb.pango_string().to_value());

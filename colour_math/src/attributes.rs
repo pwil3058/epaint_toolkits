@@ -14,7 +14,7 @@ use crate::fixed_denominator_rational_numbers::{
 };
 
 use crate::hue::{Hue, HueBasics};
-use crate::{impl_into_from_float_as_prop, impl_to_from_number, HueConstants};
+use crate::{impl_to_from_number, HueConstants};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {
@@ -348,9 +348,6 @@ impl PropDiff for Warmth {
 
 impl ApproxEq for Warmth {}
 
-impl_into_from_float_as_prop!(f32, Warmth);
-impl_into_from_float_as_prop!(f64, Warmth);
-
 impl From<Prop> for Warmth {
     fn from(prop: Prop) -> Self {
         Self(prop.0)
@@ -415,9 +412,6 @@ impl Mul<i32> for Value {
         UFDRNum(self.0 as u128 * rhs as u128)
     }
 }
-
-impl_into_from_float_as_prop!(f32, Value);
-impl_into_from_float_as_prop!(f64, Value);
 
 impl From<Prop> for Value {
     fn from(prop: Prop) -> Self {

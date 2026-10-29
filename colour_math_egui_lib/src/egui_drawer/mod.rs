@@ -5,7 +5,7 @@
 use colour_math::{
     ColourBasics,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fixed_denominator_rational_numbers::UFDRNum,
+    fixed_denominator_rational_numbers::*,
 };
 use eframe::egui;
 use std::cell::Cell;
@@ -71,9 +71,9 @@ impl<'a> EguiDrawer<'a> {
     fn to_egui_color(colour: &impl ColourBasics) -> egui::Color32 {
         let prop_array =
             <[colour_math::fixed_denominator_rational_numbers::Prop; 3]>::from(colour.hcv());
-        let r_f64 = f64::from(prop_array[0]);
-        let g_f64 = f64::from(prop_array[1]);
-        let b_f64 = f64::from(prop_array[2]);
+        let r_f64 = f64::from_prop(prop_array[0]);
+        let g_f64 = f64::from_prop(prop_array[1]);
+        let b_f64 = f64::from_prop(prop_array[2]);
 
         egui::Color32::from_rgb(
             (r_f64 * 255.0).clamp(0.0, 255.0) as u8,
@@ -185,8 +185,8 @@ impl<'a> Draw for EguiDrawer<'a> {
             let (c1, p1) = &colour_stops[i];
             let (c2, p2) = &colour_stops[i + 1];
 
-            let x1 = rect.left() + rect.width() * f64::from(*p1) as f32;
-            let x2 = rect.left() + rect.width() * f64::from(*p2) as f32;
+            let x1 = rect.left() + rect.width() * f64::from_prop(*p1) as f32;
+            let x2 = rect.left() + rect.width() * f64::from_prop(*p2) as f32;
 
             let col1 = Self::to_egui_color(c1);
             let col2 = Self::to_egui_color(c2);

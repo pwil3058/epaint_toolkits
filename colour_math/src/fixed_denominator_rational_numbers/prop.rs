@@ -36,11 +36,11 @@ impl Prop {
     /// Examples:
     ///
     /// ```
-    /// use colour_math::fixed_denominator_rational_numbers::{Prop, debug::ApproxEq, FromAsProp};
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_eq!(Prop::from_fraction(1, 2), Prop::from(0.5));
-    /// assert_approx_eq!(Prop::from_fraction(3, 5), Prop::from(0.6), 1000);
+    /// assert_eq!(Prop::from_fraction(1, 2), 0.5.into_prop());
+    /// assert_approx_eq!(Prop::from_fraction(3, 5), 0.6.into_prop(), 1000);
     /// ```
     pub fn from_fraction(enumerator: u64, denominator: u64) -> Self {
         debug_assert!(denominator >= enumerator);
@@ -185,37 +185,6 @@ impl FromAsProp<Prop> for Prop {
     }
 }
 impl_into_as_prop!(Prop, Prop);
-
-#[macro_export]
-macro_rules! impl_into_from_float_as_prop {
-    ($float:ty, $number:ty) => {
-        impl From<$float> for $number {
-            fn from(arg: $float) -> Self {
-                debug_assert!((0.0..=1.0).contains(&arg));
-                //NB: watch out for floating point not being proper reals
-                Self((arg * u64::MAX as $float) as u64)
-            }
-        }
-        // impl_into_as_prop!($number, $float);
-
-        impl From<$number> for $float {
-            fn from(arg: $number) -> Self {
-                arg.0 as $float / u64::MAX as $float
-            }
-        }
-        // impl_into_as_prop!($float, $number);
-    };
-}
-
-// impl_into_from_float_as_prop!(f32, Prop);
-impl_into_from_float_as_prop!(f64, Prop);
-
-// impl IntoProp for f32 {
-//     fn into_prop(self) -> Prop {
-//         Prop::from(self)
-//     }
-// }
-// impl PropFrom<f32> for Prop {}
 
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
@@ -485,7 +454,7 @@ impl Mul<Prop> for UFDRNum {
     ///
     /// assert_eq!(UFDRNum::from(2.5) * Prop::ONE, UFDRNum::from(2.5));
     /// assert_eq!(UFDRNum::ONE * Prop::ZERO, UFDRNum::ZERO);
-    /// assert_eq!(UFDRNum::ONE * Prop::from(0.5), UFDRNum::from(0.5));
+    /// assert_eq!(UFDRNum::ONE * 0.5.into_prop(), UFDRNum::from(0.5));
     /// ```
     fn mul(self, rhs: Prop) -> Self {
         match rhs {

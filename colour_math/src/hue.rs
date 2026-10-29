@@ -11,10 +11,7 @@ use serde::{Deserialize, Serialize};
 
 pub mod angle;
 
-use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UFDRNum,
-};
+use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
     attributes::{Chroma, Family, Warmth},
@@ -1113,7 +1110,7 @@ impl HueIfce for SextantHue {
             SextantHue(Sextant::GreenYellow, Prop::HALF) => Angle::GREEN_YELLOW,
             SextantHue(Sextant::GreenCyan, Prop::HALF) => Angle::GREEN_CYAN,
             _ => {
-                let second: f64 = self.1.into();
+                let second: f64 = self.1.prop_into();
                 let sin = f64::SQRT_3 * second / 2.0 / (1.0 - second + second.powi(2)).sqrt();
                 let angle = Angle::asin(FDRNum::from(sin));
                 match self.0 {

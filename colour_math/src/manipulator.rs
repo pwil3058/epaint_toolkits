@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::fixed_denominator_rational_numbers::{AsProportion, NumberConstants, Prop, UFDRNum};
+use crate::fixed_denominator_rational_numbers::*;
 
 use crate::{
     hcv::HCV,
@@ -34,17 +34,17 @@ pub enum DeltaSize {
 impl DeltaSize {
     pub fn for_value(self) -> Prop {
         match self {
-            DeltaSize::Small => 0.0025.into(),
-            DeltaSize::Normal => 0.005.into(),
-            DeltaSize::Large => 0.01.into(),
+            DeltaSize::Small => 0.0025.into_prop(),
+            DeltaSize::Normal => 0.005.into_prop(),
+            DeltaSize::Large => 0.01.into_prop(),
         }
     }
 
     pub fn for_chroma(self) -> Prop {
         match self {
-            DeltaSize::Small => 0.0025.into(),
-            DeltaSize::Normal => 0.005.into(),
-            DeltaSize::Large => 0.01.into(),
+            DeltaSize::Small => 0.0025.into_prop(),
+            DeltaSize::Normal => 0.005.into_prop(),
+            DeltaSize::Large => 0.01.into_prop(),
         }
     }
 

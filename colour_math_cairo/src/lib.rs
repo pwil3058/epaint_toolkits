@@ -15,7 +15,14 @@ pub struct FRGB([f64; 3]);
 
 impl From<[Prop; 3]> for FRGB {
     fn from(props: [Prop; 3]) -> Self {
-        Self([props[0].into(), props[1].into(), props[2].into()])
+        Self(
+            props
+                .into_iter()
+                .map(|p| f64::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("conversion failed"),
+        )
     }
 }
 
@@ -281,7 +288,7 @@ impl<'a> Draw for Drawer<'a> {
         );
         for colour_stop in colour_stops.iter() {
             let rgb: FRGB = colour_stop.0.into_proportions().into();
-            linear_gradient.add_color_stop_rgb(colour_stop.1.into(), rgb[0], rgb[1], rgb[2]);
+            linear_gradient.add_color_stop_rgb(colour_stop.1.prop_into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
             posn.x.into(),
