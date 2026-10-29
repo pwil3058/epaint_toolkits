@@ -3,7 +3,7 @@
 // pub mod egui_drawer_bridge;
 
 use colour_math::{
-    ColourBasics,
+    ColourBasics, IntoProps,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
     fixed_denominator_rational_numbers::*,
 };
@@ -69,8 +69,7 @@ impl<'a> EguiDrawer<'a> {
     }
 
     fn to_egui_color(colour: &impl ColourBasics) -> egui::Color32 {
-        let prop_array =
-            <[colour_math::fixed_denominator_rational_numbers::Prop; 3]>::from(colour.hcv());
+        let prop_array = colour.hcv().into_proportions();
         let r_f64 = f64::from_prop(prop_array[0]);
         let g_f64 = f64::from_prop(prop_array[1]);
         let b_f64 = f64::from_prop(prop_array[2]);

@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{Hue, HueConstants};
+use colour_math::{Hue, HueConstants, PropsFrom};
 use eframe::egui;
 
 pub struct SpectrumSlider<'a> {
@@ -53,9 +53,9 @@ impl<'a> SpectrumSlider<'a> {
         }
 
         // 3. PAINT SPECTRUM RIBBON VIA PURE GRAPHICS MESH QUADS
-        let red_arr = <[Prop; 3]>::from(colour_math::HCV::RED);
-        let yellow_arr = <[Prop; 3]>::from(colour_math::HCV::YELLOW);
-        let blue_arr = <[Prop; 3]>::from(colour_math::HCV::BLUE);
+        let red_arr = <[Prop; 3]>::proportions_from(colour_math::HCV::RED);
+        let yellow_arr = <[Prop; 3]>::proportions_from(colour_math::HCV::YELLOW);
+        let blue_arr = <[Prop; 3]>::proportions_from(colour_math::HCV::BLUE);
 
         let color_start = egui::Color32::from_rgb(
             u8::from_prop(red_arr[0]),

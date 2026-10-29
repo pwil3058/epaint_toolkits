@@ -144,6 +144,16 @@ pub trait IntoProps: Sized + Copy {
     }
 }
 
+pub trait PropsFrom<T: IntoProps>: Sized + Copy {
+    fn proportions_from(arg: T) -> [Prop; 3];
+}
+
+impl<T: IntoProps> PropsFrom<T> for [Prop; 3] {
+    fn proportions_from(arg: T) -> [Prop; 3] {
+        T::into_proportions(arg)
+    }
+}
+
 pub trait ColourBasics {
     fn hue(&self) -> Option<Hue>;
 
