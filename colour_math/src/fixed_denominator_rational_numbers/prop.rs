@@ -149,12 +149,13 @@ pub trait PropFrom<T: IntoProp + Sized + Copy> {
     }
 }
 
+impl<T: IntoProp> PropFrom<T> for Prop {}
+
 impl IntoProp for Prop {
     fn into_prop(self) -> Prop {
         self
     }
 }
-impl PropFrom<Prop> for Prop {}
 
 pub trait FromProp: Sized + Copy {
     fn from_prop(prop: Prop) -> Self;
@@ -193,7 +194,6 @@ impl IntoProp for f64 {
         Prop((self * u64::MAX as f64) as u64)
     }
 }
-impl PropFrom<f64> for Prop {}
 
 impl FromProp for f64 {
     fn from_prop(prop: Prop) -> f64 {
@@ -229,14 +229,12 @@ impl IntoProp for UFDRNum {
         self.into()
     }
 }
-impl PropFrom<UFDRNum> for Prop {}
 
 impl IntoProp for FDRNum {
     fn into_prop(self) -> Prop {
         self.into()
     }
 }
-impl PropFrom<FDRNum> for Prop {}
 
 impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
     /// Convert an unsigned type representing a proportion into a Prop (rounding to nearest)
@@ -259,7 +257,6 @@ impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
         Prop(u64::from_u128_checked(val))
     }
 }
-impl<U: AsProportion + Into<u128> + Unsigned> PropFrom<U> for Prop {}
 
 impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
     /// Converts a Prop to a U as a proportion of U::MAX (rounding to nearest)
