@@ -67,52 +67,13 @@ pub trait LightLevel:
     + std::ops::Sub<Output = Self>
     + std::ops::Div<Output = Self>
 {
-    // const ZERO: Self;
-    // const ONE: Self;
-    // const ONE_QUARTER: Self;
-    // const HALF: Self;
-    // const THREE_QUARTERS: Self;
 }
-
-impl LightLevel for u8 {
-    // const ZERO: Self = 0;
-    // const ONE: Self = Self::MAX;
-    // const ONE_QUARTER: Self = Self::MAX / 4;
-    // const HALF: Self = Self::MAX / 2;
-    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
-}
-
-impl LightLevel for u16 {
-    // const ZERO: Self = 0;
-    // const ONE: Self = Self::MAX;
-    // const ONE_QUARTER: Self = Self::MAX / 4;
-    // const HALF: Self = Self::MAX / 2;
-    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
-}
-
-impl LightLevel for u32 {
-    // const ZERO: Self = 0;
-    // const ONE: Self = Self::MAX;
-    // const ONE_QUARTER: Self = Self::MAX / 4;
-    // const HALF: Self = Self::MAX / 2;
-    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
-}
-
-impl LightLevel for u64 {
-    // const ZERO: Self = 0;
-    // const ONE: Self = Self::MAX;
-    // const ONE_QUARTER: Self = Self::MAX / 4;
-    // const HALF: Self = Self::MAX / 2;
-    // const THREE_QUARTERS: Self = Self::MAX / 4 * 3;
-}
-
-impl LightLevel for Prop {
-    // const ZERO: Self = Self(<u64 as LightLevel>::ZERO);
-    // const ONE: Self = Self(u64::ONE);
-    // const ONE_QUARTER: Self = Self(u64::ONE_QUARTER);
-    // const HALF: Self = Self(u64::HALF);
-    // const THREE_QUARTERS: Self = Self(u64::THREE_QUARTERS);
-}
+impl LightLevel for u8 {}
+impl LightLevel for u16 {}
+impl LightLevel for u32 {}
+impl LightLevel for u64 {}
+impl LightLevel for Prop {}
+// NB no floating point LightLevel is a deliberate decision (they're too flaky)
 
 pub trait HueConstants: Sized + Copy {
     const RED: Self;
