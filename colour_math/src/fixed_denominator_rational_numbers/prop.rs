@@ -138,7 +138,7 @@ impl fmt::Display for Prop {
     }
 }
 
-// Conversions
+// Conversion traits
 pub trait IntoProp: Sized + Copy {
     fn into_prop(self) -> Prop;
 }
@@ -152,12 +152,6 @@ impl<T: IntoProp> PropFrom<T> for Prop {
     }
 }
 
-impl IntoProp for Prop {
-    fn into_prop(self) -> Prop {
-        self
-    }
-}
-
 pub trait FromProp: Sized + Copy {
     fn from_prop(prop: Prop) -> Self;
 }
@@ -168,6 +162,13 @@ pub trait PropInto<T: FromProp + Sized + Copy>: Sized + Copy + IntoProp {
 impl<T: FromProp> PropInto<T> for Prop {
     fn prop_into(self) -> T {
         T::from_prop(self)
+    }
+}
+
+// Conversions
+impl IntoProp for Prop {
+    fn into_prop(self) -> Prop {
+        self
     }
 }
 
