@@ -203,7 +203,7 @@ impl From<f64> for FDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::fixed_denominator_rational_numbers::{Float,FDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(FDRNum::from(1.0), FDRNum::ONE);

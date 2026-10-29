@@ -1,7 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use std::fmt::Debug;
-use std::ops::{Mul, Sub};
 
 pub trait FromAsProp<T: Sized> {
     fn from_as_prop(value: T) -> Self;
@@ -146,37 +145,3 @@ impl SignedInteger for i8 {}
 impl SignedInteger for i16 {}
 impl SignedInteger for i32 {}
 impl SignedInteger for i64 {}
-
-pub trait Float:
-    Signed + Sized + Mul<Output = Self> + Sub<Output = Self> + From<f32> + Debug
-{
-    fn is_negative(&self) -> bool;
-    fn into_u128(self) -> u128;
-    fn into_i128(self) -> i128;
-    fn from_u128(u: u128) -> Self;
-    fn from_i128(i: i128) -> Self;
-}
-
-impl Signed for f64 {}
-
-impl Float for f64 {
-    fn is_negative(&self) -> bool {
-        *self < 0.0
-    }
-
-    fn into_u128(self) -> u128 {
-        self as u128
-    }
-
-    fn into_i128(self) -> i128 {
-        self as i128
-    }
-
-    fn from_u128(u: u128) -> Self {
-        u as Self
-    }
-
-    fn from_i128(i: i128) -> Self {
-        i as Self
-    }
-}

@@ -171,7 +171,7 @@ impl SampleImages {
 #[cfg(test)]
 mod colour_conversioon_tests {
     use super::*;
-    use colour_math::{ColourBasics, HCV, HueConstants, LightLevel, RGB};
+    use colour_math::{HCV, HueConstants, RGB};
     use eframe::egui::Color32;
 
     #[test]

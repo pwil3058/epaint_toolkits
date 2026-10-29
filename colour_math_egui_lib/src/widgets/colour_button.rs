@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, HCV, Prop};
+use colour_math::fixed_denominator_rational_numbers::*;
+use colour_math::{ColourBasics, HCV};
 use eframe::egui;
 
 pub struct DirectionalNudgeButton<'a> {
@@ -21,17 +22,17 @@ impl<'a> DirectionalNudgeButton<'a> {
         // 1. Convert your type-safe internal Prop array triplet straight to egui colour bytes
         let rgb_array = <[Prop; 3]>::from(*self.target_direction_colour);
         let button_colour = egui::Color32::from_rgb(
-            u8::from(rgb_array[0]),
-            u8::from(rgb_array[1]),
-            u8::from(rgb_array[2]),
+            u8::from_prop(rgb_array[0]),
+            u8::from_prop(rgb_array[1]),
+            u8::from_prop(rgb_array[2]),
         );
 
         // 2. Extract your custom best_foreground() calculation to guarantee high text contrast
         let fg_array = <[Prop; 3]>::from(self.target_direction_colour.best_foreground());
         let text_colour = egui::Color32::from_rgb(
-            u8::from(fg_array[0]),
-            u8::from(fg_array[1]),
-            u8::from(fg_array[2]),
+            u8::from_prop(fg_array[0]),
+            u8::from_prop(fg_array[1]),
+            u8::from_prop(fg_array[2]),
         );
 
         // 3. Override background styling immediately on this frame loop sweep

@@ -219,10 +219,19 @@ impl_into_from_float_as_prop!(f64, Prop);
 
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
-        Prop::from(self)
+        debug_assert!((0.0..=1.0).contains(&self));
+        //NB: watch out for floating point not being proper reals
+        Prop((self * u64::MAX as f64) as u64)
     }
 }
 impl PropFrom<f64> for Prop {}
+
+impl FromProp for f64 {
+    fn from_prop(prop: Prop) -> f64 {
+        prop.0 as f64 / u64::MAX as f64
+    }
+}
+impl PropInto<f64> for Prop {}
 
 #[macro_export]
 macro_rules! impl_to_from_number {

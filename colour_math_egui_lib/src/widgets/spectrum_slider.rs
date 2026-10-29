@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{Hue, HueConstants, Prop};
+use colour_math::fixed_denominator_rational_numbers::*;
+use colour_math::{Hue, HueConstants};
 use eframe::egui;
 
 pub struct SpectrumSlider<'a> {
@@ -57,19 +58,19 @@ impl<'a> SpectrumSlider<'a> {
         let blue_arr = <[Prop; 3]>::from(colour_math::HCV::BLUE);
 
         let color_start = egui::Color32::from_rgb(
-            u8::from(red_arr[0]),
-            u8::from(red_arr[1]),
-            u8::from(red_arr[2]),
+            u8::from_prop(red_arr[0]),
+            u8::from_prop(red_arr[1]),
+            u8::from_prop(red_arr[2]),
         );
         let color_mid = egui::Color32::from_rgb(
-            u8::from(yellow_arr[0]),
-            u8::from(yellow_arr[1]),
-            u8::from(yellow_arr[2]),
+            u8::from_prop(yellow_arr[0]),
+            u8::from_prop(yellow_arr[1]),
+            u8::from_prop(yellow_arr[2]),
         );
         let color_end = egui::Color32::from_rgb(
-            u8::from(blue_arr[0]),
-            u8::from(blue_arr[1]),
-            u8::from(blue_arr[2]),
+            u8::from_prop(blue_arr[0]),
+            u8::from_prop(blue_arr[1]),
+            u8::from_prop(blue_arr[2]),
         );
 
         let mut left_mesh = egui::Mesh::default();

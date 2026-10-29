@@ -174,7 +174,6 @@ mod paint_tests {
     use std::convert::From;
 
     use super::*;
-    use colour_math::ColourBasics;
     use colour_math::HCV;
     use colour_math::HueConstants;
 

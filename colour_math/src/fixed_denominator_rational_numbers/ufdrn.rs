@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, Float, NumberConstants, Prop, Unsigned, UnsignedInteger,
+    AsProportion, FDRNum, NumberConstants, Prop, Unsigned, UnsignedInteger,
 };
 
 /// Fixed denominator rational number as an approximate representation of real numbers
@@ -189,15 +189,15 @@ impl From<f64> for UFDRNum {
     /// Example:
     ///
     /// ```
-    /// use colour_math::fixed_denominator_rational_numbers::{Float,UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
     /// assert_approx_eq!(UFDRNum::from(1.0), UFDRNum::ONE);
     /// assert_approx_eq!(UFDRNum::from(0.25), UFDRNum::ONE / 4u8)
     /// ```
     fn from(arg: f64) -> Self {
-        assert!(!arg.is_negative());
-        Self((arg * f64::from_u128(Self::DENOMINATOR)).into_u128())
+        assert!(arg >= 0.0);
+        Self((arg * Self::DENOMINATOR as f64) as u128)
     }
 }
 
