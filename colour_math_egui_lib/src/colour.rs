@@ -181,7 +181,7 @@ mod colour_conversioon_tests {
     }
 
     #[test]
-    fn from_rgb_to_Color32() {
+    fn from_rgb_to_color32() {
         assert_eq!(Color32::depuis(RGB::<u16>::MAGENTA), Color32::MAGENTA);
         assert_eq!(Color32::YELLOW, RGB::<u32>::YELLOW.dedans());
     }
@@ -193,7 +193,7 @@ mod colour_conversioon_tests {
     }
 
     #[test]
-    fn from_hcv_to_Color32() {
+    fn from_hcv_to_color32() {
         assert_eq!(Color32::depuis(HCV::MAGENTA), Color32::MAGENTA);
         assert_eq!(Color32::YELLOW, HCV::YELLOW.dedans());
     }

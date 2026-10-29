@@ -24,7 +24,7 @@ impl NudgePanel {
                 // Pass the real geometric rect region down into the filling method pass
                 sample_painter.rect_filled(response.rect, 4.0, egui::Color32::from_gray(96));
 
-                if let Some(ref tex) = texture {
+                if let Some(tex) = texture {
                     sample_painter.image(
                         tex.id(),
                         egui::Rect::from_center_size(

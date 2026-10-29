@@ -6,8 +6,6 @@ use crypto_hash::{Algorithm, Hasher};
 use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
-use colour_math::fixed_denominator_rational_numbers::*;
-
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::RGB;
 use colour_math::{

@@ -19,7 +19,7 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::RGB,
-    ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -380,10 +380,22 @@ impl ColourBasics for HCV {
     fn cmy<L: LightLevel>(&self) -> CMY<L> {
         self.rgb::<L>().into()
     }
+}
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        let rgb: RGB<Prop> = self.into();
-        [rgb[0], rgb[1], rgb[2]]
+impl IntoProps for HCV {
+    fn proportions(self) -> impl Iterator<Item = Prop> {
+        self.into_proportions().into_iter()
+    }
+
+    fn into_proportions(self) -> [Prop; 3] {
+        debug_assert!(self.is_valid());
+        if let Some(hue) = self.hue {
+            hue.rgb_ordered_triplet(self.sum, self.c_prop)
+                .expect("Invalid Hue")
+        } else {
+            let value: Prop = (self.sum / 3u8).into();
+            [value, value, value]
+        }
     }
 }
 

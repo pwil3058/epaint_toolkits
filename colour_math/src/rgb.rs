@@ -22,7 +22,7 @@ use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 pub trait IntoRGB {
@@ -125,6 +125,10 @@ impl<T: LightLevel> RGB<T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
+
+    pub fn into_iter(self) -> impl Iterator<Item = T> {
+        self.0.into_iter()
+    }
 }
 
 impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
@@ -214,13 +218,11 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
         let props = CMY::<T>::from(*self).into_proportions();
         CMY::<L>::from_proportions(props)
     }
+}
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        [
-            self.0[0].into_prop(),
-            self.0[1].into_prop(),
-            self.0[2].into_prop(),
-        ]
+impl<L: LightLevel> IntoProps for RGB<L> {
+    fn proportions(self) -> impl Iterator<Item = Prop> {
+        self.0.into_iter().map(|c| c.into_prop())
     }
 }
 

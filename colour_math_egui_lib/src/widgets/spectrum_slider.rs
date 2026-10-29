@@ -73,56 +73,60 @@ impl<'a> SpectrumSlider<'a> {
             u8::from_prop(blue_arr[2]),
         );
 
-        let mut left_mesh = egui::Mesh::default();
-        left_mesh.vertices = vec![
-            egui::epaint::Vertex {
-                pos: rect.left_top(),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_start,
-            },
-            egui::epaint::Vertex {
-                pos: egui::pos2(rect.center().x, rect.top()),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_mid,
-            },
-            egui::epaint::Vertex {
-                pos: egui::pos2(rect.center().x, rect.bottom()),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_mid,
-            },
-            egui::epaint::Vertex {
-                pos: rect.left_bottom(),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_start,
-            },
-        ];
+        let mut left_mesh = egui::Mesh {
+            vertices: vec![
+                egui::epaint::Vertex {
+                    pos: rect.left_top(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_start,
+                },
+                egui::epaint::Vertex {
+                    pos: egui::pos2(rect.center().x, rect.top()),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_mid,
+                },
+                egui::epaint::Vertex {
+                    pos: egui::pos2(rect.center().x, rect.bottom()),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_mid,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.left_bottom(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_start,
+                },
+            ],
+            ..Default::default()
+        };
         left_mesh.add_triangle(0, 1, 2);
         left_mesh.add_triangle(0, 2, 3);
         painter.add(egui::Shape::mesh(left_mesh));
 
-        let mut right_mesh = egui::Mesh::default();
-        right_mesh.vertices = vec![
-            egui::epaint::Vertex {
-                pos: egui::pos2(rect.center().x, rect.top()),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_mid,
-            },
-            egui::epaint::Vertex {
-                pos: rect.right_top(),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_end,
-            },
-            egui::epaint::Vertex {
-                pos: rect.right_bottom(),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_end,
-            },
-            egui::epaint::Vertex {
-                pos: egui::pos2(rect.center().x, rect.bottom()),
-                uv: egui::pos2(0.0, 0.0),
-                color: color_mid,
-            },
-        ];
+        let mut right_mesh = egui::Mesh {
+            vertices: vec![
+                egui::epaint::Vertex {
+                    pos: egui::pos2(rect.center().x, rect.top()),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_mid,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.right_top(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_end,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.right_bottom(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_end,
+                },
+                egui::epaint::Vertex {
+                    pos: egui::pos2(rect.center().x, rect.bottom()),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: color_mid,
+                },
+            ],
+            ..Default::default()
+        };
         right_mesh.add_triangle(0, 1, 2);
         right_mesh.add_triangle(0, 2, 3);
         painter.add(egui::Shape::mesh(right_mesh));
@@ -138,26 +142,26 @@ impl<'a> SpectrumSlider<'a> {
         );
 
         // 5. Render the rolling target triangle cursor if it drifts within view
-        if let Some(target) = self.target_hue {
-            if !self.center_on_target {
-                let angle_distance = *target - fixed_center_hue;
-                let degrees_diff = f64::from(angle_distance);
-                let target_fractional_x = 0.5 + (degrees_diff / 360.0) as f32;
+        if let Some(target) = self.target_hue
+            && !self.center_on_target
+        {
+            let angle_distance = *target - fixed_center_hue;
+            let degrees_diff = f64::from(angle_distance);
+            let target_fractional_x = 0.5 + (degrees_diff / 360.0) as f32;
 
-                if target_fractional_x >= 0.0 && target_fractional_x <= 1.0 {
-                    let target_x = rect.left() + target_fractional_x * rect.width();
+            if (0.0..=1.0).contains(&target_fractional_x) {
+                let target_x = rect.left() + target_fractional_x * rect.width();
 
-                    // 🌟 FIX: Employs the authentic egui 0.36.2 convex_polygon structural variant!
-                    painter.add(egui::Shape::convex_polygon(
-                        vec![
-                            egui::pos2(target_x - 5.0, rect.top() - 4.0),
-                            egui::pos2(target_x + 5.0, rect.top() - 4.0),
-                            egui::pos2(target_x, rect.top() + 2.0),
-                        ],
-                        egui::Color32::BLACK,
-                        egui::Stroke::NONE,
-                    ));
-                }
+                // 🌟 FIX: Employs the authentic egui 0.36.2 convex_polygon structural variant!
+                painter.add(egui::Shape::convex_polygon(
+                    vec![
+                        egui::pos2(target_x - 5.0, rect.top() - 4.0),
+                        egui::pos2(target_x + 5.0, rect.top() - 4.0),
+                        egui::pos2(target_x, rect.top() + 2.0),
+                    ],
+                    egui::Color32::BLACK,
+                    egui::Stroke::NONE,
+                ));
             }
         }
 

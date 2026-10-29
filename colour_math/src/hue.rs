@@ -18,7 +18,7 @@ use crate::{
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,
-    ColourBasics, HueConstants, LightLevel,
+    ColourBasics, HueConstants, IntoProps, LightLevel,
 };
 
 pub(crate) trait HueBasics: Copy + Debug + Sized + Into<Hue> {

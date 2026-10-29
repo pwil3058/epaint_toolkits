@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
-    Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, LightLevel, RGBConstants, Value,
-    Warmth, HCV, RGB,
+    Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, IntoProps, LightLevel,
+    RGBConstants, Value, Warmth, HCV, RGB,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -114,7 +114,6 @@ impl<L: LightLevel> From<CMY<L>> for RGB<L> {
 
 impl<L: LightLevel> From<[L; 3]> for CMY<L> {
     fn from(cmy: [L; 3]) -> Self {
-        println!("{:?} -> {:?}", cmy, Self([cmy[0], cmy[1], cmy[2]]));
         Self([cmy[0], cmy[1], cmy[2]])
     }
 }
@@ -181,14 +180,11 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
     fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
         CMY::<LO>::from_proportions(self.into_proportions())
     }
+}
 
-    fn into_proportions(&self) -> [Prop; 3] {
-        self.0
-            .into_iter()
-            .map(|c| c.into_prop())
-            .collect::<Vec<_>>()
-            .try_into()
-            .expect("proportions conversion failed")
+impl<L: LightLevel> IntoProps for CMY<L> {
+    fn proportions(self) -> impl Iterator<Item = Prop> {
+        self.0.into_iter().map(|c| c.into_prop())
     }
 }
 

@@ -133,7 +133,7 @@ impl<T: FromProps> PropsInto<T> for [Prop; 3] {
     }
 }
 
-pub trait IntoProportions: Sized + Copy {
+pub trait IntoProps: Sized + Copy {
     fn proportions(self) -> impl Iterator<Item = Prop>;
 
     fn into_proportions(self) -> [Prop; 3] {
@@ -231,7 +231,7 @@ pub trait ColourBasics {
         )
     }
 
-    fn into_proportions(&self) -> [Prop; 3];
+    // fn into_proportions(&self) -> [Prop; 3];
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
@@ -366,8 +366,14 @@ impl<L: LightLevel> ColourBasics for Colour<L> {
             Colour::Hc(hcv) => hcv.hex_string::<T>(),
         }
     }
+}
 
-    fn into_proportions(&self) -> [Prop; 3] {
+impl<L: LightLevel> IntoProps for Colour<L> {
+    fn proportions(self) -> impl Iterator<Item = Prop> {
+        self.into_proportions().into_iter()
+    }
+
+    fn into_proportions(self) -> [Prop; 3] {
         match self {
             Colour::Rgb(rgb) => rgb.into_proportions(),
             Colour::Hc(hc) => hc.into_proportions(),

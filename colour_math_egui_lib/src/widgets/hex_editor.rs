@@ -69,10 +69,11 @@ impl<'a> HexEditor<'a> {
                     .trim_start_matches("0x")
                     .trim_start_matches("0X");
 
-                if let Ok(parsed) = u8::from_str_radix(clean_text, 16) {
-                    if parsed >= self.min && parsed <= self.max {
-                        *self.value = parsed;
-                    }
+                if let Ok(parsed) = u8::from_str_radix(clean_text, 16)
+                    && parsed >= self.min
+                    && parsed <= self.max
+                {
+                    *self.value = parsed;
                 }
             }
 

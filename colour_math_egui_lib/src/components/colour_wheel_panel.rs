@@ -74,40 +74,46 @@ impl ColourWheelPanel {
             self.hue_wheel.draw(self.active_projection, &drawer);
 
             // 🌟 3. REAL-TIME HOVER TOOLTIPS WITH EXPLICIT ACCURATE TRANSFORMS
-            if let Some(mouse_pixel_pos) = ui.ctx().input(|i| i.pointer.hover_pos()) {
-                if resp.rect.contains(mouse_pixel_pos) {
-                    // Transpose screen pixels into your backend's expected centered Cartesian fixed-point grid space
-                    let scale_factor = resp.rect.width() / 2.0;
-                    let center = transformed_rect.center();
+            if let Some(mouse_pixel_pos) = ui.ctx().input(|i| i.pointer.hover_pos())
+                && resp.rect.contains(mouse_pixel_pos)
+            {
+                // Transpose screen pixels into your backend's expected centered Cartesian fixed-point grid space
+                let scale_factor = resp.rect.width() / 2.0;
+                let center = transformed_rect.center();
 
-                    let abstract_x = (mouse_pixel_pos.x - center.x) / scale_factor;
-                    let abstract_y = (center.y - mouse_pixel_pos.y) / scale_factor; // Invert Y axis natively
+                let abstract_x = (mouse_pixel_pos.x - center.x) / scale_factor;
+                let abstract_y = (center.y - mouse_pixel_pos.y) / scale_factor; // Invert Y axis natively
 
-                    let backend_point = colour_math::Point {
-                        x: (abstract_x as f64).into(),
-                        y: (abstract_y as f64).into(),
-                    };
+                let backend_point = colour_math::Point {
+                    x: (abstract_x as f64).into(),
+                    y: (abstract_y as f64).into(),
+                };
 
-                    // Execute hit testing with the correct backend argument sequence pass!
-                    if let Some(tooltip_text) = self
-                        .hue_wheel
-                        .tooltip_for_point(backend_point, self.active_projection)
-                    {
-                        let unique_id = egui::Id::new("drawing_canvas_tooltip");
+                // Execute hit testing with the correct backend argument sequence pass!
+                if let Some(tooltip_text) = self
+                    .hue_wheel
+                    .tooltip_for_point(backend_point, self.active_projection)
+                {
+                    let unique_id = egui::Id::new("drawing_canvas_tooltip");
 
-                        // 🌟 FIX: Use the publicly re-exported PopupAnchor path!
-                        egui::containers::Tooltip::always_open(
-                            ui.ctx().clone(),
-                            ui.layer_id(),
-                            unique_id,
-                            egui::PopupAnchor::Pointer,
-                        )
-                        .show(|ui| {
-                            ui.label(tooltip_text);
-                        });
-                    }
+                    // 🌟 FIX: Use the publicly re-exported PopupAnchor path!
+                    egui::containers::Tooltip::always_open(
+                        ui.ctx().clone(),
+                        ui.layer_id(),
+                        unique_id,
+                        egui::PopupAnchor::Pointer,
+                    )
+                    .show(|ui| {
+                        ui.label(tooltip_text);
+                    });
                 }
             }
         });
+    }
+}
+
+impl Default for ColourWheelPanel {
+    fn default() -> Self {
+        Self::new()
     }
 }

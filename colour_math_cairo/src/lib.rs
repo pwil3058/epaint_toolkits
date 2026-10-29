@@ -7,17 +7,16 @@ use gtk3_ext::cairo;
 use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, HCV,
+    ColourBasics, IntoProps, HCV, RGB,
 };
 
 #[derive(Debug, Default, Copy, Clone)]
 pub struct FRGB([f64; 3]);
 
-impl From<[Prop; 3]> for FRGB {
-    fn from(props: [Prop; 3]) -> Self {
+impl From<RGB<Prop>> for FRGB {
+    fn from(rgb: RGB<Prop>) -> Self {
         Self(
-            props
-                .into_iter()
+            rgb.into_iter()
                 .map(|p| f64::from_prop(p))
                 .collect::<Vec<_>>()
                 .try_into()
@@ -142,8 +141,8 @@ impl From<beigui::TextPosn> for TextPosn {
 }
 
 pub trait CairoSetColour {
-    fn set_source_colour(&self, colour: &impl ColourBasics) {
-        let rgb: FRGB = colour.into_proportions().into();
+    fn set_source_colour(&self, colour: &(impl ColourBasics + IntoProps)) {
+        let rgb: FRGB = colour.rgb::<Prop>().into();
         self.set_source_colour_rgb(&rgb);
     }
 
@@ -212,15 +211,15 @@ impl<'a> Draw for Drawer<'a> {
     }
 
     fn set_fill_colour(&self, colour: &impl ColourBasics) {
-        self.fill_colour.set(colour.into_proportions().into());
+        self.fill_colour.set(colour.rgb::<Prop>().into());
     }
 
     fn set_line_colour(&self, colour: &impl ColourBasics) {
-        self.line_colour.set(colour.into_proportions().into());
+        self.line_colour.set(colour.rgb::<Prop>().into());
     }
 
     fn set_text_colour(&self, colour: &impl ColourBasics) {
-        self.text_colour.set(colour.into_proportions().into());
+        self.text_colour.set(colour.rgb::<Prop>().into());
     }
 
     fn set_line_width(&self, width: UFDRNum) {
@@ -287,7 +286,7 @@ impl<'a> Draw for Drawer<'a> {
             0.5 * f64::from(size.height),
         );
         for colour_stop in colour_stops.iter() {
-            let rgb: FRGB = colour_stop.0.into_proportions().into();
+            let rgb: FRGB = colour_stop.0.rgb::<Prop>().into();
             linear_gradient.add_color_stop_rgb(colour_stop.1.prop_into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
@@ -308,7 +307,7 @@ impl<'a> DrawIsosceles for Drawer<'a> {}
 impl<'a> DrawShapes for Drawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.cairo_context
-            .set_source_colour_rgb(&colour.into_proportions().into());
+            .set_source_colour_rgb(&colour.rgb::<Prop>().into());
         self.cairo_context.paint().expect("couldn't paint");
     }
 

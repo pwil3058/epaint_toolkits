@@ -46,29 +46,31 @@ impl<'a> ValueSlider<'a> {
         let painter = ui.painter();
 
         // 1. Paint the value gradient using pure mesh quads to lock down version safety completely!
-        let mut mesh = egui::Mesh::default();
-        mesh.vertices = vec![
-            egui::epaint::Vertex {
-                pos: rect.left_top(),
-                uv: egui::pos2(0.0, 0.0),
-                color: self.bg_start_color,
-            },
-            egui::epaint::Vertex {
-                pos: rect.right_top(),
-                uv: egui::pos2(0.0, 0.0),
-                color: self.bg_end_color,
-            },
-            egui::epaint::Vertex {
-                pos: rect.right_bottom(),
-                uv: egui::pos2(0.0, 0.0),
-                color: self.bg_end_color,
-            },
-            egui::epaint::Vertex {
-                pos: rect.left_bottom(),
-                uv: egui::pos2(0.0, 0.0),
-                color: self.bg_start_color,
-            },
-        ];
+        let mut mesh = egui::Mesh {
+            vertices: vec![
+                egui::epaint::Vertex {
+                    pos: rect.left_top(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: self.bg_start_color,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.right_top(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: self.bg_end_color,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.right_bottom(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: self.bg_end_color,
+                },
+                egui::epaint::Vertex {
+                    pos: rect.left_bottom(),
+                    uv: egui::pos2(0.0, 0.0),
+                    color: self.bg_start_color,
+                },
+            ],
+            ..Default::default()
+        };
         mesh.add_triangle(0, 1, 2);
         mesh.add_triangle(0, 2, 3);
         painter.add(egui::Shape::mesh(mesh));

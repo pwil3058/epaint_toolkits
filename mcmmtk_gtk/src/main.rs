@@ -9,8 +9,6 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use recollections;
-
 mod config;
 mod mcmmtk;
 mod mcmmtk_icon;

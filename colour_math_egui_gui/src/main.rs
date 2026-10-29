@@ -7,11 +7,11 @@ mod app_shell;
 use app_shell::AppShell;
 
 fn main() -> eframe::Result<()> {
-    let mut options = eframe::NativeOptions::default();
-    options.persist_window = true;
-
-    // 🌟 FIX: Initialize window sizing using egui's correct ViewportBuilder structure!
-    options.viewport = egui::ViewportBuilder::default().with_inner_size(egui::vec2(740.0, 520.0));
+    let options = eframe::NativeOptions {
+        persist_window: true,
+        viewport: egui::ViewportBuilder::default().with_inner_size(egui::vec2(740.0, 520.0)),
+        ..Default::default()
+    };
 
     let watercolour_profile = [
         ColourAttributeType::Hue,

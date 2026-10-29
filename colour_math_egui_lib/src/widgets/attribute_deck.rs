@@ -25,14 +25,6 @@ impl AttributeDeck {
             direction,
         }
     }
-
-    /// Renders the complete, ordered layout deck structure on screen.
-    ///
-    /// * `ui` - The active drawing interface window context frame handle.
-    /// * `current_colour` - The primary color value driving the main indicator needles.
-    /// * `target_colour` - An optional comparison target color to map background lines.
-    // Inside colour_math_egui_lib/src/widgets/attribute_deck.rs (around line 46)
-
     /// Renders the complete, ordered layout deck structure on screen.
     ///
     /// * `ui` - The active drawing interface window context frame handle.

@@ -11,7 +11,7 @@ pub mod colour {
     use gtk3_ext::gdk;
 
     use colour_math::fixed_denominator_rational_numbers::*;
-    use colour_math::{ColourBasics, LightLevel, ManipulatedColour, HCV, RGB};
+    use colour_math::{IntoProps, LightLevel, ManipulatedColour, HCV, RGB};
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {

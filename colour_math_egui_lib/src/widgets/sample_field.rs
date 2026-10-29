@@ -89,18 +89,18 @@ impl SampleField {
             );
 
             // Highlight hovered layer bounding boxes
-            if let Some(pos) = pointer_pos {
-                if sample.rect.contains(pos) {
-                    painter.rect_stroke(
-                        sample.rect,
-                        0.0,
-                        egui::Stroke::new(1.5, egui::Color32::WHITE),
-                        egui::StrokeKind::Outside,
-                    );
+            if let Some(pos) = pointer_pos
+                && sample.rect.contains(pos)
+            {
+                painter.rect_stroke(
+                    sample.rect,
+                    0.0,
+                    egui::Stroke::new(1.5, egui::Color32::WHITE),
+                    egui::StrokeKind::Outside,
+                );
 
-                    // Keep track of the actual min position of the hovered sample for hit testing
-                    hovered_patch_origin = Some((sample.rect.min, idx));
-                }
+                // Keep track of the actual min position of the hovered sample for hit testing
+                hovered_patch_origin = Some((sample.rect.min, idx));
             }
         }
 
