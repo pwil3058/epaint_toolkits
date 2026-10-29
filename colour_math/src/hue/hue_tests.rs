@@ -8,8 +8,8 @@ use approximately_equal::*;
 use crate::{
     attributes::Chroma,
     hue::{Hue, Sextant::*},
-    rgb::RGB,
-    ColourBasics, IntoRGB, RGBConstants,
+    rgb::{IntoRGB, RGB},
+    ColourBasics, RGBConstants,
 };
 
 const NON_ZERO_CHROMA_PROPS: [f64; 7] = [0.01, 0.025, 0.5, 0.75, 0.9, 0.99, 1.0];

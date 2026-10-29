@@ -123,13 +123,24 @@ pub trait FromProps {
     fn from_proportions(props: [Prop; 3]) -> Self;
 }
 
-pub trait IntoRGB {
-    fn into_rgb<L: LightLevel>(self) -> RGB<L>;
+pub trait PropsInto<T: FromProps>: Sized + Copy {
+    fn proportions_into(self) -> T;
 }
 
-impl IntoRGB for [Prop; 3] {
-    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
-        RGB::<L>::from_proportions(self)
+impl<T: FromProps> PropsInto<T> for [Prop; 3] {
+    fn proportions_into(self) -> T {
+        T::from_proportions(self)
+    }
+}
+
+pub trait IntoProportions: Sized + Copy {
+    fn proportions(self) -> impl Iterator<Item = Prop>;
+
+    fn into_proportions(self) -> [Prop; 3] {
+        self.proportions()
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("into_proportions failed")
     }
 }
 

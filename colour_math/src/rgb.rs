@@ -25,6 +25,22 @@ use crate::{
     ColourBasics, FromProps, HueConstants, LightLevel, ManipulatedColour, RGBConstants,
 };
 
+pub trait IntoRGB {
+    fn into_rgb<L: LightLevel>(self) -> RGB<L>;
+}
+
+impl IntoRGB for [Prop; 3] {
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        RGB::<L>(
+            self.into_iter()
+                .map(|p| L::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("IntoRGB failed"),
+        )
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
 pub struct RGB<T: LightLevel>(pub(crate) [T; 3]);
 
