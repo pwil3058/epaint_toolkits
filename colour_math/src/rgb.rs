@@ -98,17 +98,6 @@ impl<T: LightLevel + Copy + FromProp> RGB<T> {
 }
 
 impl<T: LightLevel> RGB<T> {
-    pub fn from_proportions(array: [Prop; 3]) -> Self {
-        Self(
-            array
-                .into_iter()
-                .map(|a| T::from_prop(a))
-                .collect::<Vec<_>>()
-                .try_into()
-                .expect("conversion failed"),
-        )
-    }
-
     pub fn sum(&self) -> UFDRNum {
         let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
         red + green + blue

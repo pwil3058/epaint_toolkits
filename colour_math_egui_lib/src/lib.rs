@@ -5,9 +5,9 @@ pub mod components;
 pub mod egui_drawer;
 pub mod widgets;
 
-use colour_math::IntoProps;
 use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::rgb::RGB;
+use colour_math::{FromProps, IntoProps};
 use eframe::egui;
 
 /// Local translation trait to bridge foreign types cleanly within this crate boundary

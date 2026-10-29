@@ -51,7 +51,7 @@ impl SubtractiveMixer {
 #[cfg(test)]
 mod mixing_tests {
     use super::*;
-    use crate::HueConstants;
+    use crate::{FromProps, HueConstants};
 
     #[test]
     fn subtractive_mixing() {

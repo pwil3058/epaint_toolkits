@@ -129,6 +129,9 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
     ) -> Option<Result<[Prop; 3], [Prop; 3]>>;
 }
 
+#[cfg(test)]
+use crate::FromProps;
+
 pub(crate) trait HueIfce:
     HueBasics + OrderedTriplets + ColourModificationHelpers + SumChromaCompatibility
 {
