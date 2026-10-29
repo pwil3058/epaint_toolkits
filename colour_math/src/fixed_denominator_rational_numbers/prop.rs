@@ -144,12 +144,13 @@ pub trait IntoProp: Sized + Copy {
 }
 
 pub trait PropFrom<T: IntoProp + Sized + Copy> {
+    fn prop_from(arg: T) -> Prop;
+}
+impl<T: IntoProp> PropFrom<T> for Prop {
     fn prop_from(arg: T) -> Prop {
         arg.into_prop()
     }
 }
-
-impl<T: IntoProp> PropFrom<T> for Prop {}
 
 impl IntoProp for Prop {
     fn into_prop(self) -> Prop {
@@ -162,8 +163,11 @@ pub trait FromProp: Sized + Copy {
 }
 
 pub trait PropInto<T: FromProp + Sized + Copy>: Sized + Copy + IntoProp {
+    fn prop_into(self) -> T;
+}
+impl<T: FromProp> PropInto<T> for Prop {
     fn prop_into(self) -> T {
-        T::from_prop(self.into_prop())
+        T::from_prop(self)
     }
 }
 
@@ -172,7 +176,6 @@ impl FromProp for Prop {
         prop
     }
 }
-impl PropInto<Prop> for Prop {}
 
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
@@ -200,7 +203,6 @@ impl FromProp for f64 {
         prop.0 as f64 / u64::MAX as f64
     }
 }
-impl PropInto<f64> for Prop {}
 
 #[macro_export]
 macro_rules! impl_to_from_number {
@@ -279,7 +281,6 @@ impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
         U::from_u128_checked(val)
     }
 }
-impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> PropInto<U> for Prop {}
 
 // Ops
 impl Mul for Prop {
