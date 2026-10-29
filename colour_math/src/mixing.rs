@@ -2,7 +2,7 @@
 
 use crate::fixed_denominator_rational_numbers::*;
 
-use crate::{hcv::HCV, rgb::RGB, ColourBasics, LightLevel};
+use crate::{hcv::HCV, rgb::RGB, ColourBasics, FromProps, LightLevel};
 
 #[derive(Default, Debug)]
 pub struct SubtractiveMixer {
@@ -30,7 +30,7 @@ impl SubtractiveMixer {
             let red = Prop((self.red.0 / self.total_parts as u128) as u64);
             let green = Prop((self.green.0 / self.total_parts as u128) as u64);
             let blue = Prop((self.blue.0 / self.total_parts as u128) as u64);
-            Some(HCV::from(&[red, green, blue]))
+            Some(HCV::from_proportions([red, green, blue]))
         } else {
             None
         }

@@ -221,8 +221,8 @@ pub(crate) trait HueIfce:
     ) -> Option<Result<HCV, HCV>> {
         debug_assert!(sum.is_valid_sum());
         match self.try_rgb_ordered_triplet(sum, c_prop)? {
-            Ok(triplet) => Some(Ok(HCV::from(triplet))),
-            Err(triplet) => Some(Err(HCV::from(triplet))),
+            Ok(triplet) => Some(Ok(HCV::from_proportions(triplet))),
+            Err(triplet) => Some(Err(HCV::from_proportions(triplet))),
         }
     }
 

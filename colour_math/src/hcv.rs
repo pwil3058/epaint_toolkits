@@ -41,7 +41,7 @@ impl HCV {
                         c_prop,
                         sum,
                     }),
-                    Err(triplet) => Err(HCV::from(triplet)),
+                    Err(triplet) => Err(HCV::from_proportions(triplet)),
                 },
                 None => {
                     debug_assert!(c_prop == Prop::ZERO && sum % 3u8 == UFDRNum::ZERO);
@@ -253,30 +253,30 @@ fn sum_and_chroma_prop((hue, [red, green, blue]): (Hue, [Prop; 3])) -> (UFDRNum,
     (sum, c_prop)
 }
 
-impl From<[Prop; 3]> for HCV {
-    fn from(array: [Prop; 3]) -> Self {
-        if let Ok(hue) = Hue::try_from(array) {
-            let (sum, c_prop) = sum_and_chroma_prop((hue, array));
-            Self {
-                hue: Some(hue),
-                c_prop,
-                sum,
-            }
-        } else {
-            Self {
-                hue: None,
-                c_prop: Prop::ZERO,
-                sum: array[0] + array[1] + array[2],
-            }
-        }
-    }
-}
-
-impl From<&[Prop; 3]> for HCV {
-    fn from(array: &[Prop; 3]) -> Self {
-        HCV::from(*array)
-    }
-}
+// impl From<[Prop; 3]> for HCV {
+//     fn from(array: [Prop; 3]) -> Self {
+//         if let Ok(hue) = Hue::try_from(array) {
+//             let (sum, c_prop) = sum_and_chroma_prop((hue, array));
+//             Self {
+//                 hue: Some(hue),
+//                 c_prop,
+//                 sum,
+//             }
+//         } else {
+//             Self {
+//                 hue: None,
+//                 c_prop: Prop::ZERO,
+//                 sum: array[0] + array[1] + array[2],
+//             }
+//         }
+//     }
+// }
+//
+// impl From<&[Prop; 3]> for HCV {
+//     fn from(array: &[Prop; 3]) -> Self {
+//         HCV::from(*array)
+//     }
+// }
 
 impl From<HCV> for [Prop; 3] {
     fn from(hcv: HCV) -> Self {
@@ -293,7 +293,7 @@ impl From<HCV> for [Prop; 3] {
 
 impl<L: LightLevel> From<&RGB<L>> for HCV {
     fn from(rgb: &RGB<L>) -> Self {
-        Self::from(rgb.into_proportions())
+        Self::from_proportions(rgb.into_proportions())
         // Self::from(<[Prop; 3]>::from(*rgb))
     }
 }
@@ -384,24 +384,34 @@ impl ColourBasics for HCV {
 
 impl IntoProps for HCV {
     fn proportions(self) -> impl Iterator<Item = Prop> {
-        self.into_proportions().into_iter()
-    }
-
-    fn into_proportions(self) -> [Prop; 3] {
         debug_assert!(self.is_valid());
         if let Some(hue) = self.hue {
             hue.rgb_ordered_triplet(self.sum, self.c_prop)
                 .expect("Invalid Hue")
+                .into_iter()
         } else {
             let value: Prop = (self.sum / 3u8).into();
-            [value, value, value]
+            [value, value, value].into_iter()
         }
     }
 }
 
 impl FromProps for HCV {
     fn from_proportions(props: [Prop; 3]) -> Self {
-        Self::from(props)
+        if let Ok(hue) = Hue::try_from(props) {
+            let (sum, c_prop) = sum_and_chroma_prop((hue, props));
+            Self {
+                hue: Some(hue),
+                c_prop,
+                sum,
+            }
+        } else {
+            Self {
+                hue: None,
+                c_prop: Prop::ZERO,
+                sum: props[0] + props[1] + props[2],
+            }
+        }
     }
 }
 
@@ -412,7 +422,7 @@ impl ManipulatedColour for HCV {
         for item in &mut array {
             *item = (*item * compl + prop).into();
         }
-        HCV::from(array)
+        HCV::from_proportions(array)
     }
 
     fn darkened(&self, prop: Prop) -> Self {
@@ -421,7 +431,7 @@ impl ManipulatedColour for HCV {
         for item in &mut array {
             *item = *item * compl;
         }
-        HCV::from(array)
+        HCV::from_proportions(array)
     }
 
     fn saturated(&self, prop: Prop) -> Self {
