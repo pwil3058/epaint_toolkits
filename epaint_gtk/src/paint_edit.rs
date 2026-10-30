@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use colour_math::{ColourBasics, ScalarAttribute};
+use colour_math::{ColourBasics, IntoRGB, ScalarAttribute};
 use colour_math_gtk::colour_edit::ColourEditor;
 use gtk3_ext::{
     gtk::{self, Button, prelude::*},
@@ -300,7 +300,7 @@ impl PaintEditor {
         Paint {
             #[cfg(feature = "paints_have_ids")]
             id: self.id_entry.text().to_string(),
-            colour: self.colour_editor.hcv().into(),
+            colour: self.colour_editor.hcv().into_rgb(),
             name: self.name_entry.text().to_string(),
             notes: self.notes_entry.text().to_string(),
             properties,

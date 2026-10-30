@@ -173,8 +173,8 @@ mod paint_tests {
     use std::convert::From;
 
     use super::*;
-    use colour_math::HCV;
     use colour_math::HueConstants;
+    use colour_math::{HCV, IntoRGB};
 
     use crate::paint::Paint;
     use crate::properties::PropertyType;
@@ -192,7 +192,7 @@ mod paint_tests {
             paint: Paint {
                 #[cfg(feature = "paints_have_ids")]
                 id: "Magenta".to_string(),
-                colour: HCV::MAGENTA.into(),
+                colour: HCV::MAGENTA.into_rgb(),
                 name: "Magenta".to_string(),
                 notes: "".to_string(),
                 properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
@@ -202,7 +202,7 @@ mod paint_tests {
         let paint = Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "Magenta".to_string(),
-            colour: HCV::MAGENTA.into(),
+            colour: HCV::MAGENTA.into_rgb(),
             name: "Magenta".to_string(),
             notes: String::new(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
@@ -216,7 +216,7 @@ mod paint_tests {
         let paint = Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red magenta".to_string(),
-            colour: HCV::RED_MAGENTA.into(),
+            colour: HCV::RED_MAGENTA.into_rgb(),
             name: "Red Magenta".to_string(),
             notes: "".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 2))]),

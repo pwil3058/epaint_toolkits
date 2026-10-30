@@ -82,11 +82,11 @@ fn round_trip_from_to_rgb_constants() {
         let [red, green, blue] = rgb.into_proportions(); //<[Prop; 3]>::from(rgb);
         let rgb_in: RGB<u64> = RGB::<u64>::from_proportions([red, green, blue]); //[red, green, blue].into();
         let hcv = HCV::from(rgb_in);
-        let rgb_out = RGB::<u64>::from(hcv);
+        let rgb_out = hcv.into_rgb::<u64>();
         assert_eq!(rgb_in, rgb_out);
         let rgb_in: RGB<u8> = RGB::<u8>::from_proportions([red, green, blue]); //[red, green, blue].into();
         let hcv = HCV::from(rgb_in);
-        let rgb_out = RGB::<u8>::from(hcv);
+        let rgb_out = hcv.into_rgb::<u8>();
         assert_eq!(rgb_in, rgb_out);
         // let rgb_in: RGB<f64> = [red, green, blue].into();
         // let hcv = HCV::from(&rgb_in);
@@ -122,12 +122,12 @@ fn round_trip_from_to_rgb() {
                 assert_eq!(rgb_in.is_grey(), expect_grey);
                 let hcv = HCV::from(rgb_in);
                 assert_eq!(hcv.is_grey(), expect_grey);
-                let rgb_out = RGB::<u64>::from(hcv);
+                let rgb_out = hcv.into_rgb::<u64>();
                 assert_eq!(rgb_in, rgb_out);
                 // let rgb_in: RGB<u8> = [red, green, blue].into();
                 let rgb_in = RGB::<u8>::from_proportions([red, green, blue]);
                 let hcv = HCV::from(rgb_in);
-                let rgb_out = RGB::<u8>::from(hcv);
+                let rgb_out = hcv.into_rgb::<u8>();
                 assert_eq!(rgb_in, rgb_out);
                 // let rgb_in: RGB<f64> = [red, green, blue].into();
                 // let hcv = HCV::from(&rgb_in);

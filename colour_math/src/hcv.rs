@@ -254,17 +254,37 @@ fn sum_and_chroma_prop((hue, [red, green, blue]): (Hue, [Prop; 3])) -> (UFDRNum,
     (sum, c_prop)
 }
 
+pub trait IntoHCV: Sized + Copy {
+    fn into_hcv(self) -> HCV;
+}
+
+pub trait HCVFrom<T> {
+    fn hcv_from(arg: T) -> HCV;
+}
+
+impl<T: IntoHCV> HCVFrom<T> for HCV {
+    fn hcv_from(arg: T) -> HCV {
+        T::into_hcv(arg)
+    }
+}
+
+impl IntoHCV for [Prop; 3] {
+    fn into_hcv(self) -> HCV {
+        HCV::from_proportions(self)
+    }
+}
+
+impl<L: LightLevel> IntoHCV for RGB<L> {
+    fn into_hcv(self) -> HCV {
+        self.into_proportions().into_hcv()
+    }
+}
+
 impl<L: LightLevel> From<RGB<L>> for HCV {
     fn from(rgb: RGB<L>) -> Self {
         Self::from_proportions(rgb.into_proportions())
     }
 }
-
-// impl<L: LightLevel> From<HCV> for RGB<L> {
-//     fn from(hcv: HCV) -> Self {
-//         RGB::<L>::from_proportions(<[Prop; 3]>::proportions_from(hcv))
-//     }
-// }
 
 impl IntoRGB for HCV {
     fn into_rgb<L: LightLevel>(self) -> RGB<L> {

@@ -32,7 +32,7 @@ pub use crate::{
         ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy, SetScalarPolicy,
     },
     mixing::SubtractiveMixer,
-    rgb::RGB,
+    rgb::{IntoRGB, RGBFrom, RGB},
     useful_consts::UsefulFloatConstants,
 };
 

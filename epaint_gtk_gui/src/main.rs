@@ -9,7 +9,7 @@ use recollections;
 
 use colour_math::ScalarAttribute;
 use colour_math::ScalarAttribute::*;
-use colour_math::{HCV, HueConstants};
+use colour_math::{HCV, HueConstants, IntoRGB};
 
 use epaint::PaintRangeId;
 use epaint::paint::{Paint, RangePaint};
@@ -70,7 +70,7 @@ fn main() {
         // #[cfg(feature = "paints_have_ids")]
         id: "Identey Number".to_string(),
         name: "Paint Name".to_string(),
-        colour: HCV::MAGENTA.into(),
+        colour: HCV::MAGENTA.into_rgb(),
         notes: "Notes".to_string(),
         properties: Properties::from(&property_types),
     };

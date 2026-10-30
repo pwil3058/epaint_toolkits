@@ -140,7 +140,7 @@ pub trait RangePaintFinder {
 
 #[cfg(test)]
 mod test {
-    use colour_math::{HCV, HueConstants};
+    use colour_math::{HCV, HueConstants, IntoRGB};
 
     use crate::paint::Paint;
     use crate::properties::{Properties, Property, PropertyType};
@@ -155,7 +155,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "red".to_string(),
-            colour: HCV::RED.into(),
+            colour: HCV::RED.into_rgb(),
             name: "red".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),
@@ -163,7 +163,7 @@ mod test {
         paint_series.add(Paint {
             #[cfg(feature = "paints_have_ids")]
             id: "yellow".to_string(),
-            colour: HCV::YELLOW.into(),
+            colour: HCV::YELLOW.into_rgb(),
             name: "yellow".to_string(),
             notes: "whatever".to_string(),
             properties: Properties(vec![Property::from((PropertyType::Transparency, 1))]),

@@ -2,7 +2,7 @@
 
 use crate::colour::Dedans;
 use colour_math::{
-    Angle, AsProportion, ColourBasics, ColourManipulator, ManipulatedColour, Prop, RGB,
+    Angle, AsProportion, ColourBasics, ColourManipulator, IntoRGB, ManipulatedColour, Prop,
 };
 use eframe::egui; // Uses your local un-premultiplied color byte converter trait
 
@@ -81,7 +81,7 @@ impl ColourManipulatorPad {
                 );
 
                 // Draw ground-truth base solid color block behind
-                let current_rgb_u64 = RGB::<u64>::from(manipulator.hcv());
+                let current_rgb_u64 = manipulator.hcv().into_rgb::<u64>();
                 let rgb_channels = current_rgb_u64.rgb::<u8>();
                 ui.painter().rect_filled(
                     field_rect,
