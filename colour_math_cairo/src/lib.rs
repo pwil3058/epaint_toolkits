@@ -7,35 +7,35 @@ use gtk3_ext::cairo;
 use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, IntoProps, HCV, RGB,
+    ColourBasics, IntoProps, RGBConstants, HCV, RGB,
 };
 
-#[derive(Debug, Default, Copy, Clone)]
-pub struct FRGB([f64; 3]);
-
-impl From<RGB<Prop>> for FRGB {
-    fn from(rgb: RGB<Prop>) -> Self {
-        Self(
-            rgb.into_iter()
-                .map(|p| f64::from_prop(p))
-                .collect::<Vec<_>>()
-                .try_into()
-                .expect("conversion failed"),
-        )
-    }
-}
-
-impl std::ops::Index<usize> for FRGB {
-    type Output = f64;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
-    }
-}
-
-impl FRGB {
-    const BLACK: Self = Self([0.0, 0.0, 0.0]);
-}
+// #[derive(Debug, Default, Copy, Clone)]
+// pub struct FRGB([f64; 3]);
+//
+// impl From<RGB<Prop>> for FRGB {
+//     fn from(rgb: RGB<Prop>) -> Self {
+//         Self(
+//             rgb.into_iter()
+//                 .map(|p| f64::from_prop(p))
+//                 .collect::<Vec<_>>()
+//                 .try_into()
+//                 .expect("conversion failed"),
+//         )
+//     }
+// }
+//
+// impl std::ops::Index<usize> for FRGB {
+//     type Output = f64;
+//
+//     fn index(&self, index: usize) -> &Self::Output {
+//         &self.0[index]
+//     }
+// }
+//
+// impl FRGB {
+//     const BLACK: Self = Self([0.0, 0.0, 0.0]);
+// }
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Point {
@@ -142,15 +142,15 @@ impl From<beigui::TextPosn> for TextPosn {
 
 pub trait CairoSetColour {
     fn set_source_colour(&self, colour: &(impl ColourBasics + IntoProps)) {
-        let rgb: FRGB = colour.rgb::<Prop>().into();
+        let rgb: RGB<f64> = colour.rgb::<f64>();
         self.set_source_colour_rgb(&rgb);
     }
 
-    fn set_source_colour_rgb(&self, rgb: &FRGB);
+    fn set_source_colour_rgb(&self, rgb: &RGB<f64>);
 }
 
 impl CairoSetColour for cairo::Context {
-    fn set_source_colour_rgb(&self, rgb: &FRGB) {
+    fn set_source_colour_rgb(&self, rgb: &RGB<f64>) {
         self.set_source_rgb(rgb[0], rgb[1], rgb[2]);
     }
 }
@@ -158,9 +158,9 @@ impl CairoSetColour for cairo::Context {
 pub struct Drawer<'a> {
     pub cairo_context: &'a cairo::Context,
     size: Size,
-    fill_colour: Cell<FRGB>,
-    line_colour: Cell<FRGB>,
-    text_colour: Cell<FRGB>,
+    fill_colour: Cell<RGB<f64>>,
+    line_colour: Cell<RGB<f64>>,
+    text_colour: Cell<RGB<f64>>,
 }
 
 impl<'a> Drawer<'a> {
@@ -168,9 +168,9 @@ impl<'a> Drawer<'a> {
         Self {
             cairo_context,
             size,
-            fill_colour: Cell::new(FRGB::BLACK),
-            line_colour: Cell::new(FRGB::BLACK),
-            text_colour: Cell::new(FRGB::BLACK),
+            fill_colour: Cell::new(RGB::<f64>::BLACK),
+            line_colour: Cell::new(RGB::<f64>::BLACK),
+            text_colour: Cell::new(RGB::<f64>::BLACK),
         }
     }
 
@@ -211,15 +211,15 @@ impl<'a> Draw for Drawer<'a> {
     }
 
     fn set_fill_colour(&self, colour: &impl ColourBasics) {
-        self.fill_colour.set(colour.rgb::<Prop>().into());
+        self.fill_colour.set(colour.rgb::<f64>());
     }
 
     fn set_line_colour(&self, colour: &impl ColourBasics) {
-        self.line_colour.set(colour.rgb::<Prop>().into());
+        self.line_colour.set(colour.rgb::<f64>());
     }
 
     fn set_text_colour(&self, colour: &impl ColourBasics) {
-        self.text_colour.set(colour.rgb::<Prop>().into());
+        self.text_colour.set(colour.rgb::<f64>());
     }
 
     fn set_line_width(&self, width: UFDRNum) {
@@ -286,7 +286,7 @@ impl<'a> Draw for Drawer<'a> {
             0.5 * f64::from(size.height),
         );
         for colour_stop in colour_stops.iter() {
-            let rgb: FRGB = colour_stop.0.rgb::<Prop>().into();
+            let rgb: RGB<f64> = colour_stop.0.rgb::<f64>();
             linear_gradient.add_color_stop_rgb(colour_stop.1.prop_into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
@@ -307,7 +307,7 @@ impl<'a> DrawIsosceles for Drawer<'a> {}
 impl<'a> DrawShapes for Drawer<'a> {
     fn set_background_colour(&self, colour: &impl ColourBasics) {
         self.cairo_context
-            .set_source_colour_rgb(&colour.rgb::<Prop>().into());
+            .set_source_colour_rgb(&colour.rgb::<f64>());
         self.cairo_context.paint().expect("couldn't paint");
     }
 

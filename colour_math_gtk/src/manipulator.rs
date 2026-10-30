@@ -19,7 +19,7 @@ use colour_math::{
     manipulator::{ColourManipulator, DeltaSize},
     LightLevel, Value, RGB,
 };
-use colour_math_cairo::{Point, FRGB};
+use colour_math_cairo::Point;
 
 use crate::colour::ManipGdkColour;
 use crate::coloured::Colourable;
@@ -103,7 +103,7 @@ impl ColourManipulatorGUI {
     }
 
     fn draw(&self, cairo_context: &cairo::Context) {
-        let rgb: FRGB = self.colour_manipulator.borrow().rgb::<Prop>().into();
+        let rgb = self.colour_manipulator.borrow().rgb::<f64>();
         cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
         cairo_context.paint().expect("cairo_context paint failed");
         for sample in self.samples.borrow().iter() {
