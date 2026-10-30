@@ -114,8 +114,13 @@ impl<T: LightLevel> RGB<T> {
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
     }
+}
 
-    pub fn into_iter(self) -> impl Iterator<Item = T> {
+impl<L: LightLevel> IntoIterator for RGB<L> {
+    type Item = L;
+    type IntoIter = std::array::IntoIter<Self::Item, 3>;
+
+    fn into_iter(self) -> Self::IntoIter {
         self.0.into_iter()
     }
 }

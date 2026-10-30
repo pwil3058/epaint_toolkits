@@ -223,9 +223,9 @@ impl FromProp for f64 {
 macro_rules! impl_to_from_number {
     ($number:ty, $core:ty, $proportion:ty) => {
         impl From<$number> for $proportion {
-            #[allow(unused_comparisons)]
+            // #[allow(unused_comparisons)]
             fn from(arg: $number) -> Self {
-                debug_assert!(arg.0 >= 0 && arg.0 <= u64::MAX as $core);
+                debug_assert!((0..=u64::MAX as $core).contains(&arg.0)); //.0 >= 0 && arg.0 <= u64::MAX as $core);
                 Self(arg.0 as u64)
             }
         }
