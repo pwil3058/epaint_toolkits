@@ -178,6 +178,12 @@ impl FromProp for Prop {
     }
 }
 
+impl IntoProp for [u64; 2] {
+    fn into_prop(self) -> Prop {
+        Prop::from_fraction(self[0], self[1])
+    }
+}
+
 impl From<[u64; 2]> for Prop {
     fn from(fraction: [u64; 2]) -> Self {
         Self::from_fraction(fraction[0], fraction[1])
