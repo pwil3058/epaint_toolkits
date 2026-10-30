@@ -578,7 +578,7 @@ fn primary_max_chroma_rgbs() {
         .iter()
         {
             let mut array = [Prop::ZERO, Prop::ZERO, Prop::ZERO];
-            array[hue.indices().0 as usize] = (*sum).into();
+            array[hue.indices().0 as usize] = (*sum).into_prop();
             let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
@@ -606,8 +606,8 @@ fn primary_max_chroma_rgbs() {
         .iter()
         {
             let mut array = [Prop::ONE, Prop::ONE, Prop::ONE];
-            array[hue.indices().1 as usize] = ((*sum - UFDRNum::ONE) / 2u8).into();
-            array[hue.indices().2 as usize] = ((*sum - UFDRNum::ONE) / 2u8).into();
+            array[hue.indices().1 as usize] = ((*sum - UFDRNum::ONE) / 2u8).into_prop();
+            array[hue.indices().2 as usize] = ((*sum - UFDRNum::ONE) / 2u8).into_prop();
             let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
@@ -650,8 +650,8 @@ fn secondary_max_chroma_rgbs() {
         .iter()
         {
             let mut array = [Prop::ZERO, Prop::ZERO, Prop::ZERO];
-            array[hue.indices().0 as usize] = (*sum / 2u8).into();
-            array[hue.indices().1 as usize] = (*sum / 2u8).into();
+            array[hue.indices().0 as usize] = (*sum / 2u8).into_prop();
+            array[hue.indices().1 as usize] = (*sum / 2u8).into_prop();
             let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {
@@ -676,7 +676,7 @@ fn secondary_max_chroma_rgbs() {
         .iter()
         {
             let mut array = [Prop::ONE, Prop::ONE, Prop::ONE];
-            array[hue.indices().2 as usize] = (*sum - UFDRNum::TWO).into();
+            array[hue.indices().2 as usize] = (*sum - UFDRNum::TWO).into_prop();
             let expected: RGB<u64> = array.into_rgb();
             match hue.try_max_chroma_rgb_for_sum::<u64>(*sum).unwrap() {
                 Ok(rgb) => {

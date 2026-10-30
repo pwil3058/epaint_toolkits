@@ -27,7 +27,7 @@ impl ColourManipulatorPad {
 
         // 🌟 DYNAMIC GRADIENT CALCULATIONS: Read backend properties on the fly frame-by-frame
         let current_hcv = manipulator.hcv();
-        let offset: Prop = (Prop::ONE / 10u32 * 2u32).into();
+        let offset: Prop = (Prop::ONE / 10u32 * 2u32).into_prop();
         let angle_offset = Angle::from(45);
 
         // Map your backend color mutations directly onto un-premultiplied egui hardware colors

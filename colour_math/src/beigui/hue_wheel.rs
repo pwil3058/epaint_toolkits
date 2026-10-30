@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::cmp::Ordering;
 
-use crate::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, UFDRNum};
+use crate::fixed_denominator_rational_numbers::*;
 
 use crate::{
     attributes::Value,
@@ -139,7 +139,9 @@ impl ColouredShape {
     fn xy(&self, scalar_attribute: ScalarAttribute, zoom: &Zoom) -> Point {
         match self.cached_point {
             CachedPoint::Hued(point) => {
-                point * self.colour.scalar_attribute(scalar_attribute).into() * zoom.scale()
+                point
+                    * UFDRNum::from_prop(self.colour.scalar_attribute(scalar_attribute))
+                    * zoom.scale()
             }
             CachedPoint::Grey(point) => point * zoom.scale(),
         }

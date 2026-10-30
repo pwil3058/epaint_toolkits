@@ -106,7 +106,7 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
                 if first.is_proportion() {
                     let second = sum - first - third;
                     debug_assert_eq!(first + second + third, sum);
-                    debug_assert_eq!(first - third, c_prop.into());
+                    debug_assert_eq!(first - third, UFDRNum::from_prop(c_prop));
                     let triplet = [first.into_prop(), second.into_prop(), third.into_prop()];
                     debug_assert!(Self::has_valid_value_order(&triplet));
                     debug_assert_eq!(
@@ -377,7 +377,7 @@ impl HueBasics for RGBHue {
     fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match c_prop {
             Prop::ZERO => None,
-            c_prop => Some(c_prop.into()),
+            c_prop => Some(UFDRNum::from_prop(c_prop)),
         }
     }
 
@@ -393,7 +393,7 @@ impl HueBasics for RGBHue {
         match chroma {
             Chroma::ZERO => None,
             Chroma::Neither(_) => Some(UFDRNum::ONE),
-            Chroma::Shade(c_prop) => Some(c_prop.into()),
+            Chroma::Shade(c_prop) => Some(UFDRNum::from_prop(c_prop)),
             Chroma::Tint(c_prop) => {
                 Some(UFDRNum::ONE + UFDRNum(3 - (u64::MAX - c_prop.0) as u128 % 3))
             }
@@ -453,13 +453,13 @@ impl OrderedTriplets for RGBHue {
         debug_assert!(sum.is_valid_sum());
         match c_prop {
             Prop::ZERO => None,
-            min_sum if sum >= min_sum.into() => {
+            min_sum if sum >= UFDRNum::from_prop(min_sum) => {
                 let third = (sum - min_sum) / 3u8;
                 match third + c_prop {
                     first if first > UFDRNum::ONE => None,
                     first => {
                         let second = sum - first - third;
-                        debug_assert_eq!(first - third, c_prop.into());
+                        debug_assert_eq!(first - third, UFDRNum::from_prop(c_prop));
                         debug_assert_eq!(first + second + third, sum);
                         if second == third {
                             debug_assert!(first > second);
@@ -664,7 +664,7 @@ impl OrderedTriplets for CMYHue {
                                     let first = first - UFDRNum(1);
                                     let third = third + UFDRNum(1);
                                     debug_assert!(second > third && first > third);
-                                    debug_assert_eq!(second - third, c_prop.into());
+                                    debug_assert_eq!(second - third, UFDRNum::from_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
                                     Some(Err([
                                         second.into_prop(),
@@ -680,7 +680,7 @@ impl OrderedTriplets for CMYHue {
                                     let third = third + UFDRNum(1);
                                     let second = second - UFDRNum(2);
                                     debug_assert!(second > third);
-                                    debug_assert_eq!(first - third, c_prop.into());
+                                    debug_assert_eq!(first - third, UFDRNum::from_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
                                     Some(Err([
                                         first.into_prop(),
@@ -956,7 +956,7 @@ impl OrderedTriplets for SextantHue {
                         match second.cmp(&first) {
                             Ordering::Less => {
                                 debug_assert_eq!(first + second + third, sum);
-                                debug_assert_eq!(first - third, c_prop.into());
+                                debug_assert_eq!(first - third, UFDRNum::from_prop(c_prop));
                                 let triplet =
                                     [first.into_prop(), second.into_prop(), third.into_prop()];
                                 debug_assert!(first > second && second > third);
@@ -968,7 +968,7 @@ impl OrderedTriplets for SextantHue {
                             }
                             Ordering::Equal => {
                                 debug_assert_eq!(first + second + third, sum);
-                                debug_assert_eq!(first - third, c_prop.into());
+                                debug_assert_eq!(first - third, UFDRNum::from_prop(c_prop));
                                 debug_assert!(second > third);
                                 Some(Err([
                                     first.into_prop(),
@@ -981,7 +981,7 @@ impl OrderedTriplets for SextantHue {
                                     let first = first - UFDRNum(1);
                                     let third = third + UFDRNum(1);
                                     debug_assert!(second > third && first > third);
-                                    debug_assert_eq!(second - third, c_prop.into());
+                                    debug_assert_eq!(second - third, UFDRNum::from_prop(c_prop));
                                     debug_assert_eq!(first + second + third, sum);
                                     Some(Err([
                                         second.into_prop(),
@@ -1058,14 +1058,15 @@ impl SextantHue {
             sum_for_max_chroma -= UFDRNum(1);
         }
         while sum_for_max_chroma > UFDRNum::ONE + UFDRNum(1)
-            && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8 < third.into()
+            && (first + second + third - sum_for_max_chroma * (first - third)) / 3u8
+                < UFDRNum::from_prop(third)
         {
             sum_for_max_chroma -= UFDRNum(1);
         }
         debug_assert!(sum_for_max_chroma > UFDRNum::ONE && sum_for_max_chroma < UFDRNum::TWO);
         debug_assert_eq!(
             (first + second + third - sum_for_max_chroma * (first - third)) / 3u8,
-            third.into()
+            UFDRNum::from_prop(third)
         );
         (sum_for_max_chroma - UFDRNum::ONE).into_prop()
     }

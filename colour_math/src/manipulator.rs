@@ -297,7 +297,7 @@ impl ColourManipulator {
             },
             c_prop => {
                 let new_c_prop = if c_prop < Prop::ONE - delta {
-                    (c_prop + delta).into()
+                    (c_prop + delta).into_prop()
                 } else {
                     Prop::ONE
                 };

@@ -340,7 +340,7 @@ impl IntoProps for HCV {
                 .expect("Invalid Hue")
                 .into_iter()
         } else {
-            let value: Prop = (self.sum / 3u8).into();
+            let value: Prop = (self.sum / 3u8).into_prop();
             [value, value, value].into_iter()
         }
     }
@@ -370,7 +370,7 @@ impl ManipulatedColour for HCV {
         let compl = Prop::ONE - prop;
         let mut array = <[Prop; 3]>::proportions_from(*self);
         for item in &mut array {
-            *item = (*item * compl + prop).into();
+            *item = (*item * compl + prop).into_prop();
         }
         HCV::from_proportions(array)
     }

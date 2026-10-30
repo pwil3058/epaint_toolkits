@@ -242,7 +242,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         let compl = Prop::ONE - prop;
         let mut array = self.into_proportions(); //<[Prop; 3]>::from(self);
         for item in &mut array {
-            *item = (*item * compl + prop).into();
+            *item = (*item * compl + prop).into_prop();
         }
         RGB::<L>::from_proportions(array)
     }

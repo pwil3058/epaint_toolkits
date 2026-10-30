@@ -145,13 +145,13 @@ impl AbsDiff for UFDRNum {}
 impl PropDiff for UFDRNum {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
         if self.is_proportion() && other.is_proportion() {
-            Some(self.abs_diff(other).into())
+            Some(self.abs_diff(other).into_prop())
         } else {
             let denom = self.max(other);
             if *denom == UFDRNum::ZERO {
                 Some(Prop::ZERO)
             } else {
-                Some(Prop::from(self.abs_diff(other) / *denom))
+                Some((self.abs_diff(other) / *denom).into_prop())
             }
         }
     }

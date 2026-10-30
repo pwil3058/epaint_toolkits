@@ -78,7 +78,7 @@ impl ColourManipulatorGUI {
 
     pub fn set_colour(&self, colour: &impl ManipGdkColour) {
         self.colour_manipulator.borrow_mut().set_colour(colour);
-        let offset: Prop = ((Prop::ONE / 10u32) * 2u32).into();
+        let offset: Prop = ((Prop::ONE / 10u32) * 2u32).into_prop();
         self.incr_value_btn
             .set_widget_colour(&colour.lightened(offset));
         self.decr_value_btn
