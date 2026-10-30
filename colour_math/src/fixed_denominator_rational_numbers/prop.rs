@@ -219,28 +219,6 @@ impl FromProp for f64 {
     }
 }
 
-#[macro_export]
-macro_rules! impl_to_from_number {
-    ($number:ty, $core:ty, $proportion:ty) => {
-        impl From<$number> for $proportion {
-            // #[allow(unused_comparisons)]
-            fn from(arg: $number) -> Self {
-                debug_assert!((0..=u64::MAX as $core).contains(&arg.0)); //.0 >= 0 && arg.0 <= u64::MAX as $core);
-                Self(arg.0 as u64)
-            }
-        }
-
-        impl From<$proportion> for $number {
-            fn from(arg: $proportion) -> Self {
-                Self(arg.0 as $core)
-            }
-        }
-    };
-}
-
-// impl_to_from_number!(UFDRNum, u128, Prop);
-// impl_to_from_number!(FDRNum, i128, Prop);
-
 impl IntoProp for UFDRNum {
     fn into_prop(self) -> Prop {
         assert!((0..=u64::MAX as u128).contains(&self.0));

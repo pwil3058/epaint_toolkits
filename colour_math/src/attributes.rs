@@ -14,7 +14,7 @@ use crate::fixed_denominator_rational_numbers::{
 };
 
 use crate::hue::{Hue, HueBasics};
-use crate::{impl_to_from_number, HueConstants};
+use crate::HueConstants;
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {
@@ -364,6 +364,24 @@ impl IntoProp for Warmth {
     fn into_prop(self) -> Prop {
         Prop(self.0)
     }
+}
+
+macro_rules! impl_to_from_number {
+    ($number:ty, $core:ty, $proportion:ty) => {
+        impl From<$number> for $proportion {
+            // #[allow(unused_comparisons)]
+            fn from(arg: $number) -> Self {
+                debug_assert!((0..=u64::MAX as $core).contains(&arg.0)); //.0 >= 0 && arg.0 <= u64::MAX as $core);
+                Self(arg.0 as u64)
+            }
+        }
+
+        impl From<$proportion> for $number {
+            fn from(arg: $proportion) -> Self {
+                Self(arg.0 as $core)
+            }
+        }
+    };
 }
 
 impl_to_from_number!(UFDRNum, u128, Warmth);
