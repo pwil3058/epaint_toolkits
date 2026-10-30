@@ -239,11 +239,11 @@ macro_rules! impl_to_from_number {
 }
 
 // impl_to_from_number!(UFDRNum, u128, Prop);
-impl_to_from_number!(FDRNum, i128, Prop);
+// impl_to_from_number!(FDRNum, i128, Prop);
 
 impl IntoProp for UFDRNum {
     fn into_prop(self) -> Prop {
-        debug_assert!((0..=u64::MAX as u128).contains(&self.0));
+        assert!((0..=u64::MAX as u128).contains(&self.0));
         Prop(self.0 as u64)
     }
 }
@@ -256,13 +256,14 @@ impl FromProp for UFDRNum {
 
 impl IntoProp for FDRNum {
     fn into_prop(self) -> Prop {
-        self.into()
+        assert!((0..=u64::MAX as i128).contains(&self.0));
+        Prop(self.0 as u64)
     }
 }
 
 impl FromProp for FDRNum {
     fn from_prop(prop: Prop) -> Self {
-        Self::from(prop)
+        Self(prop.0 as i128)
     }
 }
 

@@ -176,7 +176,7 @@ impl HueCAD {
     }
 
     fn calc_hue_value(hue: Hue, target_hue: Hue) -> Prop {
-        ((FDRNum::ONE + FDRNum::from(target_hue - hue) / 180) / 2).into()
+        ((FDRNum::ONE + FDRNum::from(target_hue - hue) / 180) / 2).into_prop()
     }
 }
 

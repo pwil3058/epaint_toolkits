@@ -8,10 +8,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
-};
+use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 #[macro_export]
 macro_rules! impl_to_from_float {
@@ -156,7 +153,7 @@ impl PropDiff for FDRNum {
         if denom == FDRNum::ZERO {
             Some(Prop::ZERO)
         } else {
-            Some(Prop::from(self.abs_diff(other) / denom))
+            Some((self.abs_diff(other) / denom).into_prop())
         }
     }
 }

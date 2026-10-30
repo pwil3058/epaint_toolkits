@@ -1326,7 +1326,7 @@ impl From<Angle> for Hue {
             Angle::GREEN_CYAN => Hue::GREEN_CYAN,
             _ => {
                 fn f(angle: Angle) -> Prop {
-                    (angle.sin() / (Angle::GREEN - angle).sin()).into()
+                    (angle.sin() / (Angle::GREEN - angle).sin()).into_prop()
                 }
                 if angle >= Angle::RED {
                     if angle < Angle::YELLOW {
