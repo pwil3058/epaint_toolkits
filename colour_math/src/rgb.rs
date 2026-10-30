@@ -29,6 +29,16 @@ pub trait IntoRGB {
     fn into_rgb<L: LightLevel>(self) -> RGB<L>;
 }
 
+pub trait RGBFrom<T> {
+    fn rgb_from<L: LightLevel>(arg: T) -> RGB<L>;
+}
+
+impl<T: IntoRGB> RGBFrom<T> for T {
+    fn rgb_from<L: LightLevel>(arg: T) -> RGB<L> {
+        arg.into_rgb()
+    }
+}
+
 impl IntoRGB for [Prop; 3] {
     fn into_rgb<L: LightLevel>(self) -> RGB<L> {
         RGB::<L>(
