@@ -6,6 +6,7 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
 };
 
+use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
 use crate::{
@@ -181,6 +182,13 @@ impl FromProp for Prop {
 impl IntoProp for [u64; 2] {
     fn into_prop(self) -> Prop {
         Prop::from_fraction(self[0], self[1])
+    }
+}
+
+impl FromProp for [u64; 2] {
+    fn from_prop(prop: Prop) -> Self {
+        let gcd = u64::MAX.gcd(prop.0);
+        [prop.0 / gcd, u64::MAX / gcd]
     }
 }
 
