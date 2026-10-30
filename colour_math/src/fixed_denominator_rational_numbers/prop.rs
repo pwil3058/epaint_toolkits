@@ -243,13 +243,25 @@ impl_to_from_number!(FDRNum, i128, Prop);
 
 impl IntoProp for UFDRNum {
     fn into_prop(self) -> Prop {
-        self.into()
+        Prop::from(self)
+    }
+}
+
+impl FromProp for UFDRNum {
+    fn from_prop(prop: Prop) -> Self {
+        Self::from(prop)
     }
 }
 
 impl IntoProp for FDRNum {
     fn into_prop(self) -> Prop {
         self.into()
+    }
+}
+
+impl FromProp for FDRNum {
+    fn from_prop(prop: Prop) -> Self {
+        Self::from(prop)
     }
 }
 
