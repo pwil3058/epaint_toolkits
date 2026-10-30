@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::fmt::{Debug, LowerHex, UpperHex};
+use std::fmt::{Debug, UpperHex};
 
 use serde::{Deserialize, Serialize};
 
@@ -55,15 +55,10 @@ pub trait LightLevel:
     + AsProportion
     + FromProp
     + IntoProp
-    + PartialEq
     + Debug
     + Default
     + PartialOrd
     + PartialEq
-    + Eq
-    + Ord
-    + UpperHex
-    + LowerHex
     + std::ops::Sub<Output = Self>
     + std::ops::Div<Output = Self>
 {
@@ -73,7 +68,8 @@ impl LightLevel for u16 {}
 impl LightLevel for u32 {}
 impl LightLevel for u64 {}
 impl LightLevel for Prop {}
-// NB no floating point LightLevel is a deliberate decision (they're too flaky)
+// NB f64 LightLevel should only be used when working with systems that are dumb enough to use them
+impl LightLevel for f64 {}
 
 pub trait HueConstants: Sized + Copy {
     const RED: Self;
@@ -240,8 +236,6 @@ pub trait ColourBasics {
             rgb.0[0], rgb.0[1], rgb.0[2], hex_digits_per_item
         )
     }
-
-    // fn into_proportions(&self) -> [Prop; 3];
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
