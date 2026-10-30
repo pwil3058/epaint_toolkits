@@ -257,18 +257,15 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
     }
 
     fn saturated(&self, prop: Prop) -> Self {
-        let hcv = HCV::from(*self).saturated(prop);
-        RGB::<L>::from(hcv)
+        HCV::from(*self).saturated(prop).into_rgb()
     }
 
     fn greyed(&self, prop: Prop) -> Self {
-        let hcv = HCV::from(*self).greyed(prop);
-        RGB::<L>::from(hcv)
+        HCV::from(*self).greyed(prop).into_rgb()
     }
 
     fn rotated(&self, angle: Angle) -> Self {
-        let hcv = HCV::from(*self).rotated(angle);
-        RGB::<L>::from(hcv)
+        HCV::from(*self).rotated(angle).into_rgb()
     }
 }
 

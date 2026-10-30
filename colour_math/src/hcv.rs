@@ -18,7 +18,7 @@ use crate::{
         angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
         RGBHue, Sextant, SumChromaCompatibility,
     },
-    rgb::RGB,
+    rgb::{IntoRGB, RGB},
     ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, PropsFrom,
     RGBConstants,
 };
@@ -260,9 +260,15 @@ impl<L: LightLevel> From<RGB<L>> for HCV {
     }
 }
 
-impl<L: LightLevel> From<HCV> for RGB<L> {
-    fn from(hcv: HCV) -> Self {
-        RGB::<L>::from_proportions(<[Prop; 3]>::proportions_from(hcv))
+// impl<L: LightLevel> From<HCV> for RGB<L> {
+//     fn from(hcv: HCV) -> Self {
+//         RGB::<L>::from_proportions(<[Prop; 3]>::proportions_from(hcv))
+//     }
+// }
+
+impl IntoRGB for HCV {
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        self.into_proportions().into_rgb::<L>()
     }
 }
 
@@ -320,7 +326,7 @@ impl ColourBasics for HCV {
     }
 
     fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        (*self).into()
+        (*self).into_rgb()
     }
 
     fn hcv(&self) -> HCV {

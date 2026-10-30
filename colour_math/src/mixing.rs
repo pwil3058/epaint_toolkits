@@ -2,7 +2,11 @@
 
 use crate::fixed_denominator_rational_numbers::*;
 
-use crate::{hcv::HCV, rgb::RGB, ColourBasics, FromProps, IntoProps, LightLevel};
+use crate::{
+    hcv::HCV,
+    rgb::{IntoRGB, RGB},
+    ColourBasics, FromProps, IntoProps, LightLevel,
+};
 
 #[derive(Default, Debug)]
 pub struct SubtractiveMixer {
@@ -37,7 +41,7 @@ impl SubtractiveMixer {
     }
 
     pub fn mixed_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
-        Some(self.mixed_colour()?.into())
+        Some(self.mixed_colour()?.into_rgb())
     }
 
     pub fn reset(&mut self) {
