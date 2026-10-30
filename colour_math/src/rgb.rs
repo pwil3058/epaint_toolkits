@@ -205,7 +205,7 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
     }
 
     fn hcv(&self) -> HCV {
-        self.into()
+        (*self).into()
     }
 
     fn rgb<L: LightLevel>(&self) -> RGB<L> {
@@ -257,17 +257,17 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
     }
 
     fn saturated(&self, prop: Prop) -> Self {
-        let hcv = HCV::from(self).saturated(prop);
+        let hcv = HCV::from(*self).saturated(prop);
         RGB::<L>::from(hcv)
     }
 
     fn greyed(&self, prop: Prop) -> Self {
-        let hcv = HCV::from(self).greyed(prop);
+        let hcv = HCV::from(*self).greyed(prop);
         RGB::<L>::from(hcv)
     }
 
     fn rotated(&self, angle: Angle) -> Self {
-        let hcv = HCV::from(self).rotated(angle);
+        let hcv = HCV::from(*self).rotated(angle);
         RGB::<L>::from(hcv)
     }
 }
@@ -340,7 +340,6 @@ impl<T: LightLevel + ApproxEq> RGB<T> {
 
 impl<L: LightLevel> From<[L; 3]> for RGB<L> {
     fn from(array: [L; 3]) -> Self {
-        debug_assert!(array.iter().all(|a| *a >= L::ZERO && *a <= L::ONE));
         Self(array)
     }
 }
@@ -355,18 +354,6 @@ impl<L: LightLevel> From<Vec<L>> for RGB<L> {
 impl<L: LightLevel> From<RGB<L>> for [L; 3] {
     fn from(rgb: RGB<L>) -> Self {
         rgb.0
-    }
-}
-
-impl<L: LightLevel> From<&[L; 3]> for RGB<L> {
-    fn from(array: &[L; 3]) -> Self {
-        Self::from(*array)
-    }
-}
-
-impl<L: LightLevel> From<&RGB<L>> for [L; 3] {
-    fn from(rgb: &RGB<L>) -> Self {
-        Self::from(*rgb)
     }
 }
 

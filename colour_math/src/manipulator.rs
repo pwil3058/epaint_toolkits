@@ -536,7 +536,7 @@ impl ColourManipulatorBuilder {
         }
     }
 
-    pub fn init_rgb<L: LightLevel>(&mut self, rgb: &RGB<L>) -> &mut Self {
+    pub fn init_rgb<L: LightLevel>(&mut self, rgb: RGB<L>) -> &mut Self {
         self.init_hcv = Some(rgb.into());
         self
     }

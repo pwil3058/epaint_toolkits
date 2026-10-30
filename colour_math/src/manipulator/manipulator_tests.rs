@@ -33,7 +33,7 @@ fn build_manipulator() {
     assert_eq!(manipualor.hcv(), HCV::default());
     assert_eq!(manipualor.saved_hue, Hue::RED);
     let manipualor = ColourManipulator::builder()
-        .init_rgb(&RGB::<u8>::CYAN)
+        .init_rgb(RGB::<u8>::CYAN)
         .build();
     assert_eq!(manipualor.clamped, false);
     assert_eq!(manipualor.rotation_policy, SetHuePolicy::FavourChroma);
@@ -266,7 +266,7 @@ fn incr_decr_sum_unclamped() {
         while manipulator.decr_value(0.1.into_prop()) {}
         assert_eq!(manipulator.hcv, crate::hcv::HCV::BLACK);
         assert!(manipulator.incr_chroma(1.0.into_prop()));
-        assert_eq!(manipulator.hcv, HCV::from(rgb));
+        assert_eq!(manipulator.hcv, HCV::from(*rgb));
     }
 }
 

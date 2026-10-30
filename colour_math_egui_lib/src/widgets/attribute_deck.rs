@@ -46,7 +46,7 @@ impl AttributeDeck {
                 let total_items = self.profile.len();
 
                 for (idx, attr_type) in self.profile.iter().enumerate() {
-                    let mut display_config = ColourAttributeDisplay::new(attr_type);
+                    let mut display_config = ColourAttributeDisplay::new(*attr_type);
 
                     display_config.set_colour(Some(current_colour));
                     if let Some(target) = target_colour {

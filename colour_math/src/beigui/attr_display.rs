@@ -628,8 +628,8 @@ pub enum ColourAttributeType {
     Greyness,
 }
 
-impl From<&ScalarAttribute> for ColourAttributeType {
-    fn from(scalar_attribute: &ScalarAttribute) -> Self {
+impl From<ScalarAttribute> for ColourAttributeType {
+    fn from(scalar_attribute: ScalarAttribute) -> Self {
         match scalar_attribute {
             ScalarAttribute::Chroma => Self::Chroma,
             ScalarAttribute::Warmth => Self::Warmth,
@@ -640,7 +640,7 @@ impl From<&ScalarAttribute> for ColourAttributeType {
 }
 
 impl ColourAttributeDisplay {
-    pub fn new(cat: &ColourAttributeType) -> Self {
+    pub fn new(cat: ColourAttributeType) -> Self {
         match cat {
             ColourAttributeType::Hue => ColourAttributeDisplay::Hue(HueCAD::new()),
             ColourAttributeType::Chroma => ColourAttributeDisplay::Chroma(ChromaCAD::new()),

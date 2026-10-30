@@ -254,28 +254,15 @@ fn sum_and_chroma_prop((hue, [red, green, blue]): (Hue, [Prop; 3])) -> (UFDRNum,
     (sum, c_prop)
 }
 
-impl<L: LightLevel> From<&RGB<L>> for HCV {
-    fn from(rgb: &RGB<L>) -> Self {
-        Self::from_proportions(rgb.into_proportions())
-        // Self::from(<[Prop; 3]>::from(*rgb))
-    }
-}
-
 impl<L: LightLevel> From<RGB<L>> for HCV {
     fn from(rgb: RGB<L>) -> Self {
-        HCV::from(&rgb)
+        Self::from_proportions(rgb.into_proportions())
     }
 }
 
 impl<L: LightLevel> From<HCV> for RGB<L> {
     fn from(hcv: HCV) -> Self {
         RGB::<L>::from_proportions(<[Prop; 3]>::proportions_from(hcv))
-    }
-}
-
-impl<L: LightLevel> From<&HCV> for RGB<L> {
-    fn from(hcv: &HCV) -> Self {
-        RGB::<L>::from(*hcv)
     }
 }
 
@@ -333,7 +320,7 @@ impl ColourBasics for HCV {
     }
 
     fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.into()
+        (*self).into()
     }
 
     fn hcv(&self) -> HCV {

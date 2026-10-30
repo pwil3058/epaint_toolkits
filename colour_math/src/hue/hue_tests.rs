@@ -881,11 +881,11 @@ fn lightest_darkest_rgb_for_chroma() {
         assert_eq!(hue.try_lightest_rgb_for_chroma::<u64>(Chroma::ZERO), None);
         assert_eq!(
             hue.try_darkest_rgb_for_chroma::<u64>(Chroma::ONE),
-            Some(Ok(RGB::<u64>::from(hcv)))
+            Some(Ok(RGB::<u64>::from(*hcv)))
         );
         assert_eq!(
             hue.try_lightest_rgb_for_chroma::<u64>(Chroma::ONE),
-            Some(Ok(RGB::<u64>::from(hcv)))
+            Some(Ok(RGB::<u64>::from(*hcv)))
         );
         for prop in SHADE_TINT_CHROMA_PROPS.iter().map(|f| Prop::prop_from(*f)) {
             let shade_chroma = Chroma::Shade(prop);

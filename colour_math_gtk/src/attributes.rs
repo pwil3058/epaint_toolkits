@@ -27,7 +27,7 @@ pub struct ColourAttributeDisplay {
 }
 
 impl ColourAttributeDisplay {
-    pub fn new(colour_attr_type: &ColourAttributeType) -> Rc<Self> {
+    pub fn new(colour_attr_type: ColourAttributeType) -> Rc<Self> {
         let drawing_area = DrawingArea::builder()
             .hexpand(true)
             .height_request(30)
@@ -81,11 +81,11 @@ impl ColourAttributeDisplayStack {
     pub fn new(scalar_attributes: &[ScalarAttribute]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let cads = RefCell::new(Vec::with_capacity(scalar_attributes.len() + 1));
-        let huecad = ColourAttributeDisplay::new(&ColourAttributeType::Hue);
+        let huecad = ColourAttributeDisplay::new(ColourAttributeType::Hue);
         vbox.pack_start(huecad.pwo(), false, false, 0);
         cads.borrow_mut().push(huecad);
         for scalar_attribute in scalar_attributes {
-            let cad = ColourAttributeDisplay::new(&scalar_attribute.into());
+            let cad = ColourAttributeDisplay::new((*scalar_attribute).into());
             vbox.pack_start(cad.pwo(), false, false, 0);
             cads.borrow_mut().push(cad);
         }

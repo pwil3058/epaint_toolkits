@@ -219,11 +219,11 @@ pub trait MakeColouredShape {
     fn coloured_shape(&self) -> ColouredShape;
 }
 
-impl<L: LightLevel> From<&RGB<L>> for ColouredShape {
-    fn from(rgb: &RGB<L>) -> Self {
+impl<L: LightLevel> From<RGB<L>> for ColouredShape {
+    fn from(rgb: RGB<L>) -> Self {
         let id = format!("ID: {}", rgb.pango_string());
         let tooltip_text = format!("RGB: {id}");
-        ColouredShape::new(rgb, &id, &tooltip_text, Shape::Circle)
+        ColouredShape::new(&rgb, &id, &tooltip_text, Shape::Circle)
     }
 }
 
