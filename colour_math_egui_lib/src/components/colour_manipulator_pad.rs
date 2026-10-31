@@ -2,7 +2,8 @@
 
 use crate::colour::Dedans;
 use colour_math::{
-    Angle, AsProportion, ColourBasics, ColourManipulator, IntoRGB, ManipulatedColour, Prop,
+    Angle, AsProportion, ColourBasics, ColourManipulator, IntoProp, IntoRGB, ManipulatedColour,
+    Prop,
 };
 use eframe::egui; // Uses your local un-premultiplied color byte converter trait
 

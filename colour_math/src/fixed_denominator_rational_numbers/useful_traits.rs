@@ -10,15 +10,10 @@ pub trait IntoAsProp<T: Sized> {
     fn into_as_prop(self) -> T;
 }
 
-#[macro_export]
-macro_rules! impl_into_as_prop {
-    ($into_type:ty, $for_type:ty) => {
-        impl IntoAsProp<$into_type> for $for_type {
-            fn into_as_prop(self) -> $into_type {
-                <$into_type>::from_as_prop(self)
-            }
-        }
-    };
+impl<T: FromAsProp<U>, U> IntoAsProp<T> for U {
+    fn into_as_prop(self) -> T {
+        T::from_as_prop(self)
+    }
 }
 
 pub trait AsProportion: Sized + Copy + PartialEq + PartialOrd + Debug {

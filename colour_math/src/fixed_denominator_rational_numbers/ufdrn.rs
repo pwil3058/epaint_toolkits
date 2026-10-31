@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, NumberConstants, Prop, Unsigned, UnsignedInteger,
+    AsProportion, FDRNum, IntoProp, NumberConstants, Prop, Unsigned, UnsignedInteger,
 };
 
 /// Fixed denominator rational number as an approximate representation of real numbers
@@ -44,11 +44,6 @@ impl UFDRNum {
 
     pub fn is_proportion(self) -> bool {
         self <= Self::ONE
-    }
-
-    pub fn into_prop(&self) -> Prop {
-        debug_assert!(self.is_proportion());
-        Prop(self.0 as u64)
     }
 
     /// Generate an UFDRNum from a rational number

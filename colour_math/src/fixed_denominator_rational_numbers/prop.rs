@@ -9,13 +9,9 @@ use std::{
 use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    fixed_denominator_rational_numbers::{
-        debug::{AbsDiff, ApproxEq, PropDiff},
-        AsProportion, FDRNum, FromAsProp, FromU128Checked, IntoAsProp, NumberConstants, UFDRNum,
-        Unsigned,
-    },
-    impl_into_as_prop,
+use crate::fixed_denominator_rational_numbers::{
+    debug::{AbsDiff, ApproxEq, PropDiff},
+    AsProportion, FDRNum, FromU128Checked, NumberConstants, UFDRNum, Unsigned,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -197,13 +193,6 @@ impl From<[u64; 2]> for Prop {
         Self::from_fraction(fraction[0], fraction[1])
     }
 }
-
-impl FromAsProp<Prop> for Prop {
-    fn from_as_prop(prop: Prop) -> Self {
-        prop
-    }
-}
-impl_into_as_prop!(Prop, Prop);
 
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
