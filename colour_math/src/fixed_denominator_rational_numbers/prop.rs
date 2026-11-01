@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, FromU128Checked, NumberConstants, UFDRNum, Unsigned,
+    AsProportion, FDRNum, FromU128Checked, NumberConstants, UFDRNum, Unsigned, UnsignedInteger,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -282,24 +282,44 @@ impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
 impl Mul for Prop {
     type Output = Self;
 
+    /// Multiply by another Prop.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(Prop::from_fraction(1, 2) * Prop::from_fraction(1, 2), Prop::from_fraction(1, 4));
+    /// assert_eq!(Prop::from_fraction(1, 2) * Prop::from_fraction(1, 3), Prop::from_fraction(1, 6));
+    /// ```
     fn mul(self, rhs: Self) -> Self {
         Self(((self.0 as u128 * rhs.0 as u128) / u64::MAX as u128) as u64)
     }
 }
 
-impl Mul<u8> for Prop {
-    type Output = UFDRNum;
-
-    fn mul(self, rhs: u8) -> UFDRNum {
-        UFDRNum(self.0 as u128 * rhs as u128)
+impl MulAssign for Prop {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
     }
 }
 
-impl Mul<u32> for Prop {
+impl<U: UnsignedInteger> Mul<U> for Prop {
     type Output = UFDRNum;
 
-    fn mul(self, rhs: u32) -> UFDRNum {
-        UFDRNum(self.0 as u128 * rhs as u128)
+    /// Multiply by an unsigned integer yielding an unsigned fixed denominator rational number.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_approx_eq!(Prop::from_fraction(1, 2) * 2u32, UFDRNum::ONE);
+    /// assert_approx_eq!(Prop::from_fraction(3, 5) * 2u8, UFDRNum::from_rational_num(6, 5));
+    /// ```
+    fn mul(self, rhs: U) -> UFDRNum {
+        UFDRNum(self.0 as u128 * rhs.into())
     }
 }
 
@@ -307,35 +327,56 @@ impl Mul<i32> for Prop {
     type Output = UFDRNum;
 
     fn mul(self, rhs: i32) -> UFDRNum {
+        assert!(rhs >= 0);
         UFDRNum(self.0 as u128 * TryInto::<u32>::try_into(rhs).unwrap() as u128)
     }
 }
 
 impl Div for Prop {
-    type Output = Self;
+    type Output = UFDRNum;
 
-    fn div(self, rhs: Self) -> Self {
+    /// Divide by an Prop yielding an unsigned fixed denominator rational number.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_approx_eq!(Prop::from_fraction(1, 2) / Prop::from_fraction(1,2) , UFDRNum::ONE);
+    /// assert_approx_eq!(Prop::from_fraction(3, 5) / Prop::from_fraction(2,5), UFDRNum::from_rational_num(3, 2));
+    /// ```
+    fn div(self, rhs: Self) -> UFDRNum {
+        assert_ne!(rhs, Self::ZERO);
         if rhs == Self::ONE {
-            self
+            UFDRNum(self.0 as u128)
         } else {
-            Self((((u128::MAX / rhs.0 as u128) * self.0 as u128) / u64::MAX as u128) as u64)
+            UFDRNum(self.0 as u128) / UFDRNum(rhs.0 as u128)
         }
     }
 }
 
-impl Div<u8> for Prop {
+impl<U: UnsignedInteger> Div<U> for Prop {
     type Output = Self;
 
-    fn div(self, rhs: u8) -> Self {
-        Prop(self.0 / rhs as u64)
+    /// Divide by an unsigned integer yielding a Prop.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    ///
+    /// assert_eq!(Prop::from_fraction(1, 2) / 2u32, Prop::from_fraction(1, 4));
+    /// assert_eq!(Prop::from_fraction(3, 5) / 2u8, Prop::from_fraction(3, 10));
+    /// ```
+    fn div(self, rhs: U) -> Self {
+        Self((self.0 as u128 / rhs.into()) as u64)
     }
 }
 
-impl Div<u32> for Prop {
-    type Output = Self;
-
-    fn div(self, rhs: u32) -> Self {
-        Prop(self.0 / rhs as u64)
+impl<U: UnsignedInteger> DivAssign<U> for Prop {
+    fn div_assign(&mut self, rhs: U) {
+        *self = *self / rhs;
     }
 }
 
@@ -350,11 +391,23 @@ impl Div<i32> for Prop {
 impl Add for Prop {
     type Output = UFDRNum;
 
+    /// Add a Prop yielding an UFDRNum.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(Prop::from_fraction(1, 2) + Prop::from_fraction(1, 4), UFDRNum::from(0.75));
+    /// assert_approx_eq!(Prop::from_fraction(3, 5) + Prop::from_fraction(6, 10), UFDRNum::from(1.2), 1000);
+    /// ```
     fn add(self, rhs: Self) -> UFDRNum {
         UFDRNum(self.0 as u128 + rhs.0 as u128)
     }
 }
 
+// Sub
 impl Sub for Prop {
     type Output = Self;
 

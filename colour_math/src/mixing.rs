@@ -10,9 +10,7 @@ use crate::{
 
 #[derive(Default, Debug)]
 pub struct SubtractiveMixer {
-    red: UFDRNum,
-    green: UFDRNum,
-    blue: UFDRNum,
+    sums: [UFDRNum; 3],
     total_parts: u64,
 }
 
@@ -22,22 +20,29 @@ impl SubtractiveMixer {
     }
 
     pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
-        let [red, green, blue] = colour.hcv().into_proportions();
-        self.red += UFDRNum(red.0 as u128 * parts as u128);
-        self.green += UFDRNum(green.0 as u128 * parts as u128);
-        self.blue += UFDRNum(blue.0 as u128 * parts as u128);
+        for (sum, prop) in self.sums.iter_mut().zip(colour.rgb::<Prop>().proportions()) {
+            *sum += prop * parts;
+        }
         self.total_parts += parts;
     }
 
-    pub fn mixed_colour(&self) -> Option<HCV> {
+    fn mixed_proportions(&self) -> Option<[Prop; 3]> {
         if self.total_parts > 0 {
-            let red = Prop((self.red.0 / self.total_parts as u128) as u64);
-            let green = Prop((self.green.0 / self.total_parts as u128) as u64);
-            let blue = Prop((self.blue.0 / self.total_parts as u128) as u64);
-            Some(HCV::from_proportions([red, green, blue]))
+            Some(
+                self.sums
+                    .into_iter()
+                    .map(|p| (p / self.total_parts).into_prop())
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .expect("div failed"),
+            )
         } else {
             None
         }
+    }
+
+    pub fn mixed_colour(&self) -> Option<HCV> {
+        Some(HCV::from_proportions(self.mixed_proportions()?))
     }
 
     pub fn mixed_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
@@ -45,9 +50,7 @@ impl SubtractiveMixer {
     }
 
     pub fn reset(&mut self) {
-        self.red = UFDRNum::ZERO;
-        self.green = UFDRNum::ZERO;
-        self.blue = UFDRNum::ZERO;
+        self.sums = [UFDRNum::ZERO, UFDRNum::ZERO, UFDRNum::ZERO];
         self.total_parts = 0;
     }
 }

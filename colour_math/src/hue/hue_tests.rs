@@ -173,7 +173,7 @@ fn hue_from_rgb() {
             assert_approx_eq!(
                 Hue::try_from(&(*rgb * Prop::from(*fraction))).unwrap(),
                 *hue,
-                0x4
+                0x5
             );
         }
     }

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::ops::{Deref, Div, Index, IndexMut, Mul};
+use std::ops::{Deref, Div, DivAssign, Index, IndexMut, Mul};
 
 use serde::{Deserialize, Serialize};
 
@@ -196,11 +196,67 @@ impl Mul<Prop> for CMY<Prop> {
     }
 }
 
-impl<L: LightLevel> Div<L> for CMY<L> {
+/// Divide all components by `scalar`
+///
+/// Example:
+///
+/// ```
+/// use colour_math::{HueConstants, CMY};
+///
+/// assert_eq!((CMY::<u8>::RED / 2u16), CMY::<u8>::from([0, 127, 127]));
+/// assert_eq!((CMY::<u8>::MAGENTA / 2u64), CMY::<u8>::from([0, 127, 0]));
+/// ```
+impl<L: LightLevel, U: UnsignedInteger> Div<U> for CMY<L> {
     type Output = Self;
 
-    fn div(self, rhs: L) -> Self {
-        Self([self[0] / rhs, self[1] / rhs, self[2] / rhs])
+    fn div(self, scalar: U) -> Self {
+        assert!(scalar.non_zero());
+        Self(
+            self.into_proportions()
+                .into_iter()
+                .map(|p| L::from_prop(p / scalar))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("div failed"),
+        )
+    }
+}
+
+impl<L: LightLevel, U: UnsignedInteger> DivAssign<U> for CMY<L> {
+    fn div_assign(&mut self, unsigned: U) {
+        *self = *self / unsigned;
+    }
+}
+
+/// Divide all components by `scalar`
+///
+/// Example:
+///
+/// ```
+/// use colour_math::{HueConstants, CMY};
+///
+/// assert_eq!((CMY::<u8>::RED / 2), CMY::<u8>::from([0, 127, 127]));
+/// assert_eq!((CMY::<u8>::MAGENTA / 2), CMY::<u8>::from([0, 127, 0]));
+/// ```
+impl<L: LightLevel> Div<i32> for CMY<L> {
+    type Output = Self;
+
+    fn div(self, scalar: i32) -> Self {
+        assert!(scalar > 0);
+        Self(
+            self.into_proportions()
+                .into_iter()
+                .map(|p| L::from_prop(p / scalar))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("div failed"),
+        )
+    }
+}
+
+impl<L: LightLevel> DivAssign<i32> for CMY<L> {
+    fn div_assign(&mut self, scalar: i32) {
+        *self = *self / scalar;
     }
 }
 
@@ -330,12 +386,12 @@ mod cmy_tests {
     //         RGB::<u8>::RED / 2,
     //         std::convert::Into::<RGB<u8>>::into((CMY::<u8>::RED / 2))
     //     );
-    //     assert_eq!(RGB::<u8>::RED / 2, (CMY::<u8>::RED / 2).into());
+    //     assert_eq!(RGB::<u8>::RED / 2, (CMY::<u8>::RED / 2).into_rgb::<u8>());
     //     assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into());
     //     assert_approx_eq!(RGB::<Prop>::LIGHT_GREY, CMY::<Prop>::LIGHT_GREY.into());
     //     assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into());
     // }
-    //
+
     // #[test]
     // fn yellow_magenta_to_red() {
     //     let mut mixer = CMYSubtractiveMix::default();

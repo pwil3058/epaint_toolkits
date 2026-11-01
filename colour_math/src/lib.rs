@@ -59,7 +59,6 @@ pub trait LightLevel:
     + PartialOrd
     + PartialEq
     + std::ops::Sub<Output = Self>
-    + std::ops::Div<Output = Self>
 {
 }
 impl LightLevel for u8 {}

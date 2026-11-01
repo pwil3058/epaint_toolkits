@@ -94,14 +94,36 @@ impl<U: UnsignedInteger> IntoFromRawU128 for U {
     }
 }
 
-pub trait Unsigned: Copy + Debug {}
+pub trait Unsigned: Copy + Debug + PartialEq + Eq + PartialOrd + Ord {
+    fn non_zero(self) -> bool;
+}
 pub trait UnsignedInteger: Unsigned + Into<u128> + TryFrom<u128> {}
 
-impl Unsigned for u8 {}
-impl Unsigned for u16 {}
-impl Unsigned for u32 {}
-impl Unsigned for u64 {}
-impl Unsigned for u128 {}
+impl Unsigned for u8 {
+    fn non_zero(self) -> bool {
+        self > 0
+    }
+}
+impl Unsigned for u16 {
+    fn non_zero(self) -> bool {
+        self > 0
+    }
+}
+impl Unsigned for u32 {
+    fn non_zero(self) -> bool {
+        self > 0
+    }
+}
+impl Unsigned for u64 {
+    fn non_zero(self) -> bool {
+        self > 0
+    }
+}
+impl Unsigned for u128 {
+    fn non_zero(self) -> bool {
+        self > 0
+    }
+}
 
 impl UnsignedInteger for u8 {}
 impl UnsignedInteger for u16 {}

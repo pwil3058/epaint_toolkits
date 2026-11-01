@@ -125,12 +125,12 @@ fn prop_mul_u8() {
 #[test]
 fn prop_div() {
     for [a, b] in &[[0.0f64, 0.3], [0.024, 0.5], [0.18, 0.5], [0.004, 0.6]] {
-        let expected = Prop::prop_from(a / b);
+        let expected = UFDRNum::from(a / b);
         let result = Prop::prop_from(*a) / Prop::prop_from(*b);
         assert_approx_eq!(result, expected);
-        assert_approx_eq!(f64::from_prop(result), (a / b));
+        assert_approx_eq!(f64::from(result), (a / b));
         let go_back = result * Prop::prop_from(*b);
-        assert_approx_eq!(go_back, Prop::prop_from(*a));
+        assert_approx_eq!(go_back, UFDRNum::from(*a));
     }
 }
 

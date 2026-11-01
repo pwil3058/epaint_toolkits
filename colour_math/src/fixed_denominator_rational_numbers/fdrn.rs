@@ -10,23 +10,6 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
-#[macro_export]
-macro_rules! impl_to_from_float {
-    ($float:ty, $core:ty, $number:ty) => {
-        impl From<$float> for $number {
-            fn from(arg: $float) -> Self {
-                Self((arg * u64::MAX as $float) as $core)
-            }
-        }
-
-        impl From<$number> for $float {
-            fn from(arg: $number) -> Self {
-                arg.0 as $float / u64::MAX as $float
-            }
-        }
-    };
-}
-
 /// Fixed denominator rational number as an approximate representation of real numbers
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct FDRNum(pub i128);

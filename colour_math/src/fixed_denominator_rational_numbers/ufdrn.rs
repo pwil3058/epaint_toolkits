@@ -18,7 +18,11 @@ use crate::fixed_denominator_rational_numbers::{
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UFDRNum(pub u128);
 
-impl Unsigned for UFDRNum {}
+impl Unsigned for UFDRNum {
+    fn non_zero(self) -> bool {
+        self.0 != 0
+    }
+}
 
 impl NumberConstants for UFDRNum {
     const ZERO: Self = Self(0);
