@@ -3,7 +3,7 @@ use std::{
     cmp::Ordering,
     convert::TryInto,
     convert::{From, TryFrom},
-    ops::{Div, Mul},
+    ops::{Div, DivAssign, Mul, MulAssign},
     ops::{Index, IndexMut},
     str::FromStr,
     sync::LazyLock,
@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{ApproxEq, PropDiff},
-    AsProportion, FromProp, IntoProp, Prop, UFDRNum, Unsigned,
+    AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, Unsigned, UnsignedInteger,
 };
 
 use crate::cmy::CMY;
@@ -22,7 +22,8 @@ use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, PropInto,
+    RGBConstants,
 };
 
 pub trait IntoRGB {
@@ -58,9 +59,10 @@ impl<L: LightLevel> PropDiff for RGB<L> {}
 
 impl<L: LightLevel + ApproxEq> ApproxEq for RGB<L> {
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
-        self[0].approx_eq(&other[0], max_diff)
-            && self[1].approx_eq(&other[1], max_diff)
-            && self[2].approx_eq(&other[2], max_diff)
+        self.0
+            .into_iter()
+            .zip(other.0.iter())
+            .all(|(l, r)| l.approx_eq(r, max_diff))
     }
 }
 
@@ -103,8 +105,7 @@ impl<T: LightLevel + Copy + FromProp> RGB<T> {
 
 impl<T: LightLevel> RGB<T> {
     pub fn sum(&self) -> UFDRNum {
-        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(*self);
-        red + green + blue
+        self.proportions().fold(UFDRNum::ZERO, |sum, p| sum + p)
     }
 
     pub fn max_chroma_rgb(&self) -> RGB<T> {
@@ -350,17 +351,6 @@ impl PartialOrd for RGB<f64> {
     }
 }
 
-impl<T: LightLevel + ApproxEq> RGB<T> {
-    pub fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
-        for i in 0..3 {
-            if !self.0[i].approx_eq(&other.0[i], max_diff) {
-                return false;
-            }
-        }
-        true
-    }
-}
-
 impl<L: LightLevel> From<[L; 3]> for RGB<L> {
     fn from(array: [L; 3]) -> Self {
         Self(array)
@@ -386,41 +376,63 @@ impl<L: LightLevel> From<RGB<L>> for (L, L, L) {
     }
 }
 
-// impl<T: LightLevel + From<Prop>> From<[Prop; 3]> for RGB<T> {
-//     fn from(array: [Prop; 3]) -> Self {
-//         let red: T = array[0].into();
-//         let green: T = array[1].into();
-//         let blue: T = array[2].into();
-//         Self([red, green, blue])
-//     }
-// }
-
-// impl<T: LightLevel + Into<Prop>> From<RGB<T>> for [Prop; 3] {
-//     fn from(rgb: RGB<T>) -> Self {
-//         [rgb.0[0].into(), rgb.0[1].into(), rgb.0[2].into()]
-//     }
-// }
-
-// impl<T: LightLevel + From<Prop>> From<&[Prop; 3]> for RGB<T> {
-//     fn from(array: &[Prop; 3]) -> Self {
-//         Self::from(*array)
-//     }
-// }
-
-// impl<T: LightLevel + From<Prop>> From<&RGB<T>> for [Prop; 3] {
-//     fn from(rgb: &RGB<T>) -> Self {
-//         Self::from(*rgb)
-//     }
-// }
-
 // Arithmetic
 impl<L: LightLevel> Mul<Prop> for RGB<L> {
     type Output = Self;
 
-    fn mul(self, scalar: Prop) -> Self {
-        let [red, green, blue] = self.into_proportions(); //<[Prop; 3]>::from(self);
-        let array: [Prop; 3] = [red * scalar, green * scalar, blue * scalar];
-        Self::from_proportions(array)
+    /// Multiply all components by a Prop.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{fixed_denominator_rational_numbers::*, HueConstants, RGB};
+    ///
+    /// assert_eq!(RGB::<u8>::RED * 0.5.into_prop(), RGB::<u8>::from([128, 0, 0]));
+    /// ```
+    fn mul(self, prop: Prop) -> Self {
+        Self(
+            self.proportions()
+                .map(|p| L::from_prop(p * prop))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("mul failed"),
+        )
+    }
+}
+
+impl<L: LightLevel> MulAssign<Prop> for RGB<L> {
+    fn mul_assign(&mut self, rhs: Prop) {
+        *self = *self * rhs
+    }
+}
+
+impl<L: LightLevel, U: UnsignedInteger> Div<U> for RGB<L> {
+    type Output = Self;
+
+    /// Divide all components by an unsigned integer.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{fixed_denominator_rational_numbers::*, HueConstants, RGB};
+    ///
+    /// assert_eq!(RGB::<u8>::RED / 2u64, RGB::<u8>::from([127, 0, 0]));
+    /// ```
+    fn div(self, unsigned: U) -> Self {
+        assert!(unsigned.non_zero());
+        Self(
+            self.proportions()
+                .map(|p| L::from_prop(p / unsigned))
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("mul failed"),
+        )
+    }
+}
+
+impl<L: LightLevel, U: UnsignedInteger> DivAssign<U> for RGB<L> {
+    fn div_assign(&mut self, rhs: U) {
+        *self = *self / rhs
     }
 }
 
@@ -438,9 +450,9 @@ impl<L: LightLevel> Div<i32> for RGB<L> {
     type Output = Self;
 
     fn div(self, scalar: i32) -> Self {
+        assert!(scalar > 0);
         Self(
-            self.into_proportions()
-                .into_iter()
+            self.proportions()
                 .map(|p| L::from_prop(p / scalar))
                 .collect::<Vec<_>>()
                 .try_into()
