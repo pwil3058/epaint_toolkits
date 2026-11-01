@@ -9,12 +9,12 @@ use crate::{
 };
 
 #[derive(Default, Debug, Clone, Copy)]
-pub struct SubtractiveMixer {
+pub struct WeightedAverageMixer {
     sums: [UFDRNum; 3],
     total_parts: u64,
 }
 
-impl SubtractiveMixer {
+impl WeightedAverageMixer {
     pub fn new() -> Self {
         Self::default()
     }
@@ -56,12 +56,12 @@ impl SubtractiveMixer {
 }
 
 #[derive(Default, Debug, Clone, Copy)]
-pub struct SubtractiveMixerAlt {
+pub struct AltWeightedAverageMixer {
     pub mixed_colour: RGB<Prop>,
     accumulated_parts: u64,
 }
 
-impl SubtractiveMixerAlt {
+impl AltWeightedAverageMixer {
     pub fn new() -> Self {
         Self::default()
     }
@@ -87,6 +87,22 @@ impl SubtractiveMixerAlt {
         self.accumulated_parts += parts;
     }
 
+    pub fn mixed_colour(&self) -> Option<HCV> {
+        if self.accumulated_parts > 0 {
+            Some(self.mixed_colour.hcv())
+        } else {
+            None
+        }
+    }
+
+    pub fn mixed_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
+        if self.accumulated_parts > 0 {
+            Some(self.mixed_colour.rgb::<L>())
+        } else {
+            None
+        }
+    }
+
     pub fn reset(&mut self) {
         self.mixed_colour = RGB::<Prop>::default();
         self.accumulated_parts = 0;
@@ -102,7 +118,7 @@ mod mixing_tests {
 
     #[test]
     fn subtractive_mixing() {
-        let mut subtractve_mixer = SubtractiveMixer::new();
+        let mut subtractve_mixer = WeightedAverageMixer::new();
         assert_eq!(subtractve_mixer.mixed_colour(), None);
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), None);
         subtractve_mixer.add(&RGB::<u8>::RED, 5);
@@ -117,8 +133,8 @@ mod mixing_tests {
 
     #[test]
     fn equivalence() {
-        let mut subtractive_mixer = SubtractiveMixer::new();
-        let mut subtractive_mixer_alt = SubtractiveMixerAlt::new();
+        let mut subtractive_mixer = WeightedAverageMixer::new();
+        let mut subtractive_mixer_alt = AltWeightedAverageMixer::new();
         for (colour, parts) in [
             (RGB::<u8>::RED, 5u64),
             (RGB::YELLOW, 5),

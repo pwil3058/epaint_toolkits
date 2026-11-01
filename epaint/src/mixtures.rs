@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::RGB;
 use colour_math::{
-    ColourBasics, ColouredShape, HCV, LightLevel, MakeColouredShape, Shape, SubtractiveMixer,
+    ColourBasics, ColouredShape, HCV, LightLevel, MakeColouredShape, Shape, WeightedAverageMixer,
 };
 
 use colour_math_derive::Colour;
@@ -268,7 +268,7 @@ impl MixtureBuilder {
         }
         debug_assert!(gcd > 0);
         let mut components = vec![];
-        let mut colour_mix = SubtractiveMixer::new();
+        let mut colour_mix = WeightedAverageMixer::new();
         let mut properties_mixer = PropertiesMixer::default();
         for (colln_paint, parts) in self.series_components.iter() {
             let adjusted_parts = *parts / gcd;

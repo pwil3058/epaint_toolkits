@@ -29,7 +29,7 @@ use gtk3_ext::{
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
 
-use colour_math::{HCV, MakeColouredShape, RGBConstants, ScalarAttribute, SubtractiveMixer};
+use colour_math::{HCV, MakeColouredShape, RGBConstants, ScalarAttribute, WeightedAverageMixer};
 use colour_math_cairo::CairoSetColour;
 
 #[cfg(feature = "targeted_mixtures")]
@@ -370,7 +370,7 @@ impl MixtureMixer {
     }
 
     fn contributions_changed(&self) {
-        let mut colour_mixer = SubtractiveMixer::new();
+        let mut colour_mixer = WeightedAverageMixer::new();
         for (colour, parts) in self.range_paint_spinner_box.colour_contributions() {
             colour_mixer.add(&colour, parts);
         }
