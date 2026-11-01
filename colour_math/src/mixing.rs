@@ -8,7 +8,7 @@ use crate::{
     ColourBasics, FromProps, IntoProps, LightLevel,
 };
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct SubtractiveMixer {
     sums: [UFDRNum; 3],
     total_parts: u64,
@@ -55,10 +55,50 @@ impl SubtractiveMixer {
     }
 }
 
+#[derive(Default, Debug, Clone, Copy)]
+pub struct SubtractiveMixerAlt {
+    pub mixed_colour: RGB<Prop>,
+    accumulated_parts: u64,
+}
+
+impl SubtractiveMixerAlt {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
+        if self.accumulated_parts == 0 {
+            self.mixed_colour = colour.rgb::<Prop>();
+        } else {
+            let rgb = colour.rgb::<Prop>();
+            let other_prop = Prop::from_fraction(parts, self.accumulated_parts + parts);
+            // NB: ensure total isn't greater than ONE due to roundin errors
+            let my_prop = Prop::ONE - other_prop;
+            self.mixed_colour = RGB::<Prop>(
+                self.mixed_colour
+                    .into_iter()
+                    .zip(rgb.into_iter())
+                    .map(|(m, o)| (m * my_prop + o * other_prop).into_prop())
+                    .collect::<Vec<_>>()
+                    .try_into()
+                    .unwrap(),
+            );
+        }
+        self.accumulated_parts += parts;
+    }
+
+    pub fn reset(&mut self) {
+        self.mixed_colour = RGB::<Prop>::default();
+        self.accumulated_parts = 0;
+    }
+}
+
 #[cfg(test)]
 mod mixing_tests {
     use super::*;
+    use crate::fixed_denominator_rational_numbers::debug::*;
     use crate::{FromProps, HueConstants};
+    use approximately_equal::*;
 
     #[test]
     fn subtractive_mixing() {
@@ -73,5 +113,24 @@ mod mixing_tests {
             RGB::<u16>::from_proportions([Prop::from([1, 3]), Prop::from([2, 3]), Prop::ZERO]);
         assert_eq!(subtractve_mixer.mixed_colour(), Some(expected.into()));
         assert_eq!(subtractve_mixer.mixed_rgb::<u16>(), Some(expected));
+    }
+
+    #[test]
+    fn equivalence() {
+        let mut subtractive_mixer = SubtractiveMixer::new();
+        let mut subtractive_mixer_alt = SubtractiveMixerAlt::new();
+        for (colour, parts) in [
+            (RGB::<u8>::RED, 5u64),
+            (RGB::YELLOW, 5),
+            (RGB::GREEN, 4),
+            (RGB::BLUE, 3),
+        ] {
+            subtractive_mixer.add(&colour, parts);
+            subtractive_mixer_alt.add(&colour, parts);
+            assert_approx_eq!(
+                subtractive_mixer.mixed_rgb::<Prop>().unwrap(),
+                subtractive_mixer_alt.mixed_colour
+            );
+        }
     }
 }
