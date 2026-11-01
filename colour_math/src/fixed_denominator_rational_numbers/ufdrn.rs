@@ -213,22 +213,6 @@ impl From<i32> for UFDRNum {
     }
 }
 
-macro_rules! impl_to_unsigned {
-    ($unsigned:ty) => {
-        impl From<UFDRNum> for $unsigned {
-            fn from(arg: UFDRNum) -> Self {
-                (arg.0 / u64::MAX as u128) as $unsigned
-            }
-        }
-    };
-}
-
-impl_to_unsigned!(u8);
-impl_to_unsigned!(u16);
-impl_to_unsigned!(u32);
-impl_to_unsigned!(u64);
-impl_to_unsigned!(u128);
-
 // Add
 impl Add for UFDRNum {
     type Output = Self;

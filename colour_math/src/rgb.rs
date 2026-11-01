@@ -22,8 +22,7 @@ use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, PropInto,
-    RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, RGBConstants,
 };
 
 pub trait IntoRGB {
