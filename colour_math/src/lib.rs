@@ -45,7 +45,6 @@ pub mod hue;
 pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
-// pub mod subtractive_mixing;
 pub mod useful_consts;
 
 pub trait LightLevel:
@@ -237,159 +236,6 @@ pub trait ColourBasics {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
-pub enum Colour<L: LightLevel> {
-    Rgb(RGB<L>),
-    Hc(HCV),
-}
-
-impl<L: LightLevel> ColourBasics for Colour<L> {
-    fn hue(&self) -> Option<Hue> {
-        match self {
-            Colour::Rgb(rgb) => rgb.hue(),
-            Colour::Hc(hc) => hc.hue(),
-        }
-    }
-
-    fn hue_rgb<T: LightLevel>(&self) -> Option<RGB<T>> {
-        match self {
-            Colour::Rgb(rgb) => rgb.hue_rgb::<T>(),
-            Colour::Hc(hc) => hc.hue_rgb::<T>(),
-        }
-    }
-
-    fn hue_hcv(&self) -> Option<HCV> {
-        match self {
-            Colour::Rgb(rgb) => rgb.hue_hcv(),
-            Colour::Hc(hc) => hc.hue_hcv(),
-        }
-    }
-
-    fn is_grey(&self) -> bool {
-        match self {
-            Colour::Rgb(rgb) => rgb.is_grey(),
-            Colour::Hc(hc) => hc.is_grey(),
-        }
-    }
-
-    fn chroma(&self) -> Chroma {
-        match self {
-            Colour::Rgb(rgb) => rgb.chroma(),
-            Colour::Hc(hc) => hc.chroma(),
-        }
-    }
-
-    fn chroma_prop(&self) -> Prop {
-        match self {
-            Colour::Rgb(rgb) => rgb.chroma_prop(),
-            Colour::Hc(hc) => hc.chroma_prop(),
-        }
-    }
-
-    fn value(&self) -> Value {
-        match self {
-            Colour::Rgb(rgb) => rgb.value(),
-            Colour::Hc(hc) => hc.value(),
-        }
-    }
-
-    fn greyness(&self) -> Greyness {
-        match self {
-            Colour::Rgb(rgb) => rgb.greyness(),
-            Colour::Hc(hc) => hc.greyness(),
-        }
-    }
-
-    fn warmth(&self) -> Warmth {
-        match self {
-            Colour::Rgb(rgb) => rgb.warmth(),
-            Colour::Hc(hc) => hc.warmth(),
-        }
-    }
-
-    fn family(&self) -> Option<Family> {
-        match self {
-            Colour::Rgb(rgb) => rgb.family(),
-            Colour::Hc(hc) => hc.family(),
-        }
-    }
-
-    fn hcv(&self) -> HCV {
-        match self {
-            Colour::Rgb(rgb) => rgb.hcv(),
-            Colour::Hc(hc) => hc.hcv(),
-        }
-    }
-
-    fn rgb<T: LightLevel>(&self) -> RGB<T> {
-        match self {
-            Colour::Rgb(rgb) => rgb.rgb::<T>(),
-            Colour::Hc(hc) => hc.rgb::<T>(),
-        }
-    }
-
-    fn cmy<T: LightLevel>(&self) -> CMY<T> {
-        match self {
-            Colour::Rgb(rgb) => rgb.cmy::<T>(),
-            Colour::Hc(hc) => hc.cmy::<T>(),
-        }
-    }
-
-    fn monochrome_hcv(&self) -> HCV {
-        match self {
-            Colour::Rgb(rgb) => rgb.monochrome_hcv(),
-            Colour::Hc(hc) => hc.monochrome_hcv(),
-        }
-    }
-
-    fn monochrome_rgb<T: LightLevel>(&self) -> RGB<T> {
-        match self {
-            Colour::Rgb(rgb) => rgb.monochrome_rgb::<T>(),
-            Colour::Hc(hc) => hc.monochrome_rgb::<T>(),
-        }
-    }
-
-    fn best_foreground(&self) -> HCV {
-        match self {
-            Colour::Rgb(rgb) => rgb.best_foreground(),
-            Colour::Hc(hc) => hc.best_foreground(),
-        }
-    }
-
-    fn pango_string(&self) -> String {
-        match self {
-            Colour::Rgb(rgb) => rgb.pango_string(),
-            Colour::Hc(hcv) => hcv.pango_string(),
-        }
-    }
-
-    fn hex_string<T: LightLevel + Unsigned + UpperHex>(&self) -> String {
-        match self {
-            Colour::Rgb(rgb) => rgb.hex_string::<T>(),
-            Colour::Hc(hcv) => hcv.hex_string::<T>(),
-        }
-    }
-}
-
-impl<L: LightLevel> IntoProps for Colour<L> {
-    fn proportions(self) -> impl Iterator<Item = Prop> {
-        self.into_proportions().into_iter()
-    }
-
-    fn into_proportions(self) -> [Prop; 3] {
-        match self {
-            Colour::Rgb(rgb) => rgb.into_proportions(),
-            Colour::Hc(hc) => hc.into_proportions(),
-        }
-    }
-}
-
-impl<L: LightLevel> FromProps for Colour<L> {
-    fn from_proportions(props: [Prop; 3]) -> Self {
-        Colour::Rgb(RGB::<L>::from_proportions(props))
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScalarAttribute {
     Chroma,
     Greyness,
@@ -435,15 +281,6 @@ pub trait ColourIfce: ColourBasics + ColourAttributes {}
 
 impl ColourIfce for HCV {}
 impl<L: LightLevel> ColourIfce for RGB<L> {}
-
-pub trait ManipulatedColour: ColourBasics {
-    // TODO: modify Manipulated colour to make it more widely applicable
-    fn lightened(&self, prop: Prop) -> Self;
-    fn darkened(&self, prop: Prop) -> Self;
-    fn saturated(&self, prop: Prop) -> Self;
-    fn greyed(&self, prop: Prop) -> Self;
-    fn rotated(&self, angle: Angle) -> Self;
-}
 
 #[cfg(test)]
 mod rgb_tests {
