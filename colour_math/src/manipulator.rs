@@ -7,15 +7,8 @@ use crate::{
     hue::Hue,
     hue::{angle::Angle, ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility},
     rgb::RGB,
-    ColourBasics, HueConstants, LightLevel,
+    ColourBasics, HueConstants, LightLevel, SetScalarPolicy,
 };
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum SetScalarPolicy {
-    Clamp,
-    Accommodate,
-    Reject,
-}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum SetHuePolicy {

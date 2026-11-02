@@ -19,8 +19,8 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::{IntoRGB, RGB},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, PropsFrom,
-    RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, Outcome,
+    PropsFrom, RGBConstants, SetScalarPolicy,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -392,25 +392,25 @@ impl FromProps for HCV {
 }
 
 impl ManipulatedColour for HCV {
-    fn lightened(&self, prop: Prop) -> Self {
+    fn lightened(self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = <[Prop; 3]>::proportions_from(*self);
+        let mut array = <[Prop; 3]>::proportions_from(self);
         for item in &mut array {
             *item = (*item * compl + prop).into_prop();
         }
         HCV::from_proportions(array)
     }
 
-    fn darkened(&self, prop: Prop) -> Self {
+    fn darkened(self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = <[Prop; 3]>::proportions_from(*self);
+        let mut array = <[Prop; 3]>::proportions_from(self);
         for item in &mut array {
             *item = *item * compl;
         }
         HCV::from_proportions(array)
     }
 
-    fn saturated(&self, prop: Prop) -> Self {
+    fn saturated(self, prop: Prop) -> Self {
         if let Some(hue) = self.hue {
             let new_c_prop = (self.c_prop - self.c_prop * prop + prop).into_prop();
             let new_sum =
@@ -435,11 +435,11 @@ impl ManipulatedColour for HCV {
                 HCV::new_grey((new_sum / 3u8).into())
             }
         } else {
-            *self
+            self
         }
     }
 
-    fn greyed(&self, prop: Prop) -> Self {
+    fn greyed(self, prop: Prop) -> Self {
         if let Some(hue) = self.hue {
             let new_c_prop = self.c_prop - self.c_prop * prop;
             let new_sum =
@@ -464,12 +464,96 @@ impl ManipulatedColour for HCV {
                 HCV::new_grey((new_sum / 3u8).into())
             }
         } else {
-            *self
+            self
         }
     }
 
-    fn rotated(&self, angle: Angle) -> Self {
-        *self + angle
+    fn rotated(self, angle: Angle) -> Self {
+        self + angle
+    }
+
+    /// Try an HCV with the same chroma and hue but with the requested value.
+    /// If this is not possible and `policy` is `Clamp` or `Accommodate` return the nearest
+    /// achievable result using the designated policy - this may involve hue or chroma drift.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use std::str::FromStr;
+    /// use colour_math::*;
+    /// use SetScalarPolicy::*;
+    ///
+    /// assert_eq!(HCV::RED.with_value(Value::ONE, Reject), Outcome::Rejected);
+    /// assert_eq!(HCV::RED.with_value(Value::ONE, Accommodate), Outcome::Accommodated(HCV::WHITE));
+    /// assert_eq!(HCV::RED.with_value(Value::ZERO, Accommodate), Outcome::Accommodated(HCV::BLACK));
+    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Reject), Outcome::Rejected);
+    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Clamp), Outcome::NoChange(HCV::RED));
+    /// let pink =  HCV::RED.with_value(Value::ONE / 2, Accommodate).unwrap();
+    /// assert_eq!(pink.value(), Value::ONE / 2);
+    /// assert_eq!(pink.hue().unwrap(), Hue::RED);
+    /// ```
+    fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
+        let new_sum = new_value * 3;
+        if new_sum == self.sum {
+            Outcome::NoChange(self)
+        } else if let Some(hue) = self.hue() {
+            if hue.sum_and_chroma_prop_are_compatible(new_sum, self.c_prop) {
+                let hcv = match HCV::try_new(Some((hue, self.c_prop)), new_sum) {
+                    Ok(hcv) => hcv,
+                    Err(hcv) => hcv,
+                };
+                if hcv == self {
+                    Outcome::NoChange(hcv)
+                } else {
+                    Outcome::Ok(hcv)
+                }
+            } else {
+                match policy {
+                    SetScalarPolicy::Clamp => {
+                        let hcv = if let Some((c_prop, sum)) =
+                            hue.adjusted_favouring_chroma(new_sum, self.c_prop)
+                        {
+                            match HCV::try_new(Some((hue, c_prop)), sum) {
+                                Ok(hcv) => hcv,
+                                Err(hcv) => hcv,
+                            }
+                        } else {
+                            HCV::new_grey((new_sum / 3u8).into())
+                        };
+                        if hcv == self {
+                            Outcome::NoChange(hcv)
+                        } else {
+                            Outcome::Clamped(hcv)
+                        }
+                    }
+                    SetScalarPolicy::Accommodate => {
+                        let hcv = if let Some((c_prop, sum)) =
+                            hue.adjusted_favouring_sum(new_sum, self.c_prop)
+                        {
+                            match HCV::try_new(Some((hue, c_prop)), sum) {
+                                Ok(hcv) => hcv,
+                                Err(hcv) => hcv,
+                            }
+                        } else {
+                            HCV::new_grey((new_sum / 3u8).into())
+                        };
+                        if hcv == self {
+                            Outcome::NoChange(hcv)
+                        } else {
+                            Outcome::Accommodated(hcv)
+                        }
+                    }
+                    SetScalarPolicy::Reject => Outcome::Rejected,
+                }
+            }
+        } else {
+            let hcv = HCV::new_grey((new_sum / 3u8).into());
+            if hcv == self {
+                Outcome::NoChange(hcv)
+            } else {
+                Outcome::Ok(hcv)
+            }
+        }
     }
 }
 

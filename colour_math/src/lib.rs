@@ -21,16 +21,15 @@ pub use crate::{
         },
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
-    cmy::CMY,
+    cmy::{ComponentMask, CMY},
     // fixed_denominator_rational_numbers::{
     //     debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
     //     Unsigned, UnsignedInteger,
     // },
-    hcv::HCV,
+    hcv::*,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
-    manipulator::{
-        ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy, SetScalarPolicy,
-    },
+    manipulate::{ManipulatedColour, Outcome, SetScalarPolicy},
+    manipulator::{ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy},
     mixing::WeightedAverageMixer,
     rgb::{IntoRGB, RGBFrom, RGB},
     useful_consts::UsefulFloatConstants,
@@ -42,6 +41,7 @@ pub mod cmy;
 pub mod fixed_denominator_rational_numbers;
 pub mod hcv;
 pub mod hue;
+pub mod manipulate;
 pub mod manipulator;
 pub mod mixing;
 pub mod rgb;

@@ -17,12 +17,13 @@ use crate::fixed_denominator_rational_numbers::{
     AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, Unsigned, UnsignedInteger,
 };
 
-use crate::cmy::CMY;
+use crate::cmy::{ComponentMask, CMY};
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, RGBConstants,
+    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, Outcome,
+    RGBConstants, SetScalarPolicy,
 };
 
 pub trait IntoRGB {
@@ -103,6 +104,38 @@ impl<T: LightLevel + Copy + FromProp> RGB<T> {
 }
 
 impl<T: LightLevel> RGB<T> {
+    /// Return the component mask for the non zero components in the RGB
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::*;
+    ///
+    /// assert_eq!(RGB::<u8>::RED.component_mask(), ComponentMask(1));
+    /// assert_eq!(RGB::<u8>::GREEN.component_mask(), ComponentMask(2));
+    /// assert_eq!(RGB::<u8>::BLUE.component_mask(), ComponentMask(4));
+    /// assert_eq!(RGB::<u8>::YELLOW.component_mask(), ComponentMask(3));
+    /// assert_eq!(RGB::<u8>::YELLOW.component_mask().count(), 2u32);
+    /// assert_eq!(RGB::<u8>::WHITE.component_mask(), ComponentMask(7));
+    /// assert_eq!(RGB::<u8>::BLACK.component_mask(), ComponentMask(0));
+    /// ```
+    pub fn component_mask(self) -> ComponentMask {
+        ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
+            if p != T::ZERO {
+                mask | 1 << i
+            } else {
+                mask
+            }
+        }))
+        // let mut mask = ComponentMask(0);
+        // for (i, val) in self.0.iter().enumerate() {
+        //     if *val != T::ZERO {
+        //         mask.0 |= 1 << i;
+        //     }
+        // }
+        // mask
+    }
+
     pub fn sum(&self) -> UFDRNum {
         self.proportions().fold(UFDRNum::ZERO, |sum, p| sum + p)
     }
@@ -238,34 +271,41 @@ impl<L: LightLevel> FromProps for RGB<L> {
 }
 
 impl<L: LightLevel> ManipulatedColour for RGB<L> {
-    fn lightened(&self, prop: Prop) -> Self {
+    fn lightened(self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = self.into_proportions(); //<[Prop; 3]>::from(self);
+        let mut array = self.into_proportions();
         for item in &mut array {
             *item = (*item * compl + prop).into_prop();
         }
         RGB::<L>::from_proportions(array)
     }
 
-    fn darkened(&self, prop: Prop) -> Self {
+    fn darkened(self, prop: Prop) -> Self {
         let compl = Prop::ONE - prop;
-        let mut array = self.into_proportions(); // <[Prop; 3]>::from(self);
+        let mut array = self.into_proportions();
         for item in &mut array {
             *item = *item * compl;
         }
         RGB::<L>::from_proportions(array)
     }
 
-    fn saturated(&self, prop: Prop) -> Self {
-        HCV::from(*self).saturated(prop).into_rgb()
+    fn saturated(self, prop: Prop) -> Self {
+        HCV::from(self).saturated(prop).into_rgb()
     }
 
-    fn greyed(&self, prop: Prop) -> Self {
-        HCV::from(*self).greyed(prop).into_rgb()
+    fn greyed(self, prop: Prop) -> Self {
+        HCV::from(self).greyed(prop).into_rgb()
     }
 
-    fn rotated(&self, angle: Angle) -> Self {
-        HCV::from(*self).rotated(angle).into_rgb()
+    fn rotated(self, angle: Angle) -> Self {
+        HCV::from(self).rotated(angle).into_rgb()
+    }
+
+    fn with_value(self, new_value: Value, _policy: SetScalarPolicy) -> Outcome<Self> {
+        match self.value().cmp(&new_value) {
+            Ordering::Equal => Outcome::NoChange(self),
+            _ => Outcome::Ok(self),
+        }
     }
 }
 

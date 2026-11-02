@@ -15,7 +15,7 @@ use crate::{
 pub struct CMY<L: LightLevel>([L; 3]);
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
-pub struct ComponentMask(u8);
+pub struct ComponentMask(pub u8);
 
 impl Deref for ComponentMask {
     type Target = u8;
@@ -26,12 +26,16 @@ impl Deref for ComponentMask {
 }
 
 impl ComponentMask {
-    pub fn is_valid(&self) -> bool {
+    pub fn is_valid(self) -> bool {
         (self.0 & (u8::MAX - 7)) == 0
     }
 
     pub fn intersection(self, other: ComponentMask) -> Self {
         ComponentMask(self.0 & other.0)
+    }
+
+    pub fn count(self) -> u32 {
+        self.count_ones()
     }
 
     pub fn indices(self) -> Vec<usize> {
