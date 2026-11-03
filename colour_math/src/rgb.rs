@@ -40,6 +40,27 @@ impl<T: IntoRGB, L: LightLevel> RGBFrom<T, L> for RGB<L> {
     }
 }
 
+impl<T: LightLevel> IntoRGB for RGB<T> {
+    /// Convert an RGB<T> to an RGB<L>
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::*;
+    ///
+    /// assert_eq!(RGB::<u64>::YELLOW.into_rgb::<u8>(), RGB::<u8>::YELLOW);
+    /// ```
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        RGB::<L>(
+            self.proportions()
+                .map(|p| L::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        )
+    }
+}
+
 impl IntoRGB for [Prop; 3] {
     fn into_rgb<L: LightLevel>(self) -> RGB<L> {
         RGB::<L>::from_proportions(self)
