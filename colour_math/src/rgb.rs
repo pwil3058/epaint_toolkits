@@ -22,8 +22,8 @@ use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, Outcome,
-    RGBConstants, SetScalarPolicy,
+    ColourBasics, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel, ManipulatedColour,
+    Outcome, RGBConstants, SetScalarPolicy,
 };
 
 pub trait IntoRGB {
@@ -127,13 +127,6 @@ impl<T: LightLevel> RGB<T> {
                 mask
             }
         }))
-        // let mut mask = ComponentMask(0);
-        // for (i, val) in self.0.iter().enumerate() {
-        //     if *val != T::ZERO {
-        //         mask.0 |= 1 << i;
-        //     }
-        // }
-        // mask
     }
 
     pub fn sum(&self) -> UFDRNum {
@@ -301,10 +294,14 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         HCV::from(self).rotated(angle).into_rgb()
     }
 
-    fn with_value(self, new_value: Value, _policy: SetScalarPolicy) -> Outcome<Self> {
-        match self.value().cmp(&new_value) {
-            Ordering::Equal => Outcome::NoChange(self),
-            _ => Outcome::Ok(self),
+    fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
+        use Outcome::*;
+        match self.into_hcv().with_value(new_value, policy) {
+            Ok(hcv) => Ok(hcv.rgb::<L>()),
+            Clamped(hcv) => Clamped(hcv.rgb::<L>()),
+            Accommodated(hcv) => Accommodated(hcv.rgb::<L>()),
+            NoChange => NoChange,
+            Rejected => Rejected,
         }
     }
 }

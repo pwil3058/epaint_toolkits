@@ -15,7 +15,7 @@ pub enum Outcome<T: Sized + Copy + PartialEq> {
     Ok(T),
     Clamped(T),
     Accommodated(T),
-    NoChange(T),
+    NoChange,
     Rejected,
 }
 
@@ -23,7 +23,7 @@ impl<T: Sized + Copy + PartialEq> Outcome<T> {
     pub fn expect(self, msg: &str) -> T {
         use Outcome::*;
         match self {
-            Ok(t) | Clamped(t) | Accommodated(t) | NoChange(t) => t,
+            Ok(t) | Clamped(t) | Accommodated(t) => t,
             _ => panic!("{msg}"),
         }
     }
@@ -31,7 +31,7 @@ impl<T: Sized + Copy + PartialEq> Outcome<T> {
     pub fn unwrap(self) -> T {
         use Outcome::*;
         match self {
-            Ok(t) | Clamped(t) | Accommodated(t) | NoChange(t) => t,
+            Ok(t) | Clamped(t) | Accommodated(t) => t,
             _ => panic!("attempt to extract content from rejected Outcome"),
         }
     }

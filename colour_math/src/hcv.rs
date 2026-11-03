@@ -472,9 +472,11 @@ impl ManipulatedColour for HCV {
         self + angle
     }
 
-    /// Try an HCV with the same chroma and hue but with the requested value.
-    /// If this is not possible and `policy` is `Clamp` or `Accommodate` return the nearest
-    /// achievable result using the designated policy - this may involve hue or chroma drift.
+    /// Try to create an HCV with the same chroma and hue but with the requested value.
+    /// If this is not possible and `policy` is `Clamp` return the nearest
+    /// achievable result favouring `Chroma` else if `policy` is `Accommodate` return the
+    /// nearest achievable result favouring `Value` else `Reject`. N.B. Clamping/accomodating
+    /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
     ///
     /// Examples:
     ///
@@ -487,7 +489,7 @@ impl ManipulatedColour for HCV {
     /// assert_eq!(HCV::RED.with_value(Value::ONE, Accommodate), Outcome::Accommodated(HCV::WHITE));
     /// assert_eq!(HCV::RED.with_value(Value::ZERO, Accommodate), Outcome::Accommodated(HCV::BLACK));
     /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Reject), Outcome::Rejected);
-    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Clamp), Outcome::NoChange(HCV::RED));
+    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Clamp), Outcome::NoChange);
     /// let pink =  HCV::RED.with_value(Value::ONE / 2, Accommodate).unwrap();
     /// assert_eq!(pink.value(), Value::ONE / 2);
     /// assert_eq!(pink.hue().unwrap(), Hue::RED);
@@ -495,15 +497,16 @@ impl ManipulatedColour for HCV {
     fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
         let new_sum = new_value * 3;
         if new_sum == self.sum {
-            Outcome::NoChange(self)
+            Outcome::NoChange
         } else if let Some(hue) = self.hue() {
             if hue.sum_and_chroma_prop_are_compatible(new_sum, self.c_prop) {
                 let hcv = match HCV::try_new(Some((hue, self.c_prop)), new_sum) {
                     Ok(hcv) => hcv,
                     Err(hcv) => hcv,
                 };
+                debug_assert!(hcv.is_valid());
                 if hcv == self {
-                    Outcome::NoChange(hcv)
+                    Outcome::NoChange
                 } else {
                     Outcome::Ok(hcv)
                 }
@@ -520,8 +523,9 @@ impl ManipulatedColour for HCV {
                         } else {
                             HCV::new_grey((new_sum / 3u8).into())
                         };
+                        debug_assert!(hcv.is_valid());
                         if hcv == self {
-                            Outcome::NoChange(hcv)
+                            Outcome::NoChange
                         } else {
                             Outcome::Clamped(hcv)
                         }
@@ -537,8 +541,9 @@ impl ManipulatedColour for HCV {
                         } else {
                             HCV::new_grey((new_sum / 3u8).into())
                         };
+                        debug_assert!(hcv.is_valid());
                         if hcv == self {
-                            Outcome::NoChange(hcv)
+                            Outcome::NoChange
                         } else {
                             Outcome::Accommodated(hcv)
                         }
@@ -548,8 +553,9 @@ impl ManipulatedColour for HCV {
             }
         } else {
             let hcv = HCV::new_grey((new_sum / 3u8).into());
+            debug_assert!(hcv.is_valid());
             if hcv == self {
-                Outcome::NoChange(hcv)
+                Outcome::NoChange
             } else {
                 Outcome::Ok(hcv)
             }

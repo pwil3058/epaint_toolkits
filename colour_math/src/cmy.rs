@@ -51,13 +51,13 @@ impl ComponentMask {
 
 impl<L: LightLevel> CMY<L> {
     pub fn component_mask(self) -> ComponentMask {
-        let mut mask = ComponentMask(0);
-        for (i, val) in self.0.iter().enumerate() {
-            if *val != L::ZERO {
-                mask.0 |= 1 << i;
+        ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
+            if p != L::ZERO {
+                mask | 1 << i
+            } else {
+                mask
             }
-        }
-        mask
+        }))
     }
 }
 
