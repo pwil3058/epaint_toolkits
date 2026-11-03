@@ -154,11 +154,11 @@ impl<T: LightLevel> RGB<T> {
         self.proportions().fold(UFDRNum::ZERO, |sum, p| sum + p)
     }
 
-    pub fn max_chroma_rgb(&self) -> Result<RGB<T>, RGB<T>> {
+    pub fn max_chroma_rgb(&self) -> Option<RGB<T>> {
         if let Ok(hue) = Hue::try_from(self) {
-            Ok(hue.max_chroma_rgb::<T>())
+            Some(hue.max_chroma_rgb::<T>())
         } else {
-            Err(RGB::<T>::new_grey(self.value()))
+            None
         }
     }
 
