@@ -10,6 +10,7 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 pub mod angle;
+pub mod sextant_hue;
 
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
@@ -1295,7 +1296,6 @@ impl<T: LightLevel> TryFrom<&RGB<T>> for Hue {
     type Error = &'static str;
 
     fn try_from(rgb: &RGB<T>) -> Result<Self, Self::Error> {
-        // Self::try_from(<[Prop; 3]>::from(*rgb))
         Self::try_from(rgb.into_proportions())
     }
 }
@@ -1304,7 +1304,6 @@ impl<T: LightLevel> TryFrom<RGB<T>> for Hue {
     type Error = &'static str;
 
     fn try_from(rgb: RGB<T>) -> Result<Self, Self::Error> {
-        // Self::try_from(<[Prop; 3]>::from(rgb))
         Self::try_from(rgb.into_proportions())
     }
 }
