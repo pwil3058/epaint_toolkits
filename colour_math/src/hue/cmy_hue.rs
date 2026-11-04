@@ -1,11 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::{
-    cmp::Ordering,
-    convert::{From, Into, TryFrom},
-    fmt::Debug,
-    ops::{Add, Sub},
-};
+use std::{cmp::Ordering, convert::From, fmt::Debug};
 
 use serde::{Deserialize, Serialize};
 
@@ -13,10 +8,8 @@ use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
     attributes::{Chroma, Family, Warmth},
-    hcv::HCV,
     hue::{self::*, angle::Angle},
-    rgb::RGB,
-    ColourBasics, HueConstants, IntoProps, LightLevel,
+    HueConstants,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
@@ -234,3 +227,6 @@ impl HueIfce for CMYHue {
         }
     }
 }
+
+#[cfg(test)]
+impl HueTestIfce for CMYHue {}
