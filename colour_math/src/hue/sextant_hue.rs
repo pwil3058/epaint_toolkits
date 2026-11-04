@@ -15,12 +15,13 @@ use crate::{
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
 pub enum Sextant {
-    RedMagenta = 4,
-    RedYellow = 6,
-    GreenYellow = 8,
-    GreenCyan = 10,
-    BlueCyan = 0,
-    BlueMagenta = 2,
+    //N.B. these are in ascending colour order and agree with angle order so don't mess with them
+    BlueCyan,
+    BlueMagenta,
+    RedMagenta,
+    RedYellow,
+    GreenYellow,
+    GreenCyan,
 }
 
 impl Sextant {
