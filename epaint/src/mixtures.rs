@@ -9,7 +9,8 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::RGB;
 use colour_math::{
-    ColourBasics, ColouredShape, HCV, LightLevel, MakeColouredShape, Shape, WeightedAverageMixer,
+    ColourBasics, ColouredShape, HCV, IntoRGB, LightLevel, MakeColouredShape, Shape,
+    WeightedAverageMixer,
 };
 
 use colour_math_derive::Colour;
@@ -54,7 +55,7 @@ impl Mixture {
     pub fn targeted_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         self.targeted_colour
             .as_ref()
-            .map(|colour| colour.rgb::<L>())
+            .map(|colour| colour.into_rgb::<L>())
     }
 
     #[cfg(feature = "targeted_mixtures")]

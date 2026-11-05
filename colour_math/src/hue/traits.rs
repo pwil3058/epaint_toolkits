@@ -12,7 +12,7 @@ use crate::{
     attributes::{Chroma, Family, Warmth},
     hcv::HCV,
     hue::{self::*, angle::Angle},
-    rgb::RGB,
+    rgb::{IntoRGB, RGB},
     ColourBasics, LightLevel,
 };
 
@@ -135,7 +135,7 @@ pub trait HueIfce: HueBasics {
     fn family(&self) -> Family;
 
     fn max_chroma_rgb<T: LightLevel>(&self) -> RGB<T> {
-        self.max_chroma_hcv().rgb::<T>()
+        self.max_chroma_hcv().into_rgb::<T>()
     }
 
     fn max_chroma_hcv(&self) -> HCV {

@@ -83,7 +83,7 @@ impl ColourManipulatorPad {
 
                 // Draw ground-truth base solid color block behind
                 let current_rgb_u64 = manipulator.hcv().into_rgb::<u64>();
-                let rgb_channels = current_rgb_u64.rgb::<u8>();
+                let rgb_channels = current_rgb_u64.into_rgb::<u8>();
                 ui.painter().rect_filled(
                     field_rect,
                     4.0,

@@ -5,7 +5,7 @@ use crate::fixed_denominator_rational_numbers::*;
 use crate::{
     hcv::HCV,
     rgb::{IntoRGB, RGB},
-    ColourBasics, FromProps, IntoProps, LightLevel,
+    Colour, ColourBasics, FromProps, IntoProps, LightLevel,
 };
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -19,8 +19,12 @@ impl WeightedAverageMixer {
         Self::default()
     }
 
-    pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
-        for (sum, prop) in self.sums.iter_mut().zip(colour.rgb::<Prop>().proportions()) {
+    pub fn add(&mut self, colour: &impl Colour, parts: u64) {
+        for (sum, prop) in self
+            .sums
+            .iter_mut()
+            .zip(colour.into_rgb::<Prop>().proportions())
+        {
             *sum += prop * parts;
         }
         self.total_parts += parts;
@@ -66,11 +70,11 @@ impl AltWeightedAverageMixer {
         Self::default()
     }
 
-    pub fn add(&mut self, colour: &impl ColourBasics, parts: u64) {
+    pub fn add(&mut self, colour: &impl Colour, parts: u64) {
         if self.accumulated_parts == 0 {
-            self.mixed_colour = colour.rgb::<Prop>();
+            self.mixed_colour = colour.into_rgb::<Prop>();
         } else {
-            let rgb = colour.rgb::<Prop>();
+            let rgb = colour.into_rgb::<Prop>();
             let other_prop = Prop::from_fraction(parts, self.accumulated_parts + parts);
             // NB: ensure total isn't greater than ONE due to roundin errors
             let my_prop = Prop::ONE - other_prop;
@@ -97,7 +101,7 @@ impl AltWeightedAverageMixer {
 
     pub fn mixed_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
         if self.accumulated_parts > 0 {
-            Some(self.mixed_colour.rgb::<L>())
+            Some(self.mixed_colour.into_rgb::<L>())
         } else {
             None
         }

@@ -240,7 +240,7 @@ impl PaintEditor {
                 mask: SAV_RGB_CHANGED,
             };
             if let Some(paint) = bpe_c.current_paint.borrow().as_ref()
-                && paint.colour != hcv.rgb::<u8>()
+                && paint.colour != hcv.into_rgb::<u8>()
             {
                 masked_condns.condns += SAV_RGB_CHANGED;
             }

@@ -244,9 +244,9 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
         (*self).into_hcv()
     }
 
-    fn rgb<LO: LightLevel>(&self) -> RGB<LO> {
-        (*self).into_rgb::<LO>()
-    }
+    // fn rgb<LO: LightLevel>(&self) -> RGB<LO> {
+    //     (*self).into_rgb::<LO>()
+    // }
 
     fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
         (*self).into_cmy::<LO>()
@@ -425,7 +425,7 @@ impl CMYSubtractiveMix {
     }
 
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.colour.rgb::<L>()
+        self.colour.into_rgb::<L>()
     }
 }
 

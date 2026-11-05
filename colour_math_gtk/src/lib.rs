@@ -15,7 +15,7 @@ pub mod colour {
 
     pub trait GdkColour: colour_math::ColourIfce {
         fn gdk_rgba(&self) -> gdk::RGBA {
-            let rgb = self.rgb::<u64>().into_proportions();
+            let rgb = self.into_rgb::<u64>().into_proportions();
             gdk::RGBA::new(
                 rgb[0].prop_into(),
                 rgb[1].prop_into(),

@@ -6,7 +6,7 @@ use crate::{
     hcv::HCV,
     hue::Hue,
     hue::{angle::Angle, ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility},
-    rgb::RGB,
+    rgb::{IntoRGB, RGB},
     ColourBasics, HueConstants, LightLevel, SetScalarPolicy,
 };
 
@@ -77,7 +77,7 @@ impl ColourManipulator {
     }
 
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.hcv.rgb()
+        self.hcv.into_rgb()
     }
 
     pub fn hcv(&self) -> HCV {

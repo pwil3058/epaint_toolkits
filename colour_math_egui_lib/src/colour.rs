@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, HCV, LightLevel, RGB};
+use colour_math::{ColourBasics, HCV, IntoRGB, LightLevel, RGB};
 use eframe::egui::{Color32, ColorImage, Pos2, Rect};
 use std::ops::{Deref, DerefMut};
 
@@ -16,7 +16,7 @@ impl<L: LightLevel> Depuis<Color32> for RGB<L> {
     fn depuis(color: Color32) -> Self {
         let (red, green, blue, _) = color.to_tuple();
         let colour: RGB<u8> = [red, green, blue].into();
-        colour.rgb::<L>()
+        colour.into_rgb::<L>()
     }
 }
 
@@ -28,7 +28,7 @@ impl<L: LightLevel> Dedans<RGB<L>> for Color32 {
 
 impl<L: LightLevel> Depuis<RGB<L>> for Color32 {
     fn depuis(arg: RGB<L>) -> Self {
-        let (red, green, blue) = arg.rgb::<u8>().into();
+        let (red, green, blue) = arg.into_rgb::<u8>().into();
         Self::from_rgb(red, green, blue)
     }
 }
@@ -53,7 +53,7 @@ impl Dedans<HCV> for Color32 {
 
 impl Depuis<HCV> for Color32 {
     fn depuis(arg: HCV) -> Self {
-        arg.rgb::<u8>().dedans()
+        arg.into_rgb::<u8>().dedans()
     }
 }
 

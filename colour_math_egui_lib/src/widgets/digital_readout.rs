@@ -1,7 +1,6 @@
-// Complete refactor of colour_math_egui_lib/src/widgets/digital_readout.rs
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, manipulator::ColourManipulator, rgb::RGB};
+use colour_math::{ColourBasics, ColourManipulator, IntoRGB, RGB};
 use eframe::egui;
 
 pub struct DigitalReadout;
@@ -9,7 +8,7 @@ pub struct DigitalReadout;
 impl DigitalReadout {
     pub fn show(ui: &mut egui::Ui, manipulator: &mut ColourManipulator) {
         let current_hcv = manipulator.hcv();
-        let rgb_u8 = current_hcv.rgb::<u8>();
+        let rgb_u8 = current_hcv.into_rgb::<u8>();
 
         let mut r_val = rgb_u8[0];
         let mut g_val = rgb_u8[1];

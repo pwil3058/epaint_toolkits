@@ -7,7 +7,7 @@ use gtk3_ext::cairo;
 use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    ColourBasics, IntoProps, RGBConstants, HCV, RGB,
+    Colour, ColourBasics, IntoProps, IntoRGB, RGBConstants, HCV, RGB,
 };
 
 // #[derive(Debug, Default, Copy, Clone)]
@@ -141,8 +141,8 @@ impl From<beigui::TextPosn> for TextPosn {
 }
 
 pub trait CairoSetColour {
-    fn set_source_colour(&self, colour: &(impl ColourBasics + IntoProps)) {
-        let rgb: RGB<f64> = colour.rgb::<f64>();
+    fn set_source_colour(&self, colour: &(impl Colour + IntoProps)) {
+        let rgb: RGB<f64> = colour.into_rgb::<f64>();
         self.set_source_colour_rgb(&rgb);
     }
 
@@ -210,16 +210,16 @@ impl<'a> Draw for Drawer<'a> {
         }
     }
 
-    fn set_fill_colour(&self, colour: &impl ColourBasics) {
-        self.fill_colour.set(colour.rgb::<f64>());
+    fn set_fill_colour(&self, colour: &impl Colour) {
+        self.fill_colour.set(colour.into_rgb::<f64>());
     }
 
-    fn set_line_colour(&self, colour: &impl ColourBasics) {
-        self.line_colour.set(colour.rgb::<f64>());
+    fn set_line_colour(&self, colour: &impl Colour) {
+        self.line_colour.set(colour.into_rgb::<f64>());
     }
 
-    fn set_text_colour(&self, colour: &impl ColourBasics) {
-        self.text_colour.set(colour.rgb::<f64>());
+    fn set_text_colour(&self, colour: &impl Colour) {
+        self.text_colour.set(colour.into_rgb::<f64>());
     }
 
     fn set_line_width(&self, width: UFDRNum) {
@@ -286,7 +286,7 @@ impl<'a> Draw for Drawer<'a> {
             0.5 * f64::from(size.height),
         );
         for colour_stop in colour_stops.iter() {
-            let rgb: RGB<f64> = colour_stop.0.rgb::<f64>();
+            let rgb: RGB<f64> = colour_stop.0.into_rgb::<f64>();
             linear_gradient.add_color_stop_rgb(colour_stop.1.prop_into(), rgb[0], rgb[1], rgb[2]);
         }
         self.cairo_context.rectangle(
@@ -305,9 +305,9 @@ impl<'a> Draw for Drawer<'a> {
 impl<'a> DrawIsosceles for Drawer<'a> {}
 
 impl<'a> DrawShapes for Drawer<'a> {
-    fn set_background_colour(&self, colour: &impl ColourBasics) {
+    fn set_background_colour(&self, colour: &impl Colour) {
         self.cairo_context
-            .set_source_colour_rgb(&colour.rgb::<f64>());
+            .set_source_colour_rgb(&colour.into_rgb::<f64>());
         self.cairo_context.paint().expect("couldn't paint");
     }
 

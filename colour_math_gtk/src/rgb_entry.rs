@@ -37,7 +37,7 @@ impl<U: Hexable + LightLevel> RGBHexEntry<U> {
     }
 
     pub fn set_colour(&self, colour: &impl GdkColour) {
-        self.set_rgb(&colour.rgb::<U>())
+        self.set_rgb(&colour.into_rgb::<U>())
     }
 
     pub fn set_rgb(&self, rgb: &RGB<U>) {
@@ -77,7 +77,7 @@ impl<U: Hexable + LightLevel> RGBHexEntryBuilder<U> {
     }
 
     pub fn initial_colour(&mut self, initial_colour: &impl GdkColour) -> &mut Self {
-        self.initial_rgb = initial_colour.rgb::<U>();
+        self.initial_rgb = initial_colour.into_rgb::<U>();
         self
     }
 

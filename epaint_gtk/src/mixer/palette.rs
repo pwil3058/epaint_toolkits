@@ -29,7 +29,9 @@ use gtk3_ext::{
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
 
-use colour_math::{HCV, MakeColouredShape, RGBConstants, ScalarAttribute, WeightedAverageMixer};
+use colour_math::{
+    HCV, IntoRGB, MakeColouredShape, RGBConstants, ScalarAttribute, WeightedAverageMixer,
+};
 use colour_math_cairo::CairoSetColour;
 
 #[cfg(feature = "targeted_mixtures")]
@@ -305,7 +307,7 @@ impl MixtureEntry {
         self.target_colour
             .borrow()
             .as_ref()
-            .map(|colour| colour.rgb::<L>())
+            .map(|colour| colour.into_rgb::<L>())
     }
 
     #[cfg(feature = "targeted_mixtures")]

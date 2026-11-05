@@ -12,7 +12,7 @@ use epaint::{
 };
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{HCV, ScalarAttribute};
+use colour_math::{Colour, HCV, ScalarAttribute};
 use epaint::properties::PropertyTypes;
 
 pub struct PaintListViewSpec {
@@ -161,8 +161,11 @@ impl PaintListRow for Paint {
             ha.to_value(),
         ];
         for attr in attributes.iter() {
-            let string = format!("{:5.4}", f64::from_prop(self.scalar_attribute(*attr)));
-            let attr_rgb = self.scalar_attribute_rgb::<u8>(*attr);
+            let string = format!(
+                "{:5.4}",
+                f64::from_prop(self.colour.scalar_attribute(*attr))
+            );
+            let attr_rgb = self.colour.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());
@@ -360,8 +363,11 @@ impl PaintListRow for Mixture {
             ha.to_value(),
         ];
         for attr in attributes.iter() {
-            let string = format!("{:5.4}", f64::from_prop(self.scalar_attribute(*attr)));
-            let attr_rgb = self.scalar_attribute_rgb::<u8>(*attr);
+            let string = format!(
+                "{:5.4}",
+                f64::from_prop(self.colour.scalar_attribute(*attr))
+            );
+            let attr_rgb = self.colour.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());
             row.push(attr_rgb.pango_string().to_value());
             row.push(attr_rgb.best_foreground().pango_string().to_value());

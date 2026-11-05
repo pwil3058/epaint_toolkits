@@ -16,11 +16,11 @@ use gtk3_ext::{
 };
 
 // use crate::colour::PartsColour;
-use colour_math::{ColourBasics, LightLevel, HCV, RGB};
+use colour_math::{ColourBasics, HCV, IntoRGB, LightLevel, RGB};
 use colour_math_gtk::coloured::Colourable;
 
-use epaint::paint::RangePaint;
 use epaint::TooltipText;
+use epaint::paint::RangePaint;
 use gtk3_ext::gtk::Orientation;
 
 type RemoveCallback = Box<dyn Fn(&RangePaint)>;
@@ -131,7 +131,7 @@ impl PartsSpinButton {
     }
 
     pub fn rgb_parts<L: LightLevel>(&self) -> (RGB<L>, u64) {
-        (self.range_paint.rgb::<L>(), self.parts())
+        (self.range_paint.colour().into_rgb::<L>(), self.parts())
     }
 
     pub fn paint_parts(&self) -> (&RangePaint, u64) {

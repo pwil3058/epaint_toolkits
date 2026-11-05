@@ -178,7 +178,7 @@ pub trait ColourBasics {
     fn family(&self) -> Option<Family>;
 
     fn hcv(&self) -> HCV;
-    fn rgb<L: LightLevel>(&self) -> RGB<L>;
+    // fn rgb<L: LightLevel>(&self) -> RGB<L>;
     fn cmy<L: LightLevel>(&self) -> CMY<L>;
 
     fn monochrome_hcv(&self) -> HCV {
@@ -217,14 +217,16 @@ pub trait ColourBasics {
             }
         }
     }
+}
 
+pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {
     fn pango_string(&self) -> String {
-        let rgb = self.rgb::<u8>();
+        let rgb = self.into_rgb::<u8>();
         format!("#{:02X}{:02X}{:02X}", rgb.0[0], rgb.0[1], rgb.0[2])
     }
 
     fn hex_string<L: LightLevel + Unsigned + UpperHex>(&self) -> String {
-        let rgb = self.rgb::<L>();
+        let rgb = self.into_rgb::<L>();
         let hex_digits_per_item = std::mem::size_of::<L>() * 2;
 
         // 3$ means "use the argument at index 3 for the width"
@@ -234,8 +236,6 @@ pub trait ColourBasics {
         )
     }
 }
-
-pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScalarAttribute {
@@ -256,7 +256,7 @@ impl std::fmt::Display for ScalarAttribute {
     }
 }
 
-pub trait ColourAttributes: ColourBasics {
+pub trait ColourAttributes: Colour {
     fn scalar_attribute(&self, attr: ScalarAttribute) -> Prop {
         match attr {
             ScalarAttribute::Chroma => self.chroma().into_prop(),
@@ -268,8 +268,8 @@ pub trait ColourAttributes: ColourBasics {
 
     fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttribute) -> RGB<T> {
         match attr {
-            ScalarAttribute::Chroma => self.rgb(),
-            ScalarAttribute::Greyness => self.rgb(),
+            ScalarAttribute::Chroma => self.into_rgb(),
+            ScalarAttribute::Greyness => self.into_rgb(),
             ScalarAttribute::Value => RGB::<T>::new_grey(self.value()),
             ScalarAttribute::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
         }

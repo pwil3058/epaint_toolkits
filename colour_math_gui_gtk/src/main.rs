@@ -154,7 +154,7 @@ mod tests {
             colour: HCV::YELLOW,
             _dummy: 0,
         };
-        assert_eq!(colour_wrapper.rgb::<u64>(), RGB::<u64>::YELLOW);
+        assert_eq!(colour_wrapper.colour.into_rgb::<u64>(), RGB::<u64>::YELLOW);
     }
 
     #[test]

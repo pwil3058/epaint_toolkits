@@ -84,9 +84,9 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.hcv()
             }
 
-            fn rgb<L: LightLevel>(&self) -> colour_math::RGB<L> {
-                self.#colour.rgb::<L>()
-            }
+            // fn rgb<L: LightLevel>(&self) -> colour_math::RGB<L> {
+            //     self.#colour.rgb::<L>()
+            // }
 
             fn cmy<L: LightLevel>(&self) -> colour_math::CMY<L> {
                 self.#colour.cmy::<L>()
@@ -104,9 +104,9 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.best_foreground()
             }
 
-            fn pango_string(&self) -> String {
-                self.#colour.pango_string()
-            }
+            // fn pango_string(&self) -> String {
+            //     self.#colour.pango_string()
+            // }
         }
 
         // impl IntoProps for #struct_name #ty_generics #where_clause {
@@ -115,8 +115,8 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
         //     }
         // }
 
-        impl #impl_generics colour_math::ColourAttributes for #struct_name #ty_generics #where_clause {}
-        impl #impl_generics colour_math::ColourIfce for #struct_name #ty_generics #where_clause {}
+        // impl #impl_generics colour_math::ColourAttributes for #struct_name #ty_generics #where_clause {}
+        // impl #impl_generics colour_math::ColourIfce for #struct_name #ty_generics #where_clause {}
     };
 
     proc_macro::TokenStream::from(tokens)

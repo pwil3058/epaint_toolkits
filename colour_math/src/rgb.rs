@@ -255,9 +255,9 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
         (*self).into()
     }
 
-    fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        RGB::<L>::from_proportions(self.into_proportions())
-    }
+    // fn rgb<L: LightLevel>(&self) -> RGB<L> {
+    //     RGB::<L>::from_proportions(self.into_proportions())
+    // }
 
     fn cmy<L: LightLevel>(&self) -> CMY<L> {
         (*self).into_cmy::<L>()
@@ -319,9 +319,9 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
     fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
         match self.into_hcv().with_value(new_value, policy) {
-            Ok(hcv) => Ok(hcv.rgb::<L>()),
-            Clamped(hcv) => Clamped(hcv.rgb::<L>()),
-            Accommodated(hcv) => Accommodated(hcv.rgb::<L>()),
+            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
+            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
+            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
             NoChange => NoChange,
             Rejected => Rejected,
         }

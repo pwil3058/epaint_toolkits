@@ -3,7 +3,7 @@ use std::ops::{Add, Mul, Sub};
 
 use crate::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, Prop, UFDRNum};
 
-use crate::{hcv::HCV, hue::angle::Angle, ColourBasics};
+use crate::{hcv::HCV, hue::angle::Angle, Colour, ColourBasics};
 
 #[cfg(test)]
 mod test_beigui;
@@ -117,9 +117,9 @@ pub trait Draw {
     fn size(&self) -> Size;
     fn draw_polygon(&self, polygon: &[Point], fill: bool);
 
-    fn set_fill_colour(&self, colour: &impl ColourBasics);
-    fn set_line_colour(&self, colour: &impl ColourBasics);
-    fn set_text_colour(&self, colour: &impl ColourBasics);
+    fn set_fill_colour(&self, colour: &impl Colour);
+    fn set_line_colour(&self, colour: &impl Colour);
+    fn set_text_colour(&self, colour: &impl Colour);
 
     fn set_line_width(&self, width: UFDRNum);
 
@@ -203,7 +203,7 @@ pub trait DrawIsosceles: Draw {
 }
 
 pub trait DrawShapes: DrawIsosceles {
-    fn set_background_colour(&self, colour: &impl ColourBasics);
+    fn set_background_colour(&self, colour: &impl Colour);
     fn draw_circle(&self, centre: Point, radius: UFDRNum, fill: bool);
 
     fn draw_diamond(&self, centre: Point, side_length: UFDRNum, fill: bool) {

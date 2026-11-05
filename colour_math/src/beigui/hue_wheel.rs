@@ -9,7 +9,8 @@ use crate::{
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,
-    ColourAttributes, ColourBasics, HueConstants, LightLevel, RGBConstants, ScalarAttribute,
+    Colour, ColourAttributes, ColourBasics, HueConstants, LightLevel, RGBConstants,
+    ScalarAttribute,
 };
 
 #[derive(Debug)]

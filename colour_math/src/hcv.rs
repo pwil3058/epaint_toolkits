@@ -350,9 +350,9 @@ impl ColourBasics for HCV {
         }
     }
 
-    fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        (*self).into_rgb()
-    }
+    // fn rgb<L: LightLevel>(&self) -> RGB<L> {
+    //     (*self).into_rgb()
+    // }
 
     fn hcv(&self) -> HCV {
         *self
