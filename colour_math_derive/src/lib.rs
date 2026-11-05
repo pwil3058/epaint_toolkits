@@ -80,9 +80,9 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.family()
             }
 
-            fn hcv(&self) -> colour_math::HCV {
-                self.#colour.hcv()
-            }
+            // fn hcv(&self) -> colour_math::HCV {
+            //     self.#colour.hcv()
+            // }
 
             // fn rgb<L: LightLevel>(&self) -> colour_math::RGB<L> {
             //     self.#colour.rgb::<L>()

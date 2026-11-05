@@ -13,7 +13,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, HCV, ScalarAttribute};
+use colour_math::{HCV, IntoHCV, ScalarAttribute};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
@@ -43,7 +43,8 @@ impl PaintDisplay {
             self.cads.set_target_colour(Some(colour));
         } else {
             self.target_label.set_label("");
-            self.target_label.set_widget_colour(&self.range_paint.hcv());
+            self.target_label
+                .set_widget_colour(&self.range_paint.colour().into_hcv());
             self.cads.set_target_colour(Option::<&HCV>::None);
         };
     }
@@ -78,12 +79,12 @@ impl PaintDisplayBuilder {
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&mut self, target_colour: Option<&impl GdkColour>) -> &mut Self {
-        self.target_colour = target_colour.map(|target_colour| target_colour.hcv());
+        self.target_colour = target_colour.map(|target_colour| target_colour.into_hcv());
         self
     }
 
     pub fn build(&self, range_paint: &RangePaint) -> PaintDisplay {
-        let hcv = range_paint.hcv();
+        let hcv = range_paint.colour().into_hcv();
         let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
@@ -300,7 +301,7 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
     }
 
     pub fn target_colour(&mut self, target_colour: &impl GdkColour) -> &mut Self {
-        self.target_colour = Some(target_colour.hcv());
+        self.target_colour = Some(target_colour.into_hcv());
         self
     }
 

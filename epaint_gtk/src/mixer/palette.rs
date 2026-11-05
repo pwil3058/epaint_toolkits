@@ -280,7 +280,7 @@ impl MixtureEntry {
 
     pub fn set_mix_colour(&self, colour: Option<&impl GdkColour>) {
         if let Some(colour) = colour {
-            *self.mix_colour.borrow_mut() = Some(colour.hcv());
+            *self.mix_colour.borrow_mut() = Some(colour.into_hcv());
             self.cads.set_colour(Some(colour));
         } else {
             *self.mix_colour.borrow_mut() = None;
@@ -292,7 +292,7 @@ impl MixtureEntry {
     #[cfg(feature = "targeted_mixtures")]
     pub fn set_target_colour(&self, colour: Option<&impl GdkColour>) {
         if let Some(colour) = colour {
-            *self.target_colour.borrow_mut() = Some(colour.hcv());
+            *self.target_colour.borrow_mut() = Some(colour.into_hcv());
             self.cads.set_target_colour(Some(colour));
         } else {
             *self.target_colour.borrow_mut() = None;
@@ -303,7 +303,6 @@ impl MixtureEntry {
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_rgb<L: LightLevel>(&self) -> Option<RGB<L>> {
-        use colour_math::ColourBasics;
         self.target_colour
             .borrow()
             .as_ref()
@@ -312,11 +311,11 @@ impl MixtureEntry {
 
     #[cfg(feature = "targeted_mixtures")]
     pub fn target_colour(&self) -> Option<HCV> {
-        use colour_math::ColourBasics;
+        use colour_math::IntoHCV;
         self.target_colour
             .borrow()
             .as_ref()
-            .map(|colour| colour.hcv())
+            .map(|colour| colour.into_hcv())
     }
 
     #[cfg(feature = "palette_samples")]
@@ -833,13 +832,13 @@ impl PixtureMixerBuilder {
 
         #[cfg(feature = "targeted_mixtures")]
         {
-            use colour_math::ColourBasics;
+            use colour_math::IntoHCV;
             let mixture_mixer_c = Rc::clone(&mixture_mixer);
             mixture_mixer
                 .paint_standards_manager
                 .connect_set_as_target(move |paint| {
                     let name = paint.name();
-                    let colour = paint.hcv();
+                    let colour = paint.colour().into_hcv();
                     let notes = paint.notes();
                     mixture_mixer_c.start_new_targeted_mixture(name, notes, &colour);
                 });

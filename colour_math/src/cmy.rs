@@ -240,9 +240,9 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
         (*self).into_rgb::<Prop>().family()
     }
 
-    fn hcv(&self) -> HCV {
-        (*self).into_hcv()
-    }
+    // fn hcv(&self) -> HCV {
+    //     (*self).into_hcv()
+    // }
 
     // fn rgb<LO: LightLevel>(&self) -> RGB<LO> {
     //     (*self).into_rgb::<LO>()

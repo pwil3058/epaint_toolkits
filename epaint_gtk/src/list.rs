@@ -12,7 +12,7 @@ use epaint::{
 };
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{Colour, HCV, ScalarAttribute};
+use colour_math::{Colour, HCV, IntoHCV, ScalarAttribute};
 use epaint::properties::PropertyTypes;
 
 pub struct PaintListViewSpec {
@@ -151,7 +151,7 @@ impl PaintListRow for Paint {
             HCV::new_grey(self.value())
         };
         let mut row: Vec<glib::Value> = vec![
-            self.hcv().pango_string().to_value(),
+            self.colour.into_hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             #[cfg(feature = "paints_have_ids")]
             self.id.to_value(),
@@ -353,7 +353,7 @@ impl PaintListRow for Mixture {
         };
         let mut row: Vec<glib::Value> = vec![
             self.id.to_value(),
-            self.hcv().pango_string().to_value(),
+            self.colour.into_hcv().pango_string().to_value(),
             self.best_foreground().pango_string().to_value(),
             self.name.to_value(),
             self.notes.to_value(),

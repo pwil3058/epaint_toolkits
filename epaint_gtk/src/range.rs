@@ -300,7 +300,7 @@ impl RangeBinder {
     #[cfg(feature = "targeted_mixtures")]
     fn set_target_colour(&self, colour: Option<&impl GdkColour>) {
         if let Some(colour) = colour {
-            *self.target_colour.borrow_mut() = Some(colour.hcv());
+            *self.target_colour.borrow_mut() = Some(colour.into_hcv());
             for (page, _) in self.pages.borrow().iter() {
                 page.set_target_colour(Some(colour));
             }

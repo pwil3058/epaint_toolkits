@@ -16,7 +16,7 @@ use gtk3_ext::{
 };
 
 // use crate::colour::PartsColour;
-use colour_math::{ColourBasics, HCV, IntoRGB, LightLevel, RGB};
+use colour_math::{HCV, IntoHCV, IntoRGB, LightLevel, RGB};
 use colour_math_gtk::coloured::Colourable;
 
 use epaint::TooltipText;
@@ -44,7 +44,7 @@ impl PartsSpinButton {
             .events(gdk::EventMask::BUTTON_PRESS_MASK | gdk::EventMask::BUTTON_RELEASE_MASK)
             .hexpand(false)
             .build();
-        event_box.set_widget_colour(&range_paint.hcv());
+        event_box.set_widget_colour(&range_paint.colour().into_hcv());
         let spin_button = gtk::SpinButton::builder()
             .adjustment(&gtk::Adjustment::new(0.0, 0.0, 999.0, 1.0, 10.0, 0.0))
             .climb_rate(0.0)
@@ -53,14 +53,14 @@ impl PartsSpinButton {
             .numeric(true)
             .hexpand(true)
             .build();
-        spin_button.set_widget_colour(&range_paint.hcv());
+        spin_button.set_widget_colour(&range_paint.colour().into_hcv());
         let hbox = gtk::Box::builder()
             .orientation(Orientation::Horizontal)
             .hexpand(false)
             .halign(gtk::Align::Start)
             .border_width(2)
             .build();
-        hbox.set_widget_colour(&range_paint.hcv());
+        hbox.set_widget_colour(&range_paint.colour().into_hcv());
         hbox.pack_start(&spin_button, false, false, 2);
         let frame = gtk::Frame::builder().build();
         frame.add(&hbox);
@@ -127,7 +127,7 @@ impl PartsSpinButton {
     }
 
     pub fn colour_parts(&self) -> (HCV, u64) {
-        (self.range_paint.hcv(), self.parts())
+        (self.range_paint.colour().into_hcv(), self.parts())
     }
 
     pub fn rgb_parts<L: LightLevel>(&self) -> (RGB<L>, u64) {

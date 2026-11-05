@@ -177,7 +177,7 @@ pub trait ColourBasics {
 
     fn family(&self) -> Option<Family>;
 
-    fn hcv(&self) -> HCV;
+    // fn hcv(&self) -> HCV;
     // fn rgb<L: LightLevel>(&self) -> RGB<L>;
     fn cmy<L: LightLevel>(&self) -> CMY<L>;
 

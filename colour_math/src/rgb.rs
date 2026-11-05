@@ -251,9 +251,9 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
         }
     }
 
-    fn hcv(&self) -> HCV {
-        (*self).into()
-    }
+    // fn hcv(&self) -> HCV {
+    //     (*self).into()
+    // }
 
     // fn rgb<L: LightLevel>(&self) -> RGB<L> {
     //     RGB::<L>::from_proportions(self.into_proportions())

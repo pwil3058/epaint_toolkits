@@ -154,7 +154,7 @@ mod tests {
             colour: HCV::YELLOW,
             _dummy: 0,
         };
-        assert_eq!(colour_wrapper.colour.into_rgb::<u64>(), RGB::<u64>::YELLOW);
+        assert_eq!(colour_wrapper.colour.hue().unwrap(), Hue::YELLOW);
     }
 
     #[test]
@@ -163,6 +163,6 @@ mod tests {
             rgb: RGB::CYAN,
             _dummy: 0,
         };
-        assert_eq!(rgb_wrapper.hcv(), HCV::CYAN);
+        assert_eq!(rgb_wrapper.rgb.into_hcv(), HCV::CYAN);
     }
 }

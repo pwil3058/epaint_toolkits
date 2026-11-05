@@ -115,7 +115,7 @@ pub struct ColouredShape {
 }
 
 impl ColouredShape {
-    pub fn new(colour: &impl ColourBasics, id: &str, tooltip_text: &str, shape: Shape) -> Self {
+    pub fn new(colour: &impl Colour, id: &str, tooltip_text: &str, shape: Shape) -> Self {
         let cached_point = if let Some(hue_angle) = colour.hue_angle() {
             CachedPoint::Hued(Point::from((hue_angle, UFDRNum::ONE)))
         } else {
@@ -126,7 +126,7 @@ impl ColouredShape {
         };
         Self {
             id: id.to_string(),
-            colour: colour.hcv(),
+            colour: colour.into_hcv(),
             cached_point,
             tooltip_text: tooltip_text.to_string(),
             shape,
@@ -384,7 +384,7 @@ impl HueWheel {
         self.shapes.clear();
     }
 
-    pub fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    pub fn set_target_colour(&mut self, colour: Option<&impl Colour>) {
         if let Some(colour) = colour {
             let target =
                 ColouredShape::new(colour, "###target###", "Target Colour", Shape::BackSight);

@@ -15,7 +15,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourAttributeType, ColourBasics, ScalarAttribute, HCV};
+use colour_math::{Colour, ColourAttributeType, ScalarAttribute, HCV};
 use colour_math_cairo::{Drawer, Size};
 
 use crate::colour::GdkColour;
@@ -56,11 +56,11 @@ impl ColourAttributeDisplay {
         cad
     }
 
-    pub fn set_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_colour(&self, colour: Option<&impl Colour>) {
         self.colout_attr_display.borrow_mut().set_colour(colour)
     }
 
-    pub fn set_target_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_target_colour(&self, colour: Option<&impl Colour>) {
         self.colout_attr_display
             .borrow_mut()
             .set_target_colour(colour)
@@ -95,7 +95,7 @@ impl ColourAttributeDisplayStack {
     pub fn set_colour(&self, colour: Option<&impl GdkColour>) {
         for cad in self.cads.borrow().iter() {
             if let Some(colour) = colour {
-                cad.set_colour(Some(&colour.hcv()));
+                cad.set_colour(Some(&colour.into_hcv()));
             } else {
                 cad.set_colour(None::<&HCV>);
             }
@@ -105,7 +105,7 @@ impl ColourAttributeDisplayStack {
     pub fn set_target_colour(&self, colour: Option<&impl GdkColour>) {
         for cad in self.cads.borrow().iter() {
             if let Some(colour) = colour {
-                cad.set_target_colour(Some(&colour.hcv()));
+                cad.set_target_colour(Some(&colour.into_hcv()));
             } else {
                 cad.set_target_colour(None::<&HCV>);
             }

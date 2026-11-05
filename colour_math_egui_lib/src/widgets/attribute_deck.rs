@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::widgets::attribute_display::AttributeDisplay;
-use colour_math::{ColourAttributeDisplay, ColourAttributeType, ColourBasics};
+use colour_math::{Colour, ColourAttributeDisplay, ColourAttributeType};
 use eframe::egui;
 
 /// A stateless layout container widget that handles rendering an ordered array
@@ -33,8 +33,8 @@ impl AttributeDeck {
     pub fn show(
         &self,
         ui: &mut egui::Ui,
-        current_colour: &impl ColourBasics,
-        target_colour: Option<&impl ColourBasics>,
+        current_colour: &impl Colour,
+        target_colour: Option<&impl Colour>,
     ) {
         let single_display = AttributeDisplay::new();
         let gap_spacer = 4.0;

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourBasics, HCV, IntoRGB, LightLevel, RGB};
+use colour_math::{HCV, IntoHCV, IntoRGB, LightLevel, RGB};
 use eframe::egui::{Color32, ColorImage, Pos2, Rect};
 use std::ops::{Deref, DerefMut};
 
@@ -41,7 +41,7 @@ impl<L: LightLevel> Dedans<Color32> for RGB<L> {
 
 impl Depuis<Color32> for HCV {
     fn depuis(arg: Color32) -> Self {
-        RGB::<u64>::depuis(arg).hcv()
+        RGB::<u64>::depuis(arg).into_hcv()
     }
 }
 

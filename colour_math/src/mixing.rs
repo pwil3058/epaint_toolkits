@@ -5,7 +5,7 @@ use crate::fixed_denominator_rational_numbers::*;
 use crate::{
     hcv::HCV,
     rgb::{IntoRGB, RGB},
-    Colour, ColourBasics, FromProps, IntoProps, LightLevel,
+    Colour, FromProps, IntoHCV, IntoProps, LightLevel,
 };
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -93,7 +93,7 @@ impl AltWeightedAverageMixer {
 
     pub fn mixed_colour(&self) -> Option<HCV> {
         if self.accumulated_parts > 0 {
-            Some(self.mixed_colour.hcv())
+            Some(self.mixed_colour.into_hcv())
         } else {
             None
         }

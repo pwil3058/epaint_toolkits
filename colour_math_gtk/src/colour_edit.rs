@@ -53,7 +53,7 @@ impl<U: Hexable + LightLevel> ColourEditor<U> {
 
     fn inform_change(&self, colour: &impl GdkColour) {
         for callback in self.change_callbacks.borrow().iter() {
-            callback(&colour.hcv())
+            callback(&colour.into_hcv())
         }
     }
 
@@ -85,7 +85,7 @@ impl ColourEditorBuilder {
     }
 
     pub fn default_colour(&mut self, default_colour: &impl GdkColour) -> &mut Self {
-        self.default_colour = Some(default_colour.hcv());
+        self.default_colour = Some(default_colour.into_hcv());
         self
     }
 

@@ -12,7 +12,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::ColourBasics;
+use colour_math::Colour;
 use colour_math::{ColourAttributeType, ScalarAttribute};
 
 use colour_math::beigui::attr_display;
@@ -55,11 +55,11 @@ impl ColourAttributeDisplay {
         cad
     }
 
-    pub fn set_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_colour(&self, colour: Option<&impl Colour>) {
         self.colout_attr_display.borrow_mut().set_colour(colour)
     }
 
-    pub fn set_target_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_target_colour(&self, colour: Option<&impl Colour>) {
         self.colout_attr_display
             .borrow_mut()
             .set_target_colour(colour)
@@ -88,13 +88,13 @@ impl ColourAttributeDisplayBox {
         Rc::new(Self { vbox, cads })
     }
 
-    pub fn set_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_colour(&self, colour: Option<&impl Colour>) {
         for cad in self.cads.borrow().iter() {
             cad.set_colour(colour);
         }
     }
 
-    pub fn set_target_colour(&self, colour: Option<&impl ColourBasics>) {
+    pub fn set_target_colour(&self, colour: Option<&impl Colour>) {
         for cad in self.cads.borrow().iter() {
             cad.set_target_colour(colour);
         }

@@ -7,7 +7,7 @@ use gtk3_ext::cairo;
 use colour_math::fixed_denominator_rational_numbers::*;
 use colour_math::{
     beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    Colour, ColourBasics, IntoProps, IntoRGB, RGBConstants, HCV, RGB,
+    Colour, IntoProps, IntoRGB, RGBConstants, HCV, RGB,
 };
 
 // #[derive(Debug, Default, Copy, Clone)]

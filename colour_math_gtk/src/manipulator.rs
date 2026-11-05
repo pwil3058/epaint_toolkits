@@ -98,7 +98,7 @@ impl ColourManipulatorGUI {
     fn set_colour_and_inform(&self, colour: &impl ManipGdkColour) {
         self.set_colour(colour);
         for callback in self.change_callbacks.borrow().iter() {
-            callback(colour.hcv())
+            callback(colour.into_hcv())
         }
     }
 

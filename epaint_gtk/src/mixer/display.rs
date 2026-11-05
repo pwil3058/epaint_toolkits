@@ -15,7 +15,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColourBasics, ScalarAttribute, HCV};
+use colour_math::{Colour, HCV, IntoHCV, ScalarAttribute};
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::coloured::Colourable;
 
@@ -44,7 +44,8 @@ impl MixtureDisplay {
             self.cads.set_target_colour(Some(colour));
         } else {
             self.target_placard.set_label("");
-            self.target_placard.set_widget_colour(&self.mixture.hcv());
+            self.target_placard
+                .set_widget_colour(&self.mixture.colour.into_hcv());
             self.cads.set_target_colour(Option::<&HCV>::None);
         };
     }
@@ -81,13 +82,13 @@ impl MixtureDisplayBuilder {
     }
 
     #[cfg(feature = "targeted_mixtures")]
-    pub fn target_colour(&mut self, target_colour: Option<&impl ColourBasics>) -> &mut Self {
-        self.target_colour = target_colour.map(|target_colour| target_colour.hcv());
+    pub fn target_colour(&mut self, target_colour: Option<&impl Colour>) -> &mut Self {
+        self.target_colour = target_colour.map(|target_colour| target_colour.into_hcv());
         self
     }
 
     pub fn build(&self, mixture: &Mixture) -> MixtureDisplay {
-        let colour = mixture.hcv();
+        let colour = mixture.colour.into_hcv();
         let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .build();
@@ -255,8 +256,8 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
         self
     }
 
-    pub fn target_colour(&mut self, target_colour: &impl ColourBasics) {
-        self.target_colour = Some(target_colour.hcv());
+    pub fn target_colour(&mut self, target_colour: &impl Colour) {
+        self.target_colour = Some(target_colour.into_hcv());
     }
 
     pub fn build(&self) -> MixtureDisplayDialogManager<W> {

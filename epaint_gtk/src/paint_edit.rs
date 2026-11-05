@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use colour_math::{ColourBasics, IntoRGB, ScalarAttribute};
+use colour_math::{IntoRGB, ScalarAttribute};
 use colour_math_gtk::colour_edit::ColourEditor;
 use gtk3_ext::{
     gtk::{self, Button, prelude::*},

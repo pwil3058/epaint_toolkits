@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::RGB;
 use colour_math::{
-    ColourBasics, ColouredShape, HCV, IntoRGB, LightLevel, MakeColouredShape, Shape,
+    Colour, ColouredShape, HCV, IntoHCV, IntoRGB, LightLevel, MakeColouredShape, Shape,
     WeightedAverageMixer,
 };
 
@@ -245,8 +245,8 @@ impl MixtureBuilder {
     }
 
     #[cfg(feature = "targeted_mixtures")]
-    pub fn targeted_colour(&mut self, colour: &impl ColourBasics) -> &mut Self {
-        self.targeted_colour = Some(colour.hcv());
+    pub fn targeted_colour(&mut self, colour: &impl Colour) -> &mut Self {
+        self.targeted_colour = Some(colour.into_hcv());
         self
     }
 
@@ -273,7 +273,7 @@ impl MixtureBuilder {
         let mut properties_mixer = PropertiesMixer::default();
         for (colln_paint, parts) in self.series_components.iter() {
             let adjusted_parts = *parts / gcd;
-            colour_mix.add(&colln_paint.hcv(), adjusted_parts);
+            colour_mix.add(&colln_paint.colour().into_hcv(), adjusted_parts);
             properties_mixer.add(&colln_paint.paint.properties, adjusted_parts);
             components.push((colln_paint.clone(), adjusted_parts));
         }

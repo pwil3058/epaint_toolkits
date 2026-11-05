@@ -354,9 +354,9 @@ impl ColourBasics for HCV {
     //     (*self).into_rgb()
     // }
 
-    fn hcv(&self) -> HCV {
-        *self
-    }
+    // fn hcv(&self) -> HCV {
+    //     *self
+    // }
 
     fn cmy<L: LightLevel>(&self) -> CMY<L> {
         (*self).into_cmy::<L>()

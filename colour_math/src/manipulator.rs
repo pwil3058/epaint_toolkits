@@ -7,7 +7,7 @@ use crate::{
     hue::Hue,
     hue::{angle::Angle, ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility},
     rgb::{IntoRGB, RGB},
-    ColourBasics, HueConstants, LightLevel, SetScalarPolicy,
+    Colour, ColourBasics, HueConstants, LightLevel, SetScalarPolicy,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
@@ -84,8 +84,8 @@ impl ColourManipulator {
         self.hcv
     }
 
-    pub fn set_colour(&mut self, colour: &impl ColourBasics) {
-        self.hcv = colour.hcv()
+    pub fn set_colour(&mut self, colour: &impl Colour) {
+        self.hcv = colour.into_hcv()
     }
 
     pub fn clamped(&self) -> bool {

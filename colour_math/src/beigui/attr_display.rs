@@ -9,7 +9,7 @@ use crate::{
     beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
     hcv::HCV,
     hue::{Hue, HueIfce},
-    ColourBasics, HueConstants, RGBConstants, ScalarAttribute,
+    Colour, ColourBasics, HueConstants, RGBConstants, ScalarAttribute,
 };
 
 pub trait ColourAttributeDisplayIfce {
@@ -21,11 +21,11 @@ pub trait ColourAttributeDisplayIfce {
 
     fn new() -> Self;
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>);
+    fn set_colour(&mut self, colour: Option<&impl Colour>);
     fn attr_value(&self) -> Option<Prop>;
     fn attr_value_fg_colour(&self) -> HCV;
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>);
+    fn set_target_colour(&mut self, colour: Option<&impl Colour>);
     fn attr_target_value(&self) -> Option<Prop>;
     fn attr_target_value_fg_colour(&self) -> HCV;
 
@@ -266,13 +266,13 @@ pub struct ChromaCAD {
 }
 
 impl ChromaCAD {
-    fn set_colour_stops(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour_stops(&mut self, colour: Option<&impl Colour>) {
         self.colour_stops = if let Some(colour) = colour {
             if let Some(end_hcv) = colour.hue_hcv() {
                 let start_hcv = colour.monochrome_hcv();
                 vec![(start_hcv, Prop::ZERO), (end_hcv, Prop::ONE)]
             } else {
-                let grey = colour.hcv();
+                let grey = colour.into_hcv();
                 vec![(grey, Prop::ZERO), (grey, Prop::ONE)]
             }
         } else {
@@ -300,7 +300,7 @@ impl ColourAttributeDisplayIfce for ChromaCAD {
         }
     }
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour(&mut self, colour: Option<&impl Colour>) {
         if let Some(colour) = colour {
             self.chroma = Some(colour.chroma());
             self.chroma_fg_colour = colour.best_foreground();
@@ -328,7 +328,7 @@ impl ColourAttributeDisplayIfce for ChromaCAD {
         self.chroma_fg_colour
     }
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_target_colour(&mut self, colour: Option<&impl Colour>) {
         if let Some(colour) = colour {
             self.target_chroma = Some(colour.chroma());
             self.target_chroma_fg_colour = colour.monochrome_hcv().best_foreground();
@@ -439,13 +439,13 @@ pub struct GreynessCAD {
 }
 
 impl GreynessCAD {
-    fn set_colour_stops(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour_stops(&mut self, colour: Option<&impl Colour>) {
         self.colour_stops = if let Some(colour) = colour {
             if let Some(start_colour) = colour.hue_hcv() {
                 let end_colour = colour.monochrome_hcv();
                 vec![(start_colour, Prop::ZERO), (end_colour, Prop::ONE)]
             } else {
-                let grey = colour.hcv();
+                let grey = colour.into_hcv();
                 vec![(grey, Prop::ZERO), (grey, Prop::ONE)]
             }
         } else {
@@ -473,7 +473,7 @@ impl ColourAttributeDisplayIfce for GreynessCAD {
         }
     }
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour(&mut self, colour: Option<&impl Colour>) {
         if let Some(colour) = colour {
             self.greyness = Some(colour.greyness());
             self.greyness_fg_colour = colour.best_foreground();
@@ -501,7 +501,7 @@ impl ColourAttributeDisplayIfce for GreynessCAD {
         self.greyness_fg_colour
     }
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_target_colour(&mut self, colour: Option<&impl Colour>) {
         if let Some(colour) = colour {
             self.target_greyness = Some(colour.greyness());
             self.target_greyness_fg_colour = colour.monochrome_hcv().best_foreground();
@@ -660,7 +660,7 @@ impl ColourAttributeDisplay {
         }
     }
 
-    pub fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    pub fn set_colour(&mut self, colour: Option<&impl Colour>) {
         match self {
             ColourAttributeDisplay::Hue(hue) => hue.set_colour(colour),
             ColourAttributeDisplay::Chroma(chroma) => chroma.set_colour(colour),
@@ -670,7 +670,7 @@ impl ColourAttributeDisplay {
         }
     }
 
-    pub fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    pub fn set_target_colour(&mut self, colour: Option<&impl Colour>) {
         match self {
             ColourAttributeDisplay::Hue(hue) => hue.set_target_colour(colour),
             ColourAttributeDisplay::Chroma(chroma) => chroma.set_target_colour(colour),

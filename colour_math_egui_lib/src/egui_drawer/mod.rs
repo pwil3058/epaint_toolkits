@@ -3,7 +3,7 @@
 // pub mod egui_drawer_bridge;
 
 use colour_math::{
-    ColourBasics, IntoProps,
+    Colour, IntoProps,
     beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
     fixed_denominator_rational_numbers::*,
 };
@@ -68,8 +68,8 @@ impl<'a> EguiDrawer<'a> {
         )
     }
 
-    fn to_egui_color(colour: &impl ColourBasics) -> egui::Color32 {
-        let prop_array = colour.hcv().into_proportions();
+    fn to_egui_color(colour: &impl Colour) -> egui::Color32 {
+        let prop_array = colour.into_hcv().into_proportions();
         let r_f64 = f64::from_prop(prop_array[0]);
         let g_f64 = f64::from_prop(prop_array[1]);
         let b_f64 = f64::from_prop(prop_array[2]);
@@ -88,15 +88,15 @@ impl<'a> Draw for EguiDrawer<'a> {
         [UFDRNum::from(size.x as f64), UFDRNum::from(size.y as f64)].into()
     }
 
-    fn set_fill_colour(&self, colour: &impl ColourBasics) {
+    fn set_fill_colour(&self, colour: &impl Colour) {
         self.fill_colour.set(Self::to_egui_color(colour));
     }
 
-    fn set_line_colour(&self, colour: &impl ColourBasics) {
+    fn set_line_colour(&self, colour: &impl Colour) {
         self.line_colour.set(Self::to_egui_color(colour));
     }
 
-    fn set_text_colour(&self, colour: &impl ColourBasics) {
+    fn set_text_colour(&self, colour: &impl Colour) {
         self.text_colour.set(Self::to_egui_color(colour));
     }
 
@@ -223,7 +223,7 @@ impl<'a> Draw for EguiDrawer<'a> {
 impl<'a> DrawIsosceles for EguiDrawer<'a> {}
 
 impl<'a> DrawShapes for EguiDrawer<'a> {
-    fn set_background_colour(&self, colour: &impl ColourBasics) {
+    fn set_background_colour(&self, colour: &impl Colour) {
         self.painter
             .rect_filled(self.canvas_rect, 0.0, Self::to_egui_color(colour));
     }
