@@ -21,7 +21,7 @@ pub use crate::{
         },
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
-    cmy::{ComponentMask, CMY},
+    cmy::{ComponentMask, IntoCMY, CMY},
     // fixed_denominator_rational_numbers::{
     //     debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
     //     Unsigned, UnsignedInteger,
@@ -234,6 +234,8 @@ pub trait ColourBasics {
         )
     }
 }
+
+pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {}
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
 pub enum ScalarAttribute {

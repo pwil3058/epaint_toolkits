@@ -17,13 +17,13 @@ use crate::fixed_denominator_rational_numbers::{
     AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, Unsigned, UnsignedInteger,
 };
 
-use crate::cmy::{ComponentMask, CMY};
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
+    cmy::{ComponentMask, IntoCMY, CMY},
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    ColourBasics, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel, ManipulatedColour,
-    Outcome, RGBConstants, SetScalarPolicy,
+    Colour, ColourBasics, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
+    ManipulatedColour, Outcome, RGBConstants, SetScalarPolicy,
 };
 
 pub trait IntoRGB {
@@ -260,10 +260,11 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
     }
 
     fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        let props = CMY::<T>::from(*self).into_proportions();
-        CMY::<L>::from_proportions(props)
+        (*self).into_cmy::<L>()
     }
 }
+
+impl<L: LightLevel> Colour for RGB<L> {}
 
 impl<L: LightLevel> IntoProps for RGB<L> {
     fn proportions(self) -> impl Iterator<Item = Prop> {

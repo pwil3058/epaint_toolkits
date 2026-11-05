@@ -11,16 +11,16 @@ use crate::fixed_denominator_rational_numbers::{
     AsProportion, IntoProp, NumberConstants, Prop, UFDRNum,
 };
 
-use crate::cmy::CMY;
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
+    cmy::{IntoCMY, CMY},
     hue::{
         angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::{IntoRGB, RGB},
-    ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour, Outcome,
-    PropsFrom, RGBConstants, SetScalarPolicy,
+    Colour, ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
+    Outcome, PropsFrom, RGBConstants, SetScalarPolicy,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -268,6 +268,11 @@ impl<T: IntoHCV> HCVFrom<T> for HCV {
     }
 }
 
+impl IntoHCV for HCV {
+    fn into_hcv(self) -> HCV {
+        self
+    }
+}
 impl IntoHCV for [Prop; 3] {
     fn into_hcv(self) -> HCV {
         HCV::from_proportions(self)
@@ -354,9 +359,11 @@ impl ColourBasics for HCV {
     }
 
     fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        self.rgb::<L>().into()
+        (*self).into_cmy::<L>()
     }
 }
+
+impl Colour for HCV {}
 
 impl IntoProps for HCV {
     fn proportions(self) -> impl Iterator<Item = Prop> {

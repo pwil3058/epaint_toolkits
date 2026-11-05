@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
-    Chroma, ColourBasics, Family, FromProps, Hue, HueConstants, IntoProps, LightLevel,
-    RGBConstants, Value, Warmth, HCV, RGB,
+    Chroma, Colour, ColourBasics, Family, FromProps, Hue, HueConstants, IntoHCV, IntoProps,
+    IntoRGB, LightLevel, RGBConstants, Value, Warmth, HCV, RGB,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -104,21 +104,89 @@ impl<L: LightLevel> IndexMut<usize> for CMY<L> {
 /// ```
 /// //use colour_math::{RGB, CMY};
 /// ```
-impl<L: LightLevel> From<RGB<L>> for CMY<L> {
-    fn from(rgb: RGB<L>) -> Self {
-        Self([L::ONE - rgb[0], L::ONE - rgb[1], L::ONE - rgb[2]])
+// impl<L: LightLevel> From<RGB<L>> for CMY<L> {
+//     fn from(rgb: RGB<L>) -> Self {
+//         Self([L::ONE - rgb[0], L::ONE - rgb[1], L::ONE - rgb[2]])
+//     }
+// }
+//
+// impl<L: LightLevel> From<CMY<L>> for RGB<L> {
+//     fn from(cmy: CMY<L>) -> Self {
+//         Self([L::ONE - cmy[0], L::ONE - cmy[1], L::ONE - cmy[2]])
+//     }
+// }
+
+impl<LL: LightLevel> IntoRGB for CMY<LL> {
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        RGB::<L>(
+            self.proportions()
+                .map(|p| L::from_prop(Prop::ONE - p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        )
     }
 }
 
-impl<L: LightLevel> From<CMY<L>> for RGB<L> {
-    fn from(cmy: CMY<L>) -> Self {
-        Self([L::ONE - cmy[0], L::ONE - cmy[1], L::ONE - cmy[2]])
+impl<L: LightLevel> IntoHCV for CMY<L> {
+    fn into_hcv(self) -> HCV {
+        self.into_rgb::<Prop>().into_hcv()
     }
 }
 
 impl<L: LightLevel> From<[L; 3]> for CMY<L> {
     fn from(cmy: [L; 3]) -> Self {
         Self([cmy[0], cmy[1], cmy[2]])
+    }
+}
+
+pub trait IntoCMY {
+    fn into_cmy<L: LightLevel>(self) -> CMY<L>;
+}
+
+pub trait CMYFrom<T, L: LightLevel> {
+    fn cmy_from(arg: T) -> CMY<L>;
+}
+
+impl<T: IntoCMY, L: LightLevel> CMYFrom<T, L> for CMY<L> {
+    fn cmy_from(arg: T) -> CMY<L> {
+        arg.into_cmy()
+    }
+}
+
+impl<LL: LightLevel> IntoCMY for CMY<LL> {
+    fn into_cmy<L: LightLevel>(self) -> CMY<L> {
+        CMY::<L>(
+            self.proportions()
+                .map(|p| L::from_prop(p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        )
+    }
+}
+
+impl<LL: LightLevel> IntoCMY for RGB<LL> {
+    fn into_cmy<L: LightLevel>(self) -> CMY<L> {
+        CMY::<L>(
+            self.proportions()
+                .map(|p| L::from_prop(Prop::ONE - p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        )
+    }
+}
+
+impl IntoCMY for HCV {
+    fn into_cmy<L: LightLevel>(self) -> CMY<L> {
+        CMY::<L>(
+            self.proportions()
+                .map(|p| L::from_prop(Prop::ONE - p))
+                .collect::<Vec<_>>()
+                .try_into()
+                .unwrap(),
+        )
     }
 }
 
@@ -149,42 +217,43 @@ impl<L: LightLevel> RGBConstants for CMY<L> {
 
 impl<L: LightLevel> ColourBasics for CMY<L> {
     fn hue(&self) -> Option<Hue> {
-        RGB::<L>::from(*self).hue()
+        (*self).into_hcv().hue()
     }
 
     fn chroma(&self) -> Chroma {
-        RGB::<L>::from(*self).chroma()
+        (*self).into_hcv().chroma()
     }
 
     fn chroma_prop(&self) -> Prop {
-        RGB::<L>::from(*self).chroma_prop()
+        self.chroma().into_prop()
     }
 
     fn value(&self) -> Value {
-        RGB::<L>::from(*self).value()
+        (*self).into_rgb::<Prop>().value()
     }
 
     fn warmth(&self) -> Warmth {
-        RGB::<L>::from(*self).warmth()
+        (*self).into_rgb::<Prop>().warmth()
     }
 
     fn family(&self) -> Option<Family> {
-        RGB::<L>::from(*self).family()
+        (*self).into_rgb::<Prop>().family()
     }
 
     fn hcv(&self) -> HCV {
-        RGB::<L>::from(*self).hcv()
+        (*self).into_hcv()
     }
 
     fn rgb<LO: LightLevel>(&self) -> RGB<LO> {
-        let rgb = RGB::<L>::from(*self);
-        RGB::<LO>::from_proportions(rgb.into_proportions())
+        (*self).into_rgb::<LO>()
     }
 
     fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
-        CMY::<LO>::from_proportions(self.into_proportions())
+        (*self).into_cmy::<LO>()
     }
 }
+
+impl<L: LightLevel> Colour for CMY<L> {}
 
 impl<L: LightLevel> IntoProps for CMY<L> {
     fn proportions(self) -> impl Iterator<Item = Prop> {
@@ -367,14 +436,14 @@ mod cmy_tests {
 
     #[test]
     fn rgb_to_cmy() {
-        assert_eq!(RGB::<Prop>::RED, CMY::<Prop>::RED.into());
-        assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into());
+        assert_eq!(RGB::<Prop>::RED, CMY::<Prop>::RED.into_rgb());
+        assert_eq!(RGB::<Prop>::YELLOW, CMY::<Prop>::YELLOW.into_rgb());
         assert_approx_eq!(
             RGB::<Prop>::LIGHT_GREY,
-            CMY::<Prop>::LIGHT_GREY.into(),
+            CMY::<Prop>::LIGHT_GREY.into_rgb(),
             0x10
         );
-        assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into());
+        assert_eq!(RGB::<Prop>::BLACK, CMY::<Prop>::BLACK.into_rgb());
     }
 
     #[test]
