@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::fixed_denominator_rational_numbers::*;
-use crate::{Angle, ColourBasics, Value};
+use crate::{Angle, ColourAttributes, Value};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SetScalarPolicy {
@@ -37,7 +37,7 @@ impl<T: Sized + Copy + PartialEq> Outcome<T> {
     }
 }
 
-pub trait ManipulatedColour: Sized + Copy + ColourBasics + PartialEq {
+pub trait ManipulatedColour: Sized + Copy + ColourAttributes + PartialEq {
     // TODO: modify Manipulated colour to make it more widely applicable
     fn lightened(self, prop: Prop) -> Self;
     fn darkened(self, prop: Prop) -> Self;

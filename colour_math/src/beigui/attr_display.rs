@@ -9,7 +9,7 @@ use crate::{
     beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
     hcv::HCV,
     hue::{Hue, HueIfce},
-    Colour, ColourBasics, HueConstants, RGBConstants, ScalarAttributeType,
+    Colour, ColourAttributes, HueConstants, RGBConstants, ScalarAttributeType,
 };
 
 pub trait ColourAttributeDisplayIfce {
@@ -143,7 +143,7 @@ impl HueCAD {
         self.colour_stops = stops
     }
 
-    fn set_colour_stops(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour_stops(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             if let Some(hue) = colour.hue() {
                 self.set_colour_stops_for_hue(hue);
@@ -194,7 +194,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
         }
     }
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             if let Some(hue) = colour.hue() {
                 self.hue = Some(hue);
@@ -221,7 +221,7 @@ impl ColourAttributeDisplayIfce for HueCAD {
         self.hue_fg_colour
     }
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_target_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             if let Some(target_hue) = colour.hue() {
                 self.target_hue = Some(target_hue);
@@ -387,7 +387,7 @@ impl ColourAttributeDisplayIfce for ValueCAD {
         }
     }
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             self.value = Some(colour.value());
             self.value_fg_colour = colour.monochrome_hcv().best_foreground();
@@ -405,7 +405,7 @@ impl ColourAttributeDisplayIfce for ValueCAD {
         self.value_fg_colour
     }
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_target_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             self.target_value = Some(colour.value());
             self.target_value_fg_colour = colour.monochrome_hcv().best_foreground();
@@ -560,7 +560,7 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
         }
     }
 
-    fn set_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             self.warmth = Some(colour.warmth());
             self.warmth_fg_colour = colour.monochrome_hcv().best_foreground();
@@ -578,7 +578,7 @@ impl ColourAttributeDisplayIfce for WarmthCAD {
         self.warmth_fg_colour
     }
 
-    fn set_target_colour(&mut self, colour: Option<&impl ColourBasics>) {
+    fn set_target_colour(&mut self, colour: Option<&impl ColourAttributes>) {
         if let Some(colour) = colour {
             self.target_warmth = Some(colour.warmth());
             self.target_warmth_fg_colour = colour.monochrome_hcv().best_foreground();

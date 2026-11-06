@@ -17,6 +17,7 @@ members = [
     "colour_math_egui_lib",
     "colour_math_egui_gui",
     "epaint_egui_lib",
+    "epaint_egui_gui",
 ]
 
 [workspace.dependencies]

@@ -22,7 +22,7 @@ use crate::{
     cmy::ComponentMask,
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    Colour, ColourBasics, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
+    Colour, ColourAttributes, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
     ManipulatedColour, Outcome, RGBConstants, SetScalarPolicy,
 };
 
@@ -176,7 +176,7 @@ impl<L: LightLevel> IntoIterator for RGB<L> {
     }
 }
 
-impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
+impl<T: LightLevel + IntoProp> ColourAttributes for RGB<T> {
     fn hue(&self) -> Option<Hue> {
         self.try_into().ok()
     }

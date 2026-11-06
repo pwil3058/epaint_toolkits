@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
-    Chroma, Colour, ColourBasics, Family, FromProps, Hue, HueConstants, IntoHCV, IntoProps,
+    Chroma, Colour, ColourAttributes, Family, FromProps, Hue, HueConstants, IntoHCV, IntoProps,
     IntoRGB, LightLevel, RGBConstants, Value, Warmth, HCV, RGB,
 };
 
@@ -215,7 +215,7 @@ impl<L: LightLevel> RGBConstants for CMY<L> {
     const BLACK: Self = Self([L::ONE, L::ONE, L::ONE]);
 }
 
-impl<L: LightLevel> ColourBasics for CMY<L> {
+impl<L: LightLevel> ColourAttributes for CMY<L> {
     fn hue(&self) -> Option<Hue> {
         (*self).into_hcv().hue()
     }

@@ -8,7 +8,7 @@ use crate::{
     hue::{angle::*, Hue},
     manipulator::{ColourManipulator, SetHuePolicy},
     rgb::RGB,
-    ColourBasics, HueConstants, RGBConstants,
+    ColourAttributes, HueConstants, RGBConstants,
 };
 
 use approximately_equal::assert_approx_eq;

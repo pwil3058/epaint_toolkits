@@ -9,8 +9,8 @@ use crate::{
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,
-    Colour, ColourAttributes, ColourBasics, HueConstants, LightLevel, RGBConstants,
-    ScalarAttributeType,
+    Colour, ColourAttributes, HueConstants, LightLevel, RGBConstants, ScalarAttributeType,
+    ScalarAttributes,
 };
 
 #[derive(Debug)]
@@ -141,7 +141,7 @@ impl ColouredShape {
         match self.cached_point {
             CachedPoint::Hued(point) => {
                 point
-                    * UFDRNum::from_prop(self.colour.scalar_attribute(scalar_attribute))
+                    * UFDRNum::from_prop(self.colour.scalar_attribute_prop(scalar_attribute))
                     * zoom.scale()
             }
             CachedPoint::Grey(point) => point * zoom.scale(),

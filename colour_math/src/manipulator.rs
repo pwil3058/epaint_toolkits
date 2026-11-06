@@ -7,7 +7,7 @@ use crate::{
     hue::Hue,
     hue::{angle::Angle, ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility},
     rgb::{IntoRGB, RGB},
-    Colour, ColourBasics, HueConstants, LightLevel, SetScalarPolicy,
+    Colour, ColourAttributes, HueConstants, LightLevel, SetScalarPolicy,
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]

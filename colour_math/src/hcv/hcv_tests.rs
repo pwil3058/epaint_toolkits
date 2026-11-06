@@ -5,7 +5,7 @@ use approximately_equal::assert_approx_eq;
 
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
-use crate::{attributes::Warmth, hcv::*, ColourBasics, HueConstants, RGBConstants, RGB};
+use crate::{attributes::Warmth, hcv::*, ColourAttributes, HueConstants, RGBConstants, RGB};
 
 #[test]
 fn default_hcv_is_black() {

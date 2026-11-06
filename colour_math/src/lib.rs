@@ -2,14 +2,12 @@
 
 use std::fmt::{Debug, UpperHex};
 
-use serde::{Deserialize, Serialize};
-
 use hue::HueIfce;
 
 pub use crate::fixed_denominator_rational_numbers::*;
 
 pub use crate::{
-    attributes::{Chroma, Family, Greyness, Value, Warmth},
+    attributes::{Chroma, Family, Greyness, ScalarAttribute, ScalarAttributeType, Value, Warmth},
     beigui::{
         attr_display::{
             ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
@@ -147,7 +145,7 @@ impl<T: IntoProps> PropsFrom<T> for [Prop; 3] {
     }
 }
 
-pub trait ColourBasics {
+pub trait ColourAttributes {
     fn hue(&self) -> Option<Hue>;
 
     fn hue_angle(&self) -> Option<Angle> {
@@ -174,6 +172,16 @@ pub trait ColourBasics {
     }
 
     fn warmth(&self) -> Warmth;
+
+    fn scalar_attribute(&self, sat: ScalarAttributeType) -> ScalarAttribute {
+        use ScalarAttributeType::*;
+        match sat {
+            Chroma => ScalarAttribute::Chroma(self.chroma()),
+            Greyness => ScalarAttribute::Greyness(self.greyness()),
+            Value => ScalarAttribute::Value(self.value()),
+            Warmth => ScalarAttribute::Warmth(self.warmth()),
+        }
+    }
 
     fn family(&self) -> Option<Family>;
 
@@ -215,7 +223,7 @@ pub trait ColourBasics {
     }
 }
 
-pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {
+pub trait Colour: Sized + Copy + ColourAttributes + IntoRGB + IntoHCV + IntoCMY {
     fn pango_string(&self) -> String {
         let rgb = self.into_rgb::<u8>();
         format!("#{:02X}{:02X}{:02X}", rgb.0[0], rgb.0[1], rgb.0[2])
@@ -233,27 +241,8 @@ pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
-pub enum ScalarAttributeType {
-    Chroma,
-    Greyness,
-    Value,
-    Warmth,
-}
-
-impl std::fmt::Display for ScalarAttributeType {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        match *self {
-            ScalarAttributeType::Chroma => write!(f, "Chroma"),
-            ScalarAttributeType::Greyness => write!(f, "Greyness"),
-            ScalarAttributeType::Value => write!(f, "Value"),
-            ScalarAttributeType::Warmth => write!(f, "Warmth"),
-        }
-    }
-}
-
-pub trait ColourAttributes: Colour {
-    fn scalar_attribute(&self, attr: ScalarAttributeType) -> Prop {
+pub trait ScalarAttributes: Colour {
+    fn scalar_attribute_prop(&self, attr: ScalarAttributeType) -> Prop {
         match attr {
             ScalarAttributeType::Chroma => self.chroma().into_prop(),
             ScalarAttributeType::Greyness => Prop::ONE - self.chroma().into_prop(),
@@ -272,10 +261,10 @@ pub trait ColourAttributes: Colour {
     }
 }
 
-impl ColourAttributes for HCV {}
-impl<L: LightLevel> ColourAttributes for RGB<L> {}
+impl ScalarAttributes for HCV {}
+impl<L: LightLevel> ScalarAttributes for RGB<L> {}
 
-pub trait ColourIfce: ColourBasics + ColourAttributes {}
+pub trait ColourIfce: ColourAttributes + ScalarAttributes {}
 
 impl ColourIfce for HCV {}
 impl<L: LightLevel> ColourIfce for RGB<L> {}

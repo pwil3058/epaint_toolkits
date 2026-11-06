@@ -452,6 +452,47 @@ impl IntoProp for Value {
 impl_to_from_number!(UFDRNum, u128, Value);
 impl_to_from_number!(FDRNum, i128, Value);
 
+/// Scalar attributes are those that can be placed on a hue wheel.
+/// i.e. they can be given a value between 0 and 1 (`Prop`) and their value is partially
+/// dependent on a colur's `Hue`.
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
+pub enum ScalarAttributeType {
+    Chroma,
+    Greyness,
+    Value,
+    Warmth,
+}
+
+impl std::fmt::Display for ScalarAttributeType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            ScalarAttributeType::Chroma => write!(f, "Chroma"),
+            ScalarAttributeType::Greyness => write!(f, "Greyness"),
+            ScalarAttributeType::Value => write!(f, "Value"),
+            ScalarAttributeType::Warmth => write!(f, "Warmth"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum ScalarAttribute {
+    Chroma(Chroma),
+    Greyness(Greyness),
+    Value(Value),
+    Warmth(Warmth),
+}
+
+impl IntoProp for ScalarAttribute {
+    fn into_prop(self) -> Prop {
+        match self {
+            ScalarAttribute::Chroma(chroma) => chroma.into_prop(),
+            ScalarAttribute::Greyness(greyness) => greyness.into_prop(),
+            ScalarAttribute::Value(value) => value.into_prop(),
+            ScalarAttribute::Warmth(warmth) => warmth.into_prop(),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]
 pub enum Family {
     Reds,

@@ -18,7 +18,7 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::{IntoRGB, RGB},
-    Colour, ColourBasics, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
     Outcome, PropsFrom, RGBConstants, SetScalarPolicy,
 };
 
@@ -296,7 +296,7 @@ impl IntoRGB for HCV {
     }
 }
 
-impl ColourBasics for HCV {
+impl ColourAttributes for HCV {
     fn hue(&self) -> Option<Hue> {
         self.hue
     }

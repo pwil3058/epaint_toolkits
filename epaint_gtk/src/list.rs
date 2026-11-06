@@ -139,7 +139,7 @@ pub trait PaintListRow {
 
 impl PaintListRow for Paint {
     fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
-        use colour_math::{ColourAttributes, ColourBasics};
+        use colour_math::{ColourAttributes, ScalarAttributes};
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {
@@ -163,7 +163,7 @@ impl PaintListRow for Paint {
         for attr in attributes.iter() {
             let string = format!(
                 "{:5.4}",
-                f64::from_prop(self.colour.scalar_attribute(*attr))
+                f64::from_prop(self.colour.scalar_attribute_prop(*attr))
             );
             let attr_rgb = self.colour.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());
@@ -334,7 +334,7 @@ impl ListViewSpec for MixtureListViewSpec {
 impl PaintListRow for Mixture {
     fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
         use colour_math::ColourAttributes;
-        use colour_math::ColourBasics;
+        use colour_math::ScalarAttributes;
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {
@@ -365,7 +365,7 @@ impl PaintListRow for Mixture {
         for attr in attributes.iter() {
             let string = format!(
                 "{:5.4}",
-                f64::from_prop(self.colour.scalar_attribute(*attr))
+                f64::from_prop(self.colour.scalar_attribute_prop(*attr))
             );
             let attr_rgb = self.colour.scalar_attribute_rgb::<u8>(*attr);
             row.push(string.to_value());

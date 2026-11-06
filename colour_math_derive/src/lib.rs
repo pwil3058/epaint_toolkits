@@ -35,7 +35,7 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
         first.unwrap()
     };
     let tokens = quote! {
-        impl #impl_generics colour_math::ColourBasics for #struct_name #ty_generics #where_clause {
+        impl #impl_generics colour_math::ColourAttributes for #struct_name #ty_generics #where_clause {
             fn hue(&self) -> Option<colour_math::Hue> {
                 self.#colour.hue()
             }

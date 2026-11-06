@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{ColourBasics, HCV, IntoProps};
+use colour_math::{ColourAttributes, HCV, IntoProps};
 use eframe::egui;
 
 pub struct DirectionalNudgeButton<'a> {
