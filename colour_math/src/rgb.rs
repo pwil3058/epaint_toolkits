@@ -19,7 +19,7 @@ use crate::fixed_denominator_rational_numbers::{
 
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    cmy::{ComponentMask, IntoCMY, CMY},
+    cmy::ComponentMask,
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     Colour, ColourBasics, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
@@ -249,18 +249,6 @@ impl<T: LightLevel + IntoProp> ColourBasics for RGB<T> {
         } else {
             Warmth::HALF
         }
-    }
-
-    // fn hcv(&self) -> HCV {
-    //     (*self).into()
-    // }
-
-    // fn rgb<L: LightLevel>(&self) -> RGB<L> {
-    //     RGB::<L>::from_proportions(self.into_proportions())
-    // }
-
-    fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        (*self).into_cmy::<L>()
     }
 }
 

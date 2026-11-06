@@ -13,7 +13,6 @@ use crate::fixed_denominator_rational_numbers::{
 
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
-    cmy::{IntoCMY, CMY},
     hue::{
         angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
         RGBHue, Sextant, SumChromaCompatibility,
@@ -348,18 +347,6 @@ impl ColourBasics for HCV {
         } else {
             Warmth::HALF
         }
-    }
-
-    // fn rgb<L: LightLevel>(&self) -> RGB<L> {
-    //     (*self).into_rgb()
-    // }
-
-    // fn hcv(&self) -> HCV {
-    //     *self
-    // }
-
-    fn cmy<L: LightLevel>(&self) -> CMY<L> {
-        (*self).into_cmy::<L>()
     }
 }
 

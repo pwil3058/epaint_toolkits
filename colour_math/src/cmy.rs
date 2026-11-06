@@ -239,18 +239,6 @@ impl<L: LightLevel> ColourBasics for CMY<L> {
     fn family(&self) -> Option<Family> {
         (*self).into_rgb::<Prop>().family()
     }
-
-    // fn hcv(&self) -> HCV {
-    //     (*self).into_hcv()
-    // }
-
-    // fn rgb<LO: LightLevel>(&self) -> RGB<LO> {
-    //     (*self).into_rgb::<LO>()
-    // }
-
-    fn cmy<LO: LightLevel>(&self) -> CMY<LO> {
-        (*self).into_cmy::<LO>()
-    }
 }
 
 impl<L: LightLevel> Colour for CMY<L> {}
@@ -360,14 +348,14 @@ impl CMYSubtractiveMix {
         self.component_mask = self.colour.component_mask();
     }
 
-    pub fn add<C: ColourBasics>(&mut self, colour: C, parts: u32) {
+    pub fn add<C: Colour>(&mut self, colour: C, parts: u32) {
         if self.accumulated_parts == 0 {
-            self.colour = colour.cmy::<Prop>();
+            self.colour = colour.into_cmy::<Prop>();
             self.accumulated_parts = parts;
             self.component_mask = self.colour.component_mask();
             println!("add colour: {:?} : {}", self.colour, parts);
         } else {
-            let colour = colour.cmy::<Prop>();
+            let colour = colour.into_cmy::<Prop>();
             println!("add colour: {:?} : {}", colour, parts);
             match self.component_mask.count_ones() {
                 1 => {
