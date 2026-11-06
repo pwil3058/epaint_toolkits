@@ -15,7 +15,7 @@ use gtk3_ext::{
 };
 
 use crate::{attributes::ScalarAttributeSelector, colour::GdkColour};
-use colour_math::{ColouredShape, HueWheel, ScalarAttribute};
+use colour_math::{ColouredShape, HueWheel, ScalarAttributeType};
 use colour_math_cairo::*;
 
 type PopupCallback = Box<dyn Fn(&str)>;
@@ -114,7 +114,7 @@ impl GtkHueWheel {
 #[derive(Default)]
 pub struct GtkHueWheelBuilder {
     menu_item_specs: Vec<(&'static str, MenuItemSpec, u64)>,
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
 }
 
 impl GtkHueWheelBuilder {
@@ -130,13 +130,13 @@ impl GtkHueWheelBuilder {
         self
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes.extend(attributes.iter());
         self
     }
 
     pub fn build(&self) -> Rc<GtkHueWheel> {
-        let default_attributes = vec![ScalarAttribute::Value];
+        let default_attributes = vec![ScalarAttributeType::Value];
         let attributes = if self.attributes.is_empty() {
             &default_attributes
         } else {

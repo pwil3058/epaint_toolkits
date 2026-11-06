@@ -234,40 +234,40 @@ pub trait Colour: Sized + Copy + ColourBasics + IntoRGB + IntoHCV + IntoCMY {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone, Copy)]
-pub enum ScalarAttribute {
+pub enum ScalarAttributeType {
     Chroma,
     Greyness,
     Value,
     Warmth,
 }
 
-impl std::fmt::Display for ScalarAttribute {
+impl std::fmt::Display for ScalarAttributeType {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match *self {
-            ScalarAttribute::Chroma => write!(f, "Chroma"),
-            ScalarAttribute::Greyness => write!(f, "Greyness"),
-            ScalarAttribute::Value => write!(f, "Value"),
-            ScalarAttribute::Warmth => write!(f, "Warmth"),
+            ScalarAttributeType::Chroma => write!(f, "Chroma"),
+            ScalarAttributeType::Greyness => write!(f, "Greyness"),
+            ScalarAttributeType::Value => write!(f, "Value"),
+            ScalarAttributeType::Warmth => write!(f, "Warmth"),
         }
     }
 }
 
 pub trait ColourAttributes: Colour {
-    fn scalar_attribute(&self, attr: ScalarAttribute) -> Prop {
+    fn scalar_attribute(&self, attr: ScalarAttributeType) -> Prop {
         match attr {
-            ScalarAttribute::Chroma => self.chroma().into_prop(),
-            ScalarAttribute::Greyness => Prop::ONE - self.chroma().into_prop(),
-            ScalarAttribute::Value => self.value().into(),
-            ScalarAttribute::Warmth => self.warmth().into(),
+            ScalarAttributeType::Chroma => self.chroma().into_prop(),
+            ScalarAttributeType::Greyness => Prop::ONE - self.chroma().into_prop(),
+            ScalarAttributeType::Value => self.value().into(),
+            ScalarAttributeType::Warmth => self.warmth().into(),
         }
     }
 
-    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttribute) -> RGB<T> {
+    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
         match attr {
-            ScalarAttribute::Chroma => self.into_rgb(),
-            ScalarAttribute::Greyness => self.into_rgb(),
-            ScalarAttribute::Value => RGB::<T>::new_grey(self.value()),
-            ScalarAttribute::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
+            ScalarAttributeType::Chroma => self.into_rgb(),
+            ScalarAttributeType::Greyness => self.into_rgb(),
+            ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
+            ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
         }
     }
 }

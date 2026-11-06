@@ -10,7 +10,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::ScalarAttribute;
+use colour_math::ScalarAttributeType;
 
 use epaint::properties::PropertyTypes;
 
@@ -32,9 +32,9 @@ pub struct PaintersColourAssistantTK {
 impl PaintersColourAssistantTK {
     pub fn new() -> Rc<Self> {
         let attributes = vec![
-            ScalarAttribute::Chroma,
-            ScalarAttribute::Value,
-            ScalarAttribute::Warmth,
+            ScalarAttributeType::Chroma,
+            ScalarAttributeType::Value,
+            ScalarAttributeType::Warmth,
         ];
         let property_types = PropertyTypes(vec![
             PropertyType::Transparency,

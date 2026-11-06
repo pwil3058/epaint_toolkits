@@ -7,8 +7,8 @@ use gtk3_ext::{
 };
 use recollections;
 
-use colour_math::ScalarAttribute;
-use colour_math::ScalarAttribute::*;
+use colour_math::ScalarAttributeType;
+use colour_math::ScalarAttributeType::*;
 use colour_math::{HCV, HueConstants, IntoRGB};
 
 use epaint::PaintRangeId;
@@ -44,8 +44,8 @@ fn main() {
     vbox.pack_start(
         PaintFactoryBuilder::new()
             .attributes(&[
-                ScalarAttribute::Value,
-                ScalarAttribute::Greyness,
+                ScalarAttributeType::Value,
+                ScalarAttributeType::Greyness,
                 //ScalarAttribute::Chroma,
             ])
             .property_types(&property_types)
@@ -57,9 +57,9 @@ fn main() {
     );
     let mixer = PixtureMixerBuilder::new()
         .attributes(&[
-            ScalarAttribute::Value,
-            ScalarAttribute::Greyness,
-            ScalarAttribute::Chroma,
+            ScalarAttributeType::Value,
+            ScalarAttributeType::Greyness,
+            ScalarAttributeType::Chroma,
         ])
         .property_types(&property_types)
         .build();
@@ -87,9 +87,9 @@ fn main() {
     let mut builder = PaintDisplayBuilder::new();
     builder
         .attributes(&[
-            ScalarAttribute::Value,
-            ScalarAttribute::Greyness,
-            ScalarAttribute::Chroma,
+            ScalarAttributeType::Value,
+            ScalarAttributeType::Greyness,
+            ScalarAttributeType::Chroma,
         ])
         .property_types(&property_types);
     let display = builder.build(&range_paint);
@@ -97,9 +97,9 @@ fn main() {
     let mut paint_series_manager_builder = PaintRangeManagerBuilder::new();
     paint_series_manager_builder.property_types(&property_types);
     paint_series_manager_builder.attributes(&[
-        ScalarAttribute::Value,
-        ScalarAttribute::Greyness,
-        ScalarAttribute::Chroma,
+        ScalarAttributeType::Value,
+        ScalarAttributeType::Greyness,
+        ScalarAttributeType::Chroma,
     ]);
     let paint_series_manager = paint_series_manager_builder.build();
     vbox.pack_start(paint_series_manager.pwo(), true, true, 0);

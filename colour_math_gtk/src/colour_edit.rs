@@ -6,7 +6,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hcv::HCV, LightLevel, ScalarAttribute, Value, RGB};
+use colour_math::{hcv::HCV, LightLevel, ScalarAttributeType, Value, RGB};
 
 use crate::{
     attributes::ColourAttributeDisplayStack,
@@ -64,7 +64,7 @@ impl<U: Hexable + LightLevel> ColourEditor<U> {
 
 #[derive(Default)]
 pub struct ColourEditorBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     extra_buttons: Vec<gtk::Button>,
     default_colour: Option<HCV>,
 }
@@ -74,7 +74,7 @@ impl ColourEditorBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -97,15 +97,17 @@ impl ColourEditorBuilder {
         let colour_manipulator = ColourManipulatorGUI::builder()
             .clamped(false)
             .extra_buttons(&self.extra_buttons)
-            .chroma_label(if self.attributes.contains(&ScalarAttribute::Greyness) {
-                if self.attributes.contains(&ScalarAttribute::Chroma) {
-                    ChromaLabel::Both
+            .chroma_label(
+                if self.attributes.contains(&ScalarAttributeType::Greyness) {
+                    if self.attributes.contains(&ScalarAttributeType::Chroma) {
+                        ChromaLabel::Both
+                    } else {
+                        ChromaLabel::Greyness
+                    }
                 } else {
-                    ChromaLabel::Greyness
-                }
-            } else {
-                ChromaLabel::Chroma
-            })
+                    ChromaLabel::Chroma
+                },
+            )
             .build();
 
         let colour_editor = Rc::new(ColourEditor::<U> {

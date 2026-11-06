@@ -1,13 +1,13 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::egui_drawer::EguiDrawer;
-use colour_math::{ColourManipulator, HueWheel, ScalarAttribute};
+use colour_math::{ColourManipulator, HueWheel, ScalarAttributeType};
 use eframe::egui;
 
 pub struct ColourManipulatorView {
     pub model: ColourManipulator,
     pub hue_wheel: HueWheel,
-    pub active_projection: ScalarAttribute,
+    pub active_projection: ScalarAttributeType,
     // Persistent zoom tracking state variable
     pub zoom_scale: f32,
     pub pan_offset: egui::Vec2,
@@ -18,7 +18,7 @@ impl ColourManipulatorView {
         Self {
             model: initial_model,
             hue_wheel: HueWheel::new(),
-            active_projection: ScalarAttribute::Value,
+            active_projection: ScalarAttributeType::Value,
             zoom_scale: 1.0,
             pan_offset: egui::Vec2::ZERO,
         }
@@ -31,15 +31,19 @@ impl ColourManipulatorView {
             ui.vertical(|ui| {
                 // 1. Selector Row driving your projection attributes
                 ui.horizontal(|ui| {
-                    ui.radio_value(&mut self.active_projection, ScalarAttribute::Value, "Value");
                     ui.radio_value(
                         &mut self.active_projection,
-                        ScalarAttribute::Chroma,
+                        ScalarAttributeType::Value,
+                        "Value",
+                    );
+                    ui.radio_value(
+                        &mut self.active_projection,
+                        ScalarAttributeType::Chroma,
                         "Chroma",
                     );
                     ui.radio_value(
                         &mut self.active_projection,
-                        ScalarAttribute::Warmth,
+                        ScalarAttributeType::Warmth,
                         "Warmth",
                     );
 

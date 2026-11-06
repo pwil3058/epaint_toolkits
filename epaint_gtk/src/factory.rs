@@ -16,7 +16,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{beigui::hue_wheel::MakeColouredShape, ScalarAttribute};
+use colour_math::{ScalarAttributeType, beigui::hue_wheel::MakeColouredShape};
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;
@@ -35,7 +35,7 @@ pub struct PaintFactory {
     paint_editor: Rc<PaintEditor>,
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     paint_series: RefCell<PaintRange>,
     proprietor_entry: gtk::Entry,
     series_name_entry: gtk::Entry,
@@ -173,7 +173,7 @@ impl PaintFactory {
 
 #[derive(Default)]
 pub struct PaintFactoryBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
 }
 
@@ -182,7 +182,7 @@ impl PaintFactoryBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }

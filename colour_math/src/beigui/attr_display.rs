@@ -9,7 +9,7 @@ use crate::{
     beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
     hcv::HCV,
     hue::{Hue, HueIfce},
-    Colour, ColourBasics, HueConstants, RGBConstants, ScalarAttribute,
+    Colour, ColourBasics, HueConstants, RGBConstants, ScalarAttributeType,
 };
 
 pub trait ColourAttributeDisplayIfce {
@@ -628,13 +628,13 @@ pub enum ColourAttributeType {
     Greyness,
 }
 
-impl From<ScalarAttribute> for ColourAttributeType {
-    fn from(scalar_attribute: ScalarAttribute) -> Self {
+impl From<ScalarAttributeType> for ColourAttributeType {
+    fn from(scalar_attribute: ScalarAttributeType) -> Self {
         match scalar_attribute {
-            ScalarAttribute::Chroma => Self::Chroma,
-            ScalarAttribute::Warmth => Self::Warmth,
-            ScalarAttribute::Greyness => Self::Greyness,
-            ScalarAttribute::Value => Self::Value,
+            ScalarAttributeType::Chroma => Self::Chroma,
+            ScalarAttributeType::Warmth => Self::Warmth,
+            ScalarAttributeType::Greyness => Self::Greyness,
+            ScalarAttributeType::Value => Self::Value,
         }
     }
 }

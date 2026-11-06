@@ -13,7 +13,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{HCV, IntoHCV, ScalarAttribute};
+use colour_math::{HCV, IntoHCV, ScalarAttributeType};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::attributes::ColourAttributeDisplayStack;
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
@@ -56,7 +56,7 @@ impl PaintDisplay {
 
 #[derive(Default)]
 pub struct PaintDisplayBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     #[cfg(feature = "targeted_mixtures")]
     target_colour: Option<HCV>,
@@ -67,7 +67,7 @@ impl PaintDisplayBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -258,7 +258,7 @@ impl<W: TopGtkWindow + Clone + 'static> DisplayPaint for Rc<PaintDisplayDialogMa
 pub struct PaintDisplayDialogManagerBuilder<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(u16, &'static str, Option<&'static str>, u64)>,
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     target_colour: Option<HCV>,
     change_notifier: ChangedCondnsNotifier,
@@ -277,7 +277,7 @@ impl<W: TopGtkWindow + Clone> PaintDisplayDialogManagerBuilder<W> {
         }
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }

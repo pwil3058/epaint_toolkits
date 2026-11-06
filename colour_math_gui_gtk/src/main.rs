@@ -18,7 +18,7 @@ use path_utilities::expand_home_dir_or_mine;
 
 use colour_math::{
     beigui::hue_wheel::{ColouredShape, Shape},
-    HueConstants, ScalarAttribute, Value, HCV, RGB,
+    HueConstants, ScalarAttributeType, Value, HCV, RGB,
 };
 use colour_math_gtk::{
     attributes::ColourAttributeDisplayStack, colour_edit::ColourEditorBuilder,
@@ -79,10 +79,10 @@ fn main() {
     }
 
     let attributes = vec![
-        ScalarAttribute::Value,
-        ScalarAttribute::Chroma,
-        ScalarAttribute::Greyness,
-        ScalarAttribute::Warmth,
+        ScalarAttributeType::Value,
+        ScalarAttributeType::Chroma,
+        ScalarAttributeType::Greyness,
+        ScalarAttributeType::Warmth,
     ];
 
     let cads = ColourAttributeDisplayStack::builder()

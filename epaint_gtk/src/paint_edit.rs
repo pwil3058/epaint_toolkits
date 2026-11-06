@@ -3,7 +3,7 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use colour_math::{IntoRGB, ScalarAttribute};
+use colour_math::{IntoRGB, ScalarAttributeType};
 use colour_math_gtk::colour_edit::ColourEditor;
 use gtk3_ext::{
     gtk::{self, Button, prelude::*},
@@ -79,7 +79,7 @@ pub struct PaintEditor {
 }
 
 impl PaintEditor {
-    pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Rc<Self> {
+    pub fn new(attributes: &[ScalarAttributeType], property_types: &PropertyTypes) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let grid = gtk::Grid::builder().hexpand(true).build();
         vbox.pack_start(&grid, false, false, 0);

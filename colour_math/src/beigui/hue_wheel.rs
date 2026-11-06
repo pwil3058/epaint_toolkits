@@ -10,7 +10,7 @@ use crate::{
     hue::{Hue, HueIfce},
     rgb::RGB,
     Colour, ColourAttributes, ColourBasics, HueConstants, LightLevel, RGBConstants,
-    ScalarAttribute,
+    ScalarAttributeType,
 };
 
 #[derive(Debug)]
@@ -137,7 +137,7 @@ impl ColouredShape {
         &self.id
     }
 
-    fn xy(&self, scalar_attribute: ScalarAttribute, zoom: &Zoom) -> Point {
+    fn xy(&self, scalar_attribute: ScalarAttributeType, zoom: &Zoom) -> Point {
         match self.cached_point {
             CachedPoint::Hued(point) => {
                 point
@@ -150,7 +150,7 @@ impl ColouredShape {
 
     pub fn draw_shape(
         &self,
-        scalar_attribute: ScalarAttribute,
+        scalar_attribute: ScalarAttributeType,
         zoom: &Zoom,
         draw_shapes: &impl DrawShapes,
     ) {
@@ -182,7 +182,7 @@ impl ColouredShape {
     fn proximity_to(
         &self,
         point: Point,
-        scalar_attribute: ScalarAttribute,
+        scalar_attribute: ScalarAttributeType,
         zoom: &Zoom,
     ) -> Proximity {
         let delta = self.xy(scalar_attribute, zoom) - point;
@@ -305,7 +305,7 @@ impl HueWheel {
         self.zoom.incr();
     }
 
-    pub fn draw(&self, scalar_attribute: ScalarAttribute, draw_shapes: &impl DrawShapes) {
+    pub fn draw(&self, scalar_attribute: ScalarAttributeType, draw_shapes: &impl DrawShapes) {
         self.draw_graticule(&self.zoom, draw_shapes);
         for shape in self.shapes.iter() {
             shape.draw_shape(scalar_attribute, &self.zoom, draw_shapes);
@@ -318,7 +318,7 @@ impl HueWheel {
     fn nearest_to(
         &self,
         point: Point,
-        scalar_attribute: ScalarAttribute,
+        scalar_attribute: ScalarAttributeType,
     ) -> Option<(&ColouredShape, Proximity)> {
         let mut nearest: Option<(&ColouredShape, Proximity)> = None;
         for shape in self.shapes.iter() {
@@ -337,7 +337,7 @@ impl HueWheel {
     pub fn item_at_point(
         &self,
         point: Point,
-        scalar_attribute: ScalarAttribute,
+        scalar_attribute: ScalarAttributeType,
     ) -> Option<&ColouredShape> {
         if let Some((shape, Proximity::Enclosed(_))) = self.nearest_to(point, scalar_attribute) {
             Some(shape)
@@ -349,7 +349,7 @@ impl HueWheel {
     pub fn tooltip_for_point(
         &self,
         point: Point,
-        scalar_attribute: ScalarAttribute,
+        scalar_attribute: ScalarAttributeType,
     ) -> Option<String> {
         if let Some(shape) = self.item_at_point(point, scalar_attribute) {
             return Some(shape.tooltip_text.to_string());

@@ -12,16 +12,16 @@ use epaint::{
 };
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{Colour, HCV, IntoHCV, ScalarAttribute};
+use colour_math::{Colour, HCV, IntoHCV, ScalarAttributeType};
 use epaint::properties::PropertyTypes;
 
 pub struct PaintListViewSpec {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
 }
 
 impl PaintListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], propery_types: &PropertyTypes) -> Self {
+    pub fn new(attributes: &[ScalarAttributeType], propery_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
             property_types: propery_types.clone(),
@@ -134,11 +134,11 @@ impl ListViewSpec for PaintListViewSpec {
 }
 
 pub trait PaintListRow {
-    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value>;
+    fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value>;
 }
 
 impl PaintListRow for Paint {
-    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
+    fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
         use colour_math::{ColourAttributes, ColourBasics};
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
@@ -180,18 +180,18 @@ impl PaintListRow for Paint {
 }
 
 impl PaintListRow for RangePaint {
-    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
+    fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
         self.paint.row(attributes)
     }
 }
 
 pub struct MixtureListViewSpec {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
 }
 
 impl MixtureListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], propery_types: &PropertyTypes) -> Self {
+    pub fn new(attributes: &[ScalarAttributeType], propery_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
             property_types: propery_types.clone(),
@@ -332,7 +332,7 @@ impl ListViewSpec for MixtureListViewSpec {
 }
 
 impl PaintListRow for Mixture {
-    fn row(&self, attributes: &[ScalarAttribute]) -> Vec<glib::Value> {
+    fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
         use colour_math::ColourAttributes;
         use colour_math::ColourBasics;
         let ha: f64 = if let Some(angle) = self.hue_angle() {

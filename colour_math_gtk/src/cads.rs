@@ -13,7 +13,7 @@ use gtk3_ext::{
 };
 
 use colour_math::Colour;
-use colour_math::{ColourAttributeType, ScalarAttribute};
+use colour_math::{ColourAttributeType, ScalarAttributeType};
 
 use colour_math::beigui::attr_display;
 
@@ -73,7 +73,7 @@ pub struct ColourAttributeDisplayBox {
 }
 
 impl ColourAttributeDisplayBox {
-    pub fn new(cats: &[ScalarAttribute]) -> Rc<Self> {
+    pub fn new(cats: &[ScalarAttributeType]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let cads = RefCell::new(Vec::with_capacity(cats.len()));
         let huecad = ColourAttributeDisplay::new(ColourAttributeType::Hue);

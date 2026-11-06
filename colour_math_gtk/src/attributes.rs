@@ -15,7 +15,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{Colour, ColourAttributeType, ScalarAttribute, HCV};
+use colour_math::{Colour, ColourAttributeType, ScalarAttributeType, HCV};
 use colour_math_cairo::{Drawer, Size};
 
 use crate::colour::GdkColour;
@@ -78,7 +78,7 @@ impl ColourAttributeDisplayStack {
         ColourAttributeDisplayStackBuilder::new()
     }
 
-    pub fn new(scalar_attributes: &[ScalarAttribute]) -> Rc<Self> {
+    pub fn new(scalar_attributes: &[ScalarAttributeType]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 1);
         let cads = RefCell::new(Vec::with_capacity(scalar_attributes.len() + 1));
         let huecad = ColourAttributeDisplay::new(ColourAttributeType::Hue);
@@ -116,7 +116,7 @@ impl ColourAttributeDisplayStack {
 #[derive(Default)]
 pub struct ColourAttributeDisplayStackBuilder {
     // TODO: add orientation as an option for CAD stacks
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
 }
 
 impl ColourAttributeDisplayStackBuilder {
@@ -124,7 +124,7 @@ impl ColourAttributeDisplayStackBuilder {
         Self::default()
     }
 
-    pub fn scalar_attributes(&mut self, scalar_attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn scalar_attributes(&mut self, scalar_attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = scalar_attributes.to_vec();
         self
     }
@@ -134,12 +134,12 @@ impl ColourAttributeDisplayStackBuilder {
     }
 }
 
-type SelectionCallback = Box<dyn Fn(ScalarAttribute)>;
+type SelectionCallback = Box<dyn Fn(ScalarAttributeType)>;
 
 #[derive(PWO)]
 pub struct ScalarAttributeSelector {
     gtk_box: gtk::Box,
-    attribute: Cell<ScalarAttribute>,
+    attribute: Cell<ScalarAttributeType>,
     callbacks: RefCell<Vec<SelectionCallback>>,
 }
 
@@ -148,15 +148,15 @@ impl ScalarAttributeSelector {
         ScalarAttributeSelectorBuilder::new()
     }
 
-    pub fn attribute(&self) -> ScalarAttribute {
+    pub fn attribute(&self) -> ScalarAttributeType {
         self.attribute.get()
     }
 
-    pub fn connect_changed<F: Fn(ScalarAttribute) + 'static>(&self, callback: F) {
+    pub fn connect_changed<F: Fn(ScalarAttributeType) + 'static>(&self, callback: F) {
         self.callbacks.borrow_mut().push(Box::new(callback))
     }
 
-    fn notify_changed(&self, attr: ScalarAttribute) {
+    fn notify_changed(&self, attr: ScalarAttributeType) {
         self.attribute.set(attr);
         for callback in self.callbacks.borrow().iter() {
             callback(attr);
@@ -165,7 +165,7 @@ impl ScalarAttributeSelector {
 }
 
 pub struct ScalarAttributeSelectorBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     orientation: gtk::Orientation,
 }
 
@@ -183,7 +183,7 @@ impl ScalarAttributeSelectorBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }

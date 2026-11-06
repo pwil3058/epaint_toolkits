@@ -10,7 +10,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::ScalarAttribute;
+use colour_math::ScalarAttributeType;
 
 use epaint::properties::{PropertyType, PropertyTypes};
 use epaint_gtk::{
@@ -30,9 +30,9 @@ pub struct ModellersColourMixerMatcherTK {
 impl ModellersColourMixerMatcherTK {
     pub fn new() -> Rc<Self> {
         let attributes = vec![
-            ScalarAttribute::Value,
-            ScalarAttribute::Greyness,
-            ScalarAttribute::Chroma,
+            ScalarAttributeType::Value,
+            ScalarAttributeType::Greyness,
+            ScalarAttributeType::Chroma,
         ];
         let property_types = PropertyTypes(vec![
             PropertyType::Finish,

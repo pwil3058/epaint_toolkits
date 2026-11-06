@@ -22,7 +22,7 @@ use gtk3_ext::{
 
 use recollections::{recall, remember};
 
-use colour_math::{HCV, MakeColouredShape, ScalarAttribute};
+use colour_math::{HCV, MakeColouredShape, ScalarAttributeType};
 use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};
 use gtk3_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
@@ -56,7 +56,7 @@ struct RangePage {
 
 #[derive(Clone)]
 struct RangePageBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     menu_items: Vec<(&'static str, MenuItemSpec, u64)>,
     selection_mode: gtk::SelectionMode,
@@ -78,7 +78,7 @@ impl RangePageBuilder {
         Self::default()
     }
 
-    fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -214,7 +214,7 @@ struct RangeBinder {
 impl RangeBinder {
     fn new(
         menu_items: &[(&'static str, MenuItemSpec, u64)],
-        attributes: &[ScalarAttribute],
+        attributes: &[ScalarAttributeType],
         property_types: &PropertyTypes,
         loaded_files_data_path: Option<PathBuf>,
         selection_mode: gtk::SelectionMode,
@@ -528,7 +528,7 @@ impl RangePaintFinder for PaintRangeManager {
 
 #[derive(Default)]
 pub struct PaintRangeManagerBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     loaded_files_data_path: Option<PathBuf>,
     change_notifier: ChangedCondnsNotifier,
@@ -539,7 +539,7 @@ impl PaintRangeManagerBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -692,7 +692,7 @@ impl RangePaintFinder for PaintStandardsManager {
 
 #[derive(Default)]
 pub struct PaintStandardsManagerBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     loaded_files_data_path: Option<PathBuf>,
     change_notifier: ChangedCondnsNotifier,
@@ -704,7 +704,7 @@ impl PaintStandardsManagerBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }

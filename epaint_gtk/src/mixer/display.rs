@@ -15,7 +15,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{Colour, HCV, IntoHCV, ScalarAttribute};
+use colour_math::{Colour, HCV, IntoHCV, ScalarAttributeType};
 use colour_math_gtk::attributes::ColourAttributeDisplayStackBuilder;
 use colour_math_gtk::coloured::Colourable;
 
@@ -57,7 +57,7 @@ impl MixtureDisplay {
 
 #[derive(Default)]
 pub struct MixtureDisplayBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     #[cfg(feature = "targeted_mixtures")]
     target_colour: Option<HCV>,
@@ -69,7 +69,7 @@ impl MixtureDisplayBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self.list_spec = ComponentsListViewSpec::new(&self.attributes, &self.property_types);
         self
@@ -225,7 +225,7 @@ impl<W: TopGtkWindow> MixtureDisplayDialogManager<W> {
 pub struct MixtureDisplayDialogManagerBuilder<W: TopGtkWindow> {
     caller: W,
     buttons: Vec<(&'static str, Option<&'static str>, u16)>,
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     target_colour: Option<HCV>,
 }
@@ -241,7 +241,7 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
         }
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -280,12 +280,12 @@ impl<W: TopGtkWindow + Clone> MixtureDisplayDialogManagerBuilder<W> {
 
 #[derive(Default)]
 pub struct ComponentsListViewSpec {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
 }
 
 impl ComponentsListViewSpec {
-    pub fn new(attributes: &[ScalarAttribute], property_types: &PropertyTypes) -> Self {
+    pub fn new(attributes: &[ScalarAttributeType], property_types: &PropertyTypes) -> Self {
         Self {
             attributes: attributes.to_vec(),
             property_types: property_types.clone(),

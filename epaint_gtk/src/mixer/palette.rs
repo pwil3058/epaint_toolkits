@@ -30,7 +30,7 @@ use gtk3_ext::{
 };
 
 use colour_math::{
-    HCV, IntoRGB, MakeColouredShape, RGBConstants, ScalarAttribute, WeightedAverageMixer,
+    HCV, IntoRGB, MakeColouredShape, RGBConstants, ScalarAttributeType, WeightedAverageMixer,
 };
 use colour_math_cairo::CairoSetColour;
 
@@ -114,7 +114,7 @@ pub struct MixtureEntry {
 }
 
 impl MixtureEntry {
-    pub fn new(attributes: &[ScalarAttribute]) -> Rc<Self> {
+    pub fn new(attributes: &[ScalarAttributeType]) -> Rc<Self> {
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
         let id_label = gtk::Label::builder().label("MIX#001").build();
         let name_entry = gtk::Entry::builder().build();
@@ -332,7 +332,7 @@ pub struct MixtureMixer {
     notes_entry: gtk::Entry,
     hue_wheel: Rc<GtkHueWheel>,
     list_view: Rc<ListViewWithPopUpMenu>,
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     mix_entry: Rc<MixtureEntry>,
     range_paint_spinner_box: Rc<PartsSpinButtonBox>,
     change_notifier: ChangedCondnsNotifier,
@@ -565,7 +565,7 @@ impl MixtureMixer {
 
 #[derive(Default)]
 pub struct PixtureMixerBuilder {
-    attributes: Vec<ScalarAttribute>,
+    attributes: Vec<ScalarAttributeType>,
     property_types: PropertyTypes,
     config_dir_path: Option<PathBuf>,
 }
@@ -575,7 +575,7 @@ impl PixtureMixerBuilder {
         Self::default()
     }
 
-    pub fn attributes(&mut self, attributes: &[ScalarAttribute]) -> &mut Self {
+    pub fn attributes(&mut self, attributes: &[ScalarAttributeType]) -> &mut Self {
         self.attributes = attributes.to_vec();
         self
     }
@@ -953,7 +953,7 @@ struct TargetPaintEntry {
 
 #[cfg(feature = "targeted_mixtures")]
 impl TargetPaintEntry {
-    fn new(attributes: &[ScalarAttribute]) -> Self {
+    fn new(attributes: &[ScalarAttributeType]) -> Self {
         // TODO: remember auto match on paste value
         let vbox = gtk::Box::new(gtk::Orientation::Vertical, 0);
 
