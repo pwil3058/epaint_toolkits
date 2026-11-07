@@ -183,6 +183,12 @@ pub trait ColourAttributes {
         }
     }
 
+    fn scalar_attribute_prop(&self, attr: ScalarAttributeType) -> Prop {
+        self.scalar_attribute(attr).into_prop()
+    }
+
+    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T>;
+
     fn family(&self) -> Option<Family>;
 
     fn monochrome_hcv(&self) -> HCV {
@@ -242,23 +248,14 @@ pub trait Colour: Sized + Copy + ColourAttributes + IntoRGB + IntoHCV + IntoCMY 
 }
 
 pub trait ScalarAttributes: Colour {
-    fn scalar_attribute_prop(&self, attr: ScalarAttributeType) -> Prop {
-        match attr {
-            ScalarAttributeType::Chroma => self.chroma().into_prop(),
-            ScalarAttributeType::Greyness => Prop::ONE - self.chroma().into_prop(),
-            ScalarAttributeType::Value => self.value().into(),
-            ScalarAttributeType::Warmth => self.warmth().into(),
-        }
-    }
-
-    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
-        match attr {
-            ScalarAttributeType::Chroma => self.into_rgb(),
-            ScalarAttributeType::Greyness => self.into_rgb(),
-            ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
-            ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
-        }
-    }
+    // fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
+    //     match attr {
+    //         ScalarAttributeType::Chroma => self.into_rgb(),
+    //         ScalarAttributeType::Greyness => self.into_rgb(),
+    //         ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
+    //         ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
+    //     }
+    // }
 }
 
 impl ScalarAttributes for HCV {}

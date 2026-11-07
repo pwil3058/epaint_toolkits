@@ -139,7 +139,7 @@ pub trait PaintListRow {
 
 impl PaintListRow for Paint {
     fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
-        use colour_math::{ColourAttributes, ScalarAttributes};
+        use colour_math::ColourAttributes;
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {
@@ -334,7 +334,6 @@ impl ListViewSpec for MixtureListViewSpec {
 impl PaintListRow for Mixture {
     fn row(&self, attributes: &[ScalarAttributeType]) -> Vec<glib::Value> {
         use colour_math::ColourAttributes;
-        use colour_math::ScalarAttributes;
         let ha: f64 = if let Some(angle) = self.hue_angle() {
             angle.into()
         } else {

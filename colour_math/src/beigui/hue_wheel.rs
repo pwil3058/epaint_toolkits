@@ -10,7 +10,6 @@ use crate::{
     hue::{Hue, HueIfce},
     rgb::RGB,
     Colour, ColourAttributes, HueConstants, LightLevel, RGBConstants, ScalarAttributeType,
-    ScalarAttributes,
 };
 
 #[derive(Debug)]

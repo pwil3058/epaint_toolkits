@@ -23,7 +23,7 @@ use crate::{
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
     Colour, ColourAttributes, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
-    ManipulatedColour, Outcome, RGBConstants, SetScalarPolicy,
+    ManipulatedColour, Outcome, RGBConstants, ScalarAttributeType, SetScalarPolicy,
 };
 
 pub trait IntoRGB {
@@ -176,7 +176,7 @@ impl<L: LightLevel> IntoIterator for RGB<L> {
     }
 }
 
-impl<T: LightLevel + IntoProp> ColourAttributes for RGB<T> {
+impl<L: LightLevel + IntoProp> ColourAttributes for RGB<L> {
     fn hue(&self) -> Option<Hue> {
         self.try_into().ok()
     }
@@ -248,6 +248,15 @@ impl<T: LightLevel + IntoProp> ColourAttributes for RGB<T> {
             hue.warmth()
         } else {
             Warmth::HALF
+        }
+    }
+
+    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
+        match attr {
+            ScalarAttributeType::Chroma => self.into_rgb(),
+            ScalarAttributeType::Greyness => self.into_rgb(),
+            ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
+            ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
         }
     }
 }

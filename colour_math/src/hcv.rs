@@ -19,7 +19,7 @@ use crate::{
     },
     rgb::{IntoRGB, RGB},
     Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
-    Outcome, PropsFrom, RGBConstants, SetScalarPolicy,
+    Outcome, PropsFrom, RGBConstants, ScalarAttributeType, SetScalarPolicy,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -346,6 +346,15 @@ impl ColourAttributes for HCV {
             hue.warmth()
         } else {
             Warmth::HALF
+        }
+    }
+
+    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
+        match attr {
+            ScalarAttributeType::Chroma => self.into_rgb(),
+            ScalarAttributeType::Greyness => self.into_rgb(),
+            ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
+            ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
         }
     }
 }

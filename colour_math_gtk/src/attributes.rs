@@ -23,7 +23,7 @@ use crate::colour::GdkColour;
 #[derive(PWO, Wrapper)]
 pub struct ColourAttributeDisplay {
     pub drawing_area: DrawingArea,
-    pub colout_attr_display: RefCell<colour_math::ColourAttributeDisplay>,
+    pub colour_attr_display: RefCell<colour_math::ColourAttributeDisplay>,
 }
 
 impl ColourAttributeDisplay {
@@ -37,7 +37,7 @@ impl ColourAttributeDisplay {
             RefCell::new(colour_math::ColourAttributeDisplay::new(colour_attr_type));
         let cad = Rc::new(Self {
             drawing_area,
-            colout_attr_display: colour_attr_display,
+            colour_attr_display: colour_attr_display,
         });
         cad.drawing_area.set_size_request(90, 30);
         let cad_c = Rc::clone(&cad);
@@ -48,7 +48,7 @@ impl ColourAttributeDisplay {
                     height: drawing_area.allocated_height() as f64,
                 };
                 let drawer = Drawer::new(cairo_context, size);
-                cad_c.colout_attr_display.borrow().draw_all(&drawer);
+                cad_c.colour_attr_display.borrow().draw_all(&drawer);
                 glib::Propagation::Stop
                 // gtk::Inhibit(false)
             });
@@ -57,11 +57,11 @@ impl ColourAttributeDisplay {
     }
 
     pub fn set_colour(&self, colour: Option<&impl Colour>) {
-        self.colout_attr_display.borrow_mut().set_colour(colour)
+        self.colour_attr_display.borrow_mut().set_colour(colour)
     }
 
     pub fn set_target_colour(&self, colour: Option<&impl Colour>) {
-        self.colout_attr_display
+        self.colour_attr_display
             .borrow_mut()
             .set_target_colour(colour)
     }

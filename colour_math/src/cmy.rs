@@ -8,7 +8,7 @@ use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
     Chroma, Colour, ColourAttributes, Family, FromProps, Hue, HueConstants, IntoHCV, IntoProps,
-    IntoRGB, LightLevel, RGBConstants, Value, Warmth, HCV, RGB,
+    IntoRGB, LightLevel, RGBConstants, ScalarAttributeType, Value, Warmth, HCV, RGB,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -234,6 +234,15 @@ impl<L: LightLevel> ColourAttributes for CMY<L> {
 
     fn warmth(&self) -> Warmth {
         (*self).into_rgb::<Prop>().warmth()
+    }
+
+    fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
+        match attr {
+            ScalarAttributeType::Chroma => self.into_rgb(),
+            ScalarAttributeType::Greyness => self.into_rgb(),
+            ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
+            ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
+        }
     }
 
     fn family(&self) -> Option<Family> {

@@ -76,6 +76,10 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.warmth()
             }
 
+            fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
+                self.#colour.scalar_attribute_rgb::<T>(attr)
+            }
+
             fn family(&self) -> Option<colour_math::Family> {
                 self.#colour.family()
             }
