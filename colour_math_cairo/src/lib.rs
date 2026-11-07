@@ -10,33 +10,6 @@ use colour_math::{
     Colour, IntoProps, IntoRGB, RGBConstants, HCV, RGB,
 };
 
-// #[derive(Debug, Default, Copy, Clone)]
-// pub struct FRGB([f64; 3]);
-//
-// impl From<RGB<Prop>> for FRGB {
-//     fn from(rgb: RGB<Prop>) -> Self {
-//         Self(
-//             rgb.into_iter()
-//                 .map(|p| f64::from_prop(p))
-//                 .collect::<Vec<_>>()
-//                 .try_into()
-//                 .expect("conversion failed"),
-//         )
-//     }
-// }
-//
-// impl std::ops::Index<usize> for FRGB {
-//     type Output = f64;
-//
-//     fn index(&self, index: usize) -> &Self::Output {
-//         &self.0[index]
-//     }
-// }
-//
-// impl FRGB {
-//     const BLACK: Self = Self([0.0, 0.0, 0.0]);
-// }
-
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Point {
     pub x: f64,

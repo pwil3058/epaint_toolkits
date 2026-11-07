@@ -1,8 +1,84 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use colour_math::fixed_denominator_rational_numbers::{IntoProp, Prop};
 use colour_math::{HCV, IntoHCV, IntoRGB, LightLevel, RGB};
 use eframe::egui::{Color32, ColorImage, Pos2, Rect};
 use std::ops::{Deref, DerefMut};
+
+pub trait IntoColor32: Sized + Copy {
+    fn into_color32(self) -> Color32;
+}
+
+pub trait Color32From<T: Sized + Copy> {
+    fn color32_from(arg: T) -> Color32;
+}
+
+impl<T: IntoColor32> Color32From<T> for Color32 {
+    fn color32_from(arg: T) -> Self {
+        arg.into_color32()
+    }
+}
+
+impl<L: LightLevel> IntoColor32 for RGB<L> {
+    fn into_color32(self) -> Color32 {
+        let (red, green, blue) = self.into_rgb::<u8>().into();
+        Color32::from_rgb(red, green, blue)
+    }
+}
+
+impl IntoColor32 for HCV {
+    fn into_color32(self) -> Color32 {
+        self.into_rgb::<u8>().into_color32()
+    }
+}
+
+pub trait IntoCmRGB {
+    fn into_cm_rgb<L: LightLevel>(self) -> RGB<L>;
+}
+
+pub trait CmRGBFrom<T, L: LightLevel> {
+    fn cm_rgb_from(arg: T) -> RGB<L>;
+}
+
+impl<T: IntoCmRGB, L: LightLevel> CmRGBFrom<T, L> for RGB<L> {
+    fn cm_rgb_from(arg: T) -> RGB<L> {
+        arg.into_cm_rgb()
+    }
+}
+
+impl IntoCmRGB for Color32 {
+    fn into_cm_rgb<L: LightLevel>(self) -> RGB<L> {
+        TryInto::<[Prop; 3]>::try_into(
+            self.to_array()
+                .iter()
+                .take(3)
+                .map(|u| u.into_prop())
+                .collect::<Vec<_>>(),
+        )
+        .unwrap()
+        .into_rgb()
+    }
+}
+
+pub trait IntoCmHCV: Sized + Copy {
+    fn into_cm_hcv(self) -> HCV;
+}
+
+pub trait CmHCVFrom<T: Sized + Copy> {
+    fn cm_hcv_from(arg: T) -> HCV;
+}
+
+impl<T: IntoCmHCV> CmHCVFrom<T> for HCV {
+    fn cm_hcv_from(arg: T) -> HCV {
+        arg.into_cm_hcv()
+    }
+}
+
+impl IntoCmHCV for Color32 {
+    fn into_cm_hcv(self) -> HCV {
+        self.into_cm_rgb::<Prop>().into_hcv()
+    }
+}
 
 pub trait Depuis<T: Copy>: Sized {
     fn depuis(arg: T) -> Self;
