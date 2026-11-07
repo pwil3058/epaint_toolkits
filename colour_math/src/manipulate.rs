@@ -45,5 +45,5 @@ pub trait ManipulatedColour: Sized + Copy + ColourAttributes + PartialEq {
     fn greyed(self, prop: Prop) -> Self;
     fn rotated(self, angle: Angle) -> Self;
 
-    fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self>;
+    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self>;
 }

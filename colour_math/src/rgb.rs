@@ -313,9 +313,9 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         HCV::from(self).rotated(angle).into_rgb()
     }
 
-    fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
-        match self.into_hcv().with_value(new_value, policy) {
+        match self.into_hcv().try_with_value(new_value, policy) {
             Ok(hcv) => Ok(hcv.into_rgb::<L>()),
             Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
             Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),

@@ -488,16 +488,16 @@ impl ManipulatedColour for HCV {
     /// use colour_math::*;
     /// use SetScalarPolicy::*;
     ///
-    /// assert_eq!(HCV::RED.with_value(Value::ONE, Reject), Outcome::Rejected);
-    /// assert_eq!(HCV::RED.with_value(Value::ONE, Accommodate), Outcome::Accommodated(HCV::WHITE));
-    /// assert_eq!(HCV::RED.with_value(Value::ZERO, Accommodate), Outcome::Accommodated(HCV::BLACK));
-    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Reject), Outcome::Rejected);
-    /// assert_eq!(HCV::RED.with_value(Value::ONE / 2, Clamp), Outcome::NoChange);
-    /// let pink =  HCV::RED.with_value(Value::ONE / 2, Accommodate).unwrap();
+    /// assert_eq!(HCV::RED.try_with_value(Value::ONE, Reject), Outcome::Rejected);
+    /// assert_eq!(HCV::RED.try_with_value(Value::ONE, Accommodate), Outcome::Accommodated(HCV::WHITE));
+    /// assert_eq!(HCV::RED.try_with_value(Value::ZERO, Accommodate), Outcome::Accommodated(HCV::BLACK));
+    /// assert_eq!(HCV::RED.try_with_value(Value::ONE / 2, Reject), Outcome::Rejected);
+    /// assert_eq!(HCV::RED.try_with_value(Value::ONE / 2, Clamp), Outcome::NoChange);
+    /// let pink =  HCV::RED.try_with_value(Value::ONE / 2, Accommodate).unwrap();
     /// assert_eq!(pink.value(), Value::ONE / 2);
     /// assert_eq!(pink.hue().unwrap(), Hue::RED);
     /// ```
-    fn with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
         let new_sum = new_value * 3;
         if new_sum == self.sum {
             Outcome::NoChange
