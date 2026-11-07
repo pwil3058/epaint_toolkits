@@ -247,25 +247,6 @@ pub trait Colour: Sized + Copy + ColourAttributes + IntoRGB + IntoHCV + IntoCMY 
     }
 }
 
-pub trait ScalarAttributes: Colour {
-    // fn scalar_attribute_rgb<T: LightLevel>(&self, attr: ScalarAttributeType) -> RGB<T> {
-    //     match attr {
-    //         ScalarAttributeType::Chroma => self.into_rgb(),
-    //         ScalarAttributeType::Greyness => self.into_rgb(),
-    //         ScalarAttributeType::Value => RGB::<T>::new_grey(self.value()),
-    //         ScalarAttributeType::Warmth => RGB::<T>::new_warmth_rgb(self.warmth()),
-    //     }
-    // }
-}
-
-impl ScalarAttributes for HCV {}
-impl<L: LightLevel> ScalarAttributes for RGB<L> {}
-
-pub trait ColourIfce: ColourAttributes + ScalarAttributes {}
-
-impl ColourIfce for HCV {}
-impl<L: LightLevel> ColourIfce for RGB<L> {}
-
 #[cfg(test)]
 mod rgb_tests {
     use super::*;

@@ -13,7 +13,7 @@ pub mod colour {
     use colour_math::fixed_denominator_rational_numbers::*;
     use colour_math::{IntoProps, LightLevel, ManipulatedColour, HCV, RGB};
 
-    pub trait GdkColour: colour_math::ColourIfce {
+    pub trait GdkColour: colour_math::Colour {
         fn gdk_rgba(&self) -> gdk::RGBA {
             let rgb = self.into_rgb::<u64>().into_proportions();
             gdk::RGBA::new(
