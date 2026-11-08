@@ -30,12 +30,12 @@ use gtk3_ext::{
 };
 
 use colour_math::{
-    HCV, IntoRGB, MakeColouredShape, RGBConstants, ScalarAttributeType, WeightedAverageMixer,
+    HCV, MakeColouredShape, RGBConstants, ScalarAttributeType, WeightedAverageMixer,
 };
 use colour_math_cairo::CairoSetColour;
 
 #[cfg(feature = "targeted_mixtures")]
-use colour_math::{LightLevel, RGB};
+use colour_math::{IntoRGB, LightLevel, RGB};
 #[cfg(feature = "targeted_mixtures")]
 use colour_math_gtk::colour_edit::{ColourEditor, ColourEditorBuilder};
 
