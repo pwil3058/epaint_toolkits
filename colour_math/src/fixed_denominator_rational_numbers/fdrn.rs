@@ -177,6 +177,30 @@ impl<S: SignedInteger> From<S> for FDRNum {
     }
 }
 
+impl From<f32> for FDRNum {
+    /// Convert from f32
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_approx_eq!(FDRNum::from(1.0f32), FDRNum::ONE);
+    /// assert_approx_eq!(FDRNum::from(0.25f32), FDRNum::from_rational_num(1, 4));
+    /// assert_approx_eq!(FDRNum::from(-0.25f32), FDRNum::MINUS_ONE / 4, 4);
+    /// ```
+    fn from(arg: f32) -> Self {
+        Self((arg * Self::DENOMINATOR as f32) as i128)
+    }
+}
+
+impl From<FDRNum> for f32 {
+    fn from(arg: FDRNum) -> Self {
+        arg.0 as f32 / FDRNum::DENOMINATOR as f32
+    }
+}
+
 impl From<f64> for FDRNum {
     /// Convert from f64
     ///
@@ -186,9 +210,9 @@ impl From<f64> for FDRNum {
     /// use colour_math::fixed_denominator_rational_numbers::{FDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_approx_eq!(FDRNum::from(1.0), FDRNum::ONE);
-    /// assert_approx_eq!(FDRNum::from(0.25), FDRNum::from_rational_num(1, 4));
-    /// assert_approx_eq!(FDRNum::from(-0.25), FDRNum::MINUS_ONE / 4, 4);
+    /// assert_approx_eq!(FDRNum::from(1.0f64), FDRNum::ONE);
+    /// assert_approx_eq!(FDRNum::from(0.25f64), FDRNum::from_rational_num(1, 4));
+    /// assert_approx_eq!(FDRNum::from(-0.25f64), FDRNum::MINUS_ONE / 4, 4);
     /// ```
     fn from(arg: f64) -> Self {
         Self((arg * Self::DENOMINATOR as f64) as i128)
@@ -197,7 +221,7 @@ impl From<f64> for FDRNum {
 
 impl From<FDRNum> for f64 {
     fn from(arg: FDRNum) -> Self {
-        arg.0 as f64 / u64::MAX as f64
+        arg.0 as f64 / FDRNum::DENOMINATOR as f64
     }
 }
 

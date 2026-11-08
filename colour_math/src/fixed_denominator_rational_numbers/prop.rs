@@ -28,6 +28,7 @@ impl AsProportion for Prop {
 }
 
 impl Prop {
+    const DENOMINATOR: u64 = u64::MAX;
     /// Create from a fraction
     ///
     /// Examples:
@@ -194,17 +195,31 @@ impl From<[u64; 2]> for Prop {
     }
 }
 
+impl IntoProp for f32 {
+    fn into_prop(self) -> Prop {
+        debug_assert!((0.0..=1.0).contains(&self));
+        //NB: watch out for floating point not being proper reals
+        Prop((self * Prop::DENOMINATOR as f32) as u64)
+    }
+}
+
+impl FromProp for f32 {
+    fn from_prop(prop: Prop) -> f32 {
+        prop.0 as f32 / Prop::DENOMINATOR as f32
+    }
+}
+
 impl IntoProp for f64 {
     fn into_prop(self) -> Prop {
         debug_assert!((0.0..=1.0).contains(&self));
         //NB: watch out for floating point not being proper reals
-        Prop((self * u64::MAX as f64) as u64)
+        Prop((self * Prop::DENOMINATOR as f64) as u64)
     }
 }
 
 impl FromProp for f64 {
     fn from_prop(prop: Prop) -> f64 {
-        prop.0 as f64 / u64::MAX as f64
+        prop.0 as f64 / Prop::DENOMINATOR as f64
     }
 }
 

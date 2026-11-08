@@ -182,6 +182,30 @@ impl<U: UnsignedInteger> From<U> for UFDRNum {
     }
 }
 
+impl From<f32> for UFDRNum {
+    /// Convert from f32
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_approx_eq!(UFDRNum::from(1.0f32), UFDRNum::ONE);
+    /// assert_approx_eq!(UFDRNum::from(0.25f32), UFDRNum::ONE / 4u8)
+    /// ```
+    fn from(arg: f32) -> Self {
+        assert!(arg >= 0.0);
+        Self((arg * Self::DENOMINATOR as f32) as u128)
+    }
+}
+
+impl From<UFDRNum> for f32 {
+    fn from(arg: UFDRNum) -> Self {
+        arg.0 as f32 / UFDRNum::DENOMINATOR as f32
+    }
+}
+
 impl From<f64> for UFDRNum {
     /// Convert from f64
     ///
@@ -191,8 +215,8 @@ impl From<f64> for UFDRNum {
     /// use colour_math::fixed_denominator_rational_numbers::{UFDRNum, debug::ApproxEq, NumberConstants};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_approx_eq!(UFDRNum::from(1.0), UFDRNum::ONE);
-    /// assert_approx_eq!(UFDRNum::from(0.25), UFDRNum::ONE / 4u8)
+    /// assert_approx_eq!(UFDRNum::from(1.0f64), UFDRNum::ONE);
+    /// assert_approx_eq!(UFDRNum::from(0.25f64), UFDRNum::ONE / 4u8)
     /// ```
     fn from(arg: f64) -> Self {
         assert!(arg >= 0.0);
@@ -202,7 +226,7 @@ impl From<f64> for UFDRNum {
 
 impl From<UFDRNum> for f64 {
     fn from(arg: UFDRNum) -> Self {
-        arg.0 as f64 / u64::MAX as f64
+        arg.0 as f64 / UFDRNum::DENOMINATOR as f64
     }
 }
 
