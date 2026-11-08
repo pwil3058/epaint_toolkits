@@ -4,7 +4,7 @@ pub mod colour;
 pub mod components;
 pub mod egui_drawer;
 pub mod widgets;
-
+pub mod drawer;
 // Converation traits for where From/Into forbidden.
 // Use for traits to make direction of conversion clear.
 
