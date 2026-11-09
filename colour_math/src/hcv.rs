@@ -18,8 +18,8 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::{IntoRGB, RGB},
-    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
-    Outcome, PropsFrom, RGBConstants, ScalarAttributeType, SetScalarPolicy,
+    Colour, ColourAttributes, DeltaSize, FromProps, HueConstants, IntoProps, LightLevel,
+    ManipulatedColour, Outcome, PropsFrom, RGBConstants, ScalarAttributeType, SetScalarPolicy,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -562,6 +562,55 @@ impl ManipulatedColour for HCV {
             } else {
                 Outcome::Ok(hcv)
             }
+        }
+    }
+
+    fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
+        let new_sum = (self.sum + delta.for_value() * 3u64).min(UFDRNum::THREE);
+        if new_sum == self.sum {
+            Outcome::NoChange
+        } else if let Some(hue) = self.hue() {
+            if let Some(max_sum) = hue.max_sum_for_chroma(self.chroma()) {
+                match max_sum.cmp(&new_sum) {
+                    Ordering::Equal | Ordering::Greater => Outcome::Ok(HCV {
+                        hue: Some(hue),
+                        c_prop: self.c_prop,
+                        sum: new_sum,
+                    }),
+                    Ordering::Less => {
+                        let hcv = HCV {
+                            hue: Some(hue),
+                            c_prop: self.c_prop,
+                            sum: max_sum,
+                        };
+                        match policy {
+                            SetScalarPolicy::Clamp => Outcome::Clamped(hcv),
+                            SetScalarPolicy::Accommodate => Outcome::Accommodated(hcv),
+                            SetScalarPolicy::Reject => Outcome::Rejected,
+                        }
+                    }
+                }
+            } else if policy == SetScalarPolicy::Accommodate {
+                if new_sum == UFDRNum::THREE {
+                    Outcome::Accommodated(HCV::WHITE)
+                } else if let Some(c_prop) = hue.max_chroma_prop_for_sum(new_sum) {
+                    Outcome::Accommodated(HCV {
+                        hue: Some(hue),
+                        c_prop,
+                        sum: new_sum,
+                    })
+                } else {
+                    Outcome::Rejected
+                }
+            } else {
+                Outcome::Rejected
+            }
+        } else {
+            Outcome::Ok(HCV {
+                hue: None,
+                c_prop: Prop::ZERO,
+                sum: new_sum,
+            })
         }
     }
 }

@@ -135,7 +135,7 @@ impl Drawer {
         if let Some(offset_centre) = self.offset_centre {
             ((pos - offset_centre) / self.scale).into_cm()
         } else {
-            Point::default()
+            (pos - self.rect.min).into_cm()
         }
     }
 
