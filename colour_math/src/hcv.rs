@@ -475,96 +475,12 @@ impl ManipulatedColour for HCV {
         self + angle
     }
 
-    /// Try to create an HCV with the same chroma and hue but with the requested value.
+    /// Try to create an HCV with the same chroma and hue but with the value increased by the
+    /// specified amount.
     /// If this is not possible and `policy` is `Clamp` return the nearest
     /// achievable result favouring `Chroma` else if `policy` is `Accommodate` return the
     /// nearest achievable result favouring `Value` else `Reject`. N.B. Clamping/accomodating
     /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
-    ///
-    /// Examples:
-    ///
-    /// ```
-    /// use std::str::FromStr;
-    /// use colour_math::*;
-    /// use SetScalarPolicy::*;
-    ///
-    /// assert_eq!(HCV::RED.try_with_value(Value::ONE, Reject), Outcome::Rejected);
-    /// assert_eq!(HCV::RED.try_with_value(Value::ONE, Accommodate), Outcome::Accommodated(HCV::WHITE));
-    /// assert_eq!(HCV::RED.try_with_value(Value::ZERO, Accommodate), Outcome::Accommodated(HCV::BLACK));
-    /// assert_eq!(HCV::RED.try_with_value(Value::ONE / 2, Reject), Outcome::Rejected);
-    /// assert_eq!(HCV::RED.try_with_value(Value::ONE / 2, Clamp), Outcome::NoChange);
-    /// let pink =  HCV::RED.try_with_value(Value::ONE / 2, Accommodate).unwrap();
-    /// assert_eq!(pink.value(), Value::ONE / 2);
-    /// assert_eq!(pink.hue().unwrap(), Hue::RED);
-    /// ```
-    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
-        let new_sum = new_value * 3;
-        if new_sum == self.sum {
-            Outcome::NoChange
-        } else if let Some(hue) = self.hue() {
-            if hue.sum_and_chroma_prop_are_compatible(new_sum, self.c_prop) {
-                let hcv = match HCV::try_new(Some((hue, self.c_prop)), new_sum) {
-                    Ok(hcv) => hcv,
-                    Err(hcv) => hcv,
-                };
-                debug_assert!(hcv.is_valid());
-                if hcv == self {
-                    Outcome::NoChange
-                } else {
-                    Outcome::Ok(hcv)
-                }
-            } else {
-                match policy {
-                    SetScalarPolicy::Clamp => {
-                        let hcv = if let Some((c_prop, sum)) =
-                            hue.adjusted_favouring_chroma(new_sum, self.c_prop)
-                        {
-                            match HCV::try_new(Some((hue, c_prop)), sum) {
-                                Ok(hcv) => hcv,
-                                Err(hcv) => hcv,
-                            }
-                        } else {
-                            HCV::new_grey((new_sum / 3u8).into())
-                        };
-                        debug_assert!(hcv.is_valid());
-                        if hcv == self {
-                            Outcome::NoChange
-                        } else {
-                            Outcome::Clamped(hcv)
-                        }
-                    }
-                    SetScalarPolicy::Accommodate => {
-                        let hcv = if let Some((c_prop, sum)) =
-                            hue.adjusted_favouring_sum(new_sum, self.c_prop)
-                        {
-                            match HCV::try_new(Some((hue, c_prop)), sum) {
-                                Ok(hcv) => hcv,
-                                Err(hcv) => hcv,
-                            }
-                        } else {
-                            HCV::new_grey((new_sum / 3u8).into())
-                        };
-                        debug_assert!(hcv.is_valid());
-                        if hcv == self {
-                            Outcome::NoChange
-                        } else {
-                            Outcome::Accommodated(hcv)
-                        }
-                    }
-                    SetScalarPolicy::Reject => Outcome::Rejected,
-                }
-            }
-        } else {
-            let hcv = HCV::new_grey((new_sum / 3u8).into());
-            debug_assert!(hcv.is_valid());
-            if hcv == self {
-                Outcome::NoChange
-            } else {
-                Outcome::Ok(hcv)
-            }
-        }
-    }
-
     fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
         let new_sum = (self.sum + delta.for_value() * 3u64).min(UFDRNum::THREE);
         if new_sum == self.sum {
@@ -593,24 +509,76 @@ impl ManipulatedColour for HCV {
             } else if policy == SetScalarPolicy::Accommodate {
                 if new_sum == UFDRNum::THREE {
                     Outcome::Accommodated(HCV::WHITE)
-                } else if let Some(c_prop) = hue.max_chroma_prop_for_sum(new_sum) {
+                } else if let Some(chroma) = hue.max_chroma_for_sum(new_sum) {
                     Outcome::Accommodated(HCV {
                         hue: Some(hue),
-                        c_prop,
+                        c_prop: chroma.into_prop(),
                         sum: new_sum,
                     })
                 } else {
-                    Outcome::Rejected
+                    Outcome::Accommodated(HCV::new_grey(Value::from(new_sum / 3u64)))
                 }
             } else {
                 Outcome::Rejected
             }
         } else {
-            Outcome::Ok(HCV {
-                hue: None,
-                c_prop: Prop::ZERO,
-                sum: new_sum,
-            })
+            Outcome::Ok(HCV::new_grey(Value::from(new_sum / 3u64)))
+        }
+    }
+
+    /// Try to create an HCV with the same chroma and hue but with the value decreased by the
+    /// specified amount.
+    /// If this is not possible and `policy` is `Clamp` return the nearest
+    /// achievable result favouring `Chroma` else if `policy` is `Accommodate` return the
+    /// nearest achievable result favouring `Value` else `Reject`. N.B. Clamping/accomodating
+    /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
+    fn try_decr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
+        let delta_sum = delta.for_value() * 3u64;
+        let new_sum = if delta_sum >= self.sum {
+            UFDRNum::ZERO
+        } else {
+            self.sum - delta_sum
+        };
+        if new_sum == self.sum {
+            Outcome::NoChange
+        } else if let Some(hue) = self.hue() {
+            if let Some(min_sum) = hue.min_sum_for_chroma(self.chroma()) {
+                match min_sum.cmp(&new_sum) {
+                    Ordering::Equal | Ordering::Less => Outcome::Ok(HCV {
+                        hue: Some(hue),
+                        c_prop: self.c_prop,
+                        sum: new_sum,
+                    }),
+                    Ordering::Greater => {
+                        let hcv = HCV {
+                            hue: Some(hue),
+                            c_prop: self.c_prop,
+                            sum: min_sum,
+                        };
+                        match policy {
+                            SetScalarPolicy::Clamp => Outcome::Clamped(hcv),
+                            SetScalarPolicy::Accommodate => Outcome::Accommodated(hcv),
+                            SetScalarPolicy::Reject => Outcome::Rejected,
+                        }
+                    }
+                }
+            } else if policy == SetScalarPolicy::Accommodate {
+                if new_sum == UFDRNum::ZERO {
+                    Outcome::Accommodated(HCV::BLACK)
+                } else if let Some(chroma) = hue.max_chroma_for_sum(new_sum) {
+                    Outcome::Accommodated(HCV {
+                        hue: Some(hue),
+                        c_prop: chroma.into_prop(),
+                        sum: new_sum,
+                    })
+                } else {
+                    Outcome::Accommodated(HCV::new_grey(Value::from(new_sum / 3u64)))
+                }
+            } else {
+                Outcome::Rejected
+            }
+        } else {
+            Outcome::Ok(HCV::new_grey(Value::from(new_sum / 3u64)))
         }
     }
 }

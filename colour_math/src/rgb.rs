@@ -313,9 +313,9 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         HCV::from(self).rotated(angle).into_rgb()
     }
 
-    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
-        match self.into_hcv().try_with_value(new_value, policy) {
+        match self.into_hcv().try_incr_value(delta, policy) {
             Ok(hcv) => Ok(hcv.into_rgb::<L>()),
             Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
             Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
@@ -324,9 +324,9 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         }
     }
 
-    fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_decr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
-        match self.into_hcv().try_incr_value(delta, policy) {
+        match self.into_hcv().try_decr_value(delta, policy) {
             Ok(hcv) => Ok(hcv.into_rgb::<L>()),
             Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
             Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),

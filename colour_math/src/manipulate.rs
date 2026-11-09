@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::fixed_denominator_rational_numbers::*;
-use crate::{Angle, ColourAttributes, DeltaSize, Value};
+use crate::{Angle, ColourAttributes, DeltaSize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SetScalarPolicy {
@@ -45,6 +45,6 @@ pub trait ManipulatedColour: Sized + Copy + ColourAttributes + PartialEq {
     fn greyed(self, prop: Prop) -> Self;
     fn rotated(self, angle: Angle) -> Self;
 
-    fn try_with_value(self, new_value: Value, policy: SetScalarPolicy) -> Outcome<Self>;
     fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self>;
+    fn try_decr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self>;
 }
