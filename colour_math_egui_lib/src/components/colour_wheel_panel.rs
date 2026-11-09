@@ -73,7 +73,7 @@ impl ColourWheelPanel {
 
             // 1. Instantiate your production EguiDrawer bridge context
             //let drawer = EguiDrawer::new(&painter, transformed_rect, resp.rect);
-            let drawer = Drawer::new(painter, self.pan_offset);
+            let drawer = Drawer::new(painter, Some(self.pan_offset));
 
             // 2. DRAW BASE WHEEL: Hand rendering control directly to your backend HueWheel state engine loop!
             self.hue_wheel.draw(self.active_projection, &drawer);

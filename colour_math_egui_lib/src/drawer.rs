@@ -80,7 +80,7 @@ pub struct Drawer {
     size: Size,
     rect: Rect,
     scale: f32,
-    offset_centre: Pos2,
+    offset_centre: Option<Pos2>,
     fill_colour: Cell<Color32>,
     line_colour: Cell<Color32>,
     text_colour: Cell<Color32>,
@@ -88,14 +88,18 @@ pub struct Drawer {
 }
 
 impl Drawer {
-    pub fn new(painter: Painter, offset: Vec2) -> Self {
+    pub fn new(painter: Painter, offset: Option<Vec2>) -> Self {
         let rect = painter.clip_rect();
-        let offset_centre = rect.center() + offset;
         let size = Size::cm_from(rect);
         let scale = if size.height > size.width {
             f32::from(size.width) / 2.15
         } else {
             f32::from(size.height) / 2.15
+        };
+        let offset_centre = if let Some(offset) = offset {
+            Some(rect.center() + offset)
+        } else {
+            None
         };
         Self {
             painter,
@@ -111,7 +115,11 @@ impl Drawer {
     }
 
     pub fn transform_point(&self, point: Point) -> Pos2 {
-        self.offset_centre + Vec2::from_cm(point) * self.scale
+        if let Some(offset_centre) = self.offset_centre {
+            offset_centre + Vec2::from_cm(point) * self.scale
+        } else {
+            self.rect.min + Vec2::from_cm(point)
+        }
     }
 
     pub fn transform_points(&self, points: &[Point]) -> Vec<Pos2> {
@@ -120,13 +128,10 @@ impl Drawer {
 
     pub fn rectangle(&self, point: Point, size: Size) -> Rect {
         let pos = self.transform_point(point);
-        let min = Pos2 {
-            x: pos.x,
-            y: pos.y - f32::from(size.height),
-        };
+        let min = Pos2 { x: pos.x, y: pos.y };
         let max = Pos2 {
             x: pos.x + f32::from(size.width),
-            y: pos.y,
+            y: pos.y + f32::from(size.height),
         };
         Rect { min, max }
     }
