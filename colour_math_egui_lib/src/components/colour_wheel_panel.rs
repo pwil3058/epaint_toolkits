@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::egui_drawer::EguiDrawer;
+use crate::drawer::Drawer;
 use colour_math::{HueWheel, ScalarAttributeType};
 use eframe::egui;
 
@@ -72,7 +72,8 @@ impl ColourWheelPanel {
             let transformed_rect = resp.rect.translate(self.pan_offset);
 
             // 1. Instantiate your production EguiDrawer bridge context
-            let drawer = EguiDrawer::new(&painter, transformed_rect, resp.rect);
+            //let drawer = EguiDrawer::new(&painter, transformed_rect, resp.rect);
+            let drawer = Drawer::new(painter, self.pan_offset);
 
             // 2. DRAW BASE WHEEL: Hand rendering control directly to your backend HueWheel state engine loop!
             self.hue_wheel.draw(self.active_projection, &drawer);
