@@ -7,7 +7,7 @@ use egui::{Align2, Color32, Painter, Pos2, Rect, Vec2};
 use std::cell::Cell;
 
 use crate::colour::*;
-use crate::{ColourMathFrom, ColourMathInto, FromColourMath};
+use crate::{ColourMathFrom, ColourMathInto, FromColourMath, IntoColourMath};
 
 impl FromColourMath<Point> for Pos2 {
     fn from_cm(point: Point) -> Self {
@@ -23,6 +23,15 @@ impl ColourMathFrom<Pos2> for Point {
         Point {
             x: FDRNum::from(pos.x),
             y: FDRNum::from(pos.y),
+        }
+    }
+}
+
+impl ColourMathFrom<Vec2> for Point {
+    fn cm_from(vec: Vec2) -> Point {
+        Point {
+            x: FDRNum::from(vec.x),
+            y: FDRNum::from(vec.y),
         }
     }
 }
@@ -119,6 +128,14 @@ impl Drawer {
             offset_centre + Vec2::from_cm(point) * self.scale
         } else {
             self.rect.min + Vec2::from_cm(point)
+        }
+    }
+
+    pub fn transform_pos2(&self, pos: Pos2) -> Point {
+        if let Some(offset_centre) = self.offset_centre {
+            ((pos - offset_centre) / self.scale).into_cm()
+        } else {
+            Point::default()
         }
     }
 
