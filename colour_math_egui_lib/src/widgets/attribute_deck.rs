@@ -35,11 +35,11 @@ impl AttributeDeck {
         ui: &mut egui::Ui,
         current_colour: &impl Colour,
         target_colour: Option<&impl Colour>,
+        row_size: egui::Vec2,
     ) {
         let single_display = AttributeDisplay::new();
         let gap_spacer = 4.0;
 
-        // 🌟 FIX: Use egui's correct, explicit `from_main_dir_and_cross_align` constructor function name!
         ui.with_layout(
             egui::Layout::from_main_dir_and_cross_align(self.direction, egui::Align::Min),
             |ui| {
@@ -53,7 +53,7 @@ impl AttributeDeck {
                         display_config.set_target_colour(Some(target));
                     }
 
-                    single_display.show(ui, &display_config);
+                    single_display.show(ui, &display_config, row_size);
 
                     if idx < total_items - 1 {
                         ui.add_space(gap_spacer);

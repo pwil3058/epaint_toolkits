@@ -40,7 +40,9 @@ impl ColourWheelPanel {
                     "Warmth",
                 );
 
-                if ui.button("⟲ Reset Pan").clicked() {
+                ui.add_space(160.0);
+
+                if ui.button("⟲ Recentre").clicked() {
                     self.pan_offset = egui::Vec2::ZERO;
                 }
             });

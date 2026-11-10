@@ -123,6 +123,7 @@ impl Drawer {
         }
     }
 
+    /// Transform a `Point` in the virtual canvas to a screen position.
     pub fn transform_point(&self, point: Point) -> Pos2 {
         if let Some(offset_centre) = self.offset_centre {
             offset_centre + Vec2::from_cm(point) * self.scale
@@ -131,6 +132,7 @@ impl Drawer {
         }
     }
 
+    /// Transform a screen position into a `Point` in the virtual canvas.
     pub fn transform_pos2(&self, pos: Pos2) -> Point {
         if let Some(offset_centre) = self.offset_centre {
             ((pos - offset_centre) / self.scale).into_cm()
@@ -139,10 +141,12 @@ impl Drawer {
         }
     }
 
+    /// Transform a list of `Point`s in the virtual canvas to a list of screen positions.
     pub fn transform_points(&self, points: &[Point]) -> Vec<Pos2> {
         points.iter().map(|p| self.transform_point(*p)).collect()
     }
 
+    /// Create a `Rect` in screen space from a `Point` and `Size` in virtual canvas space.
     pub fn rectangle(&self, point: Point, size: Size) -> Rect {
         let pos = self.transform_point(point);
         let min = Pos2 { x: pos.x, y: pos.y };

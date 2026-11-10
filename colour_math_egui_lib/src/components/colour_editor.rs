@@ -10,15 +10,21 @@ pub struct ColourEditor {
     pub displayed_attributes: Vec<ColourAttributeType>,
     pub manipulator: ColourManipulator,
     pub manipulator_pad: ColourManipulatorPad,
+    pub attribute_display_size: egui::Vec2,
 }
 
 impl ColourEditor {
-    pub fn new(initial_model: ColourManipulator, sliders: &[ColourAttributeType]) -> Self {
+    pub fn new(
+        initial_model: ColourManipulator,
+        attr_types: &[ColourAttributeType],
+        attribute_display_size: egui::Vec2,
+    ) -> Self {
         Self {
             active_rgb: initial_model.rgb(),
-            displayed_attributes: sliders.to_vec(),
+            displayed_attributes: attr_types.to_vec(),
             manipulator: initial_model,
             manipulator_pad: ColourManipulatorPad::new(),
+            attribute_display_size,
         }
     }
 
@@ -30,7 +36,12 @@ impl ColourEditor {
             // 1. REGION A (TOP): Ordered Attribute Display Deck Strips
             let display_deck =
                 AttributeDeck::new(&self.displayed_attributes, egui::Direction::TopDown);
-            display_deck.show(ui, &self.manipulator.hcv(), None::<&colour_math::HCV>);
+            display_deck.show(
+                ui,
+                &self.manipulator.hcv(),
+                None::<&colour_math::HCV>,
+                self.attribute_display_size,
+            );
 
             ui.add_space(14.0);
             ui.separator();

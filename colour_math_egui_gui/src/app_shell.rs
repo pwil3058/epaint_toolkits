@@ -13,7 +13,11 @@ impl AppShell {
         let core_manipulator = colour_math::manipulator::ColourManipulator::builder().build();
 
         Self {
-            colour_editor: ColourEditor::new(core_manipulator, sliders),
+            colour_editor: ColourEditor::new(
+                core_manipulator,
+                sliders,
+                egui::Vec2 { x: 400.0, y: 34.0 },
+            ),
         }
     }
 

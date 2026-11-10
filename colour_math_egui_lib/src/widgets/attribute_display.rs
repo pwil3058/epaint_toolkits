@@ -18,12 +18,9 @@ impl AttributeDisplay {
         &self,
         ui: &mut egui::Ui,
         display_config: &ColourAttributeDisplay,
+        size: egui::Vec2,
     ) -> egui::Response {
-        let row_width = 320.0;
-        let row_height = 24.0;
-
-        let (response, painter) =
-            ui.allocate_painter(egui::vec2(row_width, row_height), egui::Sense::empty());
+        let (response, painter) = ui.allocate_painter(size, egui::Sense::empty());
         let drawer = Drawer::new(painter, None);
 
         display_config.draw_all(&drawer);
