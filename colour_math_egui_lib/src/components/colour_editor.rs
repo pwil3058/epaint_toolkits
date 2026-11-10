@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::components::colour_manipulator_pad::ColourManipulatorPad;
-use crate::widgets::attribute_deck::AttributeDeck;
+use crate::widgets::attribute_deck::AttributesDisplay;
 use colour_math::{ColourAttributeType, ColourManipulator};
 use eframe::egui;
 
@@ -35,7 +35,7 @@ impl ColourEditor {
 
             // 1. REGION A (TOP): Ordered Attribute Display Deck Strips
             let display_deck =
-                AttributeDeck::new(&self.displayed_attributes, egui::Direction::TopDown);
+                AttributesDisplay::new(&self.displayed_attributes, egui::Direction::TopDown);
             display_deck.show(
                 ui,
                 &self.manipulator.hcv(),

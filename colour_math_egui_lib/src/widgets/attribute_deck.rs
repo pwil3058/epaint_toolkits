@@ -6,14 +6,14 @@ use eframe::egui;
 
 /// A stateless layout container widget that handles rendering an ordered array
 /// stack of attribute indicator bars configured in either a vertical or horizontal layout.
-pub struct AttributeDeck {
+pub struct AttributesDisplay {
     /// The structural array profile defining exactly which attributes to render on screen.
     pub profile: Vec<ColourAttributeType>,
     /// The active immediate-mode orientation layout constraint (egui::Direction::TopDown or LeftToRight).
     pub direction: egui::Direction,
 }
 
-impl AttributeDeck {
+impl AttributesDisplay {
     /// Creates a definitive multi-directional attribute display layout deck.
     ///
     /// # Arguments
