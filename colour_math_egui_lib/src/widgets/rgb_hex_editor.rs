@@ -23,19 +23,19 @@ impl<'a> RgbHexEditor<'a> {
 
             // Render independent HexEditor cells bound to our local frame buffers
             let r_resp = HexEditor::new(&mut r_val)
-                .color(egui::Color32::from_rgb(255, 80, 80))
+                .colour(egui::Color32::from_rgb(255, 80, 80))
                 .show(ui, "R: ");
 
             ui.add_space(10.0);
 
             let g_resp = HexEditor::new(&mut g_val)
-                .color(egui::Color32::from_rgb(80, 255, 80))
+                .colour(egui::Color32::from_rgb(80, 255, 80))
                 .show(ui, "G: ");
 
             ui.add_space(10.0);
 
             let b_resp = HexEditor::new(&mut blue_val)
-                .color(egui::Color32::from_rgb(80, 80, 255))
+                .colour(egui::Color32::from_rgb(80, 80, 255))
                 .show(ui, "B: ");
 
             // If any cell mutations are intercepted, re-assemble the atomic RGB container cleanly
