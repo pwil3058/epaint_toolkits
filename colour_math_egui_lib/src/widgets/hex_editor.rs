@@ -1,7 +1,5 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::mem;
-
 use eframe::egui;
 
 pub struct HexEditor<'a> {

@@ -2,7 +2,7 @@
 
 //! Generic Fixed Denominator Proportions
 
-use std::{cmp::Ordering, ops::Sub};
+use std::cmp::Ordering;
 
 use num_traits::{CheckedShl, NumCast, PrimInt, Unsigned};
 
@@ -119,6 +119,10 @@ impl<C: ProportionCore> Proportion<C> {
     pub fn sqrt(self) -> Self {
         if self.0.is_zero() || self.0 == C::max_value() {
             self
+        } else if usize::BITS > C::bits() {
+            let scaled = <usize as NumCast>::from(self.0).unwrap()
+                * <usize as NumCast>::from(C::max_value()).unwrap();
+            Self(C::from(scaled.isqrt()).unwrap())
         } else {
             let scaled = self.0.into() * C::max_value().into();
             Self(C::from(scaled.isqrt()).unwrap())
@@ -172,12 +176,12 @@ where
     }
 }
 
-// Operations
-// Sub
-impl<C: ProportionCore> Sub for Proportion<C> {
+// OPS
+// MUL
+impl<C: ProportionCore> std::ops::Mul for Proportion<C> {
     type Output = Self;
 
-    /// Subtract a Prop yielding a Prop.
+    /// Multiply by another Prop.
     ///
     /// Examples:
     ///
@@ -185,16 +189,32 @@ impl<C: ProportionCore> Sub for Proportion<C> {
     /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
     ///
     /// assert_eq!(
-    ///     Proportion::from_fraction(1u16, 2) - Proportion::from_fraction(1, 4),
+    ///     Proportion::from_fraction(1u8, 2) * Proportion::from_fraction(1, 2),
     ///     Proportion::from_fraction(1, 4)
     /// );
     /// assert_eq!(
-    ///     Proportion::from_fraction(3u32, 5) - Proportion::from_fraction(6, 10),
-    ///     Proportion(0)
+    ///     Proportion::from_fraction(1u64, 2) * Proportion::from_fraction(1, 3),
+    ///     Proportion::from_fraction(1, 6)
     /// );
     /// ```
-    fn sub(self, rhs: Self) -> Self {
-        assert!(self.0 >= rhs.0);
-        Self(self.0 - rhs.0)
+    fn mul(self, rhs: Self) -> Self {
+        if usize::BITS > C::bits() {
+            Self(
+                C::from(
+                    <usize as NumCast>::from(self.0).unwrap()
+                        * <usize as NumCast>::from(rhs.0).unwrap()
+                        / <usize as NumCast>::from(C::max_value()).unwrap(),
+                )
+                .unwrap(),
+            )
+        } else {
+            Self(C::from((self.0.into() * rhs.0.into()) / C::max_value().into()).unwrap())
+        }
+    }
+}
+
+impl<C: ProportionCore> std::ops::MulAssign for Proportion<C> {
+    fn mul_assign(&mut self, rhs: Self) {
+        *self = *self * rhs;
     }
 }
