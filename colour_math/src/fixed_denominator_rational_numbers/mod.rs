@@ -24,5 +24,6 @@ pub trait NumberConstants {
     const SQRT_3: Self;
 }
 
+pub mod proportion;
 #[cfg(test)]
 mod tests;
