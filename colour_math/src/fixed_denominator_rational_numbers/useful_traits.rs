@@ -60,6 +60,20 @@ impl_as_proportion!(u16);
 impl_as_proportion!(u32);
 impl_as_proportion!(u64);
 
+pub trait FromU64Checked: TryFrom<u64> {
+    /// Raw from an u128 value (will panic if value is greater than the maximum value of Self)
+    fn from_u64_checked(value: u64) -> Self;
+}
+
+impl<U: UnsignedInteger + TryFrom<u64>> FromU64Checked for U {
+    fn from_u64_checked(value: u64) -> Self {
+        value
+            .try_into()
+            .map_err(|_| "whatever")
+            .expect("Value is greater than the maximum value of Self")
+    }
+}
+
 pub trait FromU128Checked {
     /// Raw from an u128 value (will panic if value is greater than the maximum value of Self)
     fn from_u128_checked(value: u128) -> Self;

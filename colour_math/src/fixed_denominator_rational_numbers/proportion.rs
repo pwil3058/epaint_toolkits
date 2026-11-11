@@ -109,7 +109,7 @@ impl<C: ProportionCore> Proportion<C> {
     /// assert_approx_eq!(Proportion::<u8>(0), Proportion::<u8>(0));
     /// assert_approx_eq!(
     ///     Proportion::<u8>::from_fraction(1, 4).sqrt(),
-    ///     Proportion::<u8>::from_fraction(1, 2), (u64::MAX / 255) // Problem with proportional diffs
+    ///     Proportion::<u8>::from_fraction(1, 2),
     /// );
     /// assert_approx_eq!(
     ///     Proportion::<u64>::from_fraction(1, 9).sqrt(),
@@ -125,8 +125,50 @@ impl<C: ProportionCore> Proportion<C> {
         }
     }
 
-    pub fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
-        self.0.approx_eq(&other.0, max_diff)
+    /// Am I approximately equal to other within `max_bit_diff` bits (default is 1)?
+    pub fn approx_eq(&self, other: &Self, max_bit_diff: Option<u32>) -> bool {
+        let abs_diff = if self.0 > other.0 {
+            self.0 - other.0
+        } else {
+            other.0 - self.0
+        };
+        if let Some(max_bit_diff) = max_bit_diff {
+            abs_diff <= C::one() << max_bit_diff
+        } else {
+            abs_diff <= C::one()
+        }
+    }
+}
+
+// Conversion traits
+pub trait IntoProportion {
+    fn into_proportion<C: ProportionCore>(self) -> Proportion<C>;
+}
+
+pub trait ProportionFrom<T, C: ProportionCore> {
+    fn proportion_from(arg: T) -> Proportion<C>;
+}
+
+impl<T: IntoProportion, C: ProportionCore> ProportionFrom<T, C> for Proportion<C> {
+    fn proportion_from(arg: T) -> Proportion<C> {
+        arg.into_proportion()
+    }
+}
+
+pub trait ProportionInto {
+    fn proportion_into<T>(self) -> T;
+}
+
+pub trait FromProportion<C: ProportionCore> {
+    fn from_proportion(prop: Proportion<C>) -> Self;
+}
+
+impl<T, C: ProportionCore> FromProportion<C> for T
+where
+    Proportion<C>: ProportionInto,
+{
+    fn from_proportion(prop: Proportion<C>) -> Self {
+        prop.proportion_into::<T>()
     }
 }
 
