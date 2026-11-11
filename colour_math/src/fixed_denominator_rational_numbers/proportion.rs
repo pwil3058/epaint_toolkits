@@ -13,10 +13,14 @@ use crate::debug::*;
 
 /// A trait to define what the core of a proportion can be.
 pub trait ProportionCore:
-    std::fmt::Debug + PrimInt + Unsigned + CheckedShl + Gcd + Into<u128> + ApproxEq
+    std::fmt::Debug + PrimInt + Unsigned + CheckedShl + Gcd + ApproxEq
 {
     fn bits() -> u32;
     fn isqrt(self) -> Self;
+    fn as_usize(self) -> usize;
+    fn as_u128(self) -> u128;
+    fn fm_usize(arg: usize) -> Self;
+    fn fm_u128(arg: u128) -> Self;
 }
 
 macro_rules! implement_proportion_core (
@@ -26,9 +30,29 @@ macro_rules! implement_proportion_core (
                 Self::BITS
             }
 
-           fn isqrt(self) -> Self {
+            fn isqrt(self) -> Self {
                 Self::isqrt(self)
-             }
+            }
+
+            fn as_usize(self) -> usize {
+                if usize::BITS >= Self::bits() {
+                    self as usize
+                } else {
+                    <usize as NumCast>::from(self).expect("value out of usize range")
+                }
+            }
+
+            fn as_u128(self) -> u128 {
+                self as u128
+            }
+
+            fn fm_usize(arg: usize) -> Self {
+                <Self as NumCast>::from(arg).unwrap()
+            }
+
+            fn fm_u128(arg: u128) -> Self {
+                <Self as NumCast>::from(arg).unwrap()
+            }
         }
     }
 );
@@ -65,8 +89,7 @@ impl<C: ProportionCore> Proportion<C> {
                 Self(enumerator)
             } else if usize::BITS > C::bits() {
                 let shift = enumerator.leading_zeros() + C::bits();
-                let temp = (<usize as NumCast>::from(enumerator).unwrap() << shift)
-                    / <usize as NumCast>::from(denominator).unwrap();
+                let temp = (enumerator.as_usize() << shift) / denominator.as_usize();
                 use Ordering::*;
                 match shift.cmp(&C::bits()) {
                     Less => {
@@ -74,14 +97,14 @@ impl<C: ProportionCore> Proportion<C> {
                         let final_val = temp.checked_shl(shift_amount).expect(
                             "Logic Error: Left-shift overflowed! Fraction exceeds capacity.",
                         );
-                        Self(C::from(final_val).unwrap())
+                        Self(C::fm_usize(final_val))
                     }
-                    Equal => Self(C::from(temp).unwrap()),
-                    Greater => Self(C::from(temp >> (shift - C::bits()) as usize).unwrap()),
+                    Equal => Self(C::fm_usize(temp)),
+                    Greater => Self(C::fm_usize(temp >> (shift - C::bits()) as usize)),
                 }
             } else {
                 let shift = enumerator.leading_zeros() + C::bits();
-                let temp = (enumerator.into() << shift) / denominator.into();
+                let temp = (enumerator.as_u128() << shift) / denominator.as_u128();
                 use Ordering::*;
                 match shift.cmp(&C::bits()) {
                     Less => {
@@ -89,10 +112,10 @@ impl<C: ProportionCore> Proportion<C> {
                         let final_val = temp.checked_shl(shift_amount).expect(
                             "Logic Error: Left-shift overflowed! Fraction exceeds capacity.",
                         );
-                        Self(C::from(final_val).unwrap())
+                        Self(C::fm_u128(final_val))
                     }
-                    Equal => Self(C::from(temp).unwrap()),
-                    Greater => Self(C::from(temp >> (shift - C::bits()) as usize).unwrap()),
+                    Equal => Self(C::fm_u128(temp)),
+                    Greater => Self(C::fm_u128(temp >> (shift - C::bits()) as usize)),
                 }
             }
         }
@@ -120,12 +143,11 @@ impl<C: ProportionCore> Proportion<C> {
         if self.0.is_zero() || self.0 == C::max_value() {
             self
         } else if usize::BITS > C::bits() {
-            let scaled = <usize as NumCast>::from(self.0).unwrap()
-                * <usize as NumCast>::from(C::max_value()).unwrap();
-            Self(C::from(scaled.isqrt()).unwrap())
+            let scaled = self.0.as_usize() * C::max_value().as_usize();
+            Self(C::fm_usize(scaled.isqrt()))
         } else {
-            let scaled = self.0.into() * C::max_value().into();
-            Self(C::from(scaled.isqrt()).unwrap())
+            let scaled = self.0.as_u128() * C::max_value().as_u128();
+            Self(C::fm_u128(scaled.isqrt()))
         }
     }
 
@@ -199,16 +221,13 @@ impl<C: ProportionCore> std::ops::Mul for Proportion<C> {
     /// ```
     fn mul(self, rhs: Self) -> Self {
         if usize::BITS > C::bits() {
-            Self(
-                C::from(
-                    <usize as NumCast>::from(self.0).unwrap()
-                        * <usize as NumCast>::from(rhs.0).unwrap()
-                        / <usize as NumCast>::from(C::max_value()).unwrap(),
-                )
-                .unwrap(),
-            )
+            Self(C::fm_usize(
+                self.0.as_usize() * rhs.0.as_usize() / C::max_value().as_usize(),
+            ))
         } else {
-            Self(C::from((self.0.into() * rhs.0.into()) / C::max_value().into()).unwrap())
+            Self(C::fm_u128(
+                (self.0.as_u128() * rhs.0.as_u128()) / C::max_value().as_u128(),
+            ))
         }
     }
 }
