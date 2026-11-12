@@ -4,7 +4,7 @@
 
 use std::cmp::Ordering;
 
-use num_traits::{CheckedShl, NumCast, PrimInt, Unsigned};
+use num_traits::{AsPrimitive, CheckedShl, NumCast, PrimInt, Unsigned};
 
 use gcd::Gcd;
 
@@ -12,8 +12,15 @@ use crate::debug::*;
 // use useful_traits::
 
 /// A trait to define what the core of a proportion can be.
-pub trait ProportionCore:
-    std::fmt::Debug + PrimInt + Unsigned + CheckedShl + Gcd + ApproxEq
+pub trait CoreNumber:
+    std::fmt::Debug
+    + PrimInt
+    + Unsigned
+    + CheckedShl
+    + Gcd
+    + ApproxEq
+    + AsPrimitive<f32>
+    + AsPrimitive<f64>
 {
     fn bits() -> u32;
     fn isqrt(self) -> Self;
@@ -25,7 +32,7 @@ pub trait ProportionCore:
 
 macro_rules! implement_proportion_core (
     ($core: ty) => {
-        impl ProportionCore for $core {
+        impl CoreNumber for $core {
             fn bits() -> u32 {
                 Self::BITS
             }
@@ -64,9 +71,9 @@ implement_proportion_core!(u64);
 
 /// A generic fixed denominator representation of a proportion ie. 0.0..=1.0.
 #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-pub struct Proportion<C: ProportionCore>(pub C);
+pub struct Proportion<C: CoreNumber>(pub C);
 
-impl<C: ProportionCore> Proportion<C> {
+impl<C: CoreNumber> Proportion<C> {
     /// ```
     /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
     ///
@@ -152,6 +159,8 @@ impl<C: ProportionCore> Proportion<C> {
     }
 
     /// Am I approximately equal to other within `max_bit_diff` bits (default is 1)?
+    /// This is needed  because f32, f64 and the fixed denominator rational numbers used here are
+    /// only approximate representations of real numbers.
     pub fn approx_eq(&self, other: &Self, max_bit_diff: Option<u32>) -> bool {
         let abs_diff = if self.0 > other.0 {
             self.0 - other.0
@@ -168,39 +177,88 @@ impl<C: ProportionCore> Proportion<C> {
 
 // Conversion traits
 pub trait IntoProportion {
-    fn into_proportion<C: ProportionCore>(self) -> Proportion<C>;
+    fn into_proportion<C: CoreNumber>(self) -> Proportion<C>;
 }
 
-pub trait ProportionFrom<T, C: ProportionCore> {
+pub trait ProportionFrom<T, C: CoreNumber> {
     fn proportion_from(arg: T) -> Proportion<C>;
 }
 
-impl<T: IntoProportion, C: ProportionCore> ProportionFrom<T, C> for Proportion<C> {
+impl<T: IntoProportion, C: CoreNumber> ProportionFrom<T, C> for Proportion<C> {
     fn proportion_from(arg: T) -> Proportion<C> {
         arg.into_proportion()
     }
 }
 
-pub trait ProportionInto {
-    fn proportion_into<T>(self) -> T;
+pub trait ProportionInto<T> {
+    fn proportion_into(self) -> T;
 }
 
-pub trait FromProportion<C: ProportionCore> {
+pub trait FromProportion<C: CoreNumber> {
     fn from_proportion(prop: Proportion<C>) -> Self;
 }
 
-impl<T, C: ProportionCore> FromProportion<C> for T
+impl<T, C: CoreNumber> FromProportion<C> for T
 where
-    Proportion<C>: ProportionInto,
+    Proportion<C>: ProportionInto<T>,
 {
     fn from_proportion(prop: Proportion<C>) -> Self {
-        prop.proportion_into::<T>()
+        prop.proportion_into()
+    }
+}
+
+// Conversions
+impl IntoProportion for f64 {
+    /// Convert an f64 into a Proportion
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
+    /// use approximately_equal::*;
+    ///
+    /// assert_approx_eq!(0.5_f64.into_proportion::<u8>(), Proportion::from_fraction(1u8, 2));
+    /// assert_approx_eq!(Proportion::<u8>::proportion_from(0.5_f64), Proportion::from_fraction(1u8, 2));
+    /// ```
+    fn into_proportion<C: CoreNumber>(self) -> Proportion<C> {
+        debug_assert!((0.0..=1.0).contains(&self), "invalid input: {self}");
+        Proportion(C::from(self * AsPrimitive::<f64>::as_(C::max_value())).unwrap())
+    }
+}
+
+impl<C: CoreNumber> ProportionInto<f64> for Proportion<C> {
+    /// Convert this `Proportion` into an f64
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
+    /// use approximately_equal::*;
+    ///
+    /// assert_approx_eq!(0.2_f64, Proportion::from_fraction(1u8,5).proportion_into());
+    /// assert_approx_eq!(f64::from_proportion(Proportion::from_fraction(1u8,5)), 0.2);
+    /// ```
+    fn proportion_into(self) -> f64 {
+        <C as AsPrimitive<f64>>::as_(self.0) / <C as AsPrimitive<f64>>::as_(C::max_value())
+    }
+}
+
+impl IntoProportion for f32 {
+    fn into_proportion<C: CoreNumber>(self) -> Proportion<C> {
+        debug_assert!((0.0..=1.0).contains(&self), "invalid input: {self}");
+        Proportion(C::from(self * AsPrimitive::<f32>::as_(C::max_value())).unwrap())
+    }
+}
+
+impl<C: CoreNumber> ProportionInto<f32> for Proportion<C> {
+    fn proportion_into(self) -> f32 {
+        <C as AsPrimitive<f32>>::as_(self.0) / <C as AsPrimitive<f32>>::as_(C::max_value())
     }
 }
 
 // OPS
 // MUL
-impl<C: ProportionCore> std::ops::Mul for Proportion<C> {
+impl<C: CoreNumber> std::ops::Mul for Proportion<C> {
     type Output = Self;
 
     /// Multiply by another Prop.
@@ -232,7 +290,7 @@ impl<C: ProportionCore> std::ops::Mul for Proportion<C> {
     }
 }
 
-impl<C: ProportionCore> std::ops::MulAssign for Proportion<C> {
+impl<C: CoreNumber> std::ops::MulAssign for Proportion<C> {
     fn mul_assign(&mut self, rhs: Self) {
         *self = *self * rhs;
     }
