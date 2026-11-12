@@ -139,8 +139,6 @@ impl fmt::UpperHex for UFDRNum {
     }
 }
 
-impl AbsDiff for UFDRNum {}
-
 impl PropDiff for UFDRNum {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
         if self.is_proportion() && other.is_proportion() {

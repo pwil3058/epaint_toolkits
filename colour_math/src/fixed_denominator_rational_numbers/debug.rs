@@ -3,7 +3,11 @@ use std::{cmp::PartialOrd, ops::Sub};
 
 use crate::fixed_denominator_rational_numbers::{AsProportion, IntoProp, Prop};
 
-pub trait AbsDiff: Copy + Sized + PartialOrd + Sub<Output = Self> {
+pub trait AbsDiff {
+    fn abs_diff(&self, other: &Self) -> Self;
+}
+
+impl<T: Copy + Sized + PartialOrd + Sub<Output = Self>> AbsDiff for T {
     fn abs_diff(&self, other: &Self) -> Self {
         if self > other {
             *self - *other
@@ -12,15 +16,6 @@ pub trait AbsDiff: Copy + Sized + PartialOrd + Sub<Output = Self> {
         }
     }
 }
-
-impl AbsDiff for u8 {}
-impl AbsDiff for u16 {}
-impl AbsDiff for u32 {}
-impl AbsDiff for u64 {}
-impl AbsDiff for u128 {}
-
-impl AbsDiff for f32 {}
-impl AbsDiff for f64 {}
 
 pub trait PropDiff {
     fn prop_diff(&self, _other: &Self) -> Option<Prop> {

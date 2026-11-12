@@ -101,9 +101,6 @@ impl Prop {
     }
 }
 
-// Debug stuff
-impl AbsDiff for Prop {}
-
 impl PropDiff for Prop {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
         Some(self.abs_diff(other))

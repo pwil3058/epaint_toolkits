@@ -128,8 +128,6 @@ impl fmt::UpperHex for FDRNum {
     }
 }
 
-impl AbsDiff for FDRNum {}
-
 impl PropDiff for FDRNum {
     fn prop_diff(&self, other: &Self) -> Option<Prop> {
         let denom = self.abs().max(other.abs());
