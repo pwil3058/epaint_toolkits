@@ -2,6 +2,56 @@
 
 use std::fmt::Debug;
 
+use num_traits::{NumCast, PrimInt};
+
+pub trait UnsignedConversions: Sized + Copy + PrimInt {
+    fn bits() -> u32;
+    fn as_usize(self) -> usize;
+    fn as_u128(self) -> u128;
+    fn fm_usize(arg: usize) -> Self;
+    fn fm_u128(arg: u128) -> Self;
+}
+
+macro_rules! implement_unsigned_conversions (
+    ($core: ty) => {
+        impl UnsignedConversions for $core {
+            fn bits() -> u32 {
+                Self::BITS
+            }
+
+            fn as_usize(self) -> usize {
+                if usize::BITS >= Self::bits() {
+                    self as usize
+                } else {
+                    <usize as NumCast>::from(self).expect("value out of usize range")
+                }
+            }
+
+            fn as_u128(self) -> u128 {
+                self as u128
+            }
+
+            fn fm_usize(arg: usize) -> Self {
+                if usize::BITS <= Self::bits() {
+                    arg as Self
+                } else {
+                    <Self as NumCast>::from(arg).expect("value out of range")
+                }
+            }
+
+            fn fm_u128(arg: u128) -> Self {
+                <Self as NumCast>::from(arg).expect("value out of range")
+            }
+        }
+    }
+);
+
+implement_unsigned_conversions!(u8);
+implement_unsigned_conversions!(u16);
+implement_unsigned_conversions!(u32);
+implement_unsigned_conversions!(u64);
+implement_unsigned_conversions!(u128);
+
 pub trait FromAsProp<T: Sized> {
     fn from_as_prop(value: T) -> Self;
 }
@@ -61,7 +111,7 @@ impl_as_proportion!(u32);
 impl_as_proportion!(u64);
 
 pub trait FromU64Checked: TryFrom<u64> {
-    /// Raw from an u128 value (will panic if value is greater than the maximum value of Self)
+    /// Raw from an u64 value (will panic if value is greater than the maximum value of Self)
     fn from_u64_checked(value: u64) -> Self;
 }
 

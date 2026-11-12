@@ -4,12 +4,12 @@
 
 use std::cmp::Ordering;
 
-use num_traits::{AsPrimitive, CheckedShl, NumCast, PrimInt, Unsigned};
+use num_traits::{AsPrimitive, CheckedShl, PrimInt, Unsigned};
 
 use gcd::Gcd;
 
 use crate::debug::*;
-// use useful_traits::
+use crate::UnsignedConversions;
 
 /// A trait to define what the core of a proportion can be.
 pub trait CoreNumber:
@@ -21,59 +21,52 @@ pub trait CoreNumber:
     + ApproxEq
     + AsPrimitive<f32>
     + AsPrimitive<f64>
+    + UnsignedConversions
 {
-    fn bits() -> u32;
     fn isqrt(self) -> Self;
-    fn as_usize(self) -> usize;
-    fn as_u128(self) -> u128;
-    fn fm_usize(arg: usize) -> Self;
-    fn fm_u128(arg: u128) -> Self;
 }
 
-macro_rules! implement_proportion_core (
+macro_rules! implement_core_number (
     ($core: ty) => {
         impl CoreNumber for $core {
-            fn bits() -> u32 {
-                Self::BITS
-            }
-
             fn isqrt(self) -> Self {
                 Self::isqrt(self)
-            }
-
-            fn as_usize(self) -> usize {
-                if usize::BITS >= Self::bits() {
-                    self as usize
-                } else {
-                    <usize as NumCast>::from(self).expect("value out of usize range")
-                }
-            }
-
-            fn as_u128(self) -> u128 {
-                self as u128
-            }
-
-            fn fm_usize(arg: usize) -> Self {
-                <Self as NumCast>::from(arg).unwrap()
-            }
-
-            fn fm_u128(arg: u128) -> Self {
-                <Self as NumCast>::from(arg).unwrap()
             }
         }
     }
 );
 
-implement_proportion_core!(u8);
-implement_proportion_core!(u16);
-implement_proportion_core!(u32);
-implement_proportion_core!(u64);
+implement_core_number!(u8);
+implement_core_number!(u16);
+implement_core_number!(u32);
+implement_core_number!(u64);
 
 /// A generic fixed denominator representation of a proportion ie. 0.0..=1.0.
 #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 pub struct Proportion<C: CoreNumber>(pub C);
 
 impl<C: CoreNumber> Proportion<C> {
+    pub fn zero() -> Self {
+        Self(C::zero())
+    }
+    pub fn almost_zero() -> Self {
+        Self(C::zero() + C::from(1).unwrap())
+    }
+    pub fn one() -> Self {
+        Self(C::max_value())
+    }
+    pub fn almost_one() -> Self {
+        Self(C::max_value() - C::from(1).unwrap())
+    }
+    pub fn one_quarter() -> Self {
+        Self(C::zero() / C::from(4).unwrap())
+    }
+    pub fn one_half() -> Self {
+        Self(C::zero() / C::from(2).unwrap())
+    }
+    pub fn three_quarter() -> Self {
+        Self(C::zero() / C::from(4).unwrap() * C::from(3).unwrap())
+    }
     /// ```
     /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
     ///
@@ -85,7 +78,7 @@ impl<C: CoreNumber> Proportion<C> {
     pub fn from_fraction(enumerator: C, denominator: C) -> Self {
         assert!(denominator >= enumerator && !denominator.is_zero());
         if enumerator.is_zero() {
-            Self(C::zero())
+            Self::zero()
         } else {
             let gcd = enumerator.gcd(denominator);
             let enumerator = enumerator / gcd;
@@ -209,7 +202,7 @@ where
 
 // Conversions
 impl IntoProportion for f64 {
-    /// Convert an f64 into a Proportion
+    /// Convert an f64 (in range 0.0..-1.0) into a Proportion
     ///
     /// Examples:
     ///
@@ -244,6 +237,7 @@ impl<C: CoreNumber> ProportionInto<f64> for Proportion<C> {
 }
 
 impl IntoProportion for f32 {
+    /// Convert an f32 (in range 0.0..-1.0) into a Proportion
     fn into_proportion<C: CoreNumber>(self) -> Proportion<C> {
         debug_assert!((0.0..=1.0).contains(&self), "invalid input: {self}");
         Proportion(C::from(self * AsPrimitive::<f32>::as_(C::max_value())).unwrap())
@@ -251,6 +245,7 @@ impl IntoProportion for f32 {
 }
 
 impl<C: CoreNumber> ProportionInto<f32> for Proportion<C> {
+    /// Convert this `Proportion` into an f32
     fn proportion_into(self) -> f32 {
         <C as AsPrimitive<f32>>::as_(self.0) / <C as AsPrimitive<f32>>::as_(C::max_value())
     }
