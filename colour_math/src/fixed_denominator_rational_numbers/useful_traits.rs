@@ -124,44 +124,10 @@ impl<U: UnsignedInteger + TryFrom<u64>> FromU64Checked for U {
     }
 }
 
-pub trait FromU128Checked {
-    /// Raw from an u128 value (will panic if value is greater than the maximum value of Self)
-    fn from_u128_checked(value: u128) -> Self;
-}
-
-impl<U: UnsignedInteger> FromU128Checked for U {
-    fn from_u128_checked(value: u128) -> Self {
-        value
-            .try_into()
-            .map_err(|_| "whatever")
-            .expect("Value is greater than the maximum value of Self")
-    }
-}
-
-pub trait IntoFromRawU128 {
-    /// Raw from an u128 value (will panic if value is greater than the maximum value of Self)
-    fn from_u128(value: u128) -> Self;
-    /// Into a raw u128 value
-    fn into_u128(self) -> u128;
-}
-
-impl<U: UnsignedInteger> IntoFromRawU128 for U {
-    fn from_u128(value: u128) -> Self {
-        value
-            .try_into()
-            .map_err(|_| "whatever")
-            .expect("Value is greater than the maximum value of Self")
-    }
-
-    fn into_u128(self) -> u128 {
-        self.into()
-    }
-}
-
 pub trait Unsigned: Copy + Debug + PartialEq + Eq + PartialOrd + Ord {
     fn non_zero(self) -> bool;
 }
-pub trait UnsignedInteger: Unsigned + Into<u128> + TryFrom<u128> {}
+pub trait UnsignedInteger: Unsigned + UnsignedConversions {}
 
 impl Unsigned for u8 {
     fn non_zero(self) -> bool {

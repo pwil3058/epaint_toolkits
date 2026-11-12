@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, FromU128Checked, NumberConstants, UFDRNum, Unsigned, UnsignedInteger,
+    AsProportion, FDRNum, NumberConstants, UFDRNum, Unsigned, UnsignedConversions, UnsignedInteger,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -246,7 +246,7 @@ impl FromProp for FDRNum {
     }
 }
 
-impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
+impl<U: AsProportion + UnsignedConversions + Unsigned> IntoProp for U {
     /// Convert an unsigned type representing a proportion into a Prop (rounding to nearest)
     ///
     /// Examples:
@@ -261,14 +261,14 @@ impl<U: AsProportion + Into<u128> + Unsigned> IntoProp for U {
     /// assert_eq!(Prop::prop_from(u8::MAX - 1), Prop::from_fraction(254, 255));
     /// ```
     fn into_prop(self) -> Prop {
-        let dividend: u128 = Into::<u128>::into(self) * u64::MAX as u128;
-        let divisor: u128 = Into::<u128>::into(U::ONE);
+        let dividend: u128 = self.as_u128() * u64::MAX as u128;
+        let divisor: u128 = U::ONE.as_u128();
         let val = (dividend + divisor / 2) / divisor;
-        Prop(u64::from_u128_checked(val))
+        Prop(u64::fm_u128(val))
     }
 }
 
-impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
+impl<U: AsProportion + Unsigned + UnsignedConversions> FromProp for U {
     /// Converts a Prop to a U as a proportion of U::MAX (rounding to nearest)
     ///
     /// Examples:
@@ -283,10 +283,10 @@ impl<U: AsProportion + FromU128Checked + Unsigned + Into<u128>> FromProp for U {
     /// assert_eq!(23_u64, Prop::prop_from(23_u64).prop_into());
     /// ```
     fn from_prop(prop: Prop) -> U {
-        let dividend = prop.0 as u128 * Into::<u128>::into(U::ONE);
+        let dividend = prop.0 as u128 * U::ONE.as_u128();
         let divisor = u64::MAX as u128;
         let val = (dividend + divisor / 2) / divisor;
-        U::from_u128_checked(val)
+        U::fm_u128(val)
     }
 }
 
@@ -331,7 +331,7 @@ impl<U: UnsignedInteger> Mul<U> for Prop {
     /// assert_approx_eq!(Prop::from_fraction(3, 5) * 2u8, UFDRNum::from_rational_num(6, 5));
     /// ```
     fn mul(self, rhs: U) -> UFDRNum {
-        UFDRNum(self.0 as u128 * rhs.into())
+        UFDRNum(self.0 as u128 * rhs.as_u128())
     }
 }
 
@@ -382,7 +382,7 @@ impl<U: UnsignedInteger> Div<U> for Prop {
     /// assert_eq!(Prop::from_fraction(3, 5) / 2u8, Prop::from_fraction(3, 10));
     /// ```
     fn div(self, rhs: U) -> Self {
-        Self((self.0 as u128 / rhs.into()) as u64)
+        Self((self.0 as u128 / rhs.as_u128()) as u64)
     }
 }
 
