@@ -49,7 +49,7 @@ impl ColourEditor {
 
             // 2. REGION B (MIDDLE): Digital R, G, B Hex Entry Fields
             ui.horizontal(|ui| {
-                crate::widgets::digital_readout::DigitalReadout::show(ui, &mut self.manipulator);
+                crate::widgets::digital_readout::RgbHexEditor::show(ui, &mut self.manipulator);
             });
 
             ui.add_space(14.0);

@@ -5,7 +5,6 @@ use colour_math::RGB;
 use eframe::egui;
 
 pub struct RgbHexEditor<'a> {
-    // 🌟 FIXED: Consuming the full atomic RGB type directly!
     pub rgb: &'a mut RGB<u8>,
 }
 
