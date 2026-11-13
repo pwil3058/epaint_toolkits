@@ -9,7 +9,7 @@ use num_traits::{AsPrimitive, CheckedShl, PrimInt, Unsigned};
 use gcd::Gcd;
 
 use crate::debug::*;
-use crate::UnsignedConversions;
+use crate::UnsignedCheckedCasts;
 
 /// A trait to define what the core of a proportion can be.
 pub trait CoreNumber:
@@ -21,7 +21,7 @@ pub trait CoreNumber:
     + ApproxEq
     + AsPrimitive<f32>
     + AsPrimitive<f64>
-    + UnsignedConversions
+    + UnsignedCheckedCasts
 {
     fn isqrt(self) -> Self;
 }
@@ -89,7 +89,7 @@ impl<C: CoreNumber> Proportion<C> {
                 Self(enumerator)
             } else if usize::BITS > C::bits() {
                 let shift = enumerator.leading_zeros() + C::bits();
-                let temp = (enumerator.as_usize() << shift) / denominator.as_usize();
+                let temp = (enumerator.to_usize() << shift) / denominator.to_usize();
                 use Ordering::*;
                 match shift.cmp(&C::bits()) {
                     Less => {
@@ -104,7 +104,7 @@ impl<C: CoreNumber> Proportion<C> {
                 }
             } else {
                 let shift = enumerator.leading_zeros() + C::bits();
-                let temp = (enumerator.as_u128() << shift) / denominator.as_u128();
+                let temp = (enumerator.to_u128() << shift) / denominator.to_u128();
                 use Ordering::*;
                 match shift.cmp(&C::bits()) {
                     Less => {
@@ -143,10 +143,10 @@ impl<C: CoreNumber> Proportion<C> {
         if self.0.is_zero() || self.0 == C::max_value() {
             self
         } else if usize::BITS > C::bits() {
-            let scaled = self.0.as_usize() * C::max_value().as_usize();
+            let scaled = self.0.to_usize() * C::max_value().to_usize();
             Self(C::fm_usize(scaled.isqrt()))
         } else {
-            let scaled = self.0.as_u128() * C::max_value().as_u128();
+            let scaled = self.0.to_u128() * C::max_value().to_u128();
             Self(C::fm_u128(scaled.isqrt()))
         }
     }
@@ -275,11 +275,11 @@ impl<C: CoreNumber> std::ops::Mul for Proportion<C> {
     fn mul(self, rhs: Self) -> Self {
         if usize::BITS > C::bits() {
             Self(C::fm_usize(
-                self.0.as_usize() * rhs.0.as_usize() / C::max_value().as_usize(),
+                self.0.to_usize() * rhs.0.to_usize() / C::max_value().to_usize(),
             ))
         } else {
             Self(C::fm_u128(
-                (self.0.as_u128() * rhs.0.as_u128()) / C::max_value().as_u128(),
+                (self.0.to_u128() * rhs.0.to_u128()) / C::max_value().to_u128(),
             ))
         }
     }

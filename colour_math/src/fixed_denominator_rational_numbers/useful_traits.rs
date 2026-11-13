@@ -4,22 +4,34 @@ use std::fmt::Debug;
 
 use num_traits::{NumCast, PrimInt};
 
-pub trait UnsignedConversions: Sized + Copy + PrimInt {
+pub trait UnsignedCheckedCasts: Sized + Copy + PrimInt {
     fn bits() -> u32;
-    fn as_usize(self) -> usize;
-    fn as_u128(self) -> u128;
+    fn to_usize(self) -> usize;
+    fn to_u8(self) -> u8;
+    fn to_u16(self) -> u16;
+    fn to_u32(self) -> u32;
+    fn to_u64(self) -> u64;
+    fn to_u128(self) -> u128;
+    fn to_f32(self) -> f32;
+    fn to_f64(self) -> f64;
     fn fm_usize(arg: usize) -> Self;
+    fn fm_u8(arg: u8) -> Self;
+    fn fm_u16(arg: u16) -> Self;
+    fn fm_u32(arg: u32) -> Self;
+    fn fm_u64(arg: u64) -> Self;
     fn fm_u128(arg: u128) -> Self;
+    fn fm_f32(arg: f32) -> Self;
+    fn fm_f64(arg: f64) -> Self;
 }
 
 macro_rules! implement_unsigned_conversions (
     ($core: ty) => {
-        impl UnsignedConversions for $core {
+        impl UnsignedCheckedCasts for $core {
             fn bits() -> u32 {
                 Self::BITS
             }
 
-            fn as_usize(self) -> usize {
+            fn to_usize(self) -> usize {
                 if usize::BITS >= Self::bits() {
                     self as usize
                 } else {
@@ -27,8 +39,48 @@ macro_rules! implement_unsigned_conversions (
                 }
             }
 
-            fn as_u128(self) -> u128 {
+            fn to_u8(self) -> u8 {
+                if u8::BITS >= Self::bits() {
+                    self as u8
+                } else {
+                    <u8 as NumCast>::from(self).expect("value ({self}) out of u8 range")
+                }
+            }
+
+            fn to_u16(self) -> u16 {
+                if u16::BITS >= Self::bits() {
+                    self as u16
+                } else {
+                    <u16 as NumCast>::from(self).expect("value out of u16 range")
+                }
+            }
+
+            fn to_u32(self) -> u32 {
+                if u32::BITS >= Self::bits() {
+                    self as u32
+                } else {
+                    <u32 as NumCast>::from(self).expect("value ({self}) out of u32 range")
+                }
+            }
+
+            fn to_u64(self) -> u64 {
+                if u64::BITS >= Self::bits() {
+                    self as u64
+                } else {
+                    <u64 as NumCast>::from(self).expect("value out of u64 range")
+                }
+            }
+
+            fn to_u128(self) -> u128 {
                 self as u128
+            }
+
+            fn to_f32(self) -> f32 {
+                self as f32
+            }
+
+            fn to_f64(self) -> f64 {
+                self as f64
             }
 
             fn fm_usize(arg: usize) -> Self {
@@ -39,7 +91,47 @@ macro_rules! implement_unsigned_conversions (
                 }
             }
 
+            fn fm_u8(arg: u8) -> Self {
+                if u8::BITS <= Self::bits() {
+                    arg as Self
+                } else {
+                    <Self as NumCast>::from(arg).expect("value out of range")
+                }
+            }
+
+            fn fm_u16(arg: u16) -> Self {
+                if u16::BITS <= Self::bits() {
+                    arg as Self
+                } else {
+                    <Self as NumCast>::from(arg).expect("value out of range")
+                }
+            }
+
+            fn fm_u32(arg: u32) -> Self {
+                if u32::BITS <= Self::bits() {
+                    arg as Self
+                } else {
+                    <Self as NumCast>::from(arg).expect("value out of range")
+                }
+            }
+
+            fn fm_u64(arg: u64) -> Self {
+                if u64::BITS <= Self::bits() {
+                    arg as Self
+                } else {
+                    <Self as NumCast>::from(arg).expect("value out of range")
+                }
+            }
+
             fn fm_u128(arg: u128) -> Self {
+                <Self as NumCast>::from(arg).expect("value out of range")
+            }
+
+            fn fm_f32(arg: f32) -> Self {
+                <Self as NumCast>::from(arg).expect("value out of range")
+            }
+
+            fn fm_f64(arg: f64) -> Self {
                 <Self as NumCast>::from(arg).expect("value out of range")
             }
         }
@@ -110,24 +202,10 @@ impl_as_proportion!(u16);
 impl_as_proportion!(u32);
 impl_as_proportion!(u64);
 
-pub trait FromU64Checked: TryFrom<u64> {
-    /// Raw from an u64 value (will panic if value is greater than the maximum value of Self)
-    fn from_u64_checked(value: u64) -> Self;
-}
-
-impl<U: UnsignedInteger + TryFrom<u64>> FromU64Checked for U {
-    fn from_u64_checked(value: u64) -> Self {
-        value
-            .try_into()
-            .map_err(|_| "whatever")
-            .expect("Value is greater than the maximum value of Self")
-    }
-}
-
 pub trait Unsigned: Copy + Debug + PartialEq + Eq + PartialOrd + Ord {
     fn non_zero(self) -> bool;
 }
-pub trait UnsignedInteger: Unsigned + UnsignedConversions {}
+pub trait UnsignedInteger: Unsigned + UnsignedCheckedCasts {}
 
 impl Unsigned for u8 {
     fn non_zero(self) -> bool {
@@ -192,3 +270,13 @@ impl SignedInteger for i8 {}
 impl SignedInteger for i16 {}
 impl SignedInteger for i32 {}
 impl SignedInteger for i64 {}
+
+#[cfg(test)]
+pub mod trait_tests {
+    use super::*;
+
+    #[test]
+    fn test_casts() {
+        assert_eq!(u8::fm_f32(10.0), 10u8);
+    }
+}

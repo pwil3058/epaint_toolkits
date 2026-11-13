@@ -176,7 +176,7 @@ impl<U: UnsignedInteger> From<U> for UFDRNum {
     /// assert_eq!(UFDRNum::from(5_u32), UFDRNum::ONE * 5_u8);
     /// ```
     fn from(unsigned: U) -> Self {
-        Self(unsigned.as_u128() * Self::DENOMINATOR)
+        Self(unsigned.to_u128() * Self::DENOMINATOR)
     }
 }
 
@@ -336,7 +336,7 @@ impl<U: UnsignedInteger> Mul<U> for UFDRNum {
     /// ```
     fn mul(self, rhs: U) -> Self::Output {
         // N.B. Do this separately to avoid ambiguity with U::into::<UFDRNum>().
-        let rhs: u128 = rhs.as_u128();
+        let rhs: u128 = rhs.to_u128();
         Self(self.0 * rhs)
     }
 }
@@ -393,7 +393,7 @@ impl<U: UnsignedInteger> Div<U> for UFDRNum {
     /// ```
     fn div(self, rhs: U) -> Self::Output {
         // N.B. Do this separately to avoid ambiguity with U::into::<UFDRNum>().
-        let rhs: u128 = rhs.as_u128();
+        let rhs: u128 = rhs.to_u128();
         Self(self.0 / rhs)
     }
 }
@@ -444,7 +444,7 @@ impl<U: UnsignedInteger> Rem<U> for UFDRNum {
     /// ```
     fn rem(self, rhs: U) -> Self::Output {
         // N.B. Do this separately to avoid ambiguity with U::into::<UFDRNum>().
-        let rhs: u128 = rhs.as_u128();
+        let rhs: u128 = rhs.to_u128();
         Self(self.0 % rhs)
     }
 }
