@@ -200,6 +200,34 @@ where
     }
 }
 
+impl<C: CoreNumber> IntoProportion for Proportion<C> {
+    /// Convert this `Proportion` to a `Proportion<T>`.
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
+    ///
+    /// assert_eq!(
+    ///     Proportion::<u8>::from_fraction(1, 5).into_proportion::<u16>(),
+    ///     Proportion::<u16>::from_fraction(1, 5)
+    /// );
+    /// assert_eq!(
+    ///     Proportion::<u32>::proportion_from(Proportion::<u8>::from_fraction(1, 5)),
+    ///     Proportion::<u32>::from_fraction(1, 5)
+    /// );
+    /// ```
+    fn into_proportion<T: CoreNumber>(self) -> Proportion<T> {
+        Proportion::<T>(T::fm_u128(
+            self.0.to_u128() * T::max_value().to_u128() / C::max_value().to_u128(),
+        ))
+    }
+}
+
+impl<C: CoreNumber, T: CoreNumber> ProportionInto<Proportion<T>> for Proportion<C> {
+    fn proportion_into(self) -> Proportion<T> {
+        Proportion::<T>::proportion_from(self)
+    }
+}
+
 // Conversions
 impl IntoProportion for f64 {
     /// Convert an f64 (in range 0.0..-1.0) into a Proportion
