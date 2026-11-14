@@ -7,7 +7,7 @@ use std::{
 };
 
 use gcd::Gcd;
-use num_traits::Unsigned;
+// use num_traits::Unsigned;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
@@ -18,14 +18,6 @@ use crate::fixed_denominator_rational_numbers::{
 /// Fixed denominator rational number as an approximate representation of real numbers
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct UFDRNum(pub u128);
-
-// impl Unsigned for UFDRNum {}
-
-impl UFDRNum {
-    fn non_zero(self) -> bool {
-        self.0 != 0
-    }
-}
 
 impl NumberConstants for UFDRNum {
     const ZERO: Self = Self(0);

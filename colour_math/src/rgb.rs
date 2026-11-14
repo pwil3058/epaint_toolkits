@@ -9,7 +9,6 @@ use std::{
     sync::LazyLock,
 };
 
-use num_traits::Unsigned;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 

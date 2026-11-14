@@ -9,7 +9,7 @@ use num_traits::{AsPrimitive, CheckedShl, PrimInt, Unsigned};
 use gcd::Gcd;
 
 use crate::debug::*;
-use crate::UnsignedCheckedCasts;
+use crate::{AsProportion, UnsignedCheckedCasts};
 
 /// A trait to define what the core of a proportion can be.
 pub trait CoreNumber:
@@ -40,6 +40,13 @@ implement_core_number!(u8);
 implement_core_number!(u16);
 implement_core_number!(u32);
 implement_core_number!(u64);
+
+pub trait PseudoPropn: PrimInt + UnsignedCheckedCasts + AsProportion {}
+
+impl PseudoPropn for u8 {}
+impl PseudoPropn for u16 {}
+impl PseudoPropn for u32 {}
+impl PseudoPropn for u64 {}
 
 /// A generic fixed denominator representation of a proportion ie. 0.0..=1.0.
 #[derive(Debug, Default, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
@@ -276,6 +283,51 @@ impl<C: CoreNumber> ProportionInto<f32> for Proportion<C> {
     /// Convert this `Proportion` into an f32
     fn proportion_into(self) -> f32 {
         <C as AsPrimitive<f32>>::as_(self.0) / <C as AsPrimitive<f32>>::as_(C::max_value())
+    }
+}
+
+impl<P: PseudoPropn> IntoProportion for P {
+    /// Convert a `PsuedoProportion` to a `Proportion<C>`.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
+    /// use colour_math::AsProportion;
+    ///
+    /// assert_eq!(u8::ONE.into_proportion::<u64>(), Proportion::<u64>::one());
+    /// assert_eq!(u8::ZERO.into_proportion(), Proportion::<u32>::zero());
+    /// assert_eq!(127_u8.into_proportion(), Proportion::<u8>::from_fraction(127, 255));
+    /// assert_eq!(Proportion::<u8>::proportion_from(u32::ONE), Proportion::<u8>::one());
+    /// assert_eq!(Proportion::proportion_from(u8::MAX - 1), Proportion::<u16>::from_fraction(254, 255));
+    /// ```
+    fn into_proportion<C: CoreNumber>(self) -> Proportion<C> {
+        let dividend: u128 = self.to_u128() * C::max_value().to_u128();
+        let divisor: u128 = P::ONE.to_u128();
+        let val = (dividend + divisor / 2) / divisor;
+        Proportion(C::fm_u128(val))
+    }
+}
+
+impl<C: CoreNumber, P: PseudoPropn> ProportionInto<P> for Proportion<C> {
+    /// Converts a Proportion<C> to a P as a `PseudoPropn` (rounding to nearest).
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::fixed_denominator_rational_numbers::proportion::*;
+    ///
+    /// assert_eq!(u8::from_proportion(Proportion::<u64>::proportion_from(0.5)), 128);
+    /// assert_eq!(u8::from_proportion(Proportion::<u32>::proportion_from(0.999)), u8::MAX);
+    /// assert_eq!(u8::from_proportion(Proportion::<u16>::proportion_from(0.998)), u8::MAX - 1);
+    /// assert_eq!(u8::MAX - 1, Proportion::<u8>::proportion_from(0.998).proportion_into());
+    /// assert_eq!(23_u64, Proportion::<u64>::proportion_from(23_u64).proportion_into());
+    /// ```
+    fn proportion_into(self) -> P {
+        let dividend: u128 = self.0.to_u128() * P::ONE.to_u128();
+        let divisor: u128 = C::max_value().to_u128();
+        let val = (dividend + divisor / 2) / divisor;
+        P::fm_u128(val)
     }
 }
 
