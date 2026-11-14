@@ -200,6 +200,7 @@ where
     }
 }
 
+// Conversions
 impl<C: CoreNumber> IntoProportion for Proportion<C> {
     /// Convert this `Proportion` to a `Proportion<T>`.
     ///
@@ -228,7 +229,6 @@ impl<C: CoreNumber, T: CoreNumber> ProportionInto<Proportion<T>> for Proportion<
     }
 }
 
-// Conversions
 impl IntoProportion for f64 {
     /// Convert an f64 (in range 0.0..-1.0) into a Proportion
     ///

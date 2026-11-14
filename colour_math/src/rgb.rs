@@ -9,12 +9,13 @@ use std::{
     sync::LazyLock,
 };
 
+use num_traits::Unsigned;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{ApproxEq, PropDiff},
-    AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, Unsigned, UnsignedInteger,
+    AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
 };
 
 use crate::{
@@ -353,7 +354,7 @@ impl<T: LightLevel> IndexMut<usize> for RGB<T> {
 }
 
 // Comparisons
-impl<T: LightLevel + Unsigned> Ord for RGB<T>
+impl<T: LightLevel> Ord for RGB<T>
 where
     T: Ord,
 {
@@ -382,7 +383,7 @@ where
     }
 }
 
-impl<T: LightLevel + Unsigned> PartialOrd for RGB<T>
+impl<T: LightLevel> PartialOrd for RGB<T>
 where
     T: Ord + Eq,
 {
@@ -391,31 +392,31 @@ where
     }
 }
 
-impl PartialOrd for RGB<f64> {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(if self == other {
-            Ordering::Equal
-        } else if let Ok(hue) = Hue::try_from(self) {
-            if let Ok(other_hue) = Hue::try_from(other) {
-                // This orders via hue from CYAN to CYAN via GREEN, RED, BLUE in that order
-                match hue.cmp(&other_hue) {
-                    Ordering::Equal => match self.chroma().cmp(&other.chroma()) {
-                        Ordering::Equal => self.sum().cmp(&self.sum()),
-                        order => order,
-                    },
-                    order => order,
-                }
-            } else {
-                Ordering::Greater
-            }
-        } else if Hue::try_from(other).is_ok() {
-            Ordering::Less
-        } else {
-            // No need to look a chroma as it will be zero for both
-            self.sum().cmp(&other.sum())
-        })
-    }
-}
+// impl PartialOrd for RGB<f64> {
+//     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+//         Some(if self == other {
+//             Ordering::Equal
+//         } else if let Ok(hue) = Hue::try_from(self) {
+//             if let Ok(other_hue) = Hue::try_from(other) {
+//              // This orders via hue from CYAN to CYAN via GREEN, RED, BLUE in that order
+//                match hue.cmp(&other_hue) {
+//                     Ordering::Equal => match self.chroma().cmp(&other.chroma()) {
+//                         Ordering::Equal => self.sum().cmp(&self.sum()),
+//                         order => order,
+//                     },
+//                     order => order,
+//                 }
+//             } else {
+//                 Ordering::Greater
+//             }
+//         } else if Hue::try_from(other).is_ok() {
+//             Ordering::Less
+//         } else {
+//             // No need to look a chroma as it will be zero for both
+//             self.sum().cmp(&other.sum())
+//         })
+//     }
+// }
 
 impl<L: LightLevel> From<[L; 3]> for RGB<L> {
     fn from(array: [L; 3]) -> Self {

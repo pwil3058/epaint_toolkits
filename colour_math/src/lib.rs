@@ -235,7 +235,7 @@ pub trait Colour: Sized + Copy + ColourAttributes + IntoRGB + IntoHCV + IntoCMY 
         format!("#{:02X}{:02X}{:02X}", rgb.0[0], rgb.0[1], rgb.0[2])
     }
 
-    fn hex_string<L: LightLevel + Unsigned + UpperHex>(&self) -> String {
+    fn hex_string<L: LightLevel + UpperHex>(&self) -> String {
         let rgb = self.into_rgb::<L>();
         let hex_digits_per_item = std::mem::size_of::<L>() * 2;
 

@@ -7,12 +7,12 @@ use std::{
 };
 
 use gcd::Gcd;
+use num_traits::Unsigned;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     debug::{AbsDiff, ApproxEq, PropDiff},
-    AsProportion, FDRNum, NumberConstants, UFDRNum, Unsigned, UnsignedCheckedCasts,
-    UnsignedInteger,
+    AsProportion, FDRNum, NumberConstants, UFDRNum, UnsignedCheckedCasts, UnsignedInteger,
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]

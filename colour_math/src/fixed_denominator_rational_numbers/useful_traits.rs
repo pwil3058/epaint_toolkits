@@ -2,7 +2,7 @@
 
 use std::fmt::Debug;
 
-use num_traits::{NumCast, PrimInt};
+use num_traits::{NumCast, PrimInt, Unsigned, Zero};
 
 pub trait UnsignedCheckedCasts: Sized + Copy + PrimInt {
     fn bits() -> u32;
@@ -202,34 +202,9 @@ impl_as_proportion!(u16);
 impl_as_proportion!(u32);
 impl_as_proportion!(u64);
 
-pub trait Unsigned: Copy + Debug + PartialEq + Eq + PartialOrd + Ord {
-    fn non_zero(self) -> bool;
-}
-pub trait UnsignedInteger: Unsigned + UnsignedCheckedCasts {}
-
-impl Unsigned for u8 {
+pub trait UnsignedInteger: Unsigned + UnsignedCheckedCasts + Zero {
     fn non_zero(self) -> bool {
-        self > 0
-    }
-}
-impl Unsigned for u16 {
-    fn non_zero(self) -> bool {
-        self > 0
-    }
-}
-impl Unsigned for u32 {
-    fn non_zero(self) -> bool {
-        self > 0
-    }
-}
-impl Unsigned for u64 {
-    fn non_zero(self) -> bool {
-        self > 0
-    }
-}
-impl Unsigned for u128 {
-    fn non_zero(self) -> bool {
-        self > 0
+        !self.is_zero()
     }
 }
 
