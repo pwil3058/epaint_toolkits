@@ -948,7 +948,7 @@ struct TargetPaintEntry {
     vbox: gtk::Box,
     name_entry: gtk::Entry,
     notes_entry: gtk::Entry,
-    colour_editor: Rc<ColourEditor<u16>>,
+    colour_editor: Rc<ColourEditor<u8>>,
 }
 
 #[cfg(feature = "targeted_mixtures")]

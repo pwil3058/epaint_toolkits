@@ -128,7 +128,7 @@ impl PaintEditor {
         let add_btn = gtk::Button::builder().label("Add").build();
         let accept_btn = gtk::Button::builder().label("Accept").build();
         let reset_btn = gtk::Button::builder().label("Reset").build();
-        let colour_editor = ColourEditor::<u16>::builder()
+        let colour_editor = ColourEditor::<u8>::builder()
             .attributes(attributes)
             .extra_buttons(&[add_btn.clone(), accept_btn.clone(), reset_btn.clone()])
             .build();
