@@ -6,13 +6,13 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hcv::HCV, LightLevel, ScalarAttributeType, Value, RGB};
+use colour_math::{hcv::HCV, hex_entry::Hexable, LightLevel, ScalarAttributeType, Value, RGB};
 
 use crate::{
     attributes::ColourAttributeDisplayStack,
     colour::{GdkColour, ManipGdkColour},
     manipulator::{ChromaLabel, ColourManipulatorGUI},
-    rgb_entry::{Hexable, RGBHexEntry},
+    rgb_entry::RGBHexEntry,
 };
 
 type ChangeCallback = Box<dyn Fn(&HCV)>;

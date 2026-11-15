@@ -2,16 +2,16 @@
 
 use std::{cell::RefCell, rc::Rc};
 
-pub use gtk3_ext::gtkx::entry::Hexable;
 use gtk3_ext::{
     gtk::{self, prelude::*},
-    gtkx::entry::HexEntry,
     wrapper::*,
 };
 
-use colour_math::{LightLevel, HCV, RGB};
+use colour_math::{hex_entry::Hexable, LightLevel, HCV, RGB};
 
 use crate::colour::GdkColour;
+
+use crate::hex_entry::HexEntry;
 
 type BoxedChangeCallback<U> = Box<dyn Fn(U)>;
 

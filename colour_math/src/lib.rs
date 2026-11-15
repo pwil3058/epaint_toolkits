@@ -13,6 +13,7 @@ pub use crate::{
             ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
             GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
         },
+        hex_entry::{self, HexEntry},
         hue_wheel::{
             ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts,
             Zoom,

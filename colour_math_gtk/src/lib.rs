@@ -3,6 +3,7 @@
 pub mod attributes;
 pub mod cads;
 pub mod colour_edit;
+pub mod hex_entry;
 pub mod hue_wheel;
 pub mod manipulator;
 pub mod rgb_entry;
