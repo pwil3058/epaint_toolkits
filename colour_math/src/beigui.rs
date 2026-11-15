@@ -9,6 +9,7 @@ use crate::{hcv::HCV, hue::angle::Angle, Colour};
 mod test_beigui;
 
 pub mod attr_display;
+pub mod hex_entry;
 pub mod hue_wheel;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
