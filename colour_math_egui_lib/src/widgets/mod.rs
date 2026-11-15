@@ -3,6 +3,7 @@
 pub mod attribute_deck;
 pub mod attribute_display;
 pub mod colour_button;
+pub mod hex_entry;
 pub mod nudge_pad;
 pub mod nudge_panel;
 pub mod rgb_hex_editor;

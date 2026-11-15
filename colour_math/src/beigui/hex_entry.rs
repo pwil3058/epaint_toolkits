@@ -57,6 +57,12 @@ pub struct HexEntry<U: Hexable> {
     max_step: U,
 }
 
+impl<U: Hexable> Default for HexEntry<U> {
+    fn default() -> Self {
+        HexEntry::<U>::builder().build()
+    }
+}
+
 impl<U: Hexable> HexEntry<U> {
     pub fn builder() -> HexEntryBuilder<U> {
         HexEntryBuilder::<U>::default()
