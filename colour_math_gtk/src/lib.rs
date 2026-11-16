@@ -37,10 +37,32 @@ pub mod colour {
 
 pub mod coloured {
     use gtk3_ext::gtk;
+    use gtk3_ext::gtk::prelude::LabelExt;
     use gtk3_ext::gtkx::coloured::*;
     use gtk3_ext::gtkx::placard::Placard;
+    use gtk3_ext::wrapper::*;
 
     use crate::colour::*;
+
+    #[derive(PWO)]
+    pub struct GtkColouredLabel {
+        label: gtk::Label,
+    }
+
+    impl From<colour_math::ColouredLabel> for GtkColouredLabel {
+        fn from(label: colour_math::ColouredLabel) -> GtkColouredLabel {
+            use colour_math::Colour;
+            let (label, rgb) = label.into();
+            let markup = format!(
+                "<span foreground =\"{}\"><b>{}</b></span>",
+                rgb.pango_string(),
+                label
+            );
+            let label = gtk::Label::new(None);
+            label.set_markup(&markup);
+            Self { label }
+        }
+    }
 
     #[allow(deprecated)]
     pub trait Colourable: ColourableWidgetExt {

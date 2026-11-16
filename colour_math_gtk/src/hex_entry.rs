@@ -13,10 +13,13 @@ use gtk3_ext::{
 
 use colour_math::{hex_entry, ColouredLabel};
 
+use crate::coloured::GtkColouredLabel;
+
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
 #[derive(PWO)]
 pub struct HexEntry<U: hex_entry::Hexable> {
+    hbox: gtk::Box,
     entry: gtk::Entry,
     hex_entry: hex_entry::HexEntry<U>,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
@@ -29,11 +32,20 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
 
     #[allow(non_upper_case_globals)]
     pub fn new(hex_entry: hex_entry::HexEntry<U>) -> Rc<Self> {
+        let hbox = gtk::Box::builder()
+            .orientation(gtk::Orientation::Horizontal)
+            .build();
+        if let Some(label) = hex_entry.label {
+            let label = GtkColouredLabel::from(label);
+            hbox.pack_start(label.pwo(), true, false, 1);
+        }
         let entry = gtk::Entry::builder()
             .width_chars(U::bytes() as i32 * 2 + 2)
             .build();
+        hbox.pack_start(&entry, false, false, 1);
         let callbacks: RefCell<Vec<ChangeCallback<U>>> = RefCell::new(Vec::new());
         let rc_hex_entry = Rc::new(HexEntry {
+            hbox,
             entry,
             hex_entry,
             callbacks,
