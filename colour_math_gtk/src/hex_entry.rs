@@ -21,7 +21,7 @@ type ChangeCallback<U> = Box<dyn Fn(U)>;
 pub struct GtkHexEntry<U: hex_entry::Hexable> {
     hbox: gtk::Box,
     entry: gtk::Entry,
-    hex_entry: HexEntry<U>,
+    hex_entry: Rc<HexEntry<U>>,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
 }
 
@@ -31,7 +31,7 @@ impl<U: hex_entry::Hexable> GtkHexEntry<U> {
     }
 
     #[allow(non_upper_case_globals)]
-    pub fn new(hex_entry: HexEntry<U>) -> Rc<Self> {
+    pub fn new(hex_entry: Rc<hex_entry::HexEntry<U>>) -> Rc<Self> {
         let hbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .build();
@@ -100,14 +100,14 @@ impl<U: hex_entry::Hexable> GtkHexEntry<U> {
                 }
             });
 
-        let gtk_hex_entry_c = Rc::clone(&rc_gtk_hex_entry);
+        let hex_entry_c = Rc::clone(&rc_gtk_hex_entry.hex_entry);
         rc_gtk_hex_entry
             .entry
             .connect_key_release_event(move |_, event| {
                 use gdk::keys::constants::*;
                 match event.keyval() {
                     Up | Down => {
-                        gtk_hex_entry_c.hex_entry.reset_current_step();
+                        hex_entry_c.reset_current_step();
                         Propagation::Stop
                     }
                     _ => Propagation::Proceed,
@@ -209,6 +209,6 @@ impl<U: hex_entry::Hexable> GtkHexEntryBuilder<U> {
         if let Some(label) = self.label {
             let _ = hex_entry_builder.label(label);
         };
-        GtkHexEntry::new(hex_entry_builder.build())
+        GtkHexEntry::new(Rc::new(hex_entry_builder.build()))
     }
 }
