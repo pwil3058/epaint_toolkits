@@ -17,6 +17,12 @@ impl ColouredLabel {
     }
 }
 
+impl From<(&'static str, RGB<u8>)> for ColouredLabel {
+    fn from((label, colour): (&'static str, RGB<u8>)) -> Self {
+        Self { label, colour }
+    }
+}
+
 impl From<ColouredLabel> for (&'static str, RGB<u8>) {
     fn from(cl: ColouredLabel) -> (&'static str, RGB<u8>) {
         (&cl.label, cl.colour)
