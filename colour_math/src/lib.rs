@@ -18,6 +18,7 @@ pub use crate::{
             ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts,
             Zoom,
         },
+        widgets::*,
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },
     cmy::{ComponentMask, IntoCMY, CMY},

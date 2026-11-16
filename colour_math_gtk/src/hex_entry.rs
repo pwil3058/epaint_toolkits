@@ -11,7 +11,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::hex_entry;
+use colour_math::{hex_entry, ColouredLabel};
 
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
@@ -25,6 +25,84 @@ pub struct HexEntry<U: hex_entry::Hexable> {
 impl<U: hex_entry::Hexable> HexEntry<U> {
     pub fn builder() -> HexEntryBuilder<U> {
         HexEntryBuilder::<U>::default()
+    }
+
+    #[allow(non_upper_case_globals)]
+    pub fn new(hex_entry: hex_entry::HexEntry<U>) -> Rc<Self> {
+        let entry = gtk::Entry::builder()
+            .width_chars(U::bytes() as i32 * 2 + 2)
+            .build();
+        let callbacks: RefCell<Vec<ChangeCallback<U>>> = RefCell::new(Vec::new());
+        let rc_hex_entry = Rc::new(HexEntry {
+            entry,
+            hex_entry,
+            callbacks,
+        });
+        rc_hex_entry.set_entry_text();
+
+        let hex_entry_c = Rc::clone(&rc_hex_entry);
+        rc_hex_entry
+            .entry
+            .connect_key_press_event(move |entry, event| {
+                use gdk::keys::constants::*;
+
+                const KEY_0: gdk::keys::Key = _0;
+                const KEY_1: gdk::keys::Key = _1;
+                const KEY_2: gdk::keys::Key = _2;
+                const KEY_3: gdk::keys::Key = _3;
+                const KEY_4: gdk::keys::Key = _4;
+                const KEY_5: gdk::keys::Key = _5;
+                const KEY_6: gdk::keys::Key = _6;
+                const KEY_7: gdk::keys::Key = _7;
+                const KEY_8: gdk::keys::Key = _8;
+                const KEY_9: gdk::keys::Key = _9;
+                let key = event.keyval();
+                match key {
+                    Return | Tab | ISO_Left_Tab => {
+                        let text = entry.text();
+                        if text.is_empty() {
+                            hex_entry_c.set_entry_text();
+                        } else {
+                            hex_entry_c.set_value_from_text(&text);
+                        }
+                        // NB: this will nobble the "activate" signal
+                        // but let the Tab key move the focus
+                        if key == Return {
+                            Propagation::Stop
+                        } else {
+                            Propagation::Proceed
+                        }
+                    }
+                    Up => {
+                        hex_entry_c.incr_value();
+                        Propagation::Stop
+                    }
+                    Down => {
+                        hex_entry_c.decr_value();
+                        Propagation::Stop
+                    }
+                    KEY_0 | KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8
+                    | KEY_9 | A | B | C | D | E | F | BackSpace | Delete | Copy | Paste | x | a
+                    | b | c | d | e | f | Left | Right => Propagation::Proceed, //Inhibit(false),
+                    _ => Propagation::Stop,
+                }
+            });
+
+        let hex_entry_c = Rc::clone(&rc_hex_entry);
+        rc_hex_entry
+            .entry
+            .connect_key_release_event(move |_, event| {
+                use gdk::keys::constants::*;
+                match event.keyval() {
+                    Up | Down => {
+                        hex_entry_c.hex_entry.reset_current_step();
+                        Propagation::Stop
+                    }
+                    _ => Propagation::Proceed,
+                }
+            });
+
+        rc_hex_entry
     }
 
     pub fn value(&self) -> U {
@@ -84,9 +162,9 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
 
 #[derive(Default)]
 pub struct HexEntryBuilder<U: hex_entry::Hexable> {
-    editable: bool,
     initial_value: Option<U>,
     max_step: Option<U>,
+    label: Option<ColouredLabel>,
 }
 
 impl<U: hex_entry::Hexable> HexEntryBuilder<U> {
@@ -104,106 +182,21 @@ impl<U: hex_entry::Hexable> HexEntryBuilder<U> {
         self
     }
 
-    pub fn editable(&mut self, editable: bool) -> &mut Self {
-        self.editable = editable;
-        self
-    }
-
     #[allow(non_upper_case_globals)]
     pub fn build(&self) -> Rc<HexEntry<U>> {
-        let entry = gtk::Entry::builder()
-            .width_chars(U::bytes() as i32 * 2 + 2)
-            .editable(self.editable)
-            .build();
         let max_step = if let Some(max_step) = self.max_step {
             max_step
         } else {
             cmp::max(U::max_val() >> 5, U::one())
         };
-        let hex_entry = if let Some(initial_value) = self.initial_value {
-            hex_entry::HexEntry::builder()
-                .initial_value(initial_value)
-                .max_step(max_step)
-                .build()
-        } else {
-            hex_entry::HexEntry::builder().max_step(max_step).build()
+        let mut hex_entry_builder = hex_entry::HexEntry::builder();
+        let _ = hex_entry_builder.max_step(max_step);
+        if let Some(initial_value) = self.initial_value {
+            let _ = hex_entry_builder.initial_value(initial_value);
         };
-        let callbacks: RefCell<Vec<ChangeCallback<U>>> = RefCell::new(Vec::new());
-        let rc_hex_entry = Rc::new(HexEntry {
-            entry,
-            hex_entry,
-            callbacks,
-        });
-        rc_hex_entry.set_entry_text();
-
-        let hex_entry_c = Rc::clone(&rc_hex_entry);
-        rc_hex_entry
-            .entry
-            .connect_key_press_event(move |entry, event| {
-                use gdk::keys::constants::*;
-
-                const KEY_0: gdk::keys::Key = _0;
-                const KEY_1: gdk::keys::Key = _1;
-                const KEY_2: gdk::keys::Key = _2;
-                const KEY_3: gdk::keys::Key = _3;
-                const KEY_4: gdk::keys::Key = _4;
-                const KEY_5: gdk::keys::Key = _5;
-                const KEY_6: gdk::keys::Key = _6;
-                const KEY_7: gdk::keys::Key = _7;
-                const KEY_8: gdk::keys::Key = _8;
-                const KEY_9: gdk::keys::Key = _9;
-                let key = event.keyval();
-                match key {
-                    Return | Tab | ISO_Left_Tab => {
-                        let text = entry.text();
-                        if text.is_empty() {
-                            hex_entry_c.set_entry_text();
-                        } else {
-                            hex_entry_c.set_value_from_text(&text);
-                        }
-                        // NB: this will nobble the "activate" signal
-                        // but let the Tab key move the focus
-                        if key == Return {
-                            Propagation::Stop
-                        } else {
-                            Propagation::Proceed
-                        }
-                        // Inhibit(key == Return)
-                    }
-                    Up => {
-                        hex_entry_c.incr_value();
-                        Propagation::Stop
-                        // Inhibit(true)
-                    }
-                    Down => {
-                        hex_entry_c.decr_value();
-                        Propagation::Stop
-                        // Inhibit(true)
-                    }
-                    KEY_0 | KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8
-                    | KEY_9 | A | B | C | D | E | F | BackSpace | Delete | Copy | Paste | x | a
-                    | b | c | d | e | f | Left | Right => Propagation::Proceed, //Inhibit(false),
-                    _ => Propagation::Stop,
-                    // _ => Inhibit(true),
-                }
-            });
-
-        let hex_entry_c = Rc::clone(&rc_hex_entry);
-        rc_hex_entry
-            .entry
-            .connect_key_release_event(move |_, event| {
-                use gdk::keys::constants::*;
-                match event.keyval() {
-                    Up | Down => {
-                        hex_entry_c.hex_entry.reset_current_step();
-                        Propagation::Stop
-                        // Inhibit(true)
-                    }
-                    _ => Propagation::Proceed,
-                    // _ => Inhibit(false),
-                }
-            });
-
-        rc_hex_entry
+        if let Some(label) = self.label {
+            let _ = hex_entry_builder.label(label);
+        };
+        HexEntry::new(hex_entry_builder.build())
     }
 }

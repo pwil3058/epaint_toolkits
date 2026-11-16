@@ -4,6 +4,8 @@ use std::cell::Cell;
 use std::num::ParseIntError;
 use std::{cmp, mem};
 
+use crate::ColouredLabel;
+
 pub trait Hexable:
     Default
     + Ord
@@ -55,6 +57,7 @@ pub struct HexEntry<U: Hexable> {
     value: Cell<U>,
     current_step: Cell<U>,
     max_step: U,
+    pub label: Option<ColouredLabel>,
 }
 
 impl<U: Hexable> Default for HexEntry<U> {
@@ -133,6 +136,7 @@ impl<U: Hexable> HexEntry<U> {
 pub struct HexEntryBuilder<U: Hexable> {
     initial_value: Option<U>,
     max_step: Option<U>,
+    label: Option<ColouredLabel>,
 }
 
 impl<U: Hexable> HexEntryBuilder<U> {
@@ -147,6 +151,11 @@ impl<U: Hexable> HexEntryBuilder<U> {
 
     pub fn max_step(&mut self, max_step: U) -> &mut Self {
         self.max_step = Some(max_step);
+        self
+    }
+
+    pub fn label(&mut self, label: ColouredLabel) -> &mut Self {
+        self.label = Some(label);
         self
     }
 
@@ -167,6 +176,7 @@ impl<U: Hexable> HexEntryBuilder<U> {
             value,
             max_step,
             current_step,
+            label: self.label,
         };
         hex_entry
     }

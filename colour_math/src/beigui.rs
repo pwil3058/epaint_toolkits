@@ -11,6 +11,7 @@ mod test_beigui;
 pub mod attr_display;
 pub mod hex_entry;
 pub mod hue_wheel;
+pub mod widgets;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Point {

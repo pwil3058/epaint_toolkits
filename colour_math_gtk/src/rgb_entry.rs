@@ -63,17 +63,11 @@ impl<U: Hexable + LightLevel> RGBHexEntry<U> {
 #[derive(Default)]
 pub struct RGBHexEntryBuilder<U: Hexable + LightLevel> {
     initial_rgb: RGB<U>,
-    editable: bool,
 }
 
 impl<U: Hexable + LightLevel> RGBHexEntryBuilder<U> {
     pub fn new() -> Self {
         Self::default()
-    }
-
-    pub fn editable(&mut self, editable: bool) -> &mut Self {
-        self.editable = editable;
-        self
     }
 
     pub fn initial_colour(&mut self, initial_colour: &impl GdkColour) -> &mut Self {
@@ -94,7 +88,6 @@ impl<U: Hexable + LightLevel> RGBHexEntryBuilder<U> {
         .enumerate()
         {
             let entry = HexEntry::builder()
-                .editable(self.editable)
                 .initial_value(self.initial_rgb[index])
                 .build();
             let markup = format!("<span foreground =\"{}\"><b>{}</b></span>", rgb, label);
