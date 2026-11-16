@@ -7,29 +7,29 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hex_entry::Hexable, LightLevel, HCV, RGB};
+use colour_math::{HCV, RGB};
 
 use crate::colour::GdkColour;
 
 use crate::hex_entry::HexEntry;
 
-type BoxedChangeCallback<U> = Box<dyn Fn(U)>;
+type BoxedChangeCallback<T> = Box<dyn Fn(T)>;
 
 #[derive(PWO)]
-pub struct RGBHexEntry<U: Hexable> {
+pub struct RGBHexEntry {
     hbox: gtk::Box,
-    entries: [Rc<HexEntry<U>>; 3],
+    entries: [Rc<HexEntry<u8>>; 3],
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
 
-impl<U: Hexable + LightLevel> RGBHexEntry<U> {
-    pub fn builder() -> RGBHexEntryBuilder<U> {
-        RGBHexEntryBuilder::<U>::new()
+impl RGBHexEntry {
+    pub fn builder() -> RGBHexEntryBuilder {
+        RGBHexEntryBuilder::new()
     }
 
-    pub fn rgb(&self) -> RGB<U> {
-        let v: Vec<U> = self.entries.iter().map(|e| e.value()).collect();
-        RGB::<U>::from([v[0], v[1], v[2]])
+    pub fn rgb(&self) -> RGB<u8> {
+        let v: Vec<u8> = self.entries.iter().map(|e| e.value()).collect();
+        RGB::<u8>::from([v[0], v[1], v[2]])
     }
 
     pub fn hcv(&self) -> HCV {
@@ -37,10 +37,10 @@ impl<U: Hexable + LightLevel> RGBHexEntry<U> {
     }
 
     pub fn set_colour(&self, colour: &impl GdkColour) {
-        self.set_rgb(&colour.into_rgb::<U>())
+        self.set_rgb(&colour.into_rgb::<u8>())
     }
 
-    pub fn set_rgb(&self, rgb: &RGB<U>) {
+    pub fn set_rgb(&self, rgb: &RGB<u8>) {
         for (entry, value) in self.entries.iter().zip(rgb.iter()) {
             entry.set_value(*value);
         }
@@ -61,24 +61,24 @@ impl<U: Hexable + LightLevel> RGBHexEntry<U> {
 }
 
 #[derive(Default)]
-pub struct RGBHexEntryBuilder<U: Hexable + LightLevel> {
-    initial_rgb: RGB<U>,
+pub struct RGBHexEntryBuilder {
+    initial_rgb: RGB<u8>,
 }
 
-impl<U: Hexable + LightLevel> RGBHexEntryBuilder<U> {
+impl RGBHexEntryBuilder {
     pub fn new() -> Self {
         Self::default()
     }
 
     pub fn initial_colour(&mut self, initial_colour: &impl GdkColour) -> &mut Self {
-        self.initial_rgb = initial_colour.into_rgb::<U>();
+        self.initial_rgb = initial_colour.into_rgb::<u8>();
         self
     }
 
-    pub fn build(&self) -> Rc<RGBHexEntry<U>> {
+    pub fn build(&self) -> Rc<RGBHexEntry> {
         let hbox = gtk::Box::builder().build();
 
-        let mut v: Vec<Rc<HexEntry<U>>> = vec![];
+        let mut v: Vec<Rc<HexEntry<u8>>> = vec![];
         for (index, (label, rgb)) in [
             ("Red:", "#CF0000"),
             ("Green:", "#00CF00"),

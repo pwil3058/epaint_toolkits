@@ -69,7 +69,7 @@ pub struct PaintEditor {
     id_entry: gtk::Entry,
     name_entry: gtk::Entry,
     notes_entry: gtk::Entry,
-    colour_editor: Rc<ColourEditor<u8>>,
+    colour_editor: Rc<ColourEditor>,
     property_entries: Vec<Rc<PropertyEntry>>,
     buttons: ConditionalWidgetGroups<gtk::Button>,
     current_paint: RefCell<Option<Paint>>,
@@ -128,7 +128,7 @@ impl PaintEditor {
         let add_btn = gtk::Button::builder().label("Add").build();
         let accept_btn = gtk::Button::builder().label("Accept").build();
         let reset_btn = gtk::Button::builder().label("Reset").build();
-        let colour_editor = ColourEditor::<u8>::builder()
+        let colour_editor = ColourEditor::builder()
             .attributes(attributes)
             .extra_buttons(&[add_btn.clone(), accept_btn.clone(), reset_btn.clone()])
             .build();

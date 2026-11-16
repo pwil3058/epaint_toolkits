@@ -6,7 +6,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hcv::HCV, hex_entry::Hexable, LightLevel, ScalarAttributeType, Value, RGB};
+use colour_math::{hcv::HCV, LightLevel, ScalarAttributeType, Value, RGB};
 
 use crate::{
     attributes::ColourAttributeDisplayStack,
@@ -18,16 +18,16 @@ use crate::{
 type ChangeCallback = Box<dyn Fn(&HCV)>;
 
 #[derive(PWO, Wrapper)]
-pub struct ColourEditor<U: Hexable> {
+pub struct ColourEditor {
     vbox: gtk::Box,
     colour_manipulator: Rc<ColourManipulatorGUI>,
     cads: Rc<ColourAttributeDisplayStack>,
-    rgb_entry: Rc<RGBHexEntry<U>>,
+    rgb_entry: Rc<RGBHexEntry>,
     change_callbacks: RefCell<Vec<ChangeCallback>>,
     default_colour: HCV,
 }
 
-impl<U: Hexable + LightLevel> ColourEditor<U> {
+impl ColourEditor {
     pub fn builder() -> ColourEditorBuilder {
         ColourEditorBuilder::new()
     }
@@ -89,11 +89,11 @@ impl ColourEditorBuilder {
         self
     }
 
-    pub fn build<U: Hexable + LightLevel>(&self) -> Rc<ColourEditor<U>> {
+    pub fn build(&self) -> Rc<ColourEditor> {
         let cads = ColourAttributeDisplayStack::builder()
             .scalar_attributes(&self.attributes)
             .build();
-        let rgb_entry = RGBHexEntry::<U>::builder().build();
+        let rgb_entry = RGBHexEntry::builder().build();
         let colour_manipulator = ColourManipulatorGUI::builder()
             .clamped(false)
             .extra_buttons(&self.extra_buttons)
@@ -110,14 +110,14 @@ impl ColourEditorBuilder {
             )
             .build();
 
-        let colour_editor = Rc::new(ColourEditor::<U> {
+        let colour_editor = Rc::new(ColourEditor {
             vbox: gtk::Box::new(gtk::Orientation::Vertical, 0),
             colour_manipulator,
             cads,
             rgb_entry,
             change_callbacks: RefCell::new(Vec::new()),
-            default_colour: if let Some(rgb) = self.default_colour {
-                rgb
+            default_colour: if let Some(hcv) = self.default_colour {
+                hcv
             } else {
                 HCV::new_grey(Value::ONE / 2)
             },
