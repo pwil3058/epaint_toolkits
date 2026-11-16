@@ -11,18 +11,18 @@ use colour_math::{HCV, RGB};
 
 use crate::colour::GdkColour;
 
-use crate::hex_entry::HexEntry;
+use crate::hex_entry::GtkHexEntry;
 
 type BoxedChangeCallback<T> = Box<dyn Fn(T)>;
 
 #[derive(PWO)]
-pub struct RGBEntry {
+pub struct GtkRGBHexEntry {
     hbox: gtk::Box,
-    entries: [Rc<HexEntry<u8>>; 3],
+    entries: [Rc<GtkHexEntry<u8>>; 3],
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
 
-impl RGBEntry {
+impl GtkRGBHexEntry {
     pub fn builder() -> RGBHexEntryBuilder {
         RGBHexEntryBuilder::new()
     }
@@ -75,10 +75,10 @@ impl RGBHexEntryBuilder {
         self
     }
 
-    pub fn build(&self) -> Rc<RGBEntry> {
+    pub fn build(&self) -> Rc<GtkRGBHexEntry> {
         let hbox = gtk::Box::builder().build();
 
-        let mut v: Vec<Rc<HexEntry<u8>>> = vec![];
+        let mut v: Vec<Rc<GtkHexEntry<u8>>> = vec![];
         for (index, (label, rgb)) in [
             ("Red:", "#CF0000"),
             ("Green:", "#00CF00"),
@@ -87,7 +87,7 @@ impl RGBHexEntryBuilder {
         .iter()
         .enumerate()
         {
-            let entry = HexEntry::builder()
+            let entry = GtkHexEntry::builder()
                 .initial_value(self.initial_rgb[index])
                 .build();
             let markup = format!("<span foreground =\"{}\"><b>{}</b></span>", rgb, label);
@@ -99,7 +99,7 @@ impl RGBHexEntryBuilder {
         }
         let entries = [Rc::clone(&v[0]), Rc::clone(&v[1]), Rc::clone(&v[2])];
 
-        let rgb_hex_entry = Rc::new(RGBEntry {
+        let rgb_hex_entry = Rc::new(GtkRGBHexEntry {
             hbox,
             entries,
             colour_change_callbacks: RefCell::new(vec![]),

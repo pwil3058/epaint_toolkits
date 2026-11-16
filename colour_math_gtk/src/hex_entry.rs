@@ -11,27 +11,27 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hex_entry, ColouredLabel};
+use colour_math::{hex_entry, ColouredLabel, HexEntry};
 
 use crate::coloured::GtkColouredLabel;
 
 type ChangeCallback<U> = Box<dyn Fn(U)>;
 
 #[derive(PWO)]
-pub struct HexEntry<U: hex_entry::Hexable> {
+pub struct GtkHexEntry<U: hex_entry::Hexable> {
     hbox: gtk::Box,
     entry: gtk::Entry,
-    hex_entry: hex_entry::HexEntry<U>,
+    hex_entry: HexEntry<U>,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
 }
 
-impl<U: hex_entry::Hexable> HexEntry<U> {
-    pub fn builder() -> HexEntryBuilder<U> {
-        HexEntryBuilder::<U>::default()
+impl<U: hex_entry::Hexable> GtkHexEntry<U> {
+    pub fn builder() -> GtkHexEntryBuilder<U> {
+        GtkHexEntryBuilder::<U>::default()
     }
 
     #[allow(non_upper_case_globals)]
-    pub fn new(hex_entry: hex_entry::HexEntry<U>) -> Rc<Self> {
+    pub fn new(hex_entry: HexEntry<U>) -> Rc<Self> {
         let hbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Horizontal)
             .build();
@@ -44,16 +44,16 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
             .build();
         hbox.pack_start(&entry, false, false, 1);
         let callbacks: RefCell<Vec<ChangeCallback<U>>> = RefCell::new(Vec::new());
-        let rc_hex_entry = Rc::new(HexEntry {
+        let rc_gtk_hex_entry = Rc::new(GtkHexEntry {
             hbox,
             entry,
             hex_entry,
             callbacks,
         });
-        rc_hex_entry.set_entry_text();
+        rc_gtk_hex_entry.set_entry_text();
 
-        let hex_entry_c = Rc::clone(&rc_hex_entry);
-        rc_hex_entry
+        let gtk_hex_entry_c = Rc::clone(&rc_gtk_hex_entry);
+        rc_gtk_hex_entry
             .entry
             .connect_key_press_event(move |entry, event| {
                 use gdk::keys::constants::*;
@@ -73,9 +73,9 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
                     Return | Tab | ISO_Left_Tab => {
                         let text = entry.text();
                         if text.is_empty() {
-                            hex_entry_c.set_entry_text();
+                            gtk_hex_entry_c.set_entry_text();
                         } else {
-                            hex_entry_c.set_value_from_text(&text);
+                            gtk_hex_entry_c.set_value_from_text(&text);
                         }
                         // NB: this will nobble the "activate" signal
                         // but let the Tab key move the focus
@@ -86,11 +86,11 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
                         }
                     }
                     Up => {
-                        hex_entry_c.incr_value();
+                        gtk_hex_entry_c.incr_value();
                         Propagation::Stop
                     }
                     Down => {
-                        hex_entry_c.decr_value();
+                        gtk_hex_entry_c.decr_value();
                         Propagation::Stop
                     }
                     KEY_0 | KEY_1 | KEY_2 | KEY_3 | KEY_4 | KEY_5 | KEY_6 | KEY_7 | KEY_8
@@ -100,21 +100,21 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
                 }
             });
 
-        let hex_entry_c = Rc::clone(&rc_hex_entry);
-        rc_hex_entry
+        let gtk_hex_entry_c = Rc::clone(&rc_gtk_hex_entry);
+        rc_gtk_hex_entry
             .entry
             .connect_key_release_event(move |_, event| {
                 use gdk::keys::constants::*;
                 match event.keyval() {
                     Up | Down => {
-                        hex_entry_c.hex_entry.reset_current_step();
+                        gtk_hex_entry_c.hex_entry.reset_current_step();
                         Propagation::Stop
                     }
                     _ => Propagation::Proceed,
                 }
             });
 
-        rc_hex_entry
+        rc_gtk_hex_entry
     }
 
     pub fn value(&self) -> U {
@@ -173,13 +173,13 @@ impl<U: hex_entry::Hexable> HexEntry<U> {
 }
 
 #[derive(Default)]
-pub struct HexEntryBuilder<U: hex_entry::Hexable> {
+pub struct GtkHexEntryBuilder<U: hex_entry::Hexable> {
     initial_value: Option<U>,
     max_step: Option<U>,
     label: Option<ColouredLabel>,
 }
 
-impl<U: hex_entry::Hexable> HexEntryBuilder<U> {
+impl<U: hex_entry::Hexable> GtkHexEntryBuilder<U> {
     pub fn new() -> Self {
         Self::default()
     }
@@ -195,13 +195,13 @@ impl<U: hex_entry::Hexable> HexEntryBuilder<U> {
     }
 
     #[allow(non_upper_case_globals)]
-    pub fn build(&self) -> Rc<HexEntry<U>> {
+    pub fn build(&self) -> Rc<GtkHexEntry<U>> {
         let max_step = if let Some(max_step) = self.max_step {
             max_step
         } else {
             cmp::max(U::max_val() >> 5, U::one())
         };
-        let mut hex_entry_builder = hex_entry::HexEntry::builder();
+        let mut hex_entry_builder = HexEntry::builder();
         let _ = hex_entry_builder.max_step(max_step);
         if let Some(initial_value) = self.initial_value {
             let _ = hex_entry_builder.initial_value(initial_value);
@@ -209,6 +209,6 @@ impl<U: hex_entry::Hexable> HexEntryBuilder<U> {
         if let Some(label) = self.label {
             let _ = hex_entry_builder.label(label);
         };
-        HexEntry::new(hex_entry_builder.build())
+        GtkHexEntry::new(hex_entry_builder.build())
     }
 }
