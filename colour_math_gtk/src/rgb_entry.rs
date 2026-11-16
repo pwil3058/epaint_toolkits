@@ -16,13 +16,13 @@ use crate::hex_entry::HexEntry;
 type BoxedChangeCallback<T> = Box<dyn Fn(T)>;
 
 #[derive(PWO)]
-pub struct RGBHexEntry {
+pub struct RGBEntry {
     hbox: gtk::Box,
     entries: [Rc<HexEntry<u8>>; 3],
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
 
-impl RGBHexEntry {
+impl RGBEntry {
     pub fn builder() -> RGBHexEntryBuilder {
         RGBHexEntryBuilder::new()
     }
@@ -75,7 +75,7 @@ impl RGBHexEntryBuilder {
         self
     }
 
-    pub fn build(&self) -> Rc<RGBHexEntry> {
+    pub fn build(&self) -> Rc<RGBEntry> {
         let hbox = gtk::Box::builder().build();
 
         let mut v: Vec<Rc<HexEntry<u8>>> = vec![];
@@ -99,7 +99,7 @@ impl RGBHexEntryBuilder {
         }
         let entries = [Rc::clone(&v[0]), Rc::clone(&v[1]), Rc::clone(&v[2])];
 
-        let rgb_hex_entry = Rc::new(RGBHexEntry {
+        let rgb_hex_entry = Rc::new(RGBEntry {
             hbox,
             entries,
             colour_change_callbacks: RefCell::new(vec![]),

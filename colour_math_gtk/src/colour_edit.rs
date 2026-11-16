@@ -12,7 +12,7 @@ use crate::{
     attributes::ColourAttributeDisplayStack,
     colour::{GdkColour, ManipGdkColour},
     manipulator::{ChromaLabel, ColourManipulatorGUI},
-    rgb_entry::RGBHexEntry,
+    rgb_entry::RGBEntry,
 };
 
 type ChangeCallback = Box<dyn Fn(&HCV)>;
@@ -22,7 +22,7 @@ pub struct ColourEditor {
     vbox: gtk::Box,
     colour_manipulator: Rc<ColourManipulatorGUI>,
     cads: Rc<ColourAttributeDisplayStack>,
-    rgb_entry: Rc<RGBHexEntry>,
+    rgb_entry: Rc<RGBEntry>,
     change_callbacks: RefCell<Vec<ChangeCallback>>,
     default_colour: HCV,
 }
@@ -93,7 +93,7 @@ impl ColourEditorBuilder {
         let cads = ColourAttributeDisplayStack::builder()
             .scalar_attributes(&self.attributes)
             .build();
-        let rgb_entry = RGBHexEntry::builder().build();
+        let rgb_entry = RGBEntry::builder().build();
         let colour_manipulator = ColourManipulatorGUI::builder()
             .clamped(false)
             .extra_buttons(&self.extra_buttons)
