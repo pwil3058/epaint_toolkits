@@ -18,6 +18,7 @@ pub use crate::{
             ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts,
             Zoom,
         },
+        rgb_hex_entry::*,
         widgets::*,
         Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
     },

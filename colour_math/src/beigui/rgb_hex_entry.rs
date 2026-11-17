@@ -1,10 +1,12 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use std::rc::Rc;
+
 use crate::{Colour, ColouredLabel, HexEntry, HueConstants, IntoHCV, HCV, RGB};
 
 #[derive(Debug)]
 pub struct RGBHexEntry {
-    entries: [HexEntry<u8>; 3],
+    pub entries: [Rc<HexEntry<u8>>; 3],
 }
 
 impl RGBHexEntry {
@@ -42,8 +44,18 @@ pub struct RGBHexEntryBuilder {
 }
 
 impl RGBHexEntryBuilder {
+    pub fn initial_rgb(&mut self, rgb: RGB<u8>) -> &mut Self {
+        self.initial_rgb = Some(rgb);
+        self
+    }
+
+    pub fn max_step(&mut self, max_step: u8) -> &mut Self {
+        self.max_step = Some(max_step);
+        self
+    }
+
     pub fn build(&self) -> RGBHexEntry {
-        let entries: [HexEntry<u8>; 3] = [
+        let entries: [Rc<HexEntry<u8>>; 3] = [
             ("Red:", RGB::<u8>::RED / 2),
             ("Green:", RGB::<u8>::GREEN / 2),
             ("Blue:", RGB::<u8>::BLUE),
@@ -52,9 +64,9 @@ impl RGBHexEntryBuilder {
         .map(|label_data| {
             let label: ColouredLabel = label_data.into();
             if let Some(max_step) = self.max_step {
-                HexEntry::builder().max_step(max_step).label(label).build()
+                Rc::new(HexEntry::builder().max_step(max_step).label(label).build())
             } else {
-                HexEntry::builder().label(label).build()
+                Rc::new(HexEntry::builder().label(label).build())
             }
         })
         .collect::<Vec<_>>()

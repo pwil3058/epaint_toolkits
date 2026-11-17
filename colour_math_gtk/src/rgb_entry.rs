@@ -7,7 +7,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ColouredLabel, HueConstants, HCV, RGB};
+use colour_math::{RGBHexEntry, HCV, RGB};
 
 use crate::colour::GdkColour;
 
@@ -18,6 +18,7 @@ type BoxedChangeCallback<T> = Box<dyn Fn(T)>;
 #[derive(PWO)]
 pub struct GtkRGBHexEntry {
     hbox: gtk::Box,
+    rgb_hex_entry: RGBHexEntry,
     gtk_hex_entries: [Rc<GtkHexEntry<u8>>; 3],
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
@@ -28,8 +29,7 @@ impl GtkRGBHexEntry {
     }
 
     pub fn rgb(&self) -> RGB<u8> {
-        let v: Vec<u8> = self.gtk_hex_entries.iter().map(|e| e.value()).collect();
-        RGB::<u8>::from([v[0], v[1], v[2]])
+        self.rgb_hex_entry.rgb()
     }
 
     pub fn hcv(&self) -> HCV {
@@ -41,9 +41,7 @@ impl GtkRGBHexEntry {
     }
 
     pub fn set_rgb(&self, rgb: &RGB<u8>) {
-        for (entry, value) in self.gtk_hex_entries.iter().zip(rgb.iter()) {
-            entry.set_value(*value);
-        }
+        self.rgb_hex_entry.set_rgb(*rgb)
     }
 
     pub fn connect_colour_changed<F: 'static + Fn(HCV)>(&self, callback: F) {
@@ -78,28 +76,22 @@ impl GtkRGBHexEntryBuilder {
     pub fn build(&self) -> Rc<GtkRGBHexEntry> {
         let hbox = gtk::Box::builder().build();
 
-        let gtk_hex_entries: [Rc<GtkHexEntry<u8>>; 3] = [
-            ("Red:", RGB::<u8>::RED / 2),
-            ("Green:", RGB::<u8>::GREEN / 2),
-            ("Blue:", RGB::<u8>::BLUE),
-        ]
-        .into_iter()
-        .enumerate()
-        .map(|(index, (label, rgb))| {
-            let label = ColouredLabel::from((label, rgb));
-            let entry = GtkHexEntry::builder()
-                .initial_value(self.initial_rgb[index])
-                .label(label)
-                .build();
-            hbox.pack_start(entry.pwo(), true, false, 0);
-            entry
-        })
-        .collect::<Vec<_>>()
-        .try_into()
-        .expect("");
+        let rgb_hex_entry = RGBHexEntry::builder().initial_rgb(self.initial_rgb).build();
+        let gtk_hex_entries: [Rc<GtkHexEntry<u8>>; 3] = rgb_hex_entry
+            .entries
+            .iter()
+            .map(|hex_entry| {
+                let entry = GtkHexEntry::<u8>::new(Rc::clone(hex_entry));
+                hbox.pack_start(entry.pwo(), true, false, 0);
+                entry
+            })
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
 
         let rgb_hex_entry = Rc::new(GtkRGBHexEntry {
             hbox,
+            rgb_hex_entry,
             gtk_hex_entries,
             colour_change_callbacks: RefCell::new(vec![]),
         });
