@@ -2,6 +2,7 @@
 
 use std::cell::RefCell;
 use std::cmp;
+use std::fmt;
 use std::rc::Rc;
 
 use gtk3_ext::{
@@ -23,6 +24,12 @@ pub struct GtkHexEntry<U: hex_entry::Hexable> {
     entry: gtk::Entry,
     hex_entry: Rc<HexEntry<U>>,
     callbacks: RefCell<Vec<ChangeCallback<U>>>,
+}
+
+impl<U: hex_entry::Hexable> fmt::Debug for GtkHexEntry<U> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "GtkHexEntry<U>")
+    }
 }
 
 impl<U: hex_entry::Hexable> GtkHexEntry<U> {
@@ -191,6 +198,11 @@ impl<U: hex_entry::Hexable> GtkHexEntryBuilder<U> {
 
     pub fn initial_value(&mut self, initial_value: U) -> &mut Self {
         self.initial_value = Some(initial_value);
+        self
+    }
+
+    pub fn label(&mut self, label: ColouredLabel) -> &mut Self {
+        self.label = Some(label);
         self
     }
 

@@ -7,7 +7,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{HCV, RGB};
+use colour_math::{ColouredLabel, HueConstants, HCV, RGB};
 
 use crate::colour::GdkColour;
 
@@ -18,17 +18,17 @@ type BoxedChangeCallback<T> = Box<dyn Fn(T)>;
 #[derive(PWO)]
 pub struct GtkRGBHexEntry {
     hbox: gtk::Box,
-    entries: [Rc<GtkHexEntry<u8>>; 3],
+    gtk_hex_entries: [Rc<GtkHexEntry<u8>>; 3],
     colour_change_callbacks: RefCell<Vec<BoxedChangeCallback<HCV>>>,
 }
 
 impl GtkRGBHexEntry {
-    pub fn builder() -> RGBHexEntryBuilder {
-        RGBHexEntryBuilder::new()
+    pub fn builder() -> GtkRGBHexEntryBuilder {
+        GtkRGBHexEntryBuilder::new()
     }
 
     pub fn rgb(&self) -> RGB<u8> {
-        let v: Vec<u8> = self.entries.iter().map(|e| e.value()).collect();
+        let v: Vec<u8> = self.gtk_hex_entries.iter().map(|e| e.value()).collect();
         RGB::<u8>::from([v[0], v[1], v[2]])
     }
 
@@ -41,7 +41,7 @@ impl GtkRGBHexEntry {
     }
 
     pub fn set_rgb(&self, rgb: &RGB<u8>) {
-        for (entry, value) in self.entries.iter().zip(rgb.iter()) {
+        for (entry, value) in self.gtk_hex_entries.iter().zip(rgb.iter()) {
             entry.set_value(*value);
         }
     }
@@ -61,11 +61,11 @@ impl GtkRGBHexEntry {
 }
 
 #[derive(Default)]
-pub struct RGBHexEntryBuilder {
+pub struct GtkRGBHexEntryBuilder {
     initial_rgb: RGB<u8>,
 }
 
-impl RGBHexEntryBuilder {
+impl GtkRGBHexEntryBuilder {
     pub fn new() -> Self {
         Self::default()
     }
@@ -78,34 +78,33 @@ impl RGBHexEntryBuilder {
     pub fn build(&self) -> Rc<GtkRGBHexEntry> {
         let hbox = gtk::Box::builder().build();
 
-        let mut v: Vec<Rc<GtkHexEntry<u8>>> = vec![];
-        for (index, (label, rgb)) in [
-            ("Red:", "#CF0000"),
-            ("Green:", "#00CF00"),
-            ("Blue:", "#0000FF"),
+        let gtk_hex_entries: [Rc<GtkHexEntry<u8>>; 3] = [
+            ("Red:", RGB::<u8>::RED / 2),
+            ("Green:", RGB::<u8>::GREEN / 2),
+            ("Blue:", RGB::<u8>::BLUE),
         ]
-        .iter()
+        .into_iter()
         .enumerate()
-        {
+        .map(|(index, (label, rgb))| {
+            let label = ColouredLabel::from((label, rgb));
             let entry = GtkHexEntry::builder()
                 .initial_value(self.initial_rgb[index])
+                .label(label)
                 .build();
-            let markup = format!("<span foreground =\"{}\"><b>{}</b></span>", rgb, label);
-            let label = gtk::Label::new(None);
-            label.set_markup(&markup);
-            hbox.pack_start(&label, true, true, 0);
-            hbox.pack_start(entry.pwo(), false, false, 0);
-            v.push(entry);
-        }
-        let entries = [Rc::clone(&v[0]), Rc::clone(&v[1]), Rc::clone(&v[2])];
+            hbox.pack_start(entry.pwo(), true, false, 0);
+            entry
+        })
+        .collect::<Vec<_>>()
+        .try_into()
+        .expect("");
 
         let rgb_hex_entry = Rc::new(GtkRGBHexEntry {
             hbox,
-            entries,
+            gtk_hex_entries,
             colour_change_callbacks: RefCell::new(vec![]),
         });
 
-        for entry in rgb_hex_entry.entries.iter() {
+        for entry in rgb_hex_entry.gtk_hex_entries.iter() {
             let rgb_hex_entry_c = Rc::clone(&rgb_hex_entry);
             entry.connect_value_changed(move |_| rgb_hex_entry_c.inform_colour_changed());
         }
