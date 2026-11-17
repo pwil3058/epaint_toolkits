@@ -2,8 +2,15 @@
 
 use colour_math::fixed_denominator_rational_numbers::{IntoProp, Prop};
 use colour_math::{HCV, IntoHCV, IntoRGB, LightLevel, RGB};
+use colour_math_beigui::ColouredLabel;
 use eframe::egui::{Color32, ColorImage, Pos2, Rect};
 use std::ops::{Deref, DerefMut};
+
+impl Depuis<ColouredLabel> for (&'static str, Color32) {
+    fn depuis(label: ColouredLabel) -> (&'static str, Color32) {
+        (label.label, label.colour.into_color32())
+    }
+}
 
 pub trait IntoColor32: Sized + Copy {
     fn into_color32(self) -> Color32;
@@ -88,6 +95,12 @@ pub trait Dedans<T: Copy>: Sized {
     fn dedans(self) -> T;
 }
 
+impl<K: Copy, T: Depuis<K> + Copy> Dedans<T> for K {
+    fn dedans(self) -> T {
+        T::depuis(self)
+    }
+}
+
 impl<L: LightLevel> Depuis<Color32> for RGB<L> {
     fn depuis(color: Color32) -> Self {
         let (red, green, blue, _) = color.to_tuple();
@@ -96,11 +109,11 @@ impl<L: LightLevel> Depuis<Color32> for RGB<L> {
     }
 }
 
-impl<L: LightLevel> Dedans<RGB<L>> for Color32 {
-    fn dedans(self) -> RGB<L> {
-        RGB::<L>::depuis(self)
-    }
-}
+// impl<L: LightLevel> Dedans<RGB<L>> for Color32 {
+//     fn dedans(self) -> RGB<L> {
+//         RGB::<L>::depuis(self)
+//     }
+// }
 
 impl<L: LightLevel> Depuis<RGB<L>> for Color32 {
     fn depuis(arg: RGB<L>) -> Self {
@@ -109,11 +122,11 @@ impl<L: LightLevel> Depuis<RGB<L>> for Color32 {
     }
 }
 
-impl<L: LightLevel> Dedans<Color32> for RGB<L> {
-    fn dedans(self) -> Color32 {
-        Color32::depuis(self)
-    }
-}
+// impl<L: LightLevel> Dedans<Color32> for RGB<L> {
+//     fn dedans(self) -> Color32 {
+//         Color32::depuis(self)
+//     }
+// }
 
 impl Depuis<Color32> for HCV {
     fn depuis(arg: Color32) -> Self {
@@ -121,11 +134,11 @@ impl Depuis<Color32> for HCV {
     }
 }
 
-impl Dedans<HCV> for Color32 {
-    fn dedans(self) -> HCV {
-        HCV::depuis(self)
-    }
-}
+// impl Dedans<HCV> for Color32 {
+//     fn dedans(self) -> HCV {
+//         HCV::depuis(self)
+//     }
+// }
 
 impl Depuis<HCV> for Color32 {
     fn depuis(arg: HCV) -> Self {
@@ -133,11 +146,11 @@ impl Depuis<HCV> for Color32 {
     }
 }
 
-impl Dedans<Color32> for HCV {
-    fn dedans(self) -> Color32 {
-        Color32::depuis(self)
-    }
-}
+// impl Dedans<Color32> for HCV {
+//     fn dedans(self) -> Color32 {
+//         Color32::depuis(self)
+//     }
+// }
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct AverageColour {
@@ -155,7 +168,7 @@ impl AverageColour {
 
     pub fn add_image(&mut self, image: &ColorImage) {
         for colour in &image.pixels {
-            self.add_rgb(colour.dedans())
+            self.add_rgb((*colour).dedans())
         }
     }
 

@@ -1,17 +1,21 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math_beigui::hex_entry;
+use std::cell::Cell;
+
+use colour_math_beigui::HexEntry;
 use eframe::egui;
 
+use crate::colour::Dedans;
+
 #[derive(Debug, Default)]
-pub struct HexEntry {
-    hex_entry: hex_entry::HexEntry<u8>,
-    label: Option<(&'static str, egui::Color32)>,
+pub struct EguiHexEntry {
+    pub changed_value: Cell<Option<u8>>,
+    pub hex_entry: HexEntry<u8>,
 }
 
-impl HexEntry {
-    pub fn show(&self, ui: &mut egui::Ui) -> bool {
-        let mut changed = false;
+impl EguiHexEntry {
+    pub fn show(&self, ui: &mut egui::Ui) {
+        let old_value = self.hex_entry.value();
         ui.horizontal(move |ui| {
             let buffer_key = ui.id().with("hex_buffer");
             let mut buffer = ui
@@ -22,7 +26,8 @@ impl HexEntry {
                 buffer = format!("0x{:02X}", self.hex_entry.value());
             }
 
-            if let Some((label, colour)) = self.label {
+            if let Some(coloured_label) = self.hex_entry.label {
+                let (label, colour) = coloured_label.dedans();
                 ui.colored_label(colour, label);
             }
 
@@ -33,7 +38,6 @@ impl HexEntry {
             let response = ui.add(edit);
 
             if response.changed() {
-                changed = true;
                 ui.ctx()
                     .data_mut(|d| d.insert_temp(buffer_key, buffer.clone()));
             }
@@ -44,7 +48,6 @@ impl HexEntry {
                         buffer = format!("0x{:02X}", value);
                         ui.ctx()
                             .data_mut(|d| d.insert_temp(buffer_key, buffer.clone()));
-                        changed = true;
                     } else {
                         print!("\x07");
                     }
@@ -54,7 +57,6 @@ impl HexEntry {
                         buffer = format!("0x{:02X}", value);
                         ui.ctx()
                             .data_mut(|d| d.insert_temp(buffer_key, buffer.clone()));
-                        changed = true;
                     } else {
                         print!("\x07");
                     }
@@ -69,10 +71,14 @@ impl HexEntry {
                     buffer = format!("0x{:02X}", value);
                     ui.ctx()
                         .data_mut(|d| d.insert_temp(buffer_key, buffer.clone()));
-                    changed = true;
                 }
             }
         });
-        changed
+        let new_value = self.hex_entry.value();
+        self.changed_value.set(if new_value == old_value {
+            None
+        } else {
+            Some(new_value)
+        });
     }
 }
