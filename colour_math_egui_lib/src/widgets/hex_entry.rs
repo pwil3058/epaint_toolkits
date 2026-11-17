@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::cell::Cell;
+use std::rc::Rc;
 
 use colour_math_beigui::HexEntry;
 use eframe::egui;
@@ -9,13 +9,21 @@ use crate::colour::Dedans;
 
 #[derive(Debug, Default)]
 pub struct EguiHexEntry {
-    pub changed_value: Cell<Option<u8>>,
-    pub hex_entry: HexEntry<u8>,
+    pub hex_entry: Rc<HexEntry<u8>>,
 }
 
 impl EguiHexEntry {
-    pub fn show(&self, ui: &mut egui::Ui) {
-        let old_value = self.hex_entry.value();
+    pub fn new(hex_entry: Rc<HexEntry<u8>>) -> Self {
+        Self { hex_entry }
+    }
+
+    pub fn show(&self, ui: &mut egui::Ui, initial_value: Option<u8>) -> Option<u8> {
+        let initial_value = if let Some(initial_value) = initial_value {
+            self.hex_entry.set_value(initial_value);
+            initial_value
+        } else {
+            self.hex_entry.value()
+        };
         ui.horizontal(move |ui| {
             let buffer_key = ui.id().with("hex_buffer");
             let mut buffer = ui
@@ -74,11 +82,12 @@ impl EguiHexEntry {
                 }
             }
         });
+
         let new_value = self.hex_entry.value();
-        self.changed_value.set(if new_value == old_value {
+        if new_value == initial_value {
             None
         } else {
             Some(new_value)
-        });
+        }
     }
 }
