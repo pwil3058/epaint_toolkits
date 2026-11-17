@@ -109,8 +109,8 @@ impl ColourManipulator {
         let cur_c_prop = self.hcv.chroma_prop();
         if let Some(hue) = self.hcv.hue() {
             self.saved_hue = hue; // Just in case we end up grey (which is possible)
-            if hue.sum_and_chroma_prop_are_compatible(self.hcv.value() * 3, new_c_prop) {
-                self.hcv = match HCV::try_new(Some((hue, new_c_prop)), self.hcv.value() * 3) {
+            if hue.sum_and_chroma_prop_are_compatible(self.hcv.sum(), new_c_prop) {
+                self.hcv = match HCV::try_new(Some((hue, new_c_prop)), self.hcv.sum()) {
                     Ok(hcv) => hcv,
                     Err(hcv) => hcv,
                 };
@@ -122,8 +122,7 @@ impl ColourManipulator {
             } else {
                 match policy {
                     SetScalarPolicy::Clamp => {
-                        if let Some(max_c_prop) = hue.max_chroma_prop_for_sum(self.hcv.value() * 3)
-                        {
+                        if let Some(max_c_prop) = hue.max_chroma_prop_for_sum(self.hcv.sum()) {
                             let clamped_new_c_prop = if new_c_prop < max_c_prop {
                                 new_c_prop
                             } else if self.hcv.chroma_prop() < max_c_prop {
