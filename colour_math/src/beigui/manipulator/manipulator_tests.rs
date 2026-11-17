@@ -6,11 +6,11 @@ use crate::{
     attributes::Chroma,
     hcv::*,
     hue::{angle::*, Hue},
-    manipulator::{ColourManipulator, SetHuePolicy},
     rgb::RGB,
     ColourAttributes, HueConstants, RGBConstants,
 };
 
+use crate::beigui::manipulator::{ColourManipulator, SetHuePolicy};
 use approximately_equal::assert_approx_eq;
 
 #[test]

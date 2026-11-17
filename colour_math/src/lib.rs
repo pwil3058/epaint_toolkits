@@ -1,8 +1,10 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::fmt::{Debug, UpperHex};
-
+pub use beigui::manipulator::{
+    ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy,
+};
 use hue::HueIfce;
+use std::fmt::{Debug, UpperHex};
 
 pub use crate::fixed_denominator_rational_numbers::*;
 
@@ -30,7 +32,6 @@ pub use crate::{
     hcv::*,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
     manipulate::{ManipulatedColour, Outcome, SetScalarPolicy},
-    manipulator::{ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy},
     mixing::WeightedAverageMixer,
     rgb::{IntoRGB, RGBFrom, RGB},
     useful_consts::UsefulFloatConstants,
@@ -44,7 +45,6 @@ pub mod fixed_denominator_rational_numbers;
 pub mod hcv;
 pub mod hue;
 pub mod manipulate;
-pub mod manipulator;
 pub mod mixing;
 pub mod rgb;
 pub mod useful_consts;

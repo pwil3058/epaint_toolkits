@@ -40,11 +40,11 @@ impl ColourManipulatorPad {
 
         let delta_size = ui.input(|i| {
             if i.modifiers.ctrl {
-                colour_math::manipulator::DeltaSize::Small
+                colour_math::beigui::manipulator::DeltaSize::Small
             } else if i.modifiers.shift {
-                colour_math::manipulator::DeltaSize::Large
+                colour_math::beigui::manipulator::DeltaSize::Large
             } else {
-                colour_math::manipulator::DeltaSize::Normal
+                colour_math::beigui::manipulator::DeltaSize::Normal
             }
         });
 
