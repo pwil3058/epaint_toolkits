@@ -1,16 +1,17 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::fixed_denominator_rational_numbers::{
+use colour_math::fixed_denominator_rational_numbers::{
     AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UFDRNum,
 };
 
-use crate::{
+use colour_math::{
+    Colour, ColourAttributes, HueConstants, RGBConstants, ScalarAttributeType,
     attributes::{Chroma, Greyness, Value, Warmth},
-    beigui::{Dirn, Draw, DrawIsosceles, Point, TextPosn},
     hcv::HCV,
     hue::{Hue, HueIfce},
-    Colour, ColourAttributes, HueConstants, RGBConstants, ScalarAttributeType,
 };
+
+use crate::{Dirn, Draw, DrawIsosceles, Point, TextPosn};
 
 pub trait ColourAttributeDisplayIfce {
     const LABEL: &'static str;

@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{IntoRGB, hex_entry};
+use colour_math_beigui::hex_entry;
 use eframe::egui;
 
 #[derive(Debug, Default)]

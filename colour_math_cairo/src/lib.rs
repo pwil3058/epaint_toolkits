@@ -5,10 +5,8 @@ use std::{cell::Cell, ops::Add, ops::Sub};
 use gtk3_ext::cairo;
 
 use colour_math::fixed_denominator_rational_numbers::*;
-use colour_math::{
-    beigui::{self, Draw, DrawIsosceles, DrawShapes},
-    Colour, IntoProps, IntoRGB, RGBConstants, HCV, RGB,
-};
+use colour_math::{Colour, IntoProps, IntoRGB, RGBConstants, HCV, RGB};
+use colour_math_beigui::{self, Draw, DrawIsosceles, DrawShapes};
 
 #[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Point {
@@ -38,7 +36,7 @@ impl Sub for Point {
     }
 }
 
-impl From<Point> for beigui::Point {
+impl From<Point> for colour_math_beigui::Point {
     fn from(point: Point) -> Self {
         Self {
             x: point.x.into(),
@@ -47,8 +45,8 @@ impl From<Point> for beigui::Point {
     }
 }
 
-impl From<beigui::Point> for Point {
-    fn from(point: beigui::Point) -> Self {
+impl From<colour_math_beigui::Point> for Point {
+    fn from(point: colour_math_beigui::Point) -> Self {
         Self {
             x: point.x.into(),
             y: point.y.into(),
@@ -74,7 +72,7 @@ impl Size {
     }
 }
 
-impl From<Size> for beigui::Size {
+impl From<Size> for colour_math_beigui::Size {
     fn from(size: Size) -> Self {
         Self {
             width: size.width.into(),
@@ -83,8 +81,8 @@ impl From<Size> for beigui::Size {
     }
 }
 
-impl From<beigui::Size> for Size {
-    fn from(size: beigui::Size) -> Self {
+impl From<colour_math_beigui::Size> for Size {
+    fn from(size: colour_math_beigui::Size) -> Self {
         Self {
             width: size.width.into(),
             height: size.height.into(),
@@ -100,9 +98,9 @@ pub enum TextPosn {
     Centre(f64, f64),
 }
 
-impl From<beigui::TextPosn> for TextPosn {
-    fn from(text_posn: beigui::TextPosn) -> Self {
-        use beigui::TextPosn::*;
+impl From<colour_math_beigui::TextPosn> for TextPosn {
+    fn from(text_posn: colour_math_beigui::TextPosn) -> Self {
+        use colour_math_beigui::TextPosn::*;
         match text_posn {
             TopLeftCorner(point) => TextPosn::TopLeftCorner(point.x.into(), point.y.into()),
             TopRightCorner(point) => TextPosn::TopRightCorner(point.x.into(), point.y.into()),
@@ -161,11 +159,11 @@ impl<'a> Drawer<'a> {
 }
 
 impl<'a> Draw for Drawer<'a> {
-    fn size(&self) -> beigui::Size {
+    fn size(&self) -> colour_math_beigui::Size {
         self.size.into()
     }
 
-    fn draw_polygon(&self, polygon: &[beigui::Point], fill: bool) {
+    fn draw_polygon(&self, polygon: &[colour_math_beigui::Point], fill: bool) {
         if let Some(istart) = polygon.first() {
             let start: Point = (*istart).into();
             self.cairo_context.move_to(start.x, start.y);
@@ -199,7 +197,7 @@ impl<'a> Draw for Drawer<'a> {
         self.cairo_context.set_line_width(width.into());
     }
 
-    fn draw_line(&self, line: &[beigui::Point]) {
+    fn draw_line(&self, line: &[colour_math_beigui::Point]) {
         if let Some(istart) = line.first() {
             let start: Point = (*istart).into();
             self.cairo_context.move_to(start.x, start.y);
@@ -212,7 +210,7 @@ impl<'a> Draw for Drawer<'a> {
         }
     }
 
-    fn draw_text(&self, text: &str, posn: beigui::TextPosn, font_size: UFDRNum) {
+    fn draw_text(&self, text: &str, posn: colour_math_beigui::TextPosn, font_size: UFDRNum) {
         if text.is_empty() {
             return;
         }
@@ -248,8 +246,8 @@ impl<'a> Draw for Drawer<'a> {
 
     fn paint_linear_gradient(
         &self,
-        posn: beigui::Point,
-        size: beigui::Size,
+        posn: colour_math_beigui::Point,
+        size: colour_math_beigui::Size,
         colour_stops: &[(HCV, Prop)],
     ) {
         let linear_gradient = cairo::LinearGradient::new(
@@ -284,7 +282,7 @@ impl<'a> DrawShapes for Drawer<'a> {
         self.cairo_context.paint().expect("couldn't paint");
     }
 
-    fn draw_circle(&self, centre: beigui::Point, radius: UFDRNum, fill: bool) {
+    fn draw_circle(&self, centre: colour_math_beigui::Point, radius: UFDRNum, fill: bool) {
         const TWO_PI: f64 = 2.0 * std::f64::consts::PI;
         self.cairo_context
             .arc(centre.x.into(), centre.y.into(), radius.into(), 0.0, TWO_PI);

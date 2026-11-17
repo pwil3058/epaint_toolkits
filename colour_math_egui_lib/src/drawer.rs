@@ -1,8 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
-use colour_math::{
-    Colour, Draw, DrawIsosceles, DrawShapes, FDRNum, FromProp, HCV, Point, Prop, Size, TextPosn,
-    UFDRNum,
-};
+use colour_math::{Colour, FDRNum, FromProp, HCV, Prop, UFDRNum};
+use colour_math_beigui::{Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn};
 use egui::{Align2, Color32, Painter, Pos2, Rect, Vec2};
 use std::cell::Cell;
 
@@ -105,11 +103,12 @@ impl Drawer {
         } else {
             f32::from(size.height) / 2.15
         };
-        let offset_centre = if let Some(offset) = offset {
-            Some(rect.center() + offset)
-        } else {
-            None
-        };
+        let offset_centre = offset.map(|offset| rect.center() + offset);
+        // if let Some(offset) = offset {
+        //     Some(rect.center() + offset)
+        // } else {
+        //     None
+        // };
         Self {
             painter,
             size,
@@ -267,13 +266,13 @@ impl Draw for Drawer {
 
 impl DrawIsosceles for Drawer {}
 
-impl<'a> DrawShapes for Drawer {
+impl DrawShapes for Drawer {
     fn set_background_colour(&self, colour: &impl Colour) {
         self.painter
             .rect_filled(self.rect, 0.0, colour.into_rgb::<u8>().into_color32());
     }
 
-    fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNum, fill: bool) {
+    fn draw_circle(&self, centre: colour_math_beigui::Point, radius: UFDRNum, fill: bool) {
         let screen_center = self.transform_point(centre);
         let screen_radius = f32::from(radius) * self.scale;
 

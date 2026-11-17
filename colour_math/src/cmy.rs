@@ -98,24 +98,6 @@ impl<L: LightLevel> IndexMut<usize> for CMY<L> {
     }
 }
 
-/// Convert RGB to CMY
-///
-/// Example
-/// ```
-/// //use colour_math::{RGB, CMY};
-/// ```
-// impl<L: LightLevel> From<RGB<L>> for CMY<L> {
-//     fn from(rgb: RGB<L>) -> Self {
-//         Self([L::ONE - rgb[0], L::ONE - rgb[1], L::ONE - rgb[2]])
-//     }
-// }
-//
-// impl<L: LightLevel> From<CMY<L>> for RGB<L> {
-//     fn from(cmy: CMY<L>) -> Self {
-//         Self([L::ONE - cmy[0], L::ONE - cmy[1], L::ONE - cmy[2]])
-//     }
-// }
-
 impl<LL: LightLevel> IntoRGB for CMY<LL> {
     fn into_rgb<L: LightLevel>(self) -> RGB<L> {
         RGB::<L>(
@@ -230,6 +212,10 @@ impl<L: LightLevel> ColourAttributes for CMY<L> {
 
     fn value(&self) -> Value {
         (*self).into_rgb::<Prop>().value()
+    }
+
+    fn sum(&self) -> UFDRNum {
+        (*self).into_rgb::<Prop>().sum()
     }
 
     fn warmth(&self) -> Warmth {

@@ -16,10 +16,8 @@ use gtk3_ext::{
 };
 use path_utilities::expand_home_dir_or_mine;
 
-use colour_math::{
-    beigui::hue_wheel::{ColouredShape, Shape},
-    HueConstants, ScalarAttributeType, Value, HCV, RGB,
-};
+use colour_math::{HueConstants, ScalarAttributeType, Value, HCV, RGB};
+use colour_math_beigui::hue_wheel::{ColouredShape, Shape};
 use colour_math_gtk::{
     attributes::ColourAttributeDisplayStack, colour_edit::ColourEditorBuilder,
     hue_wheel::GtkHueWheel,
@@ -116,9 +114,7 @@ fn main() {
         Shape::Circle,
     ));
 
-    let colour_editor = ColourEditorBuilder::new()
-        .attributes(&attributes)
-        .build::<u16>();
+    let colour_editor = ColourEditorBuilder::new().attributes(&attributes).build();
     let cads_c = Rc::clone(&cads);
     colour_editor.connect_changed(move |c| cads_c.set_colour(Some(c)));
     vbox.pack_start(colour_editor.pwo(), true, true, 0);

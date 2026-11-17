@@ -1,7 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::drawer::Drawer;
-use colour_math::ColourAttributeDisplay;
+use colour_math_beigui::ColourAttributeDisplay;
 use eframe::egui;
 
 /// A stateless immediate-mode widget that renders a single color attribute

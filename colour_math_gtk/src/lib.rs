@@ -49,8 +49,8 @@ pub mod coloured {
         label: gtk::Label,
     }
 
-    impl From<colour_math::ColouredLabel> for GtkColouredLabel {
-        fn from(label: colour_math::ColouredLabel) -> GtkColouredLabel {
+    impl From<colour_math_beigui::ColouredLabel> for GtkColouredLabel {
+        fn from(label: colour_math_beigui::ColouredLabel) -> GtkColouredLabel {
             use colour_math::Colour;
             let (label, rgb) = label.into();
             let markup = format!(

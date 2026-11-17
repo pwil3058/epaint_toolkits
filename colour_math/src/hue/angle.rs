@@ -46,7 +46,6 @@ impl Angle {
         }
     }
 
-    #[cfg(test)]
     pub fn approx_eq(&self, other: &Self, acceptable_rounding_error: Option<u64>) -> bool {
         if let Some(acceptable_rounding_error) = acceptable_rounding_error {
             self.abs_diff(other).0 < acceptable_rounding_error as i64

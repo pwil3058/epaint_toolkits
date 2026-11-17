@@ -12,10 +12,10 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::beigui::manipulator::{ColourManipulator, DeltaSize};
 use colour_math::{
     fixed_denominator_rational_numbers::*, hcv::HCV, hue::angle::Angle, LightLevel, Value, RGB,
 };
+use colour_math_beigui::manipulator::{ColourManipulator, DeltaSize};
 use colour_math_cairo::Point;
 
 use crate::colour::ManipGdkColour;

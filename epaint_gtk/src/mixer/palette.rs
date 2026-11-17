@@ -29,9 +29,8 @@ use gtk3_ext::{
     gtkx::menu::{ManagedMenu, ManagedMenuBuilder, MenuItemSpec},
 };
 
-use colour_math::{
-    HCV, MakeColouredShape, RGBConstants, ScalarAttributeType, WeightedAverageMixer,
-};
+use colour_math::{HCV, RGBConstants, ScalarAttributeType, WeightedAverageMixer};
+use colour_math_beigui::MakeColouredShape;
 use colour_math_cairo::CairoSetColour;
 
 #[cfg(feature = "targeted_mixtures")]

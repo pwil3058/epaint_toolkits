@@ -22,7 +22,7 @@ use crate::{
     cmy::ComponentMask,
     hcv::HCV,
     hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    Colour, ColourAttributes, DeltaSize, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
+    Colour, ColourAttributes, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
     ManipulatedColour, Outcome, RGBConstants, ScalarAttributeType, SetScalarPolicy,
 };
 
@@ -150,10 +150,6 @@ impl<T: LightLevel> RGB<T> {
         }))
     }
 
-    pub fn sum(&self) -> UFDRNum {
-        self.proportions().fold(UFDRNum::ZERO, |sum, p| sum + p)
-    }
-
     pub fn max_chroma_rgb(&self) -> Option<RGB<T>> {
         if let Ok(hue) = Hue::try_from(self) {
             Some(hue.max_chroma_rgb::<T>())
@@ -239,8 +235,8 @@ impl<L: LightLevel + IntoProp> ColourAttributes for RGB<L> {
         }
     }
 
-    fn value(&self) -> Value {
-        (self.sum() / 3u8).into()
+    fn sum(&self) -> UFDRNum {
+        self.proportions().fold(UFDRNum::ZERO, |sum, p| sum + p)
     }
 
     fn warmth(&self) -> Warmth {
@@ -296,7 +292,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         let compl = Prop::ONE - prop;
         let mut array = self.into_proportions();
         for item in &mut array {
-            *item = *item * compl;
+            *item *= compl;
         }
         RGB::<L>::from_proportions(array)
     }
@@ -313,7 +309,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         HCV::from(self).rotated(angle).into_rgb()
     }
 
-    fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_incr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
         match self.into_hcv().try_incr_value(delta, policy) {
             Ok(hcv) => Ok(hcv.into_rgb::<L>()),
@@ -324,7 +320,7 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         }
     }
 
-    fn try_decr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
+    fn try_decr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
         use Outcome::*;
         match self.into_hcv().try_decr_value(delta, policy) {
             Ok(hcv) => Ok(hcv.into_rgb::<L>()),

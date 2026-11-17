@@ -18,8 +18,8 @@ use crate::{
         RGBHue, Sextant, SumChromaCompatibility,
     },
     rgb::{IntoRGB, RGB},
-    Colour, ColourAttributes, DeltaSize, FromProps, HueConstants, IntoProps, LightLevel,
-    ManipulatedColour, Outcome, PropsFrom, RGBConstants, ScalarAttributeType, SetScalarPolicy,
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, ManipulatedColour,
+    Outcome, PropsFrom, RGBConstants, ScalarAttributeType, SetScalarPolicy,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -30,7 +30,7 @@ pub struct HCV {
 }
 
 impl HCV {
-    pub(crate) fn try_new(hue_data: Option<(Hue, Prop)>, sum: UFDRNum) -> Result<Self, Self> {
+    pub fn try_new(hue_data: Option<(Hue, Prop)>, sum: UFDRNum) -> Result<Self, Self> {
         debug_assert!(sum.is_valid_sum());
         if let Some((hue, c_prop)) = hue_data {
             debug_assert!(hue.sum_in_chroma_prop_range(sum, c_prop) || c_prop == Prop::ZERO);
@@ -79,7 +79,7 @@ impl HCV {
         self.c_prop == Prop::ZERO
     }
 
-    pub(crate) fn is_valid(&self) -> bool {
+    pub fn is_valid(&self) -> bool {
         if let Some(hue) = self.hue {
             hue.sum_and_chroma_prop_are_compatible(self.sum, self.c_prop)
         } else {
@@ -337,8 +337,8 @@ impl ColourAttributes for HCV {
         self.c_prop
     }
 
-    fn value(&self) -> Value {
-        (self.sum / 3u8).into()
+    fn sum(&self) -> UFDRNum {
+        self.sum
     }
 
     fn warmth(&self) -> Warmth {
@@ -408,7 +408,7 @@ impl ManipulatedColour for HCV {
         let compl = Prop::ONE - prop;
         let mut array = <[Prop; 3]>::proportions_from(self);
         for item in &mut array {
-            *item = *item * compl;
+            *item *= compl;
         }
         HCV::from_proportions(array)
     }
@@ -481,8 +481,8 @@ impl ManipulatedColour for HCV {
     /// achievable result favouring `Chroma` else if `policy` is `Accommodate` return the
     /// nearest achievable result favouring `Value` else `Reject`. N.B. Clamping/accomodating
     /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
-    fn try_incr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
-        let new_sum = (self.sum + delta.for_value() * 3u64).min(UFDRNum::THREE);
+    fn try_incr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        let new_sum = (self.sum + delta * 3u64).min(UFDRNum::THREE);
         if new_sum == self.sum {
             Outcome::NoChange
         } else if let Some(hue) = self.hue() {
@@ -532,8 +532,8 @@ impl ManipulatedColour for HCV {
     /// achievable result favouring `Chroma` else if `policy` is `Accommodate` return the
     /// nearest achievable result favouring `Value` else `Reject`. N.B. Clamping/accomodating
     /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
-    fn try_decr_value(self, delta: DeltaSize, policy: SetScalarPolicy) -> Outcome<Self> {
-        let delta_sum = delta.for_value() * 3u64;
+    fn try_decr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        let delta_sum = delta * 3u64;
         let new_sum = if delta_sum >= self.sum {
             UFDRNum::ZERO
         } else {

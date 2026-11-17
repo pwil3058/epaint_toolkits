@@ -1,19 +1,32 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::ops::{Add, Mul, Sub};
 
-use crate::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, Prop, UFDRNum};
+use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, Prop, UFDRNum};
 
-use crate::{hcv::HCV, hue::angle::Angle, Colour};
-
-#[cfg(test)]
-mod test_beigui;
+use colour_math::{Colour, hcv::HCV, hue::angle::Angle};
 
 pub mod attr_display;
 pub mod hex_entry;
 pub mod hue_wheel;
 pub mod manipulator;
 pub mod rgb_hex_entry;
+#[cfg(test)]
+mod test_beigui;
 pub mod widgets;
+
+pub use crate::{
+    attr_display::{
+        ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
+        GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
+    },
+    hex_entry::HexEntry,
+    hue_wheel::{
+        ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts, Zoom,
+    },
+    manipulator::*,
+    rgb_hex_entry::*,
+    widgets::*,
+};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub struct Point {

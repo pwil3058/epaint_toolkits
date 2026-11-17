@@ -81,7 +81,7 @@ impl AltWeightedAverageMixer {
             self.mixed_colour = RGB::<Prop>(
                 self.mixed_colour
                     .into_iter()
-                    .zip(rgb.into_iter())
+                    .zip(rgb)
                     .map(|(m, o)| (m * my_prop + o * other_prop).into_prop())
                     .collect::<Vec<_>>()
                     .try_into()

@@ -12,4 +12,5 @@ num-traits.workspace = true
 gtk3_ext.workspace = true
 
 colour_math.workspace = true
+colour_math_beigui.workspace = true
 colour_math_cairo.workspace = true

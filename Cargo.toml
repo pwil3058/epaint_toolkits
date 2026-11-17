@@ -17,7 +17,7 @@ members = [
     "colour_math_egui_lib",
     "colour_math_egui_gui",
     "epaint_egui_lib",
-    "epaint_egui_gui",
+    "epaint_egui_gui", "colour_math_beigui",
 ]
 
 [workspace.dependencies]
@@ -47,6 +47,7 @@ recollections = { git = "https://github.com/pwil3058/rust_utilities" }
 
 # local crates
 colour_math = { path = "./colour_math" }
+colour_math_beigui = { path = "./colour_math_beigui" }
 colour_math_cairo = { path = "./colour_math_cairo" }
 colour_math_derive = { path = "./colour_math_derive" }
 colour_math_egui_lib = { path = "./colour_math_egui_lib" }

@@ -1,8 +1,5 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-pub use beigui::manipulator::{
-    ColourManipulator, ColourManipulatorBuilder, DeltaSize, SetHuePolicy,
-};
 use hue::HueIfce;
 use std::fmt::{Debug, UpperHex};
 
@@ -10,20 +7,6 @@ pub use crate::fixed_denominator_rational_numbers::*;
 
 pub use crate::{
     attributes::{Chroma, Family, Greyness, ScalarAttribute, ScalarAttributeType, Value, Warmth},
-    beigui::{
-        attr_display::{
-            ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
-            GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
-        },
-        hex_entry::{self, HexEntry},
-        hue_wheel::{
-            ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts,
-            Zoom,
-        },
-        rgb_hex_entry::*,
-        widgets::*,
-        Dirn, Draw, DrawIsosceles, DrawShapes, Point, Size, TextPosn,
-    },
     cmy::{ComponentMask, IntoCMY, CMY},
     // fixed_denominator_rational_numbers::{
     //     debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
@@ -39,7 +22,6 @@ pub use crate::{
 };
 
 pub mod attributes;
-pub mod beigui;
 pub mod cmy;
 pub mod fixed_denominator_rational_numbers;
 pub mod hcv;
@@ -169,7 +151,10 @@ pub trait ColourAttributes {
 
     fn chroma(&self) -> Chroma;
     fn chroma_prop(&self) -> Prop;
-    fn value(&self) -> Value;
+    fn sum(&self) -> UFDRNum;
+    fn value(&self) -> Value {
+        (self.sum() / 3u8).into()
+    }
 
     fn greyness(&self) -> Greyness {
         self.chroma().into()

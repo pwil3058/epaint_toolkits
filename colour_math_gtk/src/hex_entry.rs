@@ -12,7 +12,7 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{hex_entry, ColouredLabel, HexEntry};
+use colour_math_beigui::{hex_entry, ColouredLabel, HexEntry};
 
 use crate::coloured::GtkColouredLabel;
 

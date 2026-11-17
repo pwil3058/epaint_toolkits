@@ -68,6 +68,10 @@ pub fn colour_interface_derive(input: TokenStream) -> TokenStream {
                 self.#colour.value()
             }
 
+            fn sum(&self) -> colour_math::fixed_denominator_rational_numbers::UFDRNum {
+                self.#colour.sum()
+            }
+
             fn greyness(&self) -> colour_math::Greyness {
                 self.#colour.greyness()
             }

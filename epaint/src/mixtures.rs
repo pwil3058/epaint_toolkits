@@ -8,10 +8,9 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(feature = "targeted_mixtures")]
 use colour_math::{Colour, IntoRGB};
-use colour_math::{
-    ColouredShape, HCV, IntoHCV, LightLevel, MakeColouredShape, RGB, ScalarAttributeType, Shape,
-    WeightedAverageMixer,
-};
+use colour_math::{HCV, IntoHCV, LightLevel, RGB, ScalarAttributeType, WeightedAverageMixer};
+
+use colour_math_beigui::{ColouredShape, MakeColouredShape, Shape};
 
 use colour_math_derive::Colour;
 

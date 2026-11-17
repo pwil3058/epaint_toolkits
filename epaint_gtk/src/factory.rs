@@ -16,7 +16,8 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{ScalarAttributeType, beigui::hue_wheel::MakeColouredShape};
+use colour_math::ScalarAttributeType;
+use colour_math_beigui::hue_wheel::MakeColouredShape;
 use colour_math_gtk::hue_wheel::{GtkHueWheel, GtkHueWheelBuilder};
 
 use epaint::properties::PropertyTypes;

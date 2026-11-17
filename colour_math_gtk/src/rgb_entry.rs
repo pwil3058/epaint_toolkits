@@ -7,7 +7,9 @@ use gtk3_ext::{
     wrapper::*,
 };
 
-use colour_math::{RGBHexEntry, HCV, RGB};
+use colour_math::{HCV, RGB};
+
+use colour_math_beigui::RGBHexEntry;
 
 use crate::colour::GdkColour;
 

@@ -1,9 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::colour::Dedans;
-use colour_math::{
-    Angle, AsProportion, ColourManipulator, IntoProp, IntoRGB, ManipulatedColour, Prop,
-};
+use colour_math::{Angle, AsProportion, IntoProp, IntoRGB, ManipulatedColour, Prop};
+use colour_math_beigui::ColourManipulator;
 use eframe::egui; // Uses your local un-premultiplied color byte converter trait
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -40,11 +39,11 @@ impl ColourManipulatorPad {
 
         let delta_size = ui.input(|i| {
             if i.modifiers.ctrl {
-                colour_math::beigui::manipulator::DeltaSize::Small
+                colour_math_beigui::manipulator::DeltaSize::Small
             } else if i.modifiers.shift {
-                colour_math::beigui::manipulator::DeltaSize::Large
+                colour_math_beigui::manipulator::DeltaSize::Large
             } else {
-                colour_math::beigui::manipulator::DeltaSize::Normal
+                colour_math_beigui::manipulator::DeltaSize::Normal
             }
         });
 

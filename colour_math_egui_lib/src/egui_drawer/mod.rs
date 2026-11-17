@@ -2,11 +2,8 @@
 
 // pub mod egui_drawer_bridge;
 
-use colour_math::{
-    Colour, IntoProps,
-    beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn},
-    fixed_denominator_rational_numbers::*,
-};
+use colour_math::{Colour, IntoProps, fixed_denominator_rational_numbers::*};
+use colour_math_beigui::{Draw, DrawIsosceles, DrawShapes, TextPosn};
 use eframe::egui;
 use std::cell::Cell;
 
@@ -44,7 +41,7 @@ impl<'a> EguiDrawer<'a> {
     }
 
     /// Map a domain Point [-1.0..=1.0] straight to absolute pixel coordinates on screen.
-    fn to_egui_pos(&self, point: colour_math::beigui::Point) -> egui::Pos2 {
+    fn to_egui_pos(&self, point: colour_math_beigui::Point) -> egui::Pos2 {
         let center = self.rect.center();
 
         // absolute horizontal pixel offset fraction across the bar instead of a scaled Cartesian point.
@@ -83,7 +80,7 @@ impl<'a> EguiDrawer<'a> {
 }
 
 impl<'a> Draw for EguiDrawer<'a> {
-    fn size(&self) -> colour_math::beigui::Size {
+    fn size(&self) -> colour_math_beigui::Size {
         let size = self.rect.size();
         [UFDRNum::from(size.x as f64), UFDRNum::from(size.y as f64)].into()
     }
@@ -109,7 +106,7 @@ impl<'a> Draw for EguiDrawer<'a> {
         }
     }
 
-    fn draw_polygon(&self, polygon: &[colour_math::beigui::Point], fill: bool) {
+    fn draw_polygon(&self, polygon: &[colour_math_beigui::Point], fill: bool) {
         let points: Vec<egui::Pos2> = polygon.iter().map(|p| self.to_egui_pos(*p)).collect();
         if points.len() > 1 {
             if fill {
@@ -125,7 +122,7 @@ impl<'a> Draw for EguiDrawer<'a> {
         }
     }
 
-    fn draw_line(&self, line: &[colour_math::beigui::Point]) {
+    fn draw_line(&self, line: &[colour_math_beigui::Point]) {
         let points: Vec<egui::Pos2> = line.iter().map(|p| self.to_egui_pos(*p)).collect();
         if points.len() > 1 {
             let stroke = egui::Stroke::new(self.line_width.get(), self.line_colour.get());
@@ -166,8 +163,8 @@ impl<'a> Draw for EguiDrawer<'a> {
 
     fn paint_linear_gradient(
         &self,
-        _posn: colour_math::beigui::Point,
-        _size: colour_math::beigui::Size,
+        _posn: colour_math_beigui::Point,
+        _size: colour_math_beigui::Size,
         colour_stops: &[(
             colour_math::hcv::HCV,
             colour_math::fixed_denominator_rational_numbers::Prop,
@@ -228,7 +225,7 @@ impl<'a> DrawShapes for EguiDrawer<'a> {
             .rect_filled(self.canvas_rect, 0.0, Self::to_egui_color(colour));
     }
 
-    fn draw_circle(&self, centre: colour_math::beigui::Point, radius: UFDRNum, fill: bool) {
+    fn draw_circle(&self, centre: colour_math_beigui::Point, radius: UFDRNum, fill: bool) {
         let screen_center = self.to_egui_pos(centre);
         let screen_radius = if self.rect.height() < 32.0 {
             f64::from(radius)

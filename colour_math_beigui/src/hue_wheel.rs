@@ -1,16 +1,17 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 use std::cmp::Ordering;
 
-use crate::fixed_denominator_rational_numbers::*;
+use colour_math::fixed_denominator_rational_numbers::*;
 
-use crate::{
+use colour_math::{
+    Colour, ColourAttributes, HueConstants, LightLevel, RGBConstants, ScalarAttributeType,
     attributes::Value,
-    beigui::{DrawShapes, Point},
     hcv::HCV,
     hue::{Hue, HueIfce},
     rgb::RGB,
-    Colour, ColourAttributes, HueConstants, LightLevel, RGBConstants, ScalarAttributeType,
 };
+
+use crate::{DrawShapes, Point};
 
 #[derive(Debug)]
 pub struct Zoom {

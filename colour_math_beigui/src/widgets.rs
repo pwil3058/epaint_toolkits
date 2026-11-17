@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use crate::{Colour, RGB};
+use colour_math::{Colour, RGB};
 
 #[derive(Debug, Clone, Copy)]
 pub struct ColouredLabel {
@@ -25,6 +25,6 @@ impl From<(&'static str, RGB<u8>)> for ColouredLabel {
 
 impl From<ColouredLabel> for (&'static str, RGB<u8>) {
     fn from(cl: ColouredLabel) -> (&'static str, RGB<u8>) {
-        (&cl.label, cl.colour)
+        (cl.label, cl.colour)
     }
 }

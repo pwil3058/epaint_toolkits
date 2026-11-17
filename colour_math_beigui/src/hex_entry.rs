@@ -172,12 +172,11 @@ impl<U: Hexable> HexEntryBuilder<U> {
             Cell::new(U::zero())
         };
         let current_step = Cell::new(U::one());
-        let hex_entry = HexEntry {
+        HexEntry {
             value,
             max_step,
             current_step,
             label: self.label,
-        };
-        hex_entry
+        }
     }
 }

@@ -16,7 +16,7 @@ use crate::fixed_denominator_rational_numbers::{
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
-pub struct Prop(pub(crate) u64);
+pub struct Prop(pub u64);
 
 impl AsProportion for Prop {
     const ZERO: Self = Self(0);

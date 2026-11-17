@@ -400,7 +400,7 @@ impl Ord for Property {
             other.property_type(),
             "attempt to compare properties of different types"
         );
-        self.value().cmp(&other.value())
+        self.value().cmp(other.value())
     }
 }
 
@@ -426,7 +426,7 @@ impl From<(PropertyType, &str)> for Property {
         // let variant =
         match property_type {
             PropertyType::Transparency => {
-                Property::Transparency(Transparency::from_str(value).unwrap().into())
+                Property::Transparency(Transparency::from_str(value).unwrap())
             }
             PropertyType::Lightfastness => {
                 Property::Lightfastness(Lightfastness::from_str(value).unwrap())
@@ -435,20 +435,18 @@ impl From<(PropertyType, &str)> for Property {
                 Property::Fluorescence(Fluorescence::from_str(value).unwrap())
             }
             PropertyType::Metallicness => {
-                Property::Metallicness(Metallicness::from_str(value).unwrap().into())
+                Property::Metallicness(Metallicness::from_str(value).unwrap())
             }
             PropertyType::Luminescence => {
-                Property::Luminescence(Luminescence::from_str(value).unwrap().into())
+                Property::Luminescence(Luminescence::from_str(value).unwrap())
             }
             PropertyType::Granulation => {
-                Property::Granulation(Granulation::from_str(value).unwrap().into())
+                Property::Granulation(Granulation::from_str(value).unwrap())
             }
-            PropertyType::Staining => Property::Staining(Staining::from_str(value).unwrap().into()),
-            PropertyType::Opacity => Property::Opacity(Opacity::from_str(value).unwrap().into()),
-            PropertyType::Permanence => {
-                Property::Permanence(Permanence::from_str(value).unwrap().into())
-            }
-            PropertyType::Finish => Property::Finish(Finish::from_str(value).unwrap().into()),
+            PropertyType::Staining => Property::Staining(Staining::from_str(value).unwrap()),
+            PropertyType::Opacity => Property::Opacity(Opacity::from_str(value).unwrap()),
+            PropertyType::Permanence => Property::Permanence(Permanence::from_str(value).unwrap()),
+            PropertyType::Finish => Property::Finish(Finish::from_str(value).unwrap()),
         }
     }
 }

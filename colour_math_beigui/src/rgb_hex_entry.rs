@@ -2,7 +2,9 @@
 
 use std::rc::Rc;
 
-use crate::{Colour, ColouredLabel, HexEntry, HueConstants, IntoHCV, HCV, RGB};
+use colour_math::{Colour, HCV, HueConstants, IntoHCV, RGB};
+
+use crate::{ColouredLabel, HexEntry};
 
 #[derive(Debug)]
 pub struct RGBHexEntry {

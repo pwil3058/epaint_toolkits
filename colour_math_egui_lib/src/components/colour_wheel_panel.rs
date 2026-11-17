@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::drawer::Drawer;
-use colour_math::{HueWheel, ScalarAttributeType};
+use colour_math::ScalarAttributeType;
+use colour_math_beigui::HueWheel;
 use eframe::egui;
 
 pub struct ColourWheelPanel {

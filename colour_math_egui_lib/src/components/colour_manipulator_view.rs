@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::egui_drawer::EguiDrawer;
-use colour_math::{ColourManipulator, HueWheel, ScalarAttributeType};
+use colour_math::ScalarAttributeType;
+use colour_math_beigui::{ColourManipulator, HueWheel};
 use eframe::egui;
 
 pub struct ColourManipulatorView {

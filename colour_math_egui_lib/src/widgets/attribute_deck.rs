@@ -1,7 +1,8 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::widgets::attribute_display::AttributeDisplay;
-use colour_math::{Colour, ColourAttributeDisplay, ColourAttributeType};
+use colour_math::Colour;
+use colour_math_beigui::{ColourAttributeDisplay, ColourAttributeType};
 use eframe::egui;
 
 /// A stateless layout container widget that handles rendering an ordered array

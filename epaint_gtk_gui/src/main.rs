@@ -5,7 +5,6 @@ use gtk3_ext::{
     gtkx::window::RememberGeometry,
     wrapper::*,
 };
-use recollections;
 
 use colour_math::ScalarAttributeType;
 use colour_math::ScalarAttributeType::*;

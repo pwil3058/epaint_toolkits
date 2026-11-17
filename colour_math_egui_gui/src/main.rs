@@ -1,6 +1,7 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::{ColourAttributeType, ColouredShape, HCV, HueConstants, RGBConstants, Shape};
+use colour_math::{HCV, HueConstants, RGBConstants};
+use colour_math_beigui::{ColourAttributeType, ColouredShape, Shape};
 use eframe::egui;
 
 mod app_shell;

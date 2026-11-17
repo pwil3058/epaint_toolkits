@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use colour_math::ColourAttributeType;
+use colour_math_beigui::ColourAttributeType;
 use colour_math_egui_lib::components::colour_editor::ColourEditor;
 use eframe::egui;
 
@@ -11,7 +11,7 @@ pub struct AppShell {
 impl AppShell {
     pub fn new(_cc: &eframe::CreationContext<'_>, sliders: &[ColourAttributeType]) -> Self {
         let core_manipulator =
-            colour_math::beigui::manipulator::ColourManipulator::builder().build();
+            colour_math_beigui::manipulator::ColourManipulator::builder().build();
 
         Self {
             colour_editor: ColourEditor::new(

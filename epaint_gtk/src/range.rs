@@ -22,7 +22,8 @@ use gtk3_ext::{
 
 use recollections::{recall, remember};
 
-use colour_math::{HCV, MakeColouredShape, ScalarAttributeType};
+use colour_math::{HCV, ScalarAttributeType};
+use colour_math_beigui::MakeColouredShape;
 use colour_math_gtk::{colour::GdkColour, hue_wheel::GtkHueWheel};
 use gtk3_ext::gtkx::notebook::TabRemoveLabelBuilder;
 
@@ -363,7 +364,7 @@ impl RcRangeBinder for Rc<RangeBinder> {
         match self.binary_search_range_id(new_range.range_id()) {
             Ok(_) => Err(crate::Error::GeneralError(format!(
                 "{}: Range already in binder",
-                &new_range.range_id()
+                new_range.range_id()
             ))),
             Err(index) => {
                 let l_text = format!(

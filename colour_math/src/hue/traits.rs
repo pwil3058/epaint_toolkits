@@ -47,7 +47,7 @@ pub trait HueBasics: Copy + Debug + Sized + Into<Hue> {
     fn max_chroma_for_sum(&self, sum: UFDRNum) -> Option<Chroma>;
 }
 
-pub(crate) trait SumChromaCompatibility: HueBasics {
+pub trait SumChromaCompatibility: HueBasics {
     fn sum_in_chroma_prop_range(&self, sum: UFDRNum, c_prop: Prop) -> bool {
         if let Some((min_sum, max_sum)) = self.sum_range_for_chroma_prop(c_prop) {
             sum >= min_sum && sum <= max_sum
@@ -255,7 +255,7 @@ pub(crate) trait HueTestIfce:
     }
 }
 
-pub(crate) trait ColourModificationHelpers: HueBasics + Debug + Sized {
+pub trait ColourModificationHelpers: HueBasics + Debug + Sized {
     fn trim_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
         debug_assert!(sum.is_valid_sum());
         match self.sum_for_max_chroma() * c_prop {

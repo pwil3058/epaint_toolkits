@@ -9,3 +9,4 @@ egui.workspace = true
 
 colour_math_egui_lib.workspace = true
 colour_math.workspace = true
+colour_math_beigui.workspace = true
