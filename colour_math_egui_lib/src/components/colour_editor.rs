@@ -1,10 +1,9 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
 use crate::components::colour_manipulator_pad::ColourManipulatorPad;
-use crate::widgets::attribute_deck::AttributesDisplay;
-use crate::widgets::attribute_display::{EguiColourAttributesDisplay, ShowAttributeDisplay};
+use crate::widgets::attribute_display::EguiColourAttributesDisplay;
 use crate::widgets::rgb_hex_entry::EguiRGBHexEntry;
-use colour_math_beigui::{ColourAttributeDisplayIfce, ColourAttributeType, ColourManipulator};
+use colour_math_beigui::{ColourAttributeType, ColourManipulator};
 use eframe::egui;
 
 pub struct ColourEditor {

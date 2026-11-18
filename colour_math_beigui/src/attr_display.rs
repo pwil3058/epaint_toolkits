@@ -541,7 +541,7 @@ impl ColourAttributeDisplayIfce for GreynessCAD {
 }
 
 // Warmth
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub struct WarmthCAD {
     warmth: Option<Warmth>,
     target_warmth: Option<Warmth>,
