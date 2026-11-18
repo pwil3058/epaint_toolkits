@@ -16,7 +16,7 @@ use gtk3_ext::{
 };
 
 use colour_math::{Colour, ScalarAttributeType, HCV};
-use colour_math_beigui::ColourAttributeType;
+use colour_math_beigui::{ColourAttributeType, DrawAll};
 use colour_math_cairo::{Drawer, Size};
 
 use crate::colour::GdkColour;

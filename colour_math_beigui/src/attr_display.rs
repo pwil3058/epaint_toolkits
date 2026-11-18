@@ -640,6 +640,10 @@ impl From<ScalarAttributeType> for ColourAttributeType {
     }
 }
 
+pub trait DrawAll {
+    fn draw_all(&self, drawer: &impl DrawIsosceles);
+}
+
 impl ColourAttributeDisplay {
     pub fn new(cat: ColourAttributeType) -> Self {
         match cat {
@@ -680,14 +684,56 @@ impl ColourAttributeDisplay {
             ColourAttributeDisplay::Greyness(greyness) => greyness.set_target_colour(colour),
         }
     }
+}
 
-    pub fn draw_all(&self, drawer: &impl DrawIsosceles) {
+impl DrawAll for ColourAttributeDisplay {
+    fn draw_all(&self, drawer: &impl DrawIsosceles) {
         match self {
             ColourAttributeDisplay::Hue(hue) => hue.draw_all(drawer),
             ColourAttributeDisplay::Chroma(chroma) => chroma.draw_all(drawer),
             ColourAttributeDisplay::Value(value) => value.draw_all(drawer),
             ColourAttributeDisplay::Warmth(warmth) => warmth.draw_all(drawer),
             ColourAttributeDisplay::Greyness(greyness) => greyness.draw_all(drawer),
+        }
+    }
+}
+
+pub struct ColourAttributesDisplay {
+    pub colour_attribute_displays: Vec<ColourAttributeDisplay>,
+}
+
+impl ColourAttributesDisplay {
+    pub fn len(&self) -> usize {
+        self.colour_attribute_displays.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &ColourAttributeDisplay> {
+        self.colour_attribute_displays.iter()
+    }
+
+    pub fn new(colour_attribute_types: &[ColourAttributeType]) -> Self {
+        let colour_attribute_displays = colour_attribute_types
+            .into_iter()
+            .map(|cat| ColourAttributeDisplay::new(*cat))
+            .collect::<Vec<_>>();
+        Self {
+            colour_attribute_displays,
+        }
+    }
+
+    pub fn set_colour(&mut self, colour: Option<&impl Colour>) {
+        for cad in self.colour_attribute_displays.iter_mut() {
+            cad.set_colour(colour);
+        }
+    }
+
+    pub fn set_target_colour(&mut self, colour: Option<&impl Colour>) {
+        for cad in self.colour_attribute_displays.iter_mut() {
+            cad.set_target_colour(colour);
         }
     }
 }

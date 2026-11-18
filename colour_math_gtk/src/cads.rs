@@ -15,7 +15,7 @@ use gtk3_ext::{
 use colour_math::Colour;
 use colour_math::ScalarAttributeType;
 
-use colour_math_beigui::{attr_display, ColourAttributeType};
+use colour_math_beigui::{attr_display, ColourAttributeType, DrawAll};
 
 use colour_math_cairo::{Drawer, Size};
 

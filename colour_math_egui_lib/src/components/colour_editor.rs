@@ -2,13 +2,15 @@
 
 use crate::components::colour_manipulator_pad::ColourManipulatorPad;
 use crate::widgets::attribute_deck::AttributesDisplay;
+use crate::widgets::attribute_display::{EguiColourAttributesDisplay, ShowAttributeDisplay};
 use crate::widgets::rgb_hex_entry::EguiRGBHexEntry;
-use colour_math_beigui::{ColourAttributeType, ColourManipulator};
+use colour_math_beigui::{ColourAttributeDisplayIfce, ColourAttributeType, ColourManipulator};
 use eframe::egui;
 
 pub struct ColourEditor {
     pub active_rgb: colour_math::RGB<u8>,
     pub displayed_attributes: Vec<ColourAttributeType>,
+    pub attributes_display: EguiColourAttributesDisplay,
     pub manipulator: ColourManipulator,
     pub rgb_hex_entry: EguiRGBHexEntry,
     pub manipulator_pad: ColourManipulatorPad,
@@ -25,6 +27,7 @@ impl ColourEditor {
             active_rgb: initial_model.rgb(),
             displayed_attributes: attr_types.to_vec(),
             manipulator: initial_model,
+            attributes_display: EguiColourAttributesDisplay::new(attr_types),
             rgb_hex_entry: EguiRGBHexEntry::builder().build(),
             manipulator_pad: ColourManipulatorPad::new(),
             attribute_display_size,
@@ -36,11 +39,9 @@ impl ColourEditor {
         ui.with_layout(egui::Layout::top_down(egui::Align::Min), |ui| {
             ui.add_space(4.0);
 
-            let display_deck =
-                AttributesDisplay::new(&self.displayed_attributes, egui::Direction::TopDown);
-            display_deck.show(
+            self.attributes_display.show(
                 ui,
-                &self.manipulator.hcv(),
+                Some(&self.manipulator.hcv()),
                 None::<&colour_math::HCV>,
                 self.attribute_display_size,
             );
@@ -49,9 +50,6 @@ impl ColourEditor {
             ui.separator();
             ui.add_space(14.0);
 
-            // ui.horizontal(|ui| {
-            //     crate::widgets::rgb_hex_editor::RgbHexEditor::show(ui, &mut self.manipulator);
-            // });
             if let Some(new_rgb) = self.rgb_hex_entry.show(ui, Some(self.manipulator.rgb())) {
                 self.manipulator.set_colour(&new_rgb);
             }

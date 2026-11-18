@@ -17,7 +17,7 @@ pub mod widgets;
 pub use crate::{
     attr_display::{
         ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
-        GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
+        ColourAttributesDisplay, DrawAll, GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
     },
     hex_entry::HexEntry,
     hue_wheel::{
