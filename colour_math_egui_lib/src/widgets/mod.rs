@@ -7,6 +7,7 @@ pub mod hex_entry;
 pub mod nudge_pad;
 pub mod nudge_panel;
 pub mod rgb_hex_editor;
+pub mod rgb_hex_entry;
 pub mod sample_field;
 pub mod spectrum_slider;
 pub mod take_sample_button;

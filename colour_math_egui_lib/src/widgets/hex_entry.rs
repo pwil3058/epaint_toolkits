@@ -24,8 +24,13 @@ impl EguiHexEntry {
         } else {
             self.hex_entry.value()
         };
+        let prefix: &'static str = if let Some(coloured_label) = self.hex_entry.label {
+            coloured_label.label
+        } else {
+            "whatever" //TODO: do something random here
+        };
         ui.horizontal(move |ui| {
-            let buffer_key = ui.id().with("hex_buffer");
+            let buffer_key = ui.id().with(prefix.to_owned() + "hex_buffer");
             let mut buffer = ui
                 .ctx()
                 .data_mut(|d| d.get_temp_mut_or_default::<String>(buffer_key).clone());
@@ -40,7 +45,7 @@ impl EguiHexEntry {
             }
 
             let edit = egui::TextEdit::singleline(&mut buffer)
-                .id(ui.id().with("field"))
+                .id(ui.id().with(prefix.to_owned() + "field"))
                 .desired_width(45.0)
                 .font(egui::FontId::monospace(14.0));
             let response = ui.add(edit);
