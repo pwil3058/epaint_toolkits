@@ -104,11 +104,6 @@ impl Drawer {
             f32::from(size.height) / 2.15
         };
         let offset_centre = offset.map(|offset| rect.center() + offset);
-        // if let Some(offset) = offset {
-        //     Some(rect.center() + offset)
-        // } else {
-        //     None
-        // };
         Self {
             painter,
             size,

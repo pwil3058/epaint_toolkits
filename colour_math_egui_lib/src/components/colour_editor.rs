@@ -1,17 +1,19 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
+use colour_math_beigui::{ColourAttributeType, ColourManipulator, RGBHexEntry};
+
+use eframe::egui;
+
 use crate::components::colour_manipulator_pad::ColourManipulatorPad;
 use crate::widgets::attribute_display::EguiColourAttributesDisplay;
-use crate::widgets::rgb_hex_entry::EguiRGBHexEntry;
-use colour_math_beigui::{ColourAttributeType, ColourManipulator};
-use eframe::egui;
+use crate::widgets::rgb_hex_entry::*;
 
 pub struct ColourEditor {
     pub active_rgb: colour_math::RGB<u8>,
     pub displayed_attributes: Vec<ColourAttributeType>,
     pub attributes_display: EguiColourAttributesDisplay,
     pub manipulator: ColourManipulator,
-    pub rgb_hex_entry: EguiRGBHexEntry,
+    pub rgb_hex_entry: RGBHexEntry,
     pub manipulator_pad: ColourManipulatorPad,
     pub attribute_display_size: egui::Vec2,
 }
@@ -27,7 +29,7 @@ impl ColourEditor {
             displayed_attributes: attr_types.to_vec(),
             manipulator: initial_model,
             attributes_display: EguiColourAttributesDisplay::new(attr_types),
-            rgb_hex_entry: EguiRGBHexEntry::builder().build(),
+            rgb_hex_entry: RGBHexEntry::builder().build(),
             manipulator_pad: ColourManipulatorPad::new(),
             attribute_display_size,
         }
