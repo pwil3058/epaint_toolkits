@@ -47,4 +47,6 @@ pub trait ManipulatedColour: Sized + Copy + ColourAttributes + PartialEq {
 
     fn try_incr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self>;
     fn try_decr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self>;
+    fn try_incr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self>;
+    fn try_decr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self>;
 }

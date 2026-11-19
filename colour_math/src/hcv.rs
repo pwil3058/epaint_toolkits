@@ -362,7 +362,7 @@ impl ColourAttributes for HCV {
 impl Colour for HCV {}
 
 impl IntoProps for HCV {
-    fn proportions(self) -> impl Iterator<Item = Prop> {
+    fn proportions(self) -> impl Iterator<Item=Prop> {
         debug_assert!(self.is_valid());
         if let Some(hue) = self.hue {
             hue.rgb_ordered_triplet(self.sum, self.c_prop)
@@ -579,6 +579,192 @@ impl ManipulatedColour for HCV {
             }
         } else {
             Outcome::Ok(HCV::new_grey(Value::from(new_sum / 3u64)))
+        }
+    }
+
+    /// Try to create an HCV with the same hue and value but with the chroma value increased by the
+    /// specified amount.
+    /// If this is not possible and `policy` is `Clamp` return the nearest
+    /// achievable result favouring `Value` else if `policy` is `Accommodate` return the
+    /// nearest achievable result favouring `Chroma` else `Reject`. N.B. Clamping/accomodating
+    /// may also involve slight `Hue` drift in addition to the `Chroma/Value` compromises.
+    fn try_incr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        let new_c_prop = if delta <= Prop::ONE - self.c_prop {
+            Prop(self.c_prop.0 + delta.0)
+        } else {
+            Prop::ONE
+        };
+        if let Some(hue) = self.hue {
+            if let Some(max_c_prop) = hue.max_chroma_prop_for_sum(self.sum) {
+                if new_c_prop <= max_c_prop {
+                    let hcv = HCV {
+                        hue: Some(hue),
+                        c_prop: new_c_prop,
+                        sum: self.sum,
+                    };
+                    debug_assert!(hcv.is_valid());
+                    Outcome::Ok(hcv)
+                } else {
+                    match policy {
+                        SetScalarPolicy::Clamp => {
+                            let hcv = HCV {
+                                hue: Some(hue),
+                                c_prop: max_c_prop,
+                                sum: self.sum,
+                            };
+                            debug_assert!(hcv.is_valid());
+                            Outcome::Clamped(hcv)
+                        }
+                        SetScalarPolicy::Accommodate => {
+                            if let Some((min_sum, max_sum)) =
+                                hue.sum_range_for_chroma_prop(new_c_prop)
+                            {
+                                if self.sum < min_sum {
+                                    let hcv = HCV {
+                                        hue: Some(hue),
+                                        c_prop: new_c_prop,
+                                        sum: min_sum,
+                                    };
+                                    debug_assert!(hcv.is_valid());
+                                    Outcome::Accommodated(hcv)
+                                } else if self.sum > max_sum {
+                                    let hcv = HCV {
+                                        hue: Some(hue),
+                                        c_prop: new_c_prop,
+                                        sum: max_sum,
+                                    };
+                                    debug_assert!(hcv.is_valid());
+                                    Outcome::Accommodated(hcv)
+                                } else {
+                                    Outcome::Rejected
+                                }
+                            } else {
+                                Outcome::Rejected
+                            }
+                        }
+                        _ => Outcome::Rejected,
+                    }
+                }
+            } else if policy == SetScalarPolicy::Accommodate
+                && let Some((min_sum, max_sum)) = hue.sum_range_for_chroma_prop(new_c_prop) {
+                if self.sum < min_sum {
+                    let hcv = HCV {
+                        hue: Some(hue),
+                        c_prop: new_c_prop,
+                        sum: min_sum,
+                    };
+                    debug_assert!(hcv.is_valid());
+                    Outcome::Accommodated(hcv)
+                } else if self.sum > max_sum {
+                    let hcv = HCV {
+                        hue: Some(hue),
+                        c_prop: new_c_prop,
+                        sum: max_sum,
+                    };
+                    debug_assert!(hcv.is_valid());
+                    Outcome::Accommodated(hcv)
+                } else {
+                    Outcome::Rejected
+                }
+            } else {
+                Outcome::Rejected
+            }
+        } else {
+            match policy {
+                SetScalarPolicy::Accommodate => {
+                    if let Some((min_sum, max_sum)) = Hue::CYAN.sum_range_for_chroma_prop(new_c_prop) {
+                        if self.sum < min_sum {
+                            let hcv = HCV {
+                                hue: Some(Hue::CYAN),
+                                c_prop: new_c_prop,
+                                sum: min_sum,
+                            };
+                            debug_assert!(hcv.is_valid());
+                            Outcome::Accommodated(hcv)
+                        } else if self.sum > max_sum {
+                            let hcv = HCV {
+                                hue: Some(Hue::CYAN),
+                                c_prop: new_c_prop,
+                                sum: max_sum,
+                            };
+                            debug_assert!(hcv.is_valid());
+                            Outcome::Accommodated(hcv)
+                        } else {
+                            Outcome::Rejected
+                        }
+                    } else {
+                        Outcome::Rejected
+                    }
+                }
+                SetScalarPolicy::Clamp => {
+                    if let Some(c_prop) = Hue::CYAN.max_chroma_prop_for_sum(self.sum) {
+                        let hcv = HCV { hue: Some(Hue::CYAN), c_prop, sum: self.sum };
+                        debug_assert!(hcv.is_valid());
+                        Outcome::Clamped(hcv)
+                    } else { Outcome::Rejected }
+                }
+                SetScalarPolicy::Reject => Outcome::Rejected,
+            }
+        }
+    }
+
+    fn try_decr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        let c_prop = if delta <= self.c_prop {
+            self.c_prop - delta
+        } else {
+            Prop::ZERO
+        };
+        if let Some(hue) = self.hue {
+            if c_prop == Prop::ZERO {
+                match policy {
+                    SetScalarPolicy::Reject => Outcome::Rejected,
+                    SetScalarPolicy::Clamp => {
+                        if let Some((c_prop, sum)) = hue.adjusted_favouring_sum(self.sum, Prop::ALMOST_ZERO) {
+                            let hcv = HCV { hue: Some(hue), c_prop, sum };
+                            debug_assert!(hcv.is_valid());
+                            Outcome::Clamped(hcv)
+                        } else {
+                            Outcome::Rejected
+                        }
+                    }
+                    SetScalarPolicy::Accommodate => {
+                        let hcv = HCV::new_grey(self.value());
+                        debug_assert!(hcv.is_valid());
+                        Outcome::Accommodated(hcv)
+                    }
+                }
+            } else {
+                let hcv = HCV { hue: Some(hue), c_prop, sum: self.sum };
+                if hcv.is_valid() {
+                    Outcome::Ok(hcv)
+                } else {
+                    match policy {
+                        SetScalarPolicy::Reject => Outcome::Rejected,
+                        SetScalarPolicy::Clamp => {
+                            if let Some((c_prop, sum)) = hue.adjusted_favouring_sum(self.sum, c_prop)
+                            {
+                                let hcv = HCV { hue: Some(hue), c_prop, sum };
+                                debug_assert!(hcv.is_valid());
+                                Outcome::Clamped(hcv)
+                            } else {
+                                Outcome::Rejected
+                            }
+                        }
+                        SetScalarPolicy::Accommodate => {
+                            if let Some((c_prop, sum)) = hue.adjusted_favouring_chroma(self.sum, c_prop)
+                            {
+                                let hcv = HCV { hue: Some(hue), c_prop, sum };
+                                debug_assert!(hcv.is_valid());
+                                Outcome::Clamped(hcv)
+                            } else {
+                                Outcome::Rejected
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            Outcome::Rejected
         }
     }
 }

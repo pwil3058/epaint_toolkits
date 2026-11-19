@@ -330,6 +330,28 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
             Rejected => Rejected,
         }
     }
+
+    fn try_incr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        use Outcome::*;
+        match self.into_hcv().try_incr_chroma_prop(delta, policy) {
+            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
+            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
+            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
+            NoChange => NoChange,
+            Rejected => Rejected,
+        }
+    }
+
+    fn try_decr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
+        use Outcome::*;
+        match self.into_hcv().try_decr_chroma_prop(delta, policy) {
+            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
+            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
+            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
+            NoChange => NoChange,
+            Rejected => Rejected,
+        }
+    }
 }
 
 impl<T: LightLevel> Index<usize> for RGB<T> {
