@@ -17,9 +17,10 @@ pub enum SetHuePolicy {
     FavourValue,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Default, PartialEq, Clone, Copy)]
 pub enum DeltaSize {
     Small,
+    #[default]
     Normal,
     Large,
 }

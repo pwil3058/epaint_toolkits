@@ -20,10 +20,9 @@ use crate::fixed_denominator_rational_numbers::{
 use crate::{
     attributes::{Chroma, Family, Value, Warmth},
     cmy::ComponentMask,
-    hcv::HCV,
-    hue::{angle::Angle, CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    Colour, ColourAttributes, FromProps, HueConstants, IntoHCV, IntoProps, LightLevel,
-    ManipulatedColour, Outcome, RGBConstants, ScalarAttributeType, SetScalarPolicy,
+    hue::{CMYHue, Hue, HueIfce, RGBHue, Sextant},
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
+    ScalarAttributeType,
 };
 
 pub trait IntoRGB {
@@ -275,82 +274,6 @@ impl<L: LightLevel> FromProps for RGB<L> {
                 .try_into()
                 .expect("from_proportions failed"),
         )
-    }
-}
-
-impl<L: LightLevel> ManipulatedColour for RGB<L> {
-    fn lightened(self, prop: Prop) -> Self {
-        let compl = Prop::ONE - prop;
-        let mut array = self.into_proportions();
-        for item in &mut array {
-            *item = (*item * compl + prop).into_prop();
-        }
-        RGB::<L>::from_proportions(array)
-    }
-
-    fn darkened(self, prop: Prop) -> Self {
-        let compl = Prop::ONE - prop;
-        let mut array = self.into_proportions();
-        for item in &mut array {
-            *item *= compl;
-        }
-        RGB::<L>::from_proportions(array)
-    }
-
-    fn saturated(self, prop: Prop) -> Self {
-        HCV::from(self).saturated(prop).into_rgb()
-    }
-
-    fn greyed(self, prop: Prop) -> Self {
-        HCV::from(self).greyed(prop).into_rgb()
-    }
-
-    fn rotated(self, angle: Angle) -> Self {
-        HCV::from(self).rotated(angle).into_rgb()
-    }
-
-    fn try_incr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
-        use Outcome::*;
-        match self.into_hcv().try_incr_value(delta, policy) {
-            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
-            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
-            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
-            NoChange => NoChange,
-            Rejected => Rejected,
-        }
-    }
-
-    fn try_decr_value(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
-        use Outcome::*;
-        match self.into_hcv().try_decr_value(delta, policy) {
-            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
-            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
-            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
-            NoChange => NoChange,
-            Rejected => Rejected,
-        }
-    }
-
-    fn try_incr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
-        use Outcome::*;
-        match self.into_hcv().try_incr_chroma_prop(delta, policy) {
-            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
-            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
-            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
-            NoChange => NoChange,
-            Rejected => Rejected,
-        }
-    }
-
-    fn try_decr_chroma_prop(self, delta: Prop, policy: SetScalarPolicy) -> Outcome<Self> {
-        use Outcome::*;
-        match self.into_hcv().try_decr_chroma_prop(delta, policy) {
-            Ok(hcv) => Ok(hcv.into_rgb::<L>()),
-            Clamped(hcv) => Clamped(hcv.into_rgb::<L>()),
-            Accommodated(hcv) => Accommodated(hcv.into_rgb::<L>()),
-            NoChange => NoChange,
-            Rejected => Rejected,
-        }
     }
 }
 
