@@ -6,6 +6,7 @@ use colour_math::fixed_denominator_rational_numbers::{FDRNum, NumberConstants, P
 use colour_math::{Colour, hcv::HCV, hue::angle::Angle};
 
 pub mod attr_display;
+pub mod colour_manipulator;
 pub mod hex_entry;
 pub mod hue_wheel;
 pub mod manipulator;
