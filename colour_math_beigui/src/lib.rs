@@ -9,7 +9,7 @@ pub mod attr_display;
 pub mod colour_manipulator;
 pub mod hex_entry;
 pub mod hue_wheel;
-pub mod manipulator;
+// pub mod manipulator;
 pub mod rgb_hex_entry;
 #[cfg(test)]
 mod test_beigui;
@@ -20,11 +20,11 @@ pub use crate::{
         ChromaCAD, ColourAttributeDisplay, ColourAttributeDisplayIfce, ColourAttributeType,
         ColourAttributesDisplay, DrawAll, GreynessCAD, HueCAD, ValueCAD, WarmthCAD,
     },
+    colour_manipulator::*,
     hex_entry::HexEntry,
     hue_wheel::{
         ColouredShape, Graticule, HueWheel, MakeColouredShape, Proximity, Shape, ShapeConsts, Zoom,
     },
-    manipulator::*,
     rgb_hex_entry::*,
     widgets::*,
 };

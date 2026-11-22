@@ -6,16 +6,17 @@ use std::{
 
 use gtk3_ext::{
     cairo, gdk, gdk_pixbuf, glib,
-    gtk::{self, prelude::*, DrawingArea},
+    gtk::{self, DrawingArea, prelude::*},
     gtkx::menu::{ManagedMenu, MenuItemSpec},
     sav_state::{MaskedCondns, SAV_NEXT_CONDN},
     wrapper::*,
 };
 
 use colour_math::{
-    fixed_denominator_rational_numbers::*, hcv::HCV, hue::angle::Angle, LightLevel, Value, RGB,
+    IntoRGB, LightLevel, RGB, Value, fixed_denominator_rational_numbers::*, hcv::HCV,
+    hue::angle::Angle,
 };
-use colour_math_beigui::manipulator::{ColourManipulator, DeltaSize};
+use colour_math_beigui::{ColourManipulator, DeltaSize};
 use colour_math_cairo::Point;
 
 use crate::colour::ManipGdkColour;
@@ -100,7 +101,7 @@ impl ColourManipulatorGUI {
     }
 
     fn draw(&self, cairo_context: &cairo::Context) {
-        let rgb = self.colour_manipulator.borrow().rgb::<f64>();
+        let rgb = self.colour_manipulator.borrow().rgb().into_rgb::<f64>();
         cairo_context.set_source_rgb(rgb[0], rgb[1], rgb[2]);
         cairo_context.paint().expect("cairo_context paint failed");
         for sample in self.samples.borrow().iter() {
@@ -164,7 +165,7 @@ impl ColourManipulatorGUI {
     }
 
     pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
-        self.colour_manipulator.borrow().rgb::<L>()
+        self.colour_manipulator.borrow().rgb().into_rgb::<L>()
     }
 
     pub fn hcv(&self) -> HCV {

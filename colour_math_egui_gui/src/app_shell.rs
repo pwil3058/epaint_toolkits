@@ -10,8 +10,7 @@ pub struct AppShell {
 
 impl AppShell {
     pub fn new(_cc: &eframe::CreationContext<'_>, sliders: &[ColourAttributeType]) -> Self {
-        let core_manipulator =
-            colour_math_beigui::manipulator::ColourManipulator::builder().build();
+        let core_manipulator = colour_math_beigui::ColourManipulator::builder().build();
 
         Self {
             colour_editor: ColourEditor::new(
