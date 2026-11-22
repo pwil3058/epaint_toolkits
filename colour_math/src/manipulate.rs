@@ -2,6 +2,7 @@
 
 use std::cmp::Ordering;
 
+use crate::debug::{AbsDiff, ApproxEq};
 use crate::fixed_denominator_rational_numbers::*;
 use crate::{
     Angle, ColourAttributes, FromProps, HCV, Hue, IntoHCV, IntoProps, IntoRGB, LightLevel,
@@ -24,13 +25,34 @@ pub enum SetHuePolicy {
     FavourValue,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Outcome<T: Sized + Copy + PartialEq> {
     Ok(T),
     Clamped(T),
     Accommodated(T),
     NoChange,
     Rejected,
+}
+
+impl<T: Sized + Copy + PartialEq + ApproxEq> Outcome<T> {
+    pub fn approx_eq(&self, other: &Self, limit: Option<u64>) -> bool {
+        match self {
+            Outcome::Ok(this) => match other {
+                Outcome::Ok(other) => this.approx_eq(other, limit),
+                _ => false,
+            },
+            Outcome::Clamped(this) => match other {
+                Outcome::Clamped(other) => this.approx_eq(other, limit),
+                _ => false,
+            },
+            Outcome::Accommodated(this) => match other {
+                Outcome::Accommodated(other) => this.approx_eq(other, limit),
+                _ => false,
+            },
+            Outcome::Rejected => other == &Outcome::Rejected,
+            Outcome::NoChange => other == &Outcome::NoChange,
+        }
+    }
 }
 
 impl<T: Sized + Copy + PartialEq> Outcome<T> {
@@ -614,3 +636,6 @@ impl<L: LightLevel> ManipulatedColour for RGB<L> {
         }
     }
 }
+
+#[cfg(test)]
+mod manipulate_tests;

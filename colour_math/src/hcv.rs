@@ -12,14 +12,14 @@ use crate::fixed_denominator_rational_numbers::{
 };
 
 use crate::{
-    attributes::{Chroma, Family, Value, Warmth},
-    hue::{
-        angle::Angle, CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets,
-        RGBHue, Sextant, SumChromaCompatibility,
-    },
-    rgb::{IntoRGB, RGB},
     Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
     ScalarAttributeType,
+    attributes::{Chroma, Family, Value, Warmth},
+    hue::{
+        CMYHue, ColourModificationHelpers, Hue, HueBasics, HueIfce, OrderedTriplets, RGBHue,
+        Sextant, SumChromaCompatibility, angle::Angle,
+    },
+    rgb::{IntoRGB, RGB},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
@@ -385,6 +385,7 @@ impl FromProps for HCV {
                 sum,
             }
         } else {
+            // got here because all props were equal
             Self {
                 hue: None,
                 c_prop: Prop::ZERO,

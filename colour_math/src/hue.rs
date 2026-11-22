@@ -18,11 +18,11 @@ pub mod traits;
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
+    HueConstants, IntoProps, LightLevel,
     attributes::{Chroma, Family, Warmth},
     hcv::HCV,
     hue::angle::Angle,
     rgb::RGB,
-    HueConstants, IntoProps, LightLevel,
 };
 
 pub use cmy_hue::*;
@@ -328,11 +328,11 @@ impl OrderedTriplets for Hue {
 }
 
 impl ColourModificationHelpers for Hue {
-    fn trim_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
+    fn trim_sum_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
         match self {
-            Self::Primary(primary_hue) => primary_hue.trim_overs(sum, c_prop),
-            Self::Secondary(secondary_hue) => secondary_hue.trim_overs(sum, c_prop),
-            Self::Sextant(sextant_hue) => sextant_hue.trim_overs(sum, c_prop),
+            Self::Primary(primary_hue) => primary_hue.trim_sum_overs(sum, c_prop),
+            Self::Secondary(secondary_hue) => secondary_hue.trim_sum_overs(sum, c_prop),
+            Self::Sextant(sextant_hue) => sextant_hue.trim_sum_overs(sum, c_prop),
         }
     }
 

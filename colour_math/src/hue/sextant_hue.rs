@@ -7,10 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
+    HueConstants, IntoProps, LightLevel,
     attributes::{Chroma, Family, Warmth},
     hue::{self::*, angle::Angle},
     rgb::RGB,
-    HueConstants, IntoProps, LightLevel,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
@@ -333,8 +333,8 @@ impl SextantHue {
         self.1
     }
 
-    fn calculate_hue_parameter(triplet: [Prop; 3]) -> Prop {
-        let [first, second, third] = triplet;
+    fn calculate_hue_parameter(ordered_triplet: [Prop; 3]) -> Prop {
+        let [first, second, third] = ordered_triplet;
         debug_assert!(first > second && second > third);
         let mut sum_for_max_chroma = UFDRNum::ONE + ((second - third) / (first - third));
         // Handle possible (fatal) rounding error
@@ -369,15 +369,17 @@ impl SextantHue {
     }
 }
 
-impl<T: LightLevel> From<(Sextant, &RGB<T>)> for SextantHue {
-    fn from(arg: (Sextant, &RGB<T>)) -> Self {
-        // Self::from((arg.0, <[Prop; 3]>::from(*arg.1)))
-        Self::from((arg.0, arg.1.into_proportions()))
-    }
-}
+// impl<T: LightLevel> From<(Sextant, &RGB<T>)> for SextantHue {
+//     fn from(arg: (Sextant, &RGB<T>)) -> Self {
+//       //  Self::from((arg.0, <[Prop; 3]>::from(*arg.1)))
+// Self::from((arg.0, arg.1.into_proportions()))
+// }
+// }
 
 impl From<(Sextant, [Prop; 3])> for SextantHue {
+    /// `SextantHue` from components in descending order by value
     fn from(arg: (Sextant, [Prop; 3])) -> Self {
+        debug_assert!(arg.1.is_sorted_by(|a, b| a >= b), "{arg:?}");
         let hue_param = Self::calculate_hue_parameter(arg.1);
         Self(arg.0, hue_param)
     }

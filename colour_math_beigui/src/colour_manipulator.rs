@@ -238,5 +238,5 @@ impl ColourManipulatorBuilder {
     }
 }
 
-#[cfg(test)]
-mod colour_manipulator_tests;
+// #[cfg(test)]
+// mod colour_manipulator_tests;

@@ -9,12 +9,12 @@ use std::{
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
     AsProportion, FDRNum, IntoProp, Prop, UFDRNum,
+    debug::{AbsDiff, ApproxEq, PropDiff},
 };
 
 use crate::hue::{Hue, HueBasics};
-use crate::HueConstants;
+use crate::{HueConstants, RGB};
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Chroma {
@@ -68,6 +68,25 @@ impl Chroma {
     pub fn abs_diff(&self, other: &Self) -> Prop {
         self.into_prop().abs_diff(&other.into_prop())
     }
+
+    /// Calculate `Chroma` proportion
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::*;
+    ///
+    /// assert_eq!(Chroma::chroma_prop(RGB::<Prop>::RED), Prop::ONE);
+    /// assert_eq!(Chroma::chroma_prop(RGB::<Prop>::CYAN), Prop::ONE);
+    /// //assert_eq!(Chroma::chroma_prop(RGB::<Prop>::CYAN / 2), Prop::HALF);
+    /// //assert_eq!(Chroma::chroma_prop(RGB::<Prop>::RED_YELLOW), Prop::ONE);
+    ///
+    /// ```
+    pub fn chroma_prop(rgb: RGB<Prop>) -> Prop {
+        let [a, b, c] = rgb.into_ordered_triplet();
+        let bc = b - c;
+        (a * a + bc * bc - a * bc).sqrt().into_prop()
+    }
 }
 
 impl From<Chroma> for Prop {
@@ -93,6 +112,7 @@ impl Default for Chroma {
 
 impl From<(Prop, Hue, UFDRNum)> for Chroma {
     fn from((prop, hue, sum): (Prop, Hue, UFDRNum)) -> Self {
+        debug_assert!(sum.is_valid_sum());
         match prop {
             Prop::ZERO => Chroma::ZERO,
             Prop::ONE => Chroma::ONE,

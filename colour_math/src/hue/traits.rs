@@ -9,11 +9,11 @@ use std::{
 use crate::fixed_denominator_rational_numbers::*;
 
 use crate::{
+    LightLevel,
     attributes::{Chroma, Family, Warmth},
     hcv::HCV,
     hue::{self::*, angle::Angle},
     rgb::{IntoRGB, RGB},
-    LightLevel,
 };
 
 pub trait HueBasics: Copy + Debug + Sized + Into<Hue> {
@@ -256,7 +256,7 @@ pub(crate) trait HueTestIfce:
 }
 
 pub trait ColourModificationHelpers: HueBasics + Debug + Sized {
-    fn trim_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
+    fn trim_sum_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
         debug_assert!(sum.is_valid_sum());
         if c_prop == Prop::ZERO {
             return None;
@@ -283,13 +283,13 @@ pub trait ColourModificationHelpers: HueBasics + Debug + Sized {
             Prop::ZERO => None,
             Prop::ONE => Some((Prop::ONE, self.sum_for_max_chroma())),
             c_prop => {
-                let (c_prop, sum) = self.trim_overs(sum, c_prop)?;
+                let (c_prop, sum) = self.trim_sum_overs(sum, c_prop)?;
                 match sum.cmp(&self.sum_for_max_chroma()) {
                     Ordering::Equal | Ordering::Less => Some((c_prop, sum)),
                     Ordering::Greater => {
                         let max_sum = self.max_sum_for_chroma_prop(c_prop).expect("chroma > 0");
                         if sum > max_sum {
-                            Some(self.trim_overs(max_sum, c_prop)?)
+                            Some(self.trim_sum_overs(max_sum, c_prop)?)
                         } else {
                             Some((c_prop, sum))
                         }
@@ -304,22 +304,22 @@ pub trait ColourModificationHelpers: HueBasics + Debug + Sized {
         match c_prop {
             Prop::ZERO => None,
             c_prop => match sum.cmp(&self.sum_for_max_chroma()) {
-                Ordering::Equal => Some(self.trim_overs(sum, c_prop)?),
+                Ordering::Equal => Some(self.trim_sum_overs(sum, c_prop)?),
                 Ordering::Less => {
                     let min_sum = self.min_sum_for_chroma_prop(c_prop).expect("c_prop > 0");
                     if sum < min_sum {
                         let max_chroma = self.max_chroma_prop_for_sum(sum)?;
-                        Some(self.trim_overs(sum, max_chroma)?)
+                        Some(self.trim_sum_overs(sum, max_chroma)?)
                     } else {
-                        Some(self.trim_overs(sum, c_prop)?)
+                        Some(self.trim_sum_overs(sum, c_prop)?)
                     }
                 }
                 Ordering::Greater => {
                     let max_chroma = self.max_chroma_prop_for_sum(sum)?;
                     if c_prop > max_chroma {
-                        Some(self.trim_overs(sum, max_chroma)?)
+                        Some(self.trim_sum_overs(sum, max_chroma)?)
                     } else {
-                        Some(self.trim_overs(sum, c_prop)?)
+                        Some(self.trim_sum_overs(sum, c_prop)?)
                     }
                 }
             },

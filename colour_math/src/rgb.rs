@@ -13,16 +13,16 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    debug::{ApproxEq, PropDiff},
     AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
+    debug::{ApproxEq, PropDiff},
 };
 
 use crate::{
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
+    ScalarAttributeType,
     attributes::{Chroma, Family, Value, Warmth},
     cmy::ComponentMask,
     hue::{CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
-    ScalarAttributeType,
 };
 
 pub trait IntoRGB {
@@ -141,11 +141,7 @@ impl<T: LightLevel> RGB<T> {
     /// ```
     pub fn component_mask(self) -> ComponentMask {
         ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
-            if p != T::ZERO {
-                mask | 1 << i
-            } else {
-                mask
-            }
+            if p != T::ZERO { mask | 1 << i } else { mask }
         }))
     }
 
@@ -159,6 +155,29 @@ impl<T: LightLevel> RGB<T> {
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
         self.0.iter()
+    }
+
+    /// Convert to a triplet o `Prop`s in value order.
+    ///
+    /// Example:
+    ///
+    /// ```
+    /// use colour_math::*;
+    ///
+    /// assert_eq!(RGB::<u8>::RED.into_ordered_triplet(), [Prop::ONE, Prop::ZERO, Prop::ZERO]);
+    /// assert_eq!(RGB::<u8>::GREEN.into_ordered_triplet(), [Prop::ONE, Prop::ZERO, Prop::ZERO]);
+    /// assert_eq!(RGB::<u8>::BLUE.into_ordered_triplet(), [Prop::ONE, Prop::ZERO, Prop::ZERO]);
+    /// assert_eq!(RGB::<u8>::YELLOW.into_ordered_triplet(), [Prop::ONE, Prop::ONE, Prop::ZERO]);
+    /// assert_eq!(RGB::<u8>::MAGENTA.into_ordered_triplet(), [Prop::ONE, Prop::ONE, Prop::ZERO]);
+    /// assert_eq!(RGB::<u8>::CYAN.into_ordered_triplet(), [Prop::ONE, Prop::ONE, Prop::ZERO]);
+    /// assert_eq!(RGB::<Prop>::RED_YELLOW.into_ordered_triplet(), [Prop::ONE, Prop::HALF, Prop::ZERO]);
+    /// assert_eq!(RGB::<Prop>::GREEN_CYAN.into_ordered_triplet(), [Prop::ONE, Prop::HALF, Prop::ZERO]);
+    /// ```
+    pub fn into_ordered_triplet(self) -> [Prop; 3] {
+        let mut result = self.into_proportions();
+        result.sort();
+        result.reverse();
+        result
     }
 }
 
