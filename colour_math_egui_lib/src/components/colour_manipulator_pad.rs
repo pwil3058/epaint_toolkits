@@ -37,7 +37,7 @@ impl ColourManipulatorPad {
         let hue_left_color: egui::Color32 = current_hcv.rotated(angle_offset).dedans();
         let hue_right_color: egui::Color32 = current_hcv.rotated(-angle_offset).dedans();
 
-        let delta_size = ui.input(|i| {
+        let new_delta_size = ui.input(|i| {
             if i.modifiers.ctrl {
                 colour_math_beigui::DeltaSize::Small
             } else if i.modifiers.shift {
@@ -46,13 +46,14 @@ impl ColourManipulatorPad {
                 colour_math_beigui::DeltaSize::Normal
             }
         });
+        manipulator.set_delta_size(new_delta_size);
 
         ui.vertical_centered(|ui| {
             // 1. Value++ Button (Injected custom color hint background fill override)
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                 let btn = egui::Button::new("Value++").fill(val_incr_color);
                 if ui.add_sized([content_width, button_height], btn).clicked() {
-                    manipulator.incr_value(delta_size.for_value());
+                    manipulator.incr_value();
                 }
             });
 
@@ -69,7 +70,7 @@ impl ColourManipulatorPad {
                     .add_sized([side_btn_width, content_height], btn_left)
                     .clicked()
                 {
-                    manipulator.rotate(delta_size.for_hue_clockwise());
+                    manipulator.rotate_clockwise();
                 }
 
                 ui.add_space(4.0);
@@ -135,7 +136,7 @@ impl ColourManipulatorPad {
                     .add_sized([side_btn_width, content_height], btn_right)
                     .clicked()
                 {
-                    manipulator.rotate(delta_size.for_hue_anticlockwise());
+                    manipulator.rotate_anti_clockwise();
                 }
             });
 
@@ -145,7 +146,7 @@ impl ColourManipulatorPad {
             ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                 let btn = egui::Button::new("Value--").fill(val_decr_color);
                 if ui.add_sized([content_width, button_height], btn).clicked() {
-                    manipulator.decr_value(delta_size.for_value());
+                    manipulator.decr_value();
                 }
             });
 
@@ -163,7 +164,7 @@ impl ColourManipulatorPad {
                     .add_sized([half_row_width, button_height], btn_c_down)
                     .clicked()
                 {
-                    manipulator.decr_chroma(delta_size.for_chroma());
+                    manipulator.decr_chroma();
                 }
                 ui.add_space(4.0);
 
@@ -172,7 +173,7 @@ impl ColourManipulatorPad {
                     .add_sized([half_row_width, button_height], btn_c_up)
                     .clicked()
                 {
-                    manipulator.incr_chroma(delta_size.for_chroma());
+                    manipulator.incr_chroma();
                 }
             });
 

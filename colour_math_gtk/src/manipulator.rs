@@ -23,11 +23,10 @@ use crate::colour::ManipGdkColour;
 use crate::coloured::Colourable;
 
 macro_rules! connect_button {
-    ( $ed:ident, $btn:ident, $delta:ident, $apply:ident ) => {
+    ( $ed:ident, $btn:ident, $apply:ident ) => {
         let ced_c = Rc::clone(&$ed);
         $ed.$btn.connect_clicked(move |btn| {
-            let delta = ced_c.delta_size.get().$delta();
-            let changed = ced_c.colour_manipulator.borrow_mut().$apply(delta);
+            let changed = ced_c.colour_manipulator.borrow_mut().$apply();
             if changed {
                 let new_hcv = ced_c.colour_manipulator.borrow().hcv();
                 ced_c.set_colour_and_inform(&new_hcv);
@@ -60,7 +59,7 @@ pub struct ColourManipulatorGUI {
     hue_right_btn: gtk::Button,
     decr_chroma_btn: gtk::Button,
     incr_chroma_btn: gtk::Button,
-    delta_size: Cell<DeltaSize>,
+    // delta_size: Cell<DeltaSize>,
     samples: RefCell<Vec<Sample>>,
     auto_match_btn: gtk::Button,
     auto_match_on_paste_btn: gtk::CheckButton,
@@ -239,7 +238,7 @@ impl ColourManipulatorGUIBuilder {
             hue_right_btn: gtk::Button::with_label(">"),
             decr_chroma_btn: gtk::Button::with_label("Chroma--"),
             incr_chroma_btn: gtk::Button::with_label("Chroma++"),
-            delta_size: Cell::new(DeltaSize::Normal),
+            // delta_size: Cell::new(DeltaSize::Normal),
             samples: RefCell::new(vec![]),
             auto_match_btn: gtk::Button::with_label("Auto Match"),
             auto_match_on_paste_btn: gtk::CheckButton::with_label("On Paste?"),
@@ -299,9 +298,17 @@ impl ColourManipulatorGUIBuilder {
         rgbm_gui.vbox.connect_key_press_event(move |_, event| {
             let key = event.keyval();
             if key == gdk::keys::constants::Shift_L {
-                rgbm_gui_c.delta_size.set(DeltaSize::Large);
+                // rgbm_gui_c.delta_size.set(DeltaSize::Large);
+                rgbm_gui_c
+                    .colour_manipulator
+                    .borrow_mut()
+                    .set_delta_size(DeltaSize::Large)
             } else if key == gdk::keys::constants::Shift_R {
-                rgbm_gui_c.delta_size.set(DeltaSize::Small);
+                rgbm_gui_c
+                    .colour_manipulator
+                    .borrow_mut()
+                    .set_delta_size(DeltaSize::Small)
+                // rgbm_gui_c.delta_size.set(DeltaSize::Small);
             };
             glib::Propagation::Proceed
             // Inhibit(false)
@@ -310,14 +317,22 @@ impl ColourManipulatorGUIBuilder {
         rgbm_gui.vbox.connect_key_release_event(move |_, event| {
             let key = event.keyval();
             if key == gdk::keys::constants::Shift_L || key == gdk::keys::constants::Shift_R {
-                rgbm_gui_c.delta_size.set(DeltaSize::Normal);
+                rgbm_gui_c
+                    .colour_manipulator
+                    .borrow_mut()
+                    .set_delta_size(DeltaSize::Normal);
+                // rgbm_gui_c.delta_size.set(DeltaSize::Normal);
             };
             glib::Propagation::Proceed
             // Inhibit(false)
         });
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui.vbox.connect_enter_notify_event(move |_, _| {
-            rgbm_gui_c.delta_size.set(DeltaSize::Normal);
+            rgbm_gui_c
+                .colour_manipulator
+                .borrow_mut()
+                .set_delta_size(DeltaSize::Normal);
+            // rgbm_gui_c.delta_size.set(DeltaSize::Normal);
             glib::Propagation::Proceed
             // Inhibit(false)
         });
@@ -329,12 +344,12 @@ impl ColourManipulatorGUIBuilder {
             // Inhibit(true)
         });
 
-        connect_button!(rgbm_gui, incr_value_btn, for_value, incr_value);
-        connect_button!(rgbm_gui, decr_value_btn, for_value, decr_value);
-        connect_button!(rgbm_gui, incr_chroma_btn, for_chroma, incr_chroma);
-        connect_button!(rgbm_gui, decr_chroma_btn, for_chroma, decr_chroma);
-        connect_button!(rgbm_gui, hue_left_btn, for_hue_anticlockwise, rotate);
-        connect_button!(rgbm_gui, hue_right_btn, for_hue_clockwise, rotate);
+        connect_button!(rgbm_gui, incr_value_btn, incr_value);
+        connect_button!(rgbm_gui, decr_value_btn, decr_value);
+        connect_button!(rgbm_gui, incr_chroma_btn, incr_chroma);
+        connect_button!(rgbm_gui, decr_chroma_btn, decr_chroma);
+        connect_button!(rgbm_gui, hue_left_btn, rotate_anti_clockwise);
+        connect_button!(rgbm_gui, hue_right_btn, rotate_clockwise);
 
         let rgbm_gui_c = Rc::clone(&rgbm_gui);
         rgbm_gui

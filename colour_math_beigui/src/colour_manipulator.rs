@@ -36,16 +36,12 @@ impl DeltaSize {
         }
     }
 
-    pub fn for_hue_anticlockwise(self) -> Angle {
+    pub fn for_hue(self) -> Angle {
         match self {
             DeltaSize::Small => 0.5.into(),
             DeltaSize::Normal => 1.0.into(),
             DeltaSize::Large => 5.0.into(),
         }
-    }
-
-    pub fn for_hue_clockwise(self) -> Angle {
-        -self.for_hue_anticlockwise()
     }
 }
 
@@ -54,6 +50,7 @@ pub struct ColourManipulator {
     hcv: HCV,
     set_scalar_policy: SetScalarPolicy,
     rotation_policy: SetHuePolicy,
+    delta_size: DeltaSize,
     saved_hue: Hue,
 }
 
@@ -78,6 +75,14 @@ impl ColourManipulator {
         self.set_scalar_policy == SetScalarPolicy::Clamp
     }
 
+    pub fn delta_size(&self) -> DeltaSize {
+        self.delta_size
+    }
+
+    pub fn set_delta_size(&mut self, delta_size: DeltaSize) {
+        self.delta_size = delta_size;
+    }
+
     pub fn set_clamped(&mut self, clamped: bool) {
         if clamped {
             self.set_scalar_policy = SetScalarPolicy::Clamp;
@@ -94,11 +99,12 @@ impl ColourManipulator {
         self.rotation_policy = rotation_policy
     }
 
-    pub fn decr_chroma(&mut self, delta: Prop) -> bool {
+    pub fn decr_chroma(&mut self) -> bool {
         debug_assert!(self.hcv.is_valid());
         if let Some(hue) = self.hcv.hue() {
             self.saved_hue = hue
         };
+        let delta = self.delta_size.for_chroma();
         match self.hcv.try_decr_chroma_prop(delta, self.set_scalar_policy) {
             Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
                 self.hcv = hcv;
@@ -108,8 +114,9 @@ impl ColourManipulator {
         }
     }
 
-    pub fn incr_chroma(&mut self, delta: Prop) -> bool {
+    pub fn incr_chroma(&mut self) -> bool {
         debug_assert!(self.hcv.is_valid());
+        let delta = self.delta_size.for_chroma();
         match self
             .hcv
             .try_incr_chroma_prop(delta, self.set_scalar_policy, self.saved_hue)
@@ -122,11 +129,12 @@ impl ColourManipulator {
         }
     }
 
-    pub fn decr_value(&mut self, delta: Prop) -> bool {
+    pub fn decr_value(&mut self) -> bool {
         if let Some(hue) = self.hcv.hue() {
             self.saved_hue = hue
         };
         debug_assert!(self.hcv.is_valid());
+        let delta = self.delta_size.for_value();
         match self.hcv.try_decr_value(delta, self.set_scalar_policy) {
             Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
                 self.hcv = hcv;
@@ -136,11 +144,12 @@ impl ColourManipulator {
         }
     }
 
-    pub fn incr_value(&mut self, delta: Prop) -> bool {
+    pub fn incr_value(&mut self) -> bool {
         if let Some(hue) = self.hcv.hue() {
             self.saved_hue = hue
         };
         debug_assert!(self.hcv.is_valid());
+        let delta = self.delta_size.for_value();
         match self.hcv.try_incr_value(delta, self.set_scalar_policy) {
             Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
                 self.hcv = hcv;
@@ -150,7 +159,18 @@ impl ColourManipulator {
         }
     }
 
-    pub fn rotate(&mut self, angle: Angle) -> bool {
+    pub fn rotate_clockwise(&mut self) -> bool {
+        let angle = self.delta_size.for_hue();
+        if let Some(hcv) = self.hcv.try_rotated(-angle, self.rotation_policy) {
+            self.hcv = hcv;
+            true
+        } else {
+            false
+        }
+    }
+
+    pub fn rotate_anti_clockwise(&mut self) -> bool {
+        let angle = self.delta_size.for_hue();
         if let Some(hcv) = self.hcv.try_rotated(angle, self.rotation_policy) {
             self.hcv = hcv;
             true
@@ -213,6 +233,7 @@ impl ColourManipulatorBuilder {
             saved_hue,
             set_scalar_policy,
             rotation_policy: self.rotation_policy,
+            delta_size: DeltaSize::Normal,
         }
     }
 }

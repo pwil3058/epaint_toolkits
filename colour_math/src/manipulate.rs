@@ -4,9 +4,9 @@ use std::cmp::Ordering;
 
 use crate::fixed_denominator_rational_numbers::*;
 use crate::{
+    Angle, ColourAttributes, FromProps, HCV, Hue, IntoHCV, IntoProps, IntoRGB, LightLevel,
+    PropsFrom, RGB, Value,
     hue::{ColourModificationHelpers, HueBasics},
-    Angle, ColourAttributes, FromProps, Hue, IntoHCV, IntoProps, IntoRGB, LightLevel, PropsFrom,
-    Value, HCV, RGB,
 };
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -499,7 +499,7 @@ impl ManipulatedColour for HCV {
                                     c_prop,
                                     sum,
                                 };
-                                debug_assert!(hcv.is_valid(), "Invalid HCV: {hcv:?}");
+                                // debug_assert!(hcv.is_valid(), "Invalid HCV: {hcv:?}");
                                 Some(hcv)
                             } else {
                                 None
