@@ -3,11 +3,11 @@
 use colour_math::fixed_denominator_rational_numbers::*;
 
 use colour_math::{
-    Colour, ColourAttributes, HueConstants, LightLevel, SetScalarPolicy,
+    Colour, ColourAttributes, HueConstants, LightLevel,
     hcv::HCV,
     hue::Hue,
-    hue::{ColourModificationHelpers, HueBasics, HueIfce, SumChromaCompatibility, angle::Angle},
-    manipulator::{ColourManipulator, Outcome, SetHuePolicy, SetScalarPolicy},
+    hue::angle::Angle,
+    manipulate::{ManipulatedColour, Outcome, SetHuePolicy, SetScalarPolicy},
     rgb::{IntoRGB, RGB},
 };
 
@@ -62,7 +62,7 @@ impl ColourManipulator {
         ColourManipulatorBuilder::default()
     }
 
-    pub fn rgb<L: LightLevel>(&self) -> RGB<L> {
+    pub fn rgb(&self) -> RGB<u8> {
         self.hcv.into_rgb()
     }
 
@@ -96,45 +96,57 @@ impl ColourManipulator {
 
     pub fn decr_chroma(&mut self, delta: Prop) -> bool {
         debug_assert!(self.hcv.is_valid());
-        match hcv.try_decr_chroma_prop(delta, self.set_scalar_policy) {
-            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) {
-                self.hcv = kcv;
+        if let Some(hue) = self.hcv.hue() {
+            self.saved_hue = hue
+        };
+        match self.hcv.try_decr_chroma_prop(delta, self.set_scalar_policy) {
+            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
+                self.hcv = hcv;
                 true
             }
-            _ => false
+            _ => false,
         }
     }
 
     pub fn incr_chroma(&mut self, delta: Prop) -> bool {
         debug_assert!(self.hcv.is_valid());
-        match hcv.try_incr_chroma_prop(delta, self.set_scalar_policy) {
-            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) {
-                self.hcv = kcv;
+        match self
+            .hcv
+            .try_incr_chroma_prop(delta, self.set_scalar_policy, self.saved_hue)
+        {
+            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
+                self.hcv = hcv;
                 true
             }
-            _ => false
+            _ => false,
         }
     }
 
     pub fn decr_value(&mut self, delta: Prop) -> bool {
+        if let Some(hue) = self.hcv.hue() {
+            self.saved_hue = hue
+        };
         debug_assert!(self.hcv.is_valid());
-        match hcv.try_decr_value(delta, self.set_scalar_policy) {
-            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) {
-                self.hcv = kcv;
+        match self.hcv.try_decr_value(delta, self.set_scalar_policy) {
+            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
+                self.hcv = hcv;
                 true
             }
-            _ => false
+            _ => false,
         }
     }
 
     pub fn incr_value(&mut self, delta: Prop) -> bool {
+        if let Some(hue) = self.hcv.hue() {
+            self.saved_hue = hue
+        };
         debug_assert!(self.hcv.is_valid());
-        match hcv.try_incr_value(delta, self.set_scalar_policy) {
-            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) {
-                self.hcv = kcv;
+        match self.hcv.try_incr_value(delta, self.set_scalar_policy) {
+            Outcome::Ok(hcv) | Outcome::Clamped(hcv) | Outcome::Accommodated(hcv) => {
+                self.hcv = hcv;
                 true
             }
-            _ => false
+            _ => false,
         }
     }
 
@@ -199,11 +211,11 @@ impl ColourManipulatorBuilder {
         ColourManipulator {
             hcv,
             saved_hue,
-            clamped: self.clamped,
+            set_scalar_policy,
             rotation_policy: self.rotation_policy,
         }
     }
 }
 
 #[cfg(test)]
-mod manipulator_tests;
+mod colour_manipulator_tests;

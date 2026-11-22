@@ -67,7 +67,7 @@ impl IntoRGB for [Prop; 3] {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
-pub struct RGB<T: LightLevel>(pub(crate) [T; 3]);
+pub struct RGB<T: LightLevel>(pub [T; 3]);
 
 impl<T: LightLevel> AsRef<[T]> for RGB<T> {
     fn as_ref(&self) -> &[T] {

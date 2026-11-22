@@ -14,7 +14,7 @@ pub use crate::{
     // },
     hcv::*,
     hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
-    manipulate::{ManipulatedColour, Outcome, SetScalarPolicy},
+    manipulate::{ManipulatedColour, Outcome, SetHuePolicy, SetScalarPolicy},
     mixing::WeightedAverageMixer,
     rgb::{IntoRGB, RGBFrom, RGB},
     useful_consts::UsefulFloatConstants,

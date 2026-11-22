@@ -41,6 +41,21 @@ impl UFDRNum {
         self > Self::ZERO && self < Self::THREE
     }
 
+    pub fn adjusted_to_hue_valid_sum(self) -> Self {
+        debug_assert!(self.is_valid_sum());
+        if self == Self::ZERO {
+            Self(1)
+        } else if self == Self::THREE {
+            Self(Self::DENOMINATOR * 3 - 1)
+        } else {
+            self
+        }
+    }
+
+    pub fn as_valid_grey_sum(self) -> Self {
+        Self(((self.0 + 1) / 3) * 3)
+    }
+
     pub fn is_proportion(self) -> bool {
         self <= Self::ONE
     }

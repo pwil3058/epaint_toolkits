@@ -298,11 +298,13 @@ impl SumChromaCompatibility for SextantHue {
                     first if first.is_proportion() => {
                         let second = sum - first - third;
                         if first > second && second > third {
-                            Self::calculate_hue_parameter([
+                            let hue = Self::calculate_hue_parameter([
                                 first.into_prop(),
                                 second.into_prop(),
                                 third.into_prop(),
-                            ]) == self.1
+                            ]);
+                            // make allowance for inability to accurately represent real numbers.
+                            hue.approx_eq(&self.1, Some(2))
                         } else {
                             false
                         }

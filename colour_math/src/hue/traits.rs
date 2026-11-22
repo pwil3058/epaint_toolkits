@@ -258,11 +258,20 @@ pub(crate) trait HueTestIfce:
 pub trait ColourModificationHelpers: HueBasics + Debug + Sized {
     fn trim_overs(&self, sum: UFDRNum, c_prop: Prop) -> Option<(Prop, UFDRNum)> {
         debug_assert!(sum.is_valid_sum());
+        if c_prop == Prop::ZERO {
+            return None;
+        }
         match self.sum_for_max_chroma() * c_prop {
-            UFDRNum::ZERO => None,
+            UFDRNum::ZERO => Some((
+                c_prop,
+                self.min_sum_for_chroma_prop(c_prop).expect("{:?} > 0.0"),
+            )),
             min_sum if sum < min_sum => Some((c_prop, min_sum)),
             min_sum => match sum - (sum - min_sum) % 3u8 {
-                UFDRNum::ZERO => None,
+                UFDRNum::ZERO => Some((
+                    c_prop,
+                    self.min_sum_for_chroma_prop(c_prop).expect("{:?} > 0.0"),
+                )),
                 sum => Some((c_prop, sum)),
             },
         }

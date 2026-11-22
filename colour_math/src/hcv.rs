@@ -24,9 +24,9 @@ use crate::{
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Default, Serialize, Deserialize)]
 pub struct HCV {
-    pub(crate) hue: Option<Hue>,
-    pub(crate) c_prop: Prop,
-    pub(crate) sum: UFDRNum,
+    pub hue: Option<Hue>,
+    pub c_prop: Prop,
+    pub sum: UFDRNum,
 }
 
 impl HCV {
@@ -45,7 +45,7 @@ impl HCV {
                 },
                 None => {
                     debug_assert!(c_prop == Prop::ZERO && sum % 3u8 == UFDRNum::ZERO);
-                    Ok(Self {
+                    Err(Self {
                         hue: None,
                         c_prop: Prop::ZERO,
                         sum,
