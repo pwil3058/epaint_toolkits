@@ -13,16 +13,16 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
     debug::{ApproxEq, PropDiff},
+    AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
 };
 
 use crate::{
-    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
-    ScalarAttributeType,
     attributes::{Chroma, Family, Value, Warmth},
     cmy::ComponentMask,
     hue::{CMYHue, Hue, HueIfce, RGBHue, Sextant},
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
+    ScalarAttributeType,
 };
 
 pub trait IntoRGB {
@@ -63,6 +63,18 @@ impl<T: LightLevel> IntoRGB for RGB<T> {
 impl IntoRGB for [Prop; 3] {
     fn into_rgb<L: LightLevel>(self) -> RGB<L> {
         RGB::<L>::from_proportions(self)
+    }
+}
+
+impl IntoRGB for [f64; 3] {
+    fn into_rgb<L: LightLevel>(self) -> RGB<L> {
+        let props = self
+            .iter()
+            .map(|c| c.into_prop())
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("wth?");
+        RGB::<L>::from_proportions(props)
     }
 }
 
@@ -141,7 +153,11 @@ impl<T: LightLevel> RGB<T> {
     /// ```
     pub fn component_mask(self) -> ComponentMask {
         ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
-            if p != T::ZERO { mask | 1 << i } else { mask }
+            if p != T::ZERO {
+                mask | 1 << i
+            } else {
+                mask
+            }
         }))
     }
 

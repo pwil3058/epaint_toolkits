@@ -28,6 +28,7 @@ pub mod hcv;
 pub mod hue;
 pub mod manipulate;
 pub mod mixing;
+pub mod ordered_triplet;
 pub mod rgb;
 pub mod useful_consts;
 
