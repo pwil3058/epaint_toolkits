@@ -11,8 +11,8 @@ use num_traits::Unsigned;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
     AsProportion, FDRNum, NumberConstants, UFDRNum, UnsignedCheckedCasts, UnsignedInteger,
+    debug::{AbsDiff, ApproxEq, PropDiff},
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]
@@ -112,7 +112,7 @@ impl ApproxEq for Prop {}
 
 impl Debug for Prop {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
-        write!(formatter, "Prop(0.{:016x})", self.0)
+        write!(formatter, "Prop({:?})", f64::from_prop(*self))
     }
 }
 

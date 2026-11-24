@@ -2,8 +2,9 @@
 
 use std::{cmp::Ordering, ops::Index};
 
-use crate::fixed_denominator_rational_numbers::*;
+use crate::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq};
 use crate::{Chroma, IntoProp, IntoProps, LightLevel, Prop, RGB, UFDRNum};
+use approximately_equal::debug_assert_approx_eq;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OrderedTriplet([Prop; 3]);
@@ -52,6 +53,7 @@ impl OrderedTriplet {
     /// assert!(OrderedTriplet::from(RGB::<u8>::WHITE).is_grey());
     /// assert!(!OrderedTriplet::from(RGB::<u8>::CYAN).is_grey());
     /// ```
+    #[inline]
     pub fn is_grey(&self) -> bool {
         self[0] == self[2]
     }
@@ -83,12 +85,12 @@ impl OrderedTriplet {
         debug_assert!(self.is_valid(), "{self:?}");
         if self.is_grey() {
             None
-        // } else if self[1] == self[2] {
-        //    // Red, Blue or Green hue
-        // Prop::ZERO
-        // } else if self[0] == self[1] {
-        //    // Cyan, Magent or Yellow hue
-        // Prop::ONE
+        } else if self[1] == self[2] {
+            // Red, Blue or Green hue
+            Some(Prop::ZERO)
+        } else if self[0] == self[1] {
+            // Cyan, Magent or Yellow hue
+            Some(Prop::ONE)
         } else {
             // one of the myriad of other colours
             let divisor = self[0] - self[2];
@@ -101,10 +103,6 @@ impl OrderedTriplet {
             );
             Some(value.into_prop())
         }
-    }
-
-    fn chroma_divisor(sc: Prop) -> Prop {
-        (UFDRNum::ONE - sc + sc * sc).sqrt().into_prop()
     }
 
     /// Return the our chroma proportion.
@@ -124,17 +122,18 @@ impl OrderedTriplet {
     /// assert!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.8, 0.6, 0.4])).chroma().is_some());
     ///```
     pub fn chroma(self) -> Option<Chroma> {
-        let sc = self.sector_constant()?;
-        let divisor = Self::chroma_divisor(sc);
-        let b = self[1] - self[2];
-        let a = self[0];
-        let dividend = (a * a + b * b - a * b).sqrt();
-        let value = (dividend / divisor).into_prop();
-        // println!("value: {value:?} vs {:?}", self[0] - self[2]));
-        match self.sum().cmp(&(UFDRNum::ONE + sc)) {
-            Ordering::Less => Some(Chroma::Shade(value)),
-            Ordering::Equal => Some(Chroma::Neither(value)),
-            Ordering::Greater => Some(Chroma::Tint(value)),
+        if self.is_grey() {
+            None
+        } else {
+            let c_prop = self[0] - self[2];
+            match self
+                .sum()
+                .cmp(&(UFDRNum::ONE + ((self[1] - self[2]) / c_prop)))
+            {
+                Ordering::Less => Some(Chroma::Shade(c_prop)),
+                Ordering::Equal => Some(Chroma::Neither(c_prop)),
+                Ordering::Greater => Some(Chroma::Tint(c_prop)),
+            }
         }
     }
 }

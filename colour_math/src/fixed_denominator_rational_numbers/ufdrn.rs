@@ -11,8 +11,8 @@ use gcd::Gcd;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    debug::{AbsDiff, ApproxEq, PropDiff},
     AsProportion, FDRNum, IntoProp, NumberConstants, Prop, UnsignedInteger,
+    debug::{AbsDiff, ApproxEq, PropDiff},
 };
 
 /// Fixed denominator rational number as an approximate representation of real numbers
@@ -139,7 +139,7 @@ impl Debug for UFDRNum {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         let int = self.0 / Self::DENOMINATOR;
         let frac = self.0 % Self::DENOMINATOR;
-        formatter.write_fmt(format_args!("UFDRNumber({int:X}.{frac:016X})"))
+        write!(formatter, "UFDRNum({:?})", f64::from(*self))
     }
 }
 
