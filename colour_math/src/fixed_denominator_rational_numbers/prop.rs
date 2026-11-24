@@ -3,7 +3,7 @@
 use std::{
     cmp::Ordering,
     fmt::{self, Debug, Formatter},
-    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign},
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Rem, Sub, SubAssign},
 };
 
 use gcd::Gcd;
@@ -398,6 +398,14 @@ impl Div<i32> for Prop {
 
     fn div(self, rhs: i32) -> Self {
         Prop(self.0 / TryInto::<u32>::try_into(rhs).unwrap() as u64)
+    }
+}
+
+impl Rem<i32> for Prop {
+    type Output = Self;
+
+    fn rem(self, rhs: i32) -> Self {
+        Prop(self.0 % TryInto::<u32>::try_into(rhs).unwrap() as u64)
     }
 }
 

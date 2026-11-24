@@ -9,6 +9,18 @@ use approximately_equal::debug_assert_approx_eq;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OrderedTriplet([Prop; 3]);
 
+impl PartialEq<[Prop; 3]> for OrderedTriplet {
+    fn eq(&self, other: &[Prop; 3]) -> bool {
+        self.0 == *other
+    }
+}
+
+impl PartialEq<OrderedTriplet> for [Prop; 3] {
+    fn eq(&self, other: &OrderedTriplet) -> bool {
+        other == self
+    }
+}
+
 impl Index<usize> for OrderedTriplet {
     type Output = Prop;
 
@@ -134,6 +146,68 @@ impl OrderedTriplet {
                 Ordering::Equal => Some(Chroma::Neither(c_prop)),
                 Ordering::Greater => Some(Chroma::Tint(c_prop)),
             }
+        }
+    }
+}
+
+impl TryFrom<(UFDRNum, Prop, Prop)> for OrderedTriplet {
+    type Error = &'static str;
+
+    /// Try to construct an `OrderedTriplet` from a sum, chroma proportion and a sextant parameter.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{self::*, debug::ApproxEq, ordered_triplet::OrderedTriplet, fixed_denominator_rational_numbers::*};
+    /// use approximately_equal::assert_approx_eq;
+    ///
+    /// assert_eq!(
+    ///     OrderedTriplet::try_from((UFDRNum::ONE, Prop::ONE, Prop::ZERO)).unwrap(),
+    ///     [Prop::ONE, Prop::ZERO, Prop::ZERO]
+    /// );
+    /// assert_eq!(
+    ///     OrderedTriplet::try_from((UFDRNum::TWO, Prop::ONE, Prop::ONE)).unwrap(),
+    ///     [Prop::ONE, Prop::ONE, Prop::ZERO]
+    /// );
+    /// assert!(
+    ///     OrderedTriplet::try_from((UFDRNum::TWO, Prop::HALF, Prop::ONE)).is_ok()
+    /// );
+    /// ```
+    fn try_from(
+        (sum, chroma_prop, sextant_parameter): (UFDRNum, Prop, Prop),
+    ) -> Result<OrderedTriplet, Self::Error> {
+        if chroma_prop == Prop::ZERO {
+            if chroma_prop % 3 == Prop::ZERO {
+                let value = chroma_prop / 3;
+                Ok(Self([value, value, value]))
+            } else {
+                Err("Sum for zero chroma is not a multiple of 3.")
+            }
+        } else if sum.is_hue_valid() {
+            let min_sum = (UFDRNum::ONE + sextant_parameter) * chroma_prop;
+            match sum.cmp(&min_sum) {
+                Ordering::Less => Err("Sum is too small for chroma and sector parameter."),
+                Ordering::Equal => Ok(Self([
+                    chroma_prop,
+                    sextant_parameter * chroma_prop,
+                    Prop::ZERO,
+                ])),
+                Ordering::Greater => {
+                    let third = (sum - min_sum) / 3u8;
+                    let first = third + chroma_prop;
+                    debug_assert!(first.is_proportion());
+                    let second = sum - first - third;
+                    debug_assert_eq!(first + second + third, sum);
+                    debug_assert_eq!(first - third, UFDRNum::from_prop(chroma_prop));
+                    Ok(Self([
+                        first.into_prop(),
+                        second.into_prop(),
+                        third.into_prop(),
+                    ]))
+                }
+            }
+        } else {
+            Err("Sum and chroma_prop are NOT compatible.")
         }
     }
 }
