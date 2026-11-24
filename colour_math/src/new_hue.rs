@@ -124,3 +124,36 @@ impl HueBasics for Hue {
         }
     }
 }
+
+impl Hue {
+    pub fn adjust_preferencing_chroma_prop(
+        &self,
+        c_prop: Prop,
+        sum: UFDRNum,
+    ) -> Option<(Prop, UFDRNum)> {
+        debug_assert!(sum.is_valid_sum());
+        match sum.cmp(&self.sum_for_max_chroma()) {
+            Ordering::Equal => Some((c_prop, sum)),
+            Ordering::Greater => {
+                let max_sum = self
+                    .max_sum_for_chroma_prop(c_prop)
+                    .expect("chroma is non zero");
+                if sum > max_sum {
+                    Some((c_prop, max_sum))
+                } else {
+                    Some((c_prop, sum))
+                }
+            }
+            Ordering::Less => {
+                let min_sum = self
+                    .min_sum_for_chroma_prop(c_prop)
+                    .expect("chroma is non zero");
+                if sum < min_sum {
+                    Some((c_prop, min_sum))
+                } else {
+                    Some((c_prop, sum))
+                }
+            }
+        }
+    }
+}
