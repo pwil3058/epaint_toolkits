@@ -7,16 +7,16 @@ pub use crate::fixed_denominator_rational_numbers::*;
 
 pub use crate::{
     attributes::{Chroma, Family, Greyness, ScalarAttribute, ScalarAttributeType, Value, Warmth},
-    cmy::{ComponentMask, IntoCMY, CMY},
+    cmy::{CMY, ComponentMask, IntoCMY},
     // fixed_denominator_rational_numbers::{
     //     debug, FDRNum, Float, IntoProp, NumberConstants, Prop, Signed, SignedInteger, UFDRNum,
     //     Unsigned, UnsignedInteger,
     // },
     hcv::*,
-    hue::{angle::Angle, CMYHue, Hue, RGBHue, Sextant, SextantHue},
+    hue::{CMYHue, Hue, RGBHue, Sextant, SextantHue, angle::Angle},
     manipulate::{ManipulatedColour, Outcome, SetHuePolicy, SetScalarPolicy},
     mixing::WeightedAverageMixer,
-    rgb::{IntoRGB, RGBFrom, RGB},
+    rgb::{IntoRGB, RGB, RGBFrom},
     useful_consts::UsefulFloatConstants,
     // useful_traits::*,
 };
@@ -28,6 +28,7 @@ pub mod hcv;
 pub mod hue;
 pub mod manipulate;
 pub mod mixing;
+pub mod new_hue;
 pub mod ordered_triplet;
 pub mod rgb;
 pub mod useful_consts;

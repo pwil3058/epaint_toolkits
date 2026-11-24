@@ -16,7 +16,7 @@ use crate::{
     rgb::{IntoRGB, RGB},
 };
 
-pub trait HueBasics: Copy + Debug + Sized + Into<Hue> {
+pub trait HueBasics: Copy + Debug + Sized {
     fn sum_for_max_chroma(&self) -> UFDRNum;
 
     fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum>;
@@ -67,7 +67,7 @@ pub trait SumChromaCompatibility: HueBasics {
     }
 }
 
-pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
+pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility + Into<Hue> {
     fn has_valid_value_order(triplet: &[Prop; 3]) -> bool;
 
     fn triplet_to_rgb_order(&self, triplet: &[Prop; 3]) -> [Prop; 3];
@@ -127,7 +127,7 @@ pub(crate) trait OrderedTriplets: HueBasics + SumChromaCompatibility {
 #[cfg(test)]
 use crate::FromProps;
 
-pub trait HueIfce: HueBasics {
+pub trait HueIfce: HueBasics + Into<Hue> {
     fn angle(&self) -> Angle;
 
     fn warmth(&self) -> Warmth;
