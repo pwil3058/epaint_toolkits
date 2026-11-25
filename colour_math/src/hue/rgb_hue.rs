@@ -7,10 +7,10 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
+    HueConstants, Sextant, SextantHue,
     attributes::{Chroma, Family, Warmth},
     hue::HueBasics,
     hue::{self::*, angle::Angle},
-    HueConstants, Sextant, SextantHue,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
@@ -59,8 +59,6 @@ impl PropDiff for RGBHue {
         }
     }
 }
-
-impl ApproxEq for RGBHue {}
 
 impl HueBasics for RGBHue {
     fn sum_for_max_chroma(&self) -> UFDRNum {

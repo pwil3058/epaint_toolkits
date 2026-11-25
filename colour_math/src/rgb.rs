@@ -13,16 +13,16 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
-    debug::{ApproxEq, PropDiff},
     AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
+    debug::{ApproxEq, PropDiff},
 };
 
 use crate::{
+    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
+    ScalarAttributeType,
     attributes::{Chroma, Family, Value, Warmth},
     cmy::ComponentMask,
     hue::{CMYHue, Hue, HueIfce, RGBHue, Sextant},
-    Colour, ColourAttributes, FromProps, HueConstants, IntoProps, LightLevel, RGBConstants,
-    ScalarAttributeType,
 };
 
 pub trait IntoRGB {
@@ -86,8 +86,6 @@ impl<T: LightLevel> AsRef<[T]> for RGB<T> {
         &self.0
     }
 }
-
-impl<L: LightLevel> PropDiff for RGB<L> {}
 
 impl<L: LightLevel + ApproxEq> ApproxEq for RGB<L> {
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
@@ -153,11 +151,7 @@ impl<T: LightLevel> RGB<T> {
     /// ```
     pub fn component_mask(self) -> ComponentMask {
         ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
-            if p != T::ZERO {
-                mask | 1 << i
-            } else {
-                mask
-            }
+            if p != T::ZERO { mask | 1 << i } else { mask }
         }))
     }
 

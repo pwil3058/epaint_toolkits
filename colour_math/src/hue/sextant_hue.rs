@@ -135,8 +135,6 @@ impl PropDiff for SextantHue {
     }
 }
 
-impl ApproxEq for SextantHue {}
-
 impl Eq for SextantHue {}
 
 impl HueBasics for SextantHue {

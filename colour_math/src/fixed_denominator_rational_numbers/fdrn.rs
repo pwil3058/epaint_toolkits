@@ -139,8 +139,6 @@ impl PropDiff for FDRNum {
     }
 }
 
-impl ApproxEq for FDRNum {}
-
 // Conversions
 impl From<UFDRNum> for FDRNum {
     /// Convert from UFDRNum

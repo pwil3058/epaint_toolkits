@@ -18,9 +18,7 @@ impl<T: Copy + Sized + PartialOrd + Sub<Output = Self>> AbsDiff for T {
 }
 
 pub trait PropDiff {
-    fn prop_diff(&self, _other: &Self) -> Option<Prop> {
-        None
-    }
+    fn prop_diff(&self, _other: &Self) -> Option<Prop>;
 }
 
 macro_rules! impl_prop_diff_for_unsigned {
@@ -74,7 +72,13 @@ macro_rules! impl_prop_diff_for_float {
 // impl_prop_diff_for_float!(f32);
 impl_prop_diff_for_float!(f64);
 
-pub trait ApproxEq: Copy + PropDiff + PartialEq {
+pub trait ApproxEq {
+    const DEFAULT_MAX_DIFF: Prop = Prop(0x1);
+
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool;
+}
+
+impl<T: Sized + PropDiff + PartialEq> ApproxEq for T {
     const DEFAULT_MAX_DIFF: Prop = Prop(0x1);
 
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
@@ -93,11 +97,3 @@ pub trait ApproxEq: Copy + PropDiff + PartialEq {
         }
     }
 }
-
-impl ApproxEq for u8 {}
-impl ApproxEq for u16 {}
-impl ApproxEq for u32 {}
-impl ApproxEq for u64 {}
-
-// impl ApproxEq for f32 {}
-impl ApproxEq for f64 {}

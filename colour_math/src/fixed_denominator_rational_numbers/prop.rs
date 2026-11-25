@@ -108,8 +108,6 @@ impl PropDiff for Prop {
     }
 }
 
-impl ApproxEq for Prop {}
-
 impl Debug for Prop {
     fn fmt(&self, formatter: &mut Formatter) -> fmt::Result {
         write!(formatter, "Prop({:?})", f64::from_prop(*self))

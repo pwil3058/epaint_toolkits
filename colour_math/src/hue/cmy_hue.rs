@@ -7,9 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
+    HueConstants,
     attributes::{Chroma, Family, Warmth},
     hue::{self::*, angle::Angle},
-    HueConstants,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]
@@ -58,8 +58,6 @@ impl PropDiff for CMYHue {
         }
     }
 }
-
-impl ApproxEq for CMYHue {}
 
 impl HueBasics for CMYHue {
     fn sum_for_max_chroma(&self) -> UFDRNum {

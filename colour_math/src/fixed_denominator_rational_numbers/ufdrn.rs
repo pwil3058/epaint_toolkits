@@ -164,8 +164,6 @@ impl PropDiff for UFDRNum {
     }
 }
 
-impl ApproxEq for UFDRNum {}
-
 // Conversions
 impl From<FDRNum> for UFDRNum {
     fn from(num: FDRNum) -> Self {

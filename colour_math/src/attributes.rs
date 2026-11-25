@@ -172,8 +172,6 @@ impl PropDiff for Chroma {
     }
 }
 
-impl ApproxEq for Chroma {}
-
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Greyness {
     Shade(Prop),
@@ -274,8 +272,6 @@ impl PropDiff for Greyness {
     }
 }
 
-impl ApproxEq for Greyness {}
-
 impl From<Chroma> for Greyness {
     fn from(chroma: Chroma) -> Self {
         match chroma {
@@ -366,8 +362,6 @@ impl PropDiff for Warmth {
     }
 }
 
-impl ApproxEq for Warmth {}
-
 impl From<Prop> for Warmth {
     fn from(prop: Prop) -> Self {
         Self(prop.0)
@@ -430,8 +424,6 @@ impl PropDiff for Value {
         Some(self.abs_diff(other).into_prop())
     }
 }
-
-impl ApproxEq for Value {}
 
 impl Div<i32> for Value {
     type Output = Value;

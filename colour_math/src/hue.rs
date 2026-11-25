@@ -484,8 +484,6 @@ impl PropDiff for Hue {
     }
 }
 
-impl ApproxEq for Hue {}
-
 impl Hue {
     pub fn ord_index(&self) -> u8 {
         0

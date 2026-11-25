@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
-    Chroma, Colour, ColourAttributes, Family, FromProps, Hue, HueConstants, IntoHCV, IntoProps,
-    IntoRGB, LightLevel, RGBConstants, ScalarAttributeType, Value, Warmth, HCV, RGB,
+    Chroma, Colour, ColourAttributes, Family, FromProps, HCV, Hue, HueConstants, IntoHCV,
+    IntoProps, IntoRGB, LightLevel, RGB, RGBConstants, ScalarAttributeType, Value, Warmth,
 };
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, Hash, PartialEq, Eq, Default)]
@@ -52,16 +52,10 @@ impl ComponentMask {
 impl<L: LightLevel> CMY<L> {
     pub fn component_mask(self) -> ComponentMask {
         ComponentMask(self.0.into_iter().enumerate().fold(0u8, |mask, (i, p)| {
-            if p != L::ZERO {
-                mask | 1 << i
-            } else {
-                mask
-            }
+            if p != L::ZERO { mask | 1 << i } else { mask }
         }))
     }
 }
-
-impl<L: LightLevel> PropDiff for CMY<L> {}
 
 impl<L: LightLevel + ApproxEq> ApproxEq for CMY<L> {
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
