@@ -1,0 +1,7 @@
+{
+  "languages": {
+    "Rust": {
+      "line_ending": "prefer_lf"
+    }
+  }
+}

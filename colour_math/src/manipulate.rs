@@ -25,7 +25,7 @@ pub enum SetHuePolicy {
     FavourValue,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Outcome<T: Sized + Copy + PartialEq> {
     Ok(T),
     Clamped(T),
@@ -34,7 +34,7 @@ pub enum Outcome<T: Sized + Copy + PartialEq> {
     Rejected,
 }
 
-impl<T: Sized + Copy + PartialEq + ApproxEq> Outcome<T> {
+impl<T: Sized + Copy + PartialEq + ApproxEq + Eq> Outcome<T> {
     pub fn approx_eq(&self, other: &Self, limit: Option<u64>) -> bool {
         match self {
             Outcome::Ok(this) => match other {
@@ -55,7 +55,7 @@ impl<T: Sized + Copy + PartialEq + ApproxEq> Outcome<T> {
     }
 }
 
-impl<T: Sized + Copy + PartialEq> Outcome<T> {
+impl<T: Sized + Copy + PartialEq + Eq> Outcome<T> {
     pub fn expect(self, msg: &str) -> T {
         use Outcome::*;
         match self {

@@ -183,7 +183,7 @@ impl TryFrom<(UFDRNum, Prop, Prop)> for OrderedTriplet {
             } else {
                 Err("Sum for zero chroma is not a multiple of 3.")
             }
-        } else if sum.is_hue_valid() {
+        } else {
             let min_sum = (UFDRNum::ONE + sextant_parameter) * chroma_prop;
             match sum.cmp(&min_sum) {
                 Ordering::Less => Err("Sum is too small for chroma and sector parameter."),
@@ -195,19 +195,20 @@ impl TryFrom<(UFDRNum, Prop, Prop)> for OrderedTriplet {
                 Ordering::Greater => {
                     let third = (sum - min_sum) / 3u8;
                     let first = third + chroma_prop;
-                    debug_assert!(first.is_proportion());
-                    let second = sum - first - third;
-                    debug_assert_eq!(first + second + third, sum);
-                    debug_assert_eq!(first - third, UFDRNum::from_prop(chroma_prop));
-                    Ok(Self([
-                        first.into_prop(),
-                        second.into_prop(),
-                        third.into_prop(),
-                    ]))
+                    if first.is_proportion() {
+                        let second = sum - first - third;
+                        debug_assert_eq!(first + second + third, sum);
+                        debug_assert_eq!(first - third, UFDRNum::from_prop(chroma_prop));
+                        Ok(Self([
+                            first.into_prop(),
+                            second.into_prop(),
+                            third.into_prop(),
+                        ]))
+                    } else {
+                        Err("Sum is too large for chroma and sector parameters")
+                    }
                 }
             }
-        } else {
-            Err("Sum and chroma_prop are NOT compatible.")
         }
     }
 }

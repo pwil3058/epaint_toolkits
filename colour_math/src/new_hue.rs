@@ -1,9 +1,15 @@
 // Copyright (c) 2026 Peter Williams <pwil3058@bigpond.net.au> <pwil3058@gmail.com>.
 
-use std::cmp::Ordering;
+use std::{cmp::Ordering, fmt::Debug};
 
 use crate::fixed_denominator_rational_numbers::*;
-use crate::{Chroma, hue::HueBasics};
+use crate::{Chroma, LightLevel, RGB, hue::HueBasics};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum HueResult<T: Sized + Clone + Copy + PartialEq + Eq + Debug> {
+    Hued(T),
+    Grey(T),
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 // NB. These are in ascending order in agreement with Hue angle. So don't mess with them.
@@ -16,10 +22,36 @@ pub enum Sextant {
     GreenBlue,
 }
 
+impl<L: LightLevel> TryFrom<RGB<L>> for Sextant {
+    type Error = &'static str;
+
+    fn try_from(rgb: RGB<L>) -> Result<Self, Self::Error> {
+        if rgb[0] > rgb[1] {
+            if rgb[1] > rgb[2] {
+                Ok(Self::RedGreen)
+            } else if rgb[0] > rgb[2] {
+                Ok(Self::RedBlue)
+            } else {
+                Ok(Self::BlueRed)
+            }
+        } else if rgb[1] > rgb[2] {
+            if rgb[2] > rgb[0] {
+                Ok(Self::GreenBlue)
+            } else {
+                Ok(Self::GreenRed)
+            }
+        } else if rgb[2] > rgb[1] {
+            Ok(Self::BlueGreen)
+        } else {
+            Err("grey")
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Hue {
-    sextant: Sextant,
-    param: Prop,
+    pub sextant: Sextant,
+    pub param: Prop,
 }
 
 impl Ord for Hue {
@@ -126,6 +158,57 @@ impl HueBasics for Hue {
 }
 
 impl Hue {
+    /// Trim `sum` to the largest rounded value compatible with `c_prop` for this `Hue`.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::new_hue::*;
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    /// use Sextant::*;
+    ///
+    /// assert_eq!(
+    ///     Hue{sextant: RedGreen, param: Prop::ZERO}.adjusted_sum(UFDRNum::TWO, Prop::ONE),
+    ///     HueResult::Hued(UFDRNum::ONE)
+    /// ) ;
+    /// assert_eq!(
+    ///     Hue{sextant: RedGreen, param: Prop::HALF}.adjusted_sum(UFDRNum::TWO, Prop::ONE),
+    ///     HueResult::Hued(UFDRNum::from_rational_num(3, 2))
+    /// ) ;
+    /// ```
+    pub fn adjusted_sum(self, sum: UFDRNum, c_prop: Prop) -> HueResult<UFDRNum> {
+        debug_assert!(sum.is_valid_sum());
+        if c_prop == Prop::ZERO {
+            match sum % 3u8 {
+                UFDRNum(1) => HueResult::Grey(sum - UFDRNum(1)),
+                UFDRNum(2) => HueResult::Grey(sum + UFDRNum(1)),
+                _ => HueResult::Grey(sum),
+            }
+        } else {
+            let min_sum = self
+                .min_sum_for_chroma_prop(c_prop)
+                .expect("Chroma {c_prop:?} is not zero");
+            match sum.cmp(&min_sum) {
+                Ordering::Less => HueResult::Hued(min_sum),
+                Ordering::Equal => HueResult::Hued(sum),
+                Ordering::Greater => {
+                    let max_sum = self
+                        .max_sum_for_chroma_prop(c_prop)
+                        .expect("Chroma {c_prop:?} is not zero");
+                    if sum > max_sum {
+                        HueResult::Hued(max_sum)
+                    } else {
+                        let third = (sum - min_sum) / 3u8;
+                        let first = (third + c_prop).min(UFDRNum::ONE);
+                        let second = (sum - first - third).min(UFDRNum::ONE);
+                        debug_assert!(!(first == second && first == third));
+                        HueResult::Hued(first + second + third)
+                    }
+                }
+            }
+        }
+    }
+
     pub fn adjust_preferencing_chroma_prop(
         &self,
         c_prop: Prop,
