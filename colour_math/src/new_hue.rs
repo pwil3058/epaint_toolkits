@@ -2,13 +2,28 @@
 
 use std::{cmp::Ordering, fmt::Debug};
 
-use crate::fixed_denominator_rational_numbers::*;
+use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 use crate::{Chroma, LightLevel, RGB, hue::HueBasics};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum HueResult<T: Sized + Clone + Copy + PartialEq + Eq + Debug> {
     Hued(T),
     Grey(T),
+}
+
+impl<T: Sized + Clone + Copy + PartialEq + Eq + Debug + ApproxEq> ApproxEq for HueResult<T> {
+    fn approx_eq(&self, other: &Self, limit: Option<u64>) -> bool {
+        match self {
+            Self::Hued(t) => match other {
+                Self::Hued(o) => t.approx_eq(o, limit),
+                _ => false,
+            },
+            Self::Grey(t) => match other {
+                Self::Grey(o) => t.approx_eq(o, limit),
+                _ => false,
+            },
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -163,15 +178,16 @@ impl Hue {
     /// Examples:
     ///
     /// ```
+    /// use approximately_equal::assert_approx_eq;
     /// use colour_math::new_hue::*;
-    /// use colour_math::fixed_denominator_rational_numbers::*;
+    /// use colour_math::fixed_denominator_rational_numbers::{self::*, debug::*};
     /// use Sextant::*;
     ///
     /// assert_eq!(
     ///     Hue{sextant: RedGreen, param: Prop::ZERO}.adjusted_sum(UFDRNum::TWO, Prop::ONE),
     ///     HueResult::Hued(UFDRNum::ONE)
     /// ) ;
-    /// assert_eq!(
+    /// assert_approx_eq!(
     ///     Hue{sextant: RedGreen, param: Prop::HALF}.adjusted_sum(UFDRNum::TWO, Prop::ONE),
     ///     HueResult::Hued(UFDRNum::from_rational_num(3, 2))
     /// ) ;

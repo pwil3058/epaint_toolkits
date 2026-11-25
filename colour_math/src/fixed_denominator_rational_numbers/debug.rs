@@ -78,7 +78,10 @@ pub trait ApproxEq {
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool;
 }
 
-impl<T: Sized + PropDiff + PartialEq> ApproxEq for T {
+impl<T> ApproxEq for T
+where
+    T: Sized + PropDiff + PartialEq,
+{
     const DEFAULT_MAX_DIFF: Prop = Prop(0x1);
 
     fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
@@ -94,6 +97,40 @@ impl<T: Sized + PropDiff + PartialEq> ApproxEq for T {
                 None => false,
                 Some(prop_diff) => prop_diff <= max_diff,
             }
+        }
+    }
+}
+
+impl<T> ApproxEq for Option<T>
+where
+    T: Sized + PropDiff + PartialEq + ApproxEq,
+{
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
+        match self {
+            Some(t) => match other {
+                Some(o) => t.approx_eq(o, max_diff),
+                None => other.is_none(),
+            },
+            None => other.is_none(),
+        }
+    }
+}
+
+impl<T, E> ApproxEq for Result<T, E>
+where
+    T: Sized + PropDiff + PartialEq + ApproxEq,
+    E: Sized + PropDiff + PartialEq + ApproxEq,
+{
+    fn approx_eq(&self, other: &Self, max_diff: Option<u64>) -> bool {
+        match self {
+            Ok(t) => match other {
+                Ok(o) => t.approx_eq(o, max_diff),
+                Err(_) => false,
+            },
+            Err(t) => match other {
+                Ok(_) => false,
+                Err(o) => t.approx_eq(o, max_diff),
+            },
         }
     }
 }
