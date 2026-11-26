@@ -41,21 +41,30 @@ impl<L: LightLevel> TryFrom<RGB<L>> for Sextant {
     type Error = &'static str;
 
     fn try_from(rgb: RGB<L>) -> Result<Self, Self::Error> {
-        if rgb[0] > rgb[1] {
-            if rgb[1] > rgb[2] {
+        println!("RGB: {rgb:?}");
+        if rgb.red() > rgb.green() {
+            // Red > Green ?Blue
+            if rgb.green() > rgb.blue() {
+                // Red > Green > Blue
                 Ok(Self::RedGreen)
-            } else if rgb[0] > rgb[2] {
+            } else if rgb.red() > rgb.blue() {
+                // Red > Blue >= Green
                 Ok(Self::RedBlue)
             } else {
+                // Blue >= Red > Green
                 Ok(Self::BlueRed)
             }
-        } else if rgb[1] > rgb[2] {
-            if rgb[2] > rgb[0] {
+        } else if rgb.green() > rgb.blue() {
+            // Green >= Red && Green > Blue
+            if rgb.blue() > rgb.red() {
+                // Green > Blue > Red
                 Ok(Self::GreenBlue)
             } else {
+                // Green >= Red >= Blue
                 Ok(Self::GreenRed)
             }
-        } else if rgb[2] > rgb[1] {
+        } else if rgb.blue() > rgb.green() {
+            // Blue > Green >= Red
             Ok(Self::BlueGreen)
         } else {
             Err("grey")
@@ -145,6 +154,19 @@ impl PartialOrd for Hue {
 impl<L: LightLevel> TryFrom<RGB<L>> for Hue {
     type Error = &'static str;
 
+    /// Try to convert a `Hue` from an `RGB`. Fails if RGB is a grey.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    /// use colour_math::{new_hue::*, hue::angle::*, HueConstants, RGB};
+    /// use colour_math::fixed_denominator_rational_numbers::*;
+    ///
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::RED), Ok(Hue::RED));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::GREEN), Ok(Hue::GREEN));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::BLUE), Ok(Hue::BLUE));
+    /// //assert_eq!(Hue::try_from(RGB::<Prop>::CYAN), Ok(Hue::CYAN));
+    ///```
     fn try_from(rgb: RGB<L>) -> Result<Hue, Self::Error> {
         let sextant = Sextant::try_from(rgb)?;
         let param = OrderedTriplet::from(rgb)
@@ -160,7 +182,14 @@ impl Hue {
     /// Examples:
     ///
     /// ```
+    /// use colour_math::{new_hue::*, hue::angle::*, HueConstants,};
     ///
+    /// assert_eq!(Hue::RED.angle(), Angle::RED);
+    /// assert_eq!(Hue::GREEN.angle(), Angle::GREEN);
+    /// assert_eq!(Hue::BLUE.angle(), Angle::BLUE);
+    /// //assert_eq!(Hue::CYAN.angle(), Angle::CYAN);
+    /// //assert_eq!(Hue::MAGENTA.angle(), Angle::MAGENTA);
+    /// //assert_eq!(Hue::YELLOW.angle(), Angle::YELLOW);
     /// ```
     pub fn angle(&self) -> Angle {
         let k: FDRNum = self.param.prop_into();
