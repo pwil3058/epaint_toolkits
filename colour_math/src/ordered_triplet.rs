@@ -83,17 +83,17 @@ impl OrderedTriplet {
     /// use colour_math::{self::*, debug::ApproxEq, ordered_triplet::OrderedTriplet, fixed_denominator_rational_numbers::*};
     /// use approximately_equal::assert_approx_eq;
     ///
-    /// assert_eq!(OrderedTriplet::from(RGB::<u8>::RED).sector_constant(), Some(Prop::ZERO));
-    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.35])).sector_constant().unwrap(), Prop::ZERO);
-    /// assert_eq!(OrderedTriplet::from(RGB::<u8>::YELLOW).sector_constant(), Some(Prop::ONE));
-    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([1.0, 1.0, 0.2])).sector_constant(), Some(Prop::ONE));
-    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.5, 0.5, 0.4])).sector_constant(), Some(Prop::ONE));
-    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::RED_YELLOW).sector_constant(), Some(Prop::HALF));
-    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.0])).sector_constant().unwrap(), Prop::HALF);
-    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.2])).sector_constant().unwrap(), Prop::prop_from(0.3), 1000);
-    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.6, 0.2, 0.0])).sector_constant().unwrap(), Prop::from_fraction(1, 3), 1000);
+    /// assert_eq!(OrderedTriplet::from(RGB::<u8>::RED).sextant_param(), Some(Prop::ZERO));
+    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.35])).sextant_param().unwrap(), Prop::ZERO);
+    /// assert_eq!(OrderedTriplet::from(RGB::<u8>::YELLOW).sextant_param(), Some(Prop::ONE));
+    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([1.0, 1.0, 0.2])).sextant_param(), Some(Prop::ONE));
+    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.5, 0.5, 0.4])).sextant_param(), Some(Prop::ONE));
+    /// assert_eq!(OrderedTriplet::from(RGB::<Prop>::RED_YELLOW).sextant_param(), Some(Prop::HALF));
+    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.0])).sextant_param().unwrap(), Prop::HALF);
+    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.7, 0.35, 0.2])).sextant_param().unwrap(), Prop::prop_from(0.3), 1000);
+    /// assert_approx_eq!(OrderedTriplet::from(RGB::<Prop>::rgb_from([0.6, 0.2, 0.0])).sextant_param().unwrap(), Prop::from_fraction(1, 3), 1000);
     /// ```
-    pub fn sector_constant(self) -> Option<Prop> {
+    pub fn sextant_param(self) -> Option<Prop> {
         debug_assert!(self.is_valid(), "{self:?}");
         if self.is_grey() {
             None

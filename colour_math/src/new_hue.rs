@@ -3,7 +3,7 @@
 use std::{cmp::Ordering, fmt::Debug};
 
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
-use crate::{Chroma, LightLevel, RGB, hue::HueBasics};
+use crate::{Angle, Chroma, HueConstants, LightLevel, RGB, hue::HueBasics, ordered_triplet::*};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum HueResult<T: Sized + Clone + Copy + PartialEq + Eq + Debug> {
@@ -69,6 +69,59 @@ pub struct Hue {
     pub param: Prop,
 }
 
+impl HueConstants for Hue {
+    const RED: Self = Self {
+        sextant: Sextant::RedBlue,
+        param: Prop::ZERO,
+    };
+    const GREEN: Self = Self {
+        sextant: Sextant::GreenRed,
+        param: Prop::ZERO,
+    };
+    const BLUE: Self = Self {
+        sextant: Sextant::BlueGreen,
+        param: Prop::ZERO,
+    };
+
+    const CYAN: Self = Self {
+        sextant: Sextant::GreenBlue,
+        param: Prop::ZERO,
+    };
+    const MAGENTA: Self = Self {
+        sextant: Sextant::BlueRed,
+        param: Prop::ZERO,
+    };
+    const YELLOW: Self = Self {
+        sextant: Sextant::RedGreen,
+        param: Prop::ZERO,
+    };
+
+    const BLUE_CYAN: Self = Self {
+        sextant: Sextant::BlueGreen,
+        param: Prop::HALF,
+    };
+    const BLUE_MAGENTA: Self = Self {
+        sextant: Sextant::RedBlue,
+        param: Prop::HALF,
+    };
+    const RED_MAGENTA: Self = Self {
+        sextant: Sextant::BlueRed,
+        param: Prop::HALF,
+    };
+    const RED_YELLOW: Self = Self {
+        sextant: Sextant::RedGreen,
+        param: Prop::HALF,
+    };
+    const GREEN_YELLOW: Self = Self {
+        sextant: Sextant::GreenRed,
+        param: Prop::HALF,
+    };
+    const GREEN_CYAN: Self = Self {
+        sextant: Sextant::GreenBlue,
+        param: Prop::HALF,
+    };
+}
+
 impl Ord for Hue {
     fn cmp(&self, other: &Hue) -> Ordering {
         use Sextant::*;
@@ -86,6 +139,42 @@ impl Ord for Hue {
 impl PartialOrd for Hue {
     fn partial_cmp(&self, other: &Hue) -> Option<Ordering> {
         Some(self.cmp(other))
+    }
+}
+
+impl<L: LightLevel> TryFrom<RGB<L>> for Hue {
+    type Error = &'static str;
+
+    fn try_from(rgb: RGB<L>) -> Result<Hue, Self::Error> {
+        let sextant = Sextant::try_from(rgb)?;
+        let param = OrderedTriplet::from(rgb)
+            .sextant_param()
+            .expect("sextant exists");
+        Ok(Self { sextant, param })
+    }
+}
+
+impl Hue {
+    /// Convert a `Hue` into an `Angle` from Red on the circular spectrum `+`ve towards Green and`-`ve towards Blue.
+    ///
+    /// Examples:
+    ///
+    /// ```
+    ///
+    /// ```
+    pub fn angle(&self) -> Angle {
+        let k: FDRNum = self.param.prop_into();
+        let dividend = FDRNum::SQRT_3 * k / 2;
+        let divisor = (FDRNum::ONE - k + k * k).sqrt();
+        let angle = Angle::asin(dividend / divisor);
+        match self.sextant {
+            Sextant::BlueGreen => Angle::BLUE - angle,
+            Sextant::BlueRed => Angle::BLUE + angle,
+            Sextant::RedBlue => -angle,
+            Sextant::RedGreen => angle,
+            Sextant::GreenRed => Angle::GREEN - angle,
+            Sextant::GreenBlue => Angle::GREEN + angle,
+        }
     }
 }
 
