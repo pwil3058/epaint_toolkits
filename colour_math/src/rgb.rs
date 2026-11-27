@@ -14,7 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     AsProportion, FromProp, IntoProp, NumberConstants, Prop, UFDRNum, UnsignedInteger,
-    debug::{ApproxEq, PropDiff},
+    debug::ApproxEq,
 };
 
 use crate::{

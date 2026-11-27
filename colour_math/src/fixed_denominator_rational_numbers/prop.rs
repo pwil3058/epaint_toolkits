@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     AsProportion, FDRNum, NumberConstants, UFDRNum, UnsignedCheckedCasts, UnsignedInteger,
-    debug::{AbsDiff, ApproxEq, PropDiff},
+    debug::{AbsDiff, PropDiff},
 };
 
 #[derive(Serialize, Deserialize, Clone, Copy, Hash, PartialEq, Eq, PartialOrd, Ord, Default)]

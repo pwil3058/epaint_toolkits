@@ -7,10 +7,9 @@ use serde::{Deserialize, Serialize};
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
 
 use crate::{
-    HueConstants, IntoProps, LightLevel,
+    HueConstants,
     attributes::{Chroma, Family, Warmth},
     hue::{self::*, angle::Angle},
-    rgb::RGB,
 };
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize, PartialOrd, Ord)]

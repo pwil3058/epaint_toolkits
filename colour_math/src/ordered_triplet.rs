@@ -2,9 +2,8 @@
 
 use std::{cmp::Ordering, ops::Index};
 
-use crate::fixed_denominator_rational_numbers::{self::*, debug::ApproxEq};
+use crate::fixed_denominator_rational_numbers::self::*;
 use crate::{Chroma, IntoProp, IntoProps, LightLevel, Prop, RGB, UFDRNum};
-use approximately_equal::debug_assert_approx_eq;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct OrderedTriplet([Prop; 3]);

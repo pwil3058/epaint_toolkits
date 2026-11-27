@@ -2,7 +2,7 @@
 
 use std::cmp::Ordering;
 
-use crate::debug::{AbsDiff, ApproxEq};
+use crate::debug::ApproxEq;
 use crate::fixed_denominator_rational_numbers::*;
 use crate::{
     Angle, ColourAttributes, FromProps, HCV, Hue, IntoHCV, IntoProps, IntoRGB, LightLevel,

@@ -3,7 +3,7 @@
 use std::{cmp::Ordering, fmt::Debug};
 
 use crate::fixed_denominator_rational_numbers::{self::*, debug::*};
-use crate::{Angle, Chroma, HueConstants, LightLevel, RGB, hue::HueBasics, ordered_triplet::*};
+use crate::{Angle, Chroma, Family, HueConstants, LightLevel, RGB, Warmth, ordered_triplet::*};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum HueResult<T: Sized + Clone + Copy + PartialEq + Eq + Debug> {
@@ -115,11 +115,11 @@ impl HueConstants for Hue {
         param: Prop::HALF,
     };
     const BLUE_MAGENTA: Self = Self {
-        sextant: Sextant::RedBlue,
+        sextant: Sextant::BlueRed,
         param: Prop::HALF,
     };
     const RED_MAGENTA: Self = Self {
-        sextant: Sextant::BlueRed,
+        sextant: Sextant::RedBlue,
         param: Prop::HALF,
     };
     const RED_YELLOW: Self = Self {
@@ -170,16 +170,26 @@ impl PartialEq for Hue {
 
 impl Eq for Hue {}
 
+impl ApproxEq for Hue {
+    fn approx_eq(&self, other: &Self, limit: Option<u64>) -> bool {
+        self.angle().approx_eq(&other.angle(), limit)
+    }
+}
+
 impl Ord for Hue {
     fn cmp(&self, other: &Hue) -> Ordering {
         use Sextant::*;
-        match self.sextant.cmp(&other.sextant) {
-            Ordering::Less => Ordering::Less,
-            Ordering::Greater => Ordering::Greater,
-            Ordering::Equal => match self.sextant {
-                GreenBlue | RedGreen | BlueRed => self.param.cmp(&other.param),
-                GreenRed | RedBlue | BlueGreen => other.param.cmp(&self.param),
-            },
+        if self == other {
+            Ordering::Equal
+        } else {
+            match self.sextant.cmp(&other.sextant) {
+                Ordering::Less => Ordering::Less,
+                Ordering::Greater => Ordering::Greater,
+                Ordering::Equal => match self.sextant {
+                    GreenBlue | RedGreen | BlueRed => self.param.cmp(&other.param),
+                    GreenRed | RedBlue | BlueGreen => other.param.cmp(&self.param),
+                },
+            }
         }
     }
 }
@@ -204,7 +214,15 @@ impl<L: LightLevel + Ord> TryFrom<RGB<L>> for Hue {
     /// assert_eq!(Hue::try_from(RGB::<Prop>::RED), Ok(Hue::RED));
     /// assert_eq!(Hue::try_from(RGB::<Prop>::GREEN), Ok(Hue::GREEN));
     /// assert_eq!(Hue::try_from(RGB::<Prop>::BLUE), Ok(Hue::BLUE));
-    /// //assert_eq!(Hue::try_from(RGB::<Prop>::CYAN), Ok(Hue::CYAN));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::CYAN), Ok(Hue::CYAN));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::MAGENTA), Ok(Hue::MAGENTA));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::YELLOW), Ok(Hue::YELLOW));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::RED_YELLOW), Ok(Hue::RED_YELLOW));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::GREEN_YELLOW), Ok(Hue::GREEN_YELLOW));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::RED_MAGENTA), Ok(Hue::RED_MAGENTA));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::BLUE_MAGENTA), Ok(Hue::BLUE_MAGENTA));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::GREEN_CYAN), Ok(Hue::GREEN_CYAN));
+    /// assert_eq!(Hue::try_from(RGB::<Prop>::BLUE_CYAN), Ok(Hue::BLUE_CYAN));
     ///```
     fn try_from(rgb: RGB<L>) -> Result<Hue, Self::Error> {
         let sextant = Sextant::try_from(rgb)?;
@@ -221,14 +239,15 @@ impl Hue {
     /// Examples:
     ///
     /// ```
-    /// use colour_math::{new_hue::*, hue::angle::*, HueConstants,};
+    /// use colour_math::{new_hue::*, hue::angle::*, HueConstants, debug::*};
+    /// use approximately_equal::*;
     ///
     /// assert_eq!(Hue::RED.angle(), Angle::RED);
     /// assert_eq!(Hue::GREEN.angle(), Angle::GREEN);
     /// assert_eq!(Hue::BLUE.angle(), Angle::BLUE);
-    /// //assert_eq!(Hue::CYAN.angle(), Angle::CYAN);
-    /// //assert_eq!(Hue::MAGENTA.angle(), Angle::MAGENTA);
-    /// //assert_eq!(Hue::YELLOW.angle(), Angle::YELLOW);
+    /// assert_approx_eq!(Hue::CYAN.angle(), Angle::CYAN);
+    /// assert_approx_eq!(Hue::MAGENTA.angle(), Angle::MAGENTA, 1000);
+    /// assert_approx_eq!(Hue::YELLOW.angle(), Angle::YELLOW, 1000);
     /// ```
     pub fn angle(&self) -> Angle {
         let k: FDRNum = self.param.prop_into();
@@ -244,34 +263,90 @@ impl Hue {
             Sextant::GreenBlue => Angle::GREEN + angle,
         }
     }
-}
 
-impl HueBasics for Hue {
-    fn sum_for_max_chroma(&self) -> UFDRNum {
+    pub fn warmth(&self) -> Warmth {
+        use Sextant::*;
+        let delta_warmth = Warmth::ONE_THIRD * self.param;
+        match self.sextant {
+            GreenBlue | BlueGreen => Warmth::BLUE - delta_warmth,
+            GreenRed | BlueRed => Warmth::BLUE + delta_warmth,
+            RedGreen | RedBlue => Warmth::RED - delta_warmth,
+        }
+    }
+
+    pub fn family(&self) -> Family {
+        use Sextant::*;
+        match self.sextant {
+            GreenBlue => {
+                if self.param < Prop::HALF {
+                    Family::Greens
+                } else {
+                    Family::Cyans
+                }
+            }
+            BlueGreen => {
+                if self.param < Prop::HALF {
+                    Family::Blues
+                } else {
+                    Family::Cyans
+                }
+            }
+            GreenRed => {
+                if self.param < Prop::HALF {
+                    Family::Greens
+                } else {
+                    Family::Yellows
+                }
+            }
+            BlueRed => {
+                if self.param < Prop::HALF {
+                    Family::Blues
+                } else {
+                    Family::Magentas
+                }
+            }
+            RedGreen => {
+                if self.param < Prop::HALF {
+                    Family::Reds
+                } else {
+                    Family::Yellows
+                }
+            }
+            RedBlue => {
+                if self.param < Prop::HALF {
+                    Family::Reds
+                } else {
+                    Family::Magentas
+                }
+            }
+        }
+    }
+
+    pub fn sum_for_max_chroma(&self) -> UFDRNum {
         UFDRNum::ONE + self.param
     }
 
-    fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
+    pub fn min_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match c_prop {
             Prop::ZERO => None,
             c_prop => Some(c_prop + self.param * c_prop),
         }
     }
 
-    fn max_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
+    pub fn max_sum_for_chroma_prop(&self, c_prop: Prop) -> Option<UFDRNum> {
         match (UFDRNum::TWO - self.param) * c_prop {
             UFDRNum::ZERO => None,
             sum => Some(UFDRNum::THREE - sum),
         }
     }
 
-    fn sum_range_for_chroma_prop(&self, c_prop: Prop) -> Option<(UFDRNum, UFDRNum)> {
+    pub fn sum_range_for_chroma_prop(&self, c_prop: Prop) -> Option<(UFDRNum, UFDRNum)> {
         let min = self.min_sum_for_chroma_prop(c_prop)?;
         let max = self.max_sum_for_chroma_prop(c_prop)?;
         Some((min, max))
     }
 
-    fn min_sum_for_chroma(&self, chroma: Chroma) -> Option<UFDRNum> {
+    pub fn min_sum_for_chroma(&self, chroma: Chroma) -> Option<UFDRNum> {
         debug_assert!(chroma.is_valid());
         match chroma {
             Chroma::ZERO => None,
@@ -281,7 +356,7 @@ impl HueBasics for Hue {
         }
     }
 
-    fn max_sum_for_chroma(&self, chroma: Chroma) -> Option<UFDRNum> {
+    pub fn max_sum_for_chroma(&self, chroma: Chroma) -> Option<UFDRNum> {
         debug_assert!(chroma.is_valid());
         match chroma {
             Chroma::ZERO => None,
@@ -291,18 +366,18 @@ impl HueBasics for Hue {
         }
     }
 
-    fn sum_range_for_chroma(&self, chroma: Chroma) -> Option<(UFDRNum, UFDRNum)> {
+    pub fn sum_range_for_chroma(&self, chroma: Chroma) -> Option<(UFDRNum, UFDRNum)> {
         debug_assert!(chroma.is_valid());
         let min = self.min_sum_for_chroma(chroma)?;
         let max = self.max_sum_for_chroma(chroma)?;
         Some((min, max))
     }
 
-    fn max_chroma_prop_for_sum(&self, sum: UFDRNum) -> Option<Prop> {
+    pub fn max_chroma_prop_for_sum(&self, sum: UFDRNum) -> Option<Prop> {
         Some(self.max_chroma_for_sum(sum)?.into_prop())
     }
 
-    fn max_chroma_for_sum(&self, sum: UFDRNum) -> Option<Chroma> {
+    pub fn max_chroma_for_sum(&self, sum: UFDRNum) -> Option<Chroma> {
         debug_assert!(sum.is_valid_sum(), "sum: {sum:?}");
         if sum.is_hue_valid() {
             match sum.cmp(&(UFDRNum::ONE + self.param)) {

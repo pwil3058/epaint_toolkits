@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::fixed_denominator_rational_numbers::{
     AsProportion, FDRNum, IntoProp, Prop, UFDRNum,
-    debug::{AbsDiff, ApproxEq, PropDiff},
+    debug::{AbsDiff, PropDiff},
 };
 
 use crate::hue::{Hue, HueBasics};
