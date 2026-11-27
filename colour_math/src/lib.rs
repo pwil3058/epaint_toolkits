@@ -52,6 +52,7 @@ impl LightLevel for u32 {}
 impl LightLevel for u64 {}
 impl LightLevel for Prop {}
 // NB f64 LightLevel should only be used when working with systems that are dumb enough to use them
+// as they don't implement Eq some fucntionality will not work.
 impl LightLevel for f64 {}
 
 pub trait HueConstants: Sized + Copy {

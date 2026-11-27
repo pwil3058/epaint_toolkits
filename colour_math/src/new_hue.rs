@@ -37,42 +37,47 @@ pub enum Sextant {
     GreenBlue,
 }
 
-impl<L: LightLevel> TryFrom<RGB<L>> for Sextant {
+impl<L: LightLevel + Ord> TryFrom<RGB<L>> for Sextant {
     type Error = &'static str;
 
     fn try_from(rgb: RGB<L>) -> Result<Self, Self::Error> {
         println!("RGB: {rgb:?}");
-        if rgb.red() > rgb.green() {
-            // Red > Green ?Blue
-            if rgb.green() > rgb.blue() {
-                // Red > Green > Blue
-                Ok(Self::RedGreen)
-            } else if rgb.red() > rgb.blue() {
-                // Red > Blue >= Green
-                Ok(Self::RedBlue)
-            } else {
-                // Blue >= Red > Green
-                Ok(Self::BlueRed)
-            }
-        } else if rgb.green() > rgb.blue() {
-            // Green >= Red && Green > Blue
-            if rgb.blue() > rgb.red() {
-                // Green > Blue > Red
-                Ok(Self::GreenBlue)
-            } else {
-                // Green >= Red >= Blue
-                Ok(Self::GreenRed)
-            }
-        } else if rgb.blue() > rgb.green() {
-            // Blue > Green >= Red
-            Ok(Self::BlueGreen)
-        } else {
-            Err("grey")
+        use Sextant::*;
+        match rgb.red().cmp(&rgb.green()) {
+            Ordering::Equal => match rgb.red().cmp(&rgb.blue()) {
+                Ordering::Equal => Err("grey"),    // R == G == B
+                Ordering::Less => Ok(BlueRed),     // B > R == G - Blue
+                Ordering::Greater => Ok(RedGreen), // R == G > B - Yellow
+            },
+            Ordering::Less => match rgb.red().cmp(&rgb.blue()) {
+                Ordering::Equal => Ok(GreenBlue), // G > R == B - Green
+                Ordering::Less => {
+                    // G > R && B > R
+                    match rgb.green().cmp(&rgb.blue()) {
+                        Ordering::Equal => Ok(GreenBlue),   // G == B > R - Cyan
+                        Ordering::Less => Ok(BlueGreen),    // B > G > R - BG
+                        Ordering::Greater => Ok(GreenBlue), // G > B > R - GB
+                    }
+                }
+                Ordering::Greater => Ok(GreenRed), // G > R > B - GR
+            },
+            Ordering::Greater => match rgb.red().cmp(&rgb.blue()) {
+                Ordering::Equal => Ok(RedBlue), // R == B > G - Magenta
+                Ordering::Less => Ok(BlueRed),  // B > R > G - BR
+                Ordering::Greater => {
+                    // R > G && R > B
+                    match rgb.green().cmp(&rgb.blue()) {
+                        Ordering::Equal => Ok(RedBlue),    // R > G == B - Red
+                        Ordering::Less => Ok(RedBlue),     // R > B > G - RB
+                        Ordering::Greater => Ok(RedGreen), // R > G > B - RG
+                    }
+                }
+            },
         }
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy)]
 pub struct Hue {
     pub sextant: Sextant,
     pub param: Prop,
@@ -94,15 +99,15 @@ impl HueConstants for Hue {
 
     const CYAN: Self = Self {
         sextant: Sextant::GreenBlue,
-        param: Prop::ZERO,
+        param: Prop::ONE,
     };
     const MAGENTA: Self = Self {
         sextant: Sextant::BlueRed,
-        param: Prop::ZERO,
+        param: Prop::ONE,
     };
     const YELLOW: Self = Self {
         sextant: Sextant::RedGreen,
-        param: Prop::ZERO,
+        param: Prop::ONE,
     };
 
     const BLUE_CYAN: Self = Self {
@@ -131,6 +136,40 @@ impl HueConstants for Hue {
     };
 }
 
+impl PartialEq for Hue {
+    fn eq(&self, other: &Self) -> bool {
+        // We cant' gaurantee pure Red, Green, Blue, Cyan, Magenta and Yellow hues don't have different sextants
+        use Sextant::*;
+        match self.param {
+            Prop::ZERO => {
+                if other.param == Prop::ZERO {
+                    match self.sextant {
+                        RedGreen | RedBlue => [RedGreen, RedBlue].contains(&other.sextant),
+                        GreenRed | GreenBlue => [GreenRed, GreenBlue].contains(&other.sextant),
+                        BlueGreen | BlueRed => [BlueGreen, BlueRed].contains(&other.sextant),
+                    }
+                } else {
+                    false
+                }
+            }
+            Prop::ONE => {
+                if other.param == Prop::ONE {
+                    match self.sextant {
+                        RedGreen | GreenRed => [RedGreen, GreenRed].contains(&other.sextant),
+                        BlueGreen | GreenBlue => [BlueGreen, GreenBlue].contains(&other.sextant),
+                        RedBlue | BlueRed => [RedBlue, BlueRed].contains(&other.sextant),
+                    }
+                } else {
+                    false
+                }
+            }
+            param => self.sextant == other.sextant && param == other.param,
+        }
+    }
+}
+
+impl Eq for Hue {}
+
 impl Ord for Hue {
     fn cmp(&self, other: &Hue) -> Ordering {
         use Sextant::*;
@@ -151,7 +190,7 @@ impl PartialOrd for Hue {
     }
 }
 
-impl<L: LightLevel> TryFrom<RGB<L>> for Hue {
+impl<L: LightLevel + Ord> TryFrom<RGB<L>> for Hue {
     type Error = &'static str;
 
     /// Try to convert a `Hue` from an `RGB`. Fails if RGB is a grey.
