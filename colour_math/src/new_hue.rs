@@ -11,6 +11,15 @@ pub enum HueResult<T: Sized + Clone + Copy + PartialEq + Eq + Debug> {
     Grey(T),
 }
 
+impl<T: Sized + Clone + Copy + PartialEq + Eq + Debug> HueResult<T> {
+    fn hued(&self) -> Result<T, &'static str> {
+        match self {
+            Self::Hued(t) => Ok(*t),
+            Self::Grey(_) => Err("attempt to get hued value from grey"),
+        }
+    }
+}
+
 impl<T: Sized + Clone + Copy + PartialEq + Eq + Debug + ApproxEq> ApproxEq for HueResult<T> {
     fn approx_eq(&self, other: &Self, limit: Option<u64>) -> bool {
         match self {
@@ -461,30 +470,33 @@ impl Hue {
         &self,
         c_prop: Prop,
         sum: UFDRNum,
-    ) -> Option<(Prop, UFDRNum)> {
+    ) -> HueResult<(Prop, UFDRNum)> {
+        use HueResult::*;
         debug_assert!(sum.is_valid_sum());
-        match sum.cmp(&self.sum_for_max_chroma()) {
-            Ordering::Equal => Some((c_prop, sum)),
-            Ordering::Greater => {
-                let max_sum = self
-                    .max_sum_for_chroma_prop(c_prop)
-                    .expect("chroma is non zero");
-                if sum > max_sum {
-                    Some((c_prop, max_sum))
-                } else {
-                    Some((c_prop, sum))
-                }
-            }
-            Ordering::Less => {
-                let min_sum = self
-                    .min_sum_for_chroma_prop(c_prop)
-                    .expect("chroma is non zero");
-                if sum < min_sum {
-                    Some((c_prop, min_sum))
-                } else {
-                    Some((c_prop, sum))
-                }
-            }
+        match self.adjusted_sum(sum, c_prop) {
+            Hued(adj_sum) => Hued((c_prop, adj_sum)),
+            Grey(adj_sum) => Grey((Prop::ZERO, adj_sum)),
+        }
+    }
+
+    pub fn adjust_preferencing_sum(
+        &self,
+        sum: UFDRNum,
+        c_prop: Prop,
+    ) -> HueResult<(Prop, UFDRNum)> {
+        use HueResult::*;
+        debug_assert!(sum.is_valid_sum());
+        if let Some(max_c_prop) = self.max_chroma_prop_for_sum(sum)
+            && c_prop != Prop::ZERO
+        {
+            let c_prop = c_prop.min(max_c_prop);
+            let sum = self
+                .adjusted_sum(sum, c_prop)
+                .hued()
+                .expect("c_prop is non zero");
+            Hued((c_prop, sum))
+        } else {
+            Grey((c_prop, sum.as_valid_grey_sum()))
         }
     }
 }
